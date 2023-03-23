@@ -1,0 +1,47 @@
+{
+  "name": "v3-interface",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
+  },
+  "dependencies": {
+    "@cfxjs/use-wallet-react": "0.0.1-33",
+    "@react-spring/web": "^9.7.1",
+    "@tippyjs/react": "^4.2.6",
+    "@use-gesture/react": "^10.2.24",
+    "clsx": "^1.2.1",
+    "custom-react-scrollbar": "^0.0.4",
+    "ethers": "^6.2.0",
+    "localstorage-enhance": "1.0.1",
+    "lodash-es": "^4.17.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-error-boundary": "^4.0.1",
+    "react-hook-form": "^7.43.7",
+    "react-router-dom": "^6.9.0",
+    "react-window": "^1.8.8",
+    "recoil": "^0.7.7",
+    "recoil-nexus": "^0.4.0",
+    "reseter.css": "^2.0.0",
+    "zustand": "^4.3.6"
+  },
+  "devDependencies": {
+    "@iconify/json": "^2.2.38",
+    "@types/lodash-es": "^4.17.7",
+    "@types/node": "^18.15.5",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@unocss/preset-icons": "^0.50.6",
+    "@unocss/preset-wind": "^0.50.6",
+    "@unocss/transformer-directives": "^0.50.6",
+    "@vitejs/plugin-react-swc": "^3.2.0",
+    "typescript": "^5.0.2",
+    "unocss": "^0.50.6",
+    "vite": "^4.2.1",
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-svgr": "^2.4.0"
+  }
+}
