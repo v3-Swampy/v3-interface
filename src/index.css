@@ -1,0 +1,69 @@
+body {
+  @apply m-0 p-0 overflow-hidden h-full;
+  background: radial-gradient(100% 100% at 50% 0%, rgba(255, 184, 226, 0.51) 0%, rgba(255, 255, 255, 0) 100%), rgb(255, 255, 255);
+
+}
+
+
+.main-scroller {
+  @apply w-100vw h-[calc(100vh-84px)] lt-md:h-[calc(100vh-56px)] overflow-x-hidden;
+}
+
+.main-scroller > .scrollbar__content {
+  @apply overflow-x-hidden;
+}
+
+#root > .scrollbar__wrapper > .scrollbar__thumbPlaceholder--horizontal{
+  @apply !display-none;
+}
+
+.scrollbar__thumb {
+  @apply bg-white;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+ul,
+ol {
+  padding-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+p {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+input {
+  outline: none;
+  border: none;
+  background: transparent;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  appearance: none !important;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.dropdown-shadow {
+  box-shadow: 0px 4px 8px rgba(22, 20, 35, 0.25);
+}
+
+.contain-content {
+  contain: content;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+.contain-size {
+  contain: size style paint;
+}
