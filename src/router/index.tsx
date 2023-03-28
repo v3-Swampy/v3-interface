@@ -6,7 +6,8 @@ import Navbar, { FooterBar } from '@modules/Navbar';
 import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
-import { SwapPage, PoolPage, FarmingPage, StakingPage } from './lazyPages';
+import SwapPage from '@pages/Swap';
+import { PoolPage, FarmingPage, StakingPage } from './lazyPages';
 
 export const routes = [
   {

@@ -1,22 +1,27 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, useTransition, type ComponentProps } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, type ComponentProps } from 'react';
 import { debounce } from 'lodash-es';
 import { sendTransaction, Unit } from '@cfxjs/use-wallet-react/ethereum';
-import useI18n from '@hooks/useI18n';
+import useI18n, { compiled } from '@hooks/useI18n';
 import { createERC20Contract } from '@contracts/index';
 import Button from '@components/Button';
 import { fetchChain } from '@utils/fetch';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
+import { useBalance } from '@service/balance';
 import { getTokenByAddress } from '@service/tokens';
 
 export type Status = 'checking-approve' | 'need-approve' | 'approving' | 'approved';
 
 const transitions = {
   en: {
+    checking_balance: 'Checking Balance...',
+    insufficient_balance: 'Insufficient {token} Balance',
     need_approve: 'Need Approve',
     checking_approve: 'Checking Approve...',
   },
   zh: {
+    checking_balance: '检测约中...',
+    insufficient_balance: '{token} 余额不足',
     need_approve: '需要许可',
     checking_approve: '检测许可中...',
   },
@@ -28,20 +33,28 @@ interface Props extends ComponentProps<typeof Button> {
   amount: string;
 }
 
-const AuthApproveButton: React.FC<Props> = ({ children, tokenAddress, contractAddress, amount, ...props }) => {
+/**
+ * Detects whether a token has sufficient balance / sufficient authorization amount.
+ * If the detection passes, the children element is displayed. (The priority of the balance is higher than approve)
+ * Otherwise, the insufficient amount tip and the button with the approve function are displayed.
+ */
+const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddress, amount, ...props }) => {
   const i18n = useI18n(transitions);
-  const [isPending, startTransition] = useTransition();
 
   const needApprove = tokenAddress !== 'CFX';
   const account = useAccount();
-  const [status, setStatus] = useState<Status>('checking-approve');
+
+  const balance = useBalance(tokenAddress);
+  const token = useMemo(() => getTokenByAddress(tokenAddress), [tokenAddress]);
   const tokenContract = useMemo(() => (tokenAddress ? createERC20Contract(tokenAddress) : undefined), [tokenAddress]);
+  const amountUnit = useMemo(() => (amount && token?.decimals ? Unit.fromStandardUnit(amount, token.decimals) : null), [amount, token?.decimals]);
+
+  const [status, setStatus] = useState<Status>('checking-approve');
 
   const checkApproveFunc = useRef<VoidFunction>();
   useEffect(() => {
     checkApproveFunc.current = async () => {
-      const token = getTokenByAddress(tokenAddress);
-      if (!token || !tokenContract || !account || !contractAddress || !amount) return;
+      if (!token || !amountUnit || !tokenContract || !account || !contractAddress || !amount) return;
       try {
         setStatus('checking-approve');
 
@@ -49,7 +62,6 @@ const AuthApproveButton: React.FC<Props> = ({ children, tokenAddress, contractAd
           params: [{ data: tokenContract.func.encodeFunctionData('allowance', [account, contractAddress]), to: tokenContract.address }, 'latest'],
         });
         const allowance = tokenContract.func.decodeFunctionResult('allowance', fetchRes)?.[0];
-        const amountUnit = Unit.fromStandardUnit(amount, token.decimals);
         const approveBalance = Unit.fromMinUnit(String(allowance));
 
         if (approveBalance.greaterThanOrEqualTo(amountUnit)) {
@@ -97,13 +109,22 @@ const AuthApproveButton: React.FC<Props> = ({ children, tokenAddress, contractAd
     checkApprove();
   }, [tokenAddress, needApprove, amount]);
 
-  if (!account || !amount || !needApprove || status === 'approved') return children as React.ReactElement;
+  const checkingBalance = balance === null;
+  const isBalanceSufficient = useMemo(() => (balance && amountUnit ? balance.greaterThanOrEqualTo(amountUnit) : null), [balance, amountUnit]);
+
+  if (!account || !amount || (isBalanceSufficient && !needApprove) || status === 'approved') return children as React.ReactElement;
 
   return (
-    <Button id="auth-approve-btn" {...props} onClick={handleApprove} loading={status === 'approving'} disabled={status === 'checking-approve'}>
-      {status === 'checking-approve' && !isPending ? i18n.checking_approve : i18n.need_approve}
+    <Button id="auth-approve-btn" {...props} onClick={handleApprove} loading={status === 'approving'} disabled={status === 'checking-approve' || !isBalanceSufficient}>
+      {checkingBalance
+        ? i18n.checking_balance
+        : !isBalanceSufficient
+        ? compiled(i18n.insufficient_balance, { token: token?.symbol ?? '' })
+        : status === 'checking-approve'
+        ? i18n.checking_approve
+        : i18n.need_approve}
     </Button>
   );
 };
 
-export default AuthApproveButton;
+export default AuthTokenButton;

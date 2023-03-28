@@ -3,6 +3,11 @@ import { targetChainId, useAccount, useChainId, switchChain } from '@service/acc
 import Button from '@components/Button';
 import showAccountConnector from '@modules/Navbar/AccountConnector';
 
+/**
+ * Detects if the wallet is connected and is on the correct network.
+ * If the detection passes, the children element is displayed.
+ * Otherwise, the button with the connection and switch network functions is displayed.
+ */
 const AuthConnectButton: React.FC<ComponentProps<typeof Button>> = ({ children, ...props }) => {
   const account = useAccount();
   const chainId = useChainId();

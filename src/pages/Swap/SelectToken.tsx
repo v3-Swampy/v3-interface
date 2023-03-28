@@ -3,6 +3,7 @@ import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 're
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/conflux/Fluent';
 import Input from '@components/Input';
+import Button from '@components/Button';
 import BorderBox from '@components/Box/BorderBox';
 import Balance from '@modules/Balance';
 import useI18n from '@hooks/useI18n';
@@ -73,9 +74,15 @@ const SelectToken: React.FC<Props> = ({ type, register, setValue }) => {
           {i18n.balance}:{' '}
           <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals}>
             {(balance) => (
-              <button className="ml-12px text-12px" disabled={!balance || balance === '0'} onClick={() => setValue(`${type}-amount`, balance)}>
+              <Button
+                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
+                color="orange"
+                disabled={!balance || balance === '0'}
+                onClick={() => setValue(`${type}-amount`, balance)}
+                type="button"
+              >
                 {i18n.max}
-              </button>
+              </Button>
             )}
           </Balance>
         </div>
