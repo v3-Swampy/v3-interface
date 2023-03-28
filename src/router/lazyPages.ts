@@ -8,14 +8,12 @@ const lazyWithPreload = (factory: Factory) => {
   return Component;
 };
 
-export const SwapPage = lazyWithPreload(() => import('@pages/Swap'));
 export const PoolPage = lazyWithPreload(() => import('@pages/Pool'));
 export const FarmingPage = lazyWithPreload(() => import('@pages/Farming'));
 export const StakingPage = lazyWithPreload(() => import('@pages/Staking'));
 
 (function () {
   const preLoadAll = () => {
-    SwapPage.preload();
     PoolPage.preload();
     FarmingPage.preload();
     StakingPage.preload();

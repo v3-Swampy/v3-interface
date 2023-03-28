@@ -40,17 +40,17 @@ button.button--text.is-disabled {
   @apply border-none;
 }
 
-.button--contained.button--purple {
-  @apply bg-purple-normal text-grey-normal;
+.button--contained.button--orange {
+  @apply bg-orange-normal text-white-normal;
 }
 
 .button--contained.button--purple:hover,
 .button--contained.button--purple:focus-visible {
-  @apply bg-purple-normal-hover text-grey-normal-hover;
+  @apply bg-orange-normal text-white-normal;
 }
 
 .button--contained.button--gradient {
-  @apply text-#FFFDFA;
+  @apply text-white-normal;
   background: linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
 }
 
@@ -64,22 +64,13 @@ button.button--text.is-disabled {
   @apply border-none;
 }
 
-.button--text.button--purple {
-  @apply bg-transparent bg-opacity-100 text-purple-normal;
+.button--text.button--orange {
+  @apply bg-transparent bg-opacity-100 text-orange-normal;
 }
 
-.button--text.button--purple:hover,
-.button--text.button--purple:focus-visible {
-  @apply bg-purple-normal bg-opacity-10 text-purple-normal-hover;
-}
-
-.button--text.button--white {
-  @apply bg-transparent bg-opacity-100 text-grey-normal;
-}
-
-.button--text.button--white:hover,
-.button--text.button--white:focus-visible {
-  @apply bg-grey-normal bg-opacity-10 text-grey-normal-hover;
+.button--text.button--orange:hover,
+.button--text.button--orange:focus-visible {
+  @apply bg-orange-normal bg-opacity-10 text-white-normal;
 }
 
 /* outlined button */
@@ -87,13 +78,13 @@ button.button--text.is-disabled {
   @apply bg-transparent;
 }
 
-.button--outlined.button--purple {
-  @apply border border-purple-normal text-grey-normal;
+.button--outlined.button--orange {
+  @apply border-1px border-solid border-orange-normal text-orange-normal;
 }
 
-.button--outlined.button--purple:hover,
-.button--outlined.button--purple:focus-visible {
-  @apply border-purple-normal-hover text-grey-normal-hover;
+.button--outlined.button--orange:hover,
+.button--outlined.button--orange:focus-visible {
+  @apply border-orange-normal text-orange-normal;
 }
 
 .button__content {
