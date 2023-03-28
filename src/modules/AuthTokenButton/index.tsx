@@ -34,7 +34,7 @@ interface Props extends ComponentProps<typeof Button> {
 }
 
 /**
- * Detects whether a token has sufficient balance / sufficient authorization amount.
+ * Detects whether a token has sufficient balance / sufficient approve amount.
  * If the detection passes, the children element is displayed. (The priority of the balance is higher than approve)
  * Otherwise, the insufficient amount tip and the button with the approve function are displayed.
  */
