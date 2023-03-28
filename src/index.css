@@ -1,9 +1,55 @@
-body {
-  @apply m-0 p-0 overflow-hidden h-full;
-  background: radial-gradient(100% 100% at 50% 0%, rgba(255, 184, 226, 0.51) 0%, rgba(255, 255, 255, 0) 100%), rgb(255, 255, 255);
-
+html {
+  font-family: 'Outfit';
+  scroll-behavior: smooth;
 }
 
+input {
+  font-family: 'Outfit';
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Light.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 300;
+  font-display: auto;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Regular.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: auto;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Medium.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 500;
+  font-display: auto;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-SemiBold.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+  font-display: auto;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('./assets/fonts/Outfit-Bold.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+  font-display: auto;
+}
+
+body {
+  @apply m-0 p-0 overflow-hidden h-full bg-white-normal;
+}
 
 .main-scroller {
   @apply w-100vw h-[calc(100vh-84px)] lt-md:h-[calc(100vh-56px)] overflow-x-hidden;
@@ -13,12 +59,12 @@ body {
   @apply overflow-x-hidden;
 }
 
-#root > .scrollbar__wrapper > .scrollbar__thumbPlaceholder--horizontal{
+#root > .scrollbar__wrapper > .scrollbar__thumbPlaceholder--horizontal {
   @apply !display-none;
 }
 
 .scrollbar__thumb {
-  @apply bg-white;
+  @apply bg-#EE9B27;
 }
 
 * {
@@ -36,24 +82,15 @@ p {
   margin-block-end: 0;
 }
 
-input {
+button {
+  display: inline-flex;
+  font-weight: 500;
+  justify-content: center;
+  align-items: center;
   outline: none;
+  cursor: pointer;
   border: none;
-  background: transparent;
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  appearance: none !important;
-  margin: 0;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-
-.dropdown-shadow {
-  box-shadow: 0px 4px 8px rgba(22, 20, 35, 0.25);
+  white-space: nowrap;
 }
 
 .contain-content {

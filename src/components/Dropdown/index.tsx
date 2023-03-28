@@ -9,7 +9,7 @@ const Dropdown: React.FC<Props> = ({
   arrow = false,
   trigger = 'click',
   interactive = true,
-  sameWidth = true,
+  sameWidth = false,
   ...props
 }) => {
   return (

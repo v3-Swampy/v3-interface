@@ -8,8 +8,6 @@ import presetWind from '@unocss/preset-wind';
 import transformerDirective from '@unocss/transformer-directives';
 import svgr from 'vite-plugin-svgr';
 
-
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     svgr(),
@@ -36,7 +34,29 @@ export default defineConfig({
           xl: '1280px',
           '2xl': '1536px',
         },
-        colors: {},
+        colors: {
+          orange: {
+            normal: '#E14E28', // className="bg-purple-primary"
+            light: '#FFE9CB',
+            lightHover: '#FFF5E7',
+          },
+          black: {
+            normal: '#225050',
+            light: '#769292',
+          },
+          gray: {
+            normal: '#C2C4D0',
+          },
+          white: {
+            normal: '#FFFDFA',
+          },
+          error: {
+            normal: '#E96170',
+          },
+        },
+        boxShadow: {
+          popper: '0px 4px 16px rgba(0,0,0,0.16)',
+        },
       },
     }),
     react(),
@@ -56,9 +76,14 @@ export default defineConfig({
     },
   },
   build: {
-    minify: false,
     rollupOptions: {
-      output: {},
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules') && !id.includes('buffer') && !id.includes('polyfill')) {
+            return 'vendor';
+          }
+        },
+      },
     },
   },
   optimizeDeps: {

@@ -2,10 +2,11 @@ import React, { memo, useCallback, useEffect, useRef, type ReactNode } from 'rea
 import cx from 'clsx';
 import { useAccount } from '@service/account';
 import { PopupClass } from '@components/Popup';
+import BorderBox from '@components/Box/BorderBox';
 import renderReactNode from '@utils/renderReactNode';
 import usePressEsc from '@hooks/usePressEsc';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
-import { recordCurrentPopup } from '../';
+import { recordCurrentPopup, hidePopup } from '../';
 import './index.css';
 
 export const ModalPopup = new PopupClass(true);
@@ -22,26 +23,25 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; className?
       hasInit.current = true;
       return;
     }
-    history.back();
+    hidePopup();
   }, [account]);
 
-  const backHistory = useCallback(() => history.back(), []);
   const handleClose = useCallback(() => {
     ModalPopup.hideAll();
     onClose?.();
   }, [onClose]);
 
-  usePressEsc(backHistory);
+  usePressEsc(hidePopup);
   useCloseOnRouterBack(handleClose);
 
   return (
-    <div className={cx('relative w-90vw max-w-400px p-24px rounded-24px bg-white overflow-hidden dropdown-shadow', className)}>
-      <div className="mb-16px flex justify-between items-center text-16px text-#0d111c font-medium">
+    <BorderBox variant="gradient-white" className={cx('relative w-90vw max-w-400px px-16px py-24px rounded-24px overflow-hidden shadow-popper', className)}>
+      <div className="px-8px flex justify-between items-center text-14px text-black-normal">
         {title}
-        <span className="i-ep:close-bold text-20px text-#7780a0 cursor-pointer" onClick={backHistory} />
+        <span className="i-ep:close-bold text-14px cursor-pointer" onClick={hidePopup} />
       </div>
       {renderReactNode(Content)}
-    </div>
+    </BorderBox>
   );
 });
 

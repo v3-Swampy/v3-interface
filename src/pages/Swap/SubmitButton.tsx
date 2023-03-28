@@ -1,6 +1,12 @@
 import React, { memo } from 'react';
-import useI18n from '@hooks/useI18n';
+import cx from 'clsx';
+import { type UseFormWatch, type FieldValues } from 'react-hook-form';
 import { useSourceToken, useDestinationToken } from '@service/swap';
+import Button from '@components/Button';
+import AuthConnectButton from '@modules/AuthConnectButton';
+import AuthApproveButton from '@modules/AuthApproveButton';
+import { UniswapV3Factory } from '@contracts/index';
+import useI18n from '@hooks/useI18n';
 
 const transitions = {
   en: {
@@ -13,14 +19,36 @@ const transitions = {
   },
 } as const;
 
-const SubmitButton: React.FC = () => {
+interface Props {
+  sourceTokenAmount: string;
+}
+
+const SubmitButton: React.FC<Props> = ({ sourceTokenAmount }) => {
   const i18n = useI18n(transitions);
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
+  const isBothTokenSelected = sourceToken && destinationToken;
 
-  const isTokenSelected = sourceToken && destinationToken;
-
-  return <button className="w-full block mt-24px" disabled={!isTokenSelected}>{isTokenSelected ? i18n.swap : i18n.please_select_token}</button>;
+  return (
+    <AuthConnectButton {...buttonProps}>
+      <AuthApproveButton {...buttonProps} tokenAddress={sourceToken?.address} contractAddress={UniswapV3Factory.address} amount={sourceTokenAmount}>
+        <Button
+          className={cx(buttonProps.className, !isBothTokenSelected && 'pointer-events-none')}
+          color="gradient"
+          fullWidth
+          disabled={!isBothTokenSelected}
+        >
+          {isBothTokenSelected ? i18n.swap : i18n.please_select_token}
+        </Button>
+      </AuthApproveButton>
+    </AuthConnectButton>
+  );
 };
+
+const buttonProps = {
+  className: 'mt-24px h-40px text-18px rounded-100px',
+  color: 'gradient',
+  fullWidth: true,
+} as const;
 
 export default memo(SubmitButton);

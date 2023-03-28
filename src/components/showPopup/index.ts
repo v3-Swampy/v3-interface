@@ -13,4 +13,15 @@ export const recordToHidePopup = () => {
   };
 };
 
-export const hideAll = () => history.back();
+export const hidePopup = () => {
+  setTimeout(() => {
+    const url = new URL(location.href);
+    url.hash = '';
+    const newUrl = url.toString();
+
+    history.back();
+    setTimeout(() => {
+      history.replaceState(null, '', newUrl);
+    }, 16);
+  }, 16);
+};

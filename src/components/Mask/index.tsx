@@ -1,16 +1,11 @@
-import { useEffect, type ComponentProps } from 'react';
-import { a, useTransition } from '@react-spring/web';
+import { useEffect, ComponentProps } from 'react';
+import { a, useTransition, type AnimatedComponent } from '@react-spring/web';
 import classNames from 'clsx';
 import { lock, clearBodyLocks } from '@utils/body-scroll-lock';
 
-type OverWrite<T, U> = Omit<T, keyof U> & U;
-
-export type Props = OverWrite<
-  ComponentProps<'div'>,
-  {
-    open: boolean;
-  }
->;
+export interface Props extends ComponentProps<'div'> {
+  open: boolean;
+}
 
 const Mask = ({ open, className, style, ...props }: Props) => {
   const transitions = useTransition(open, {
@@ -29,7 +24,11 @@ const Mask = ({ open, className, style, ...props }: Props) => {
   return transitions(
     (styles, item) =>
       item && (
-        <a.div className={classNames('fixed left-0 top-0 w-full h-full bg-#110f1b bg-opacity-80 z-[200] contain-strict', className)} style={{ ...style, ...styles }} {...props} />
+        <a.div
+          className={classNames('fixed left-0 top-0 w-full h-full bg-#110f1b bg-opacity-80 z-[200] contain-strict', className)}
+          style={{ ...style, ...styles }}
+          {...(props as AnimatedComponent<'div'>)}
+        />
       )
   );
 };

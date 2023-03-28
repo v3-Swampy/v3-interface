@@ -1,0 +1,127 @@
+import { atom, useRecoilValue } from 'recoil';
+import { getRecoil, setRecoil } from 'recoil-nexus';
+import { getTokenByAddress, setCommonToken, deleteFromCommonTokens, type Token } from '@service/tokens';
+
+/** <--------------- Two-lane Data-Binding TokenAddressState & URLSearchParams -----------------> */
+const getValidTokenBySearchParams = (type: 'sourceToken' | 'destinationToken') => {
+  const url = new URL(location.href);
+  const tokenAddress = url.searchParams.get(type);
+  return tokenAddress && !!getTokenByAddress(tokenAddress) ? tokenAddress : null;
+};
+
+const updateTokenInSearchParams = ({ type, tokenAddress }: { type: 'sourceToken' | 'destinationToken'; tokenAddress: string | null }) => {
+  const url = new URL(location.href);
+  if (!tokenAddress) {
+    url.searchParams.delete(type);
+  } else {
+    if (url.searchParams.has(type)) {
+      url.searchParams.set(type, tokenAddress);
+    } else {
+      url.searchParams.append(type, tokenAddress);
+    }
+  }
+  const newUrl = url.toString();
+  history.replaceState(null, '', newUrl);
+};
+
+/** <--------------- Source Token -----------------> */
+export const sourceTokenAddressState = atom<string | null>({
+  key: `sourceTokenAddressState-${import.meta.env.MODE}`,
+  default: null,
+  effects: [
+    ({ onSet, setSelf }) => {
+      // If no token is given from searchParams, set sourceToken to CFX.
+      const sourceTokenFromSearchParams = getValidTokenBySearchParams('sourceToken');
+      if (!sourceTokenFromSearchParams && !getValidTokenBySearchParams('destinationToken')) {
+        setSelf('CFX');
+      } else {
+        setSelf(sourceTokenFromSearchParams);
+      }
+
+      onSet((newSourceTokenAddress) => updateTokenInSearchParams({ type: 'sourceToken', tokenAddress: newSourceTokenAddress }));
+    },
+  ],
+});
+
+export const useSourceToken = () => {
+  const tokenAddress = useRecoilValue(sourceTokenAddressState);
+  if (!tokenAddress) return null;
+  return getTokenByAddress(tokenAddress);
+};
+export const getSourceToken = () => getTokenByAddress(getRecoil(sourceTokenAddressState));
+
+
+/** <--------------- Destination Token -----------------> */
+export const destinationTokenAddressState = atom<string | null>({
+  key: `destinationTokenAddressState-${import.meta.env.MODE}`,
+  default: null,
+  effects: [
+    ({ onSet, setSelf }) => {
+      setSelf(getValidTokenBySearchParams('destinationToken'));
+      onSet((newDestinationToken) => updateTokenInSearchParams({ type: 'destinationToken', tokenAddress: newDestinationToken }));
+    },
+  ],
+});
+
+export const useDestinationToken = () => {
+  const tokenAddress = useRecoilValue(destinationTokenAddressState);
+  if (!tokenAddress) return null;
+  return getTokenByAddress(tokenAddress);
+};
+
+export const getDestinationToken = () => getTokenByAddress(getRecoil(destinationTokenAddressState));
+
+
+/** <--------------- Token Operate -----------------> */
+export const exchangeTokenDirection = () => {
+  const sourceTokenAddress = getRecoil(sourceTokenAddressState);
+  const destinationTokenAddress = getRecoil(destinationTokenAddressState);
+  setRecoil(sourceTokenAddressState, destinationTokenAddress);
+  setRecoil(destinationTokenAddressState, sourceTokenAddress);
+};
+
+export const setToken = ({ type, token }: { type: 'sourceToken' | 'destinationToken'; token: Token }) => {
+  const tokenAddressState = type === 'sourceToken' ? sourceTokenAddressState : destinationTokenAddressState;
+  const anotherTokenAddressState = type === 'sourceToken' ? destinationTokenAddressState : sourceTokenAddressState;
+  const anotherTokenAddress = getRecoil(anotherTokenAddressState);
+
+  if (!getTokenByAddress(token.address)) {
+    deleteFromCommonTokens(token);
+    setRecoil(tokenAddressState, null);
+    return;
+  }
+
+  setCommonToken(token);
+  if (token.address === anotherTokenAddress) {
+    exchangeTokenDirection();
+    return;
+  }
+  setRecoil(tokenAddressState, token.address);
+};
+
+
+/** <--------------- Settings -----------------> */
+const slippageToleranceState = atom<number>({
+  key: `slippageToleranceState-${import.meta.env.MODE}`,
+  default: 0.10,
+})
+
+export const useSlippageTolerance = () => useRecoilValue(slippageToleranceState);
+export const setSlippageTolerance = () => {
+  setRecoil(slippageToleranceState, 0.10);
+  const autoSlippageTolerance = getRecoil(autoSlippageToleranceState);
+  if (!autoSlippageTolerance.enable) {
+    setRecoil(autoSlippageToleranceState, pre => ({ ...pre, enable: false }));
+  }
+}
+
+const autoSlippageToleranceState = atom<{ enable: boolean; value: number; }>({
+  key: `autoSlippageToleranceState-${import.meta.env.MODE}`,
+  default: {
+    enable: true,
+    value: 0.10
+  },
+})
+
+export const useAutoSlippageToleranceState = () => useRecoilValue(autoSlippageToleranceState);
+

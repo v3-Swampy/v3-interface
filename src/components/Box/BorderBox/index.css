@@ -1,5 +1,5 @@
 .border-box {
-  @apply border-2px transition-colors;
+  @apply border-2px border-solid transition-colors;
 }
 
 .border-box--none {
@@ -10,15 +10,22 @@
   @apply border-transparent;
 }
 
-.border-box--purple {
-  @apply border-purple-normal;
+.border-box--orange {
+  @apply border-orange-normal;
 }
 
 .border-box--gradient {
   @apply border-transparent;
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
-  background-image: linear-gradient(to right, #24203b, #24203b), linear-gradient(90.83deg, #6667ab 12.22%, #bbbbbb 59.3%, #96d8de 89.06%);
+}
+
+.border-box--gradient-white {
+  background-image: linear-gradient(to right, #fffdfa, #fffdfa), linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
+}
+
+.border-box--gradient-orange-light-hover {
+  background-image: linear-gradient(to right, #fff5e7, #fff5e7), linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
 }
 
 .border-box--gradient.border-box--withInput {

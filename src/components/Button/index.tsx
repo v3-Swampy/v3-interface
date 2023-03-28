@@ -1,4 +1,4 @@
-import React, { createElement, forwardRef, type ReactNode, type PropsWithChildren, type ComponentProps } from 'react';
+import { createElement, forwardRef, type ReactNode, type PropsWithChildren, type ComponentProps } from 'react';
 import cx from 'clsx';
 import Spin from '@components/Spin';
 import renderReactNode from '@utils/renderReactNode';
@@ -7,7 +7,6 @@ import './index.css';
 export interface Props extends ComponentProps<'button'> {
   variant?: 'contained' | 'text' | 'outlined';
   color?: 'purple' | 'gradient' | 'white';
-  size?: 'mini' | 'small' | 'normal' | 'medium';
   fullWidth?: boolean;
   loading?: boolean | 'start' | 'end';
   icon?: ReactNode;
@@ -24,7 +23,6 @@ const Button = forwardRef<HTMLButtonElement, PropsWithChildren<Props>>(
       className,
       variant = 'contained',
       color = 'purple',
-      size = 'normal',
       disabled = false,
       fullWidth = false,
       loading = false,
@@ -39,7 +37,7 @@ const Button = forwardRef<HTMLButtonElement, PropsWithChildren<Props>>(
       props.href ? 'a' : 'button',
       {
         className: cx(
-          `button button--${variant} button--${color} button--${size}`,
+          `button button--${variant} button--${color}`,
           fullWidth && 'button--fullWidth',
           loading === true && 'is-loading',
           disabled && 'is-disabled',

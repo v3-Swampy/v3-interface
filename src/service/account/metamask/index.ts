@@ -4,7 +4,7 @@ import { targetChainId } from '..';
 export { connect, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 
 export const accountState = atom<string | null | undefined>({
-  key: 'metamaskAccountState',
+  key: 'metamaskAccountState-vSwap',
   default: undefined,
   effects: [
     ({ setSelf, trigger }) => {
@@ -22,7 +22,7 @@ export const accountState = atom<string | null | undefined>({
 });
 
 export const chainIdState = atom<string | null | undefined>({
-  key: 'metamaskChainIdState',
+  key: 'metamaskChainIdState-vSwap',
   default: undefined,
   effects: [
     ({ setSelf, trigger }) => {

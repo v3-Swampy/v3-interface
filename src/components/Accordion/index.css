@@ -1,0 +1,15 @@
+.accordion-arrow {
+  @apply transition-transform duration-150;
+}
+
+.accordion-input:checked ~ .accordion-title > .accordion-arrow {
+  @apply rotate-180;
+}
+
+.accordion-content {
+  @apply max-h-0 opacity-0 transition-all duration-150;
+}
+
+.accordion-input:checked ~ .accordion-content {
+  @apply max-h-500px opacity-100;
+}

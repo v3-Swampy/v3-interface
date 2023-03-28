@@ -7,7 +7,7 @@ interface State {
   errorInfo: string | null;
 }
 
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, State> {
+class TopLevelErrorBoundary extends React.Component<{ children: React.ReactNode }, State> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
@@ -47,4 +47,4 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, State
   }
 }
 
-export default ErrorBoundary;
+export default TopLevelErrorBoundary;

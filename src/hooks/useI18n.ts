@@ -1,10 +1,11 @@
 import { atom, useRecoilValue } from 'recoil';
+import { getRecoil } from 'recoil-nexus';
 import { template, templateSettings } from 'lodash-es';
 import LocalStorage from 'localstorage-enhance';
 
 type Local = 'en' | 'zh';
 const localeState = atom<Local>({
-  key: 'localeState',
+  key: 'localeState-vSwap',
   default: (LocalStorage.getItem('locale') as Local) ?? 'en',
 });
 
@@ -17,5 +18,11 @@ const useI18n = <T extends Record<Local, Record<string, string>>>(transitions: T
 
 templateSettings.interpolate = /{([\s\S]+?)}/g;
 export const compiled = (str: string, params: Record<string, string>) => template(str)(params);
+
+
+export const toI18n = <T extends Record<Local, Record<string, string>>>(transitions: T): T[Local] => {
+  const locale = getRecoil(localeState);
+  return transitions[locale];
+}
 
 export default useI18n;

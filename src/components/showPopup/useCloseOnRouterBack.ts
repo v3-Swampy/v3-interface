@@ -9,9 +9,9 @@ const useCloseOnRouterBack = (closeModal: VoidFunction) => {
       closeModal?.();
     };
 
-    window.addEventListener('popstate', handleCloseModal);
+    globalThis.addEventListener('popstate', handleCloseModal);
     return () => {
-      window.removeEventListener('popstate', handleCloseModal);
+      globalThis.removeEventListener('popstate', handleCloseModal);
     };
   }, [closeModal]);
 };
