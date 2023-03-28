@@ -2,7 +2,7 @@ import { type ComponentProps } from 'react';
 import cx from 'clsx';
 import './index.css';
 
-const BorderBox: React.FC<ComponentProps<'div'> & { withInput?: boolean; variant: 'gradient' | 'purple' | 'transparent' | 'none' }> = ({
+const BorderBox: React.FC<ComponentProps<'div'> & { withInput?: boolean; variant: 'gradient-white' | 'gradient-orange-light-hover' | 'orange' | 'transparent' | 'none' }> = ({
   children,
   className,
   variant = 'transparent',
@@ -17,8 +17,10 @@ const BorderBox: React.FC<ComponentProps<'div'> & { withInput?: boolean; variant
           'border-box--withInput': withInput,
           'border-box--none': variant === 'none',
           'border-box--transparent': variant === 'transparent',
-          'border-box--purple': variant === 'purple',
-          'border-box--gradient': variant === 'gradient',
+          'border-box--orange': variant === 'orange',
+          'border-box--gradient': variant === 'gradient-white' || variant === 'gradient-orange-light-hover',
+          'border-box--gradient-white': variant === 'gradient-white',
+          'border-box--gradient-orange-light-hover': variant === 'gradient-orange-light-hover',
         },
         className
       )}

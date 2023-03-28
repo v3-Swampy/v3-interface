@@ -25,7 +25,7 @@ export function fetchChain() {
     fetcher = fetch(rpcUrl ?? import.meta.env.VITE_ESpaceRpcUrl, {
       body: JSON.stringify({
         jsonrpc: '2.0',
-        method: method ?? 'cfx_call',
+        method: method ?? 'eth_call',
         params,
         id: 1,
       }),

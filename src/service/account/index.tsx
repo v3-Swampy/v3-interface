@@ -42,27 +42,28 @@ const methodsMap = {
 type Methods = keyof typeof methodsMap;
 
 export const accountMethodFilter = atom<Methods | null>({
-  key: 'accountFilter',
+  key: 'accountFilter-vSwap',
   default: null,
   effects: [persistAtom],
 });
 
 export const accountState = selector({
-  key: 'account',
+  key: 'account-vSwap',
   get: ({ get }) => {
     const filter = get(accountMethodFilter);
     if (!filter) return null;
-
+    if (!methodsMap[filter]) return null;
     const { accountState } = methodsMap[filter];
     return get(accountState);
   },
 });
 
 export const chainIdState = selector({
-  key: 'chainIdState',
+  key: 'chainIdState-vSwap',
   get: ({ get }) => {
     const filter = get(accountMethodFilter);
     if (!filter) return null;
+    if (!methodsMap[filter]) return null;
 
     return get(methodsMap[filter].chainIdState);
   },
@@ -93,7 +94,7 @@ export const switchChain = () => {
   methodsMap[method].switchChain();
 };
 
-export const sendTransaction = async (params: Parameters<typeof sendTransactionWithFluent>[0] & { from: string }) => {
+export const sendTransaction = async (params: Parameters<typeof sendTransactionWithFluent>[0]) => {
   const accountMethod = getAccountMethod();
   if (!accountMethod) {
     throw new Error('No account connected');

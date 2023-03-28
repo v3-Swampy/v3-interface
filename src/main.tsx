@@ -1,12 +1,11 @@
-import React from 'react'
 import { RecoilRoot } from 'recoil';
 import RecoilNexus from 'recoil-nexus';
-import ReactDOM from 'react-dom/client'
+import ReactDOM from 'react-dom/client';
 import { completeDetect } from '@cfxjs/use-wallet-react/conflux';
 import { initializeRecoil } from '@utils/recoilUtils';
 import { ModalPopup, DrawerPopup, Toast } from '@components/showPopup';
 import { isMobile } from '@utils/is';
-import Router from './router'
+import Router from './router';
 import 'uno.css';
 import 'reseter.css/css/reseter.css';
 import 'custom-react-scrollbar/dist/style.css';
@@ -28,6 +27,11 @@ completeDetect().then(() => {
   );
 });
 
-if (location.hash) {
-  history.replaceState(null, '', location.origin + location.pathname);
-}
+(function () {
+  if (location.hash) {
+    const url = new URL(location.href);
+    url.hash = '';
+    const newUrl = url.toString();
+    history.replaceState(null, '', newUrl);
+  }
+})();

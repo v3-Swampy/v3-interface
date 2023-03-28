@@ -68,27 +68,24 @@ const PopupContainer = forwardRef<PopupMethods>((_, ref) => {
     popupListRef.current = popupList;
   }, [popupList]);
 
-  const pushPopup = useCallback(
-    ({ Content, duration = 3000, showMask = false, key, preventDuplicate, maximum, unique, queue, ...props }: PartialOptional<PopupProps, 'key'>) => {
-      const usedKey = key ?? uniqueId('popup');
+  const pushPopup = useCallback(({ Content, duration = 3000, showMask = false, key, preventDuplicate, maximum, unique, queue, ...props }: PartialOptional<PopupProps, 'key'>) => {
+    const usedKey = key ?? uniqueId('popup');
 
-      setPopupList((curList) => {
-        if (key && curList.find((item: PopupProps) => item.key === key)) return curList;
-        if (queue && curList.length) {
-          listQueue.current.push({ Content, duration, showMask, key: usedKey, preventDuplicate, maximum, unique, ...props });
-          return curList;
-        }
-        if (preventDuplicate && curList.find((item: PopupProps) => item.Content === Content)) return curList;
-        if (maximum && curList.length > 0 && curList.length >= maximum) curList = curList.slice(0, maximum - 1);
-        return [{ key: usedKey, Content, duration, showMask, ...props }, ...(unique && curList.length >= 1 ? [] : curList)];
-      });
-      runAsync(() => {
-        if (showMask) setOpenMask(true);
-      });
-      return usedKey;
-    },
-    []
-  );
+    setPopupList((curList) => {
+      if (key && curList.find((item: PopupProps) => item.key === key)) return curList;
+      if (queue && curList.length) {
+        listQueue.current.push({ Content, duration, showMask, key: usedKey, preventDuplicate, maximum, unique, ...props });
+        return curList;
+      }
+      if (preventDuplicate && curList.find((item: PopupProps) => item.Content === Content)) return curList;
+      if (maximum && curList.length > 0 && curList.length >= maximum) curList = curList.slice(0, maximum - 1);
+      return [{ key: usedKey, Content, duration, showMask, ...props }, ...(unique && curList.length >= 1 ? [] : curList)];
+    });
+    runAsync(() => {
+      if (showMask) setOpenMask(true);
+    });
+    return usedKey;
+  }, []);
 
   const popPopup = useCallback((key: PopupProps['key']) => {
     setTimeout(() => {

@@ -2,7 +2,7 @@ import { fetchChain } from '@utils/fetch';
 
 export const isTransactionReceipt = async (transactionHash: string) => {
   const txReceipt: { epochNumber: string; blockHash: string; transactionHash: string; from: string; to: string } = await fetchChain({
-    method: 'cfx_getTransactionReceipt',
+    method: 'eth_getTransactionReceipt',
     params: [transactionHash],
   });
 
@@ -22,13 +22,13 @@ async function* endlessGenerator() {
 export const waitSeconds = (seconds: number) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 /**
- * @param {Number} maxWaitTime - max wait time in seconds; 0 means endless;
+ * @param {Number} maxRetryCount - max wait time in seconds; 0 means endless;
  */
-const waitAsyncResult = <T extends () => Promise<any>>(fetcher: T, maxWaitTime: number = 44, interval = 3) => {
+const waitAsyncResult = <T extends () => Promise<any>>({ fetcher, maxRetryCount = 9, interval = 3 }: { fetcher: T; maxRetryCount?: number; interval?: number }) => {
   let isStop = false;
   const stop = () => (isStop = true);
   const promise = new Promise<NonNullable<Awaited<ReturnType<T>>>>(async (resolve, reject) => {
-    const generator = maxWaitTime === 0 ? endlessGenerator() : Array.from({ length: Math.floor(maxWaitTime / interval) });
+    const generator = maxRetryCount === 0 ? endlessGenerator() : Array.from({ length: Math.floor(maxRetryCount / interval) });
 
     for await (const _ of generator) {
       try {
@@ -62,7 +62,7 @@ export const getAsyncResult = <T extends () => Promise<any>, K>(fetcher: T, call
       if (isStop) {
         return;
       }
-      
+
       const res = await fetcher();
       if (res) {
         callback(res);

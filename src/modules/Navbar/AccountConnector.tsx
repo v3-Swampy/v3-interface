@@ -1,5 +1,5 @@
 import React, { type ComponentProps } from 'react';
-import { showModal, showDrawer, hideAllModal, hideAllToast } from '@components/showPopup';
+import { showModal, showDrawer } from '@components/showPopup';
 import fluentIcon from '@assets/icons/fluent.svg';
 import metamaskIcon from '@assets/icons/metamask.svg';
 import { connect } from '@service/account';
@@ -8,16 +8,7 @@ import { isMobile } from '@utils/is';
 const ConnectWallet: React.FC<ComponentProps<'div'> & { icon: string; name: string; connect: () => Promise<void> }> = ({ children, connect, icon, name }) => {
   return (
     <div
-      onClick={async () => {
-        try {
-          await connect();
-          if (name !== 'Fluent') {
-            hideAllModal();
-            hideAllToast();
-            history.back();
-          }
-        } catch (_) {}
-      }}
+      onClick={connect}
       className="flex flex-col items-center justify-center w-100px h-100px rounded-8px hover:bg-#26233E transition-colors cursor-pointer"
     >
       {children}

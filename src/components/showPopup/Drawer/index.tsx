@@ -4,7 +4,7 @@ import { useAccount } from '@service/account';
 import { DrawerClass } from '@components/Drawer';
 import renderReactNode from '@utils/renderReactNode';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
-import { recordCurrentPopup } from '../';
+import { recordCurrentPopup, hidePopup } from '../';
 
 export const DrawerPopup = new DrawerClass(true);
 
@@ -17,7 +17,7 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; className
       hasInit.current = true;
       return;
     }
-    history.back();
+    hidePopup();
   }, [account]);
 
   const handleClose = useCallback(() => {
@@ -31,7 +31,7 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; className
     <div className={cx('px-16px p-24px pb-40px h-full', className)}>
       <div className="flex justify-between items-center text-16px text-grey-normal font-bold">
         {title ?? 'title'}
-        <span className="i-ep:close-bold text-24px text-green-normal cursor-pointer" onClick={() => history.back()} />
+        <span className="i-ep:close-bold text-24px text-green-normal cursor-pointer" onClick={hidePopup} />
       </div>
       <div className="mt-16px h-1px bg-#6667ab4c pointer-events-none" />
 
