@@ -33,7 +33,7 @@ export function fetchChain() {
       method: 'POST',
     })
       .then((response) => response.json())
-      .then((res) => res?.result);
+      .then((res) => res?.result === '0x' ? null : res?.result);
   }
 
   if (isPromise(fetcher)) {

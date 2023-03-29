@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { atomFamily, useRecoilStateLoadable } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { throttle } from 'lodash-es';
+import { fetchChain } from '@utils/fetch';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useAccount } from '@service/account';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
@@ -11,39 +12,24 @@ const balanceState = atomFamily<string | null, string>({
 });
 
 const fetchBalance = async ({ account, tokenAddress }: { account: string; tokenAddress: string }) => {
-  let fetchPromise: Promise<Response>;
+  let fetchPromise: Promise<string>;
   if (tokenAddress === 'CFX') {
-    fetchPromise = fetch(import.meta.env.VITE_ESpaceRpcUrl, {
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'eth_getBalance',
-        params: [account, 'latest'],
-        id: 1,
-      }),
-      headers: { 'content-type': 'application/json' },
-      method: 'POST',
+    fetchPromise = fetchChain({
+      method: 'eth_getBalance',
+      params: [account, 'latest'],
     });
   } else {
-    fetchPromise = fetch(import.meta.env.VITE_ESpaceRpcUrl, {
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'eth_call',
-        params: [
-          {
-            data: '0x70a08231000000000000000000000000' + account.slice(2),
-            to: tokenAddress,
-          },
-          'latest',
-        ],
-        id: 1,
-      }),
-      headers: { 'content-type': 'application/json' },
-      method: 'POST',
+    fetchPromise = fetchChain({
+      params: [
+        {
+          data: '0x70a08231000000000000000000000000' + account.slice(2),
+          to: tokenAddress,
+        },
+        'latest',
+      ],
     });
   }
-  const response = await fetchPromise;
-  const res = await response.json();
-  return res?.result === '0x' ? '' : (res?.result as string);
+  return await fetchPromise;
 };
 
 const balanceTracker = new Map<string, boolean>();

@@ -1,7 +1,7 @@
 import React, { useEffect, memo } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import cx from 'clsx';
-import { Unit } from '@cfxjs/use-wallet-react/conflux/Fluent';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Input from '@components/Input';
 import Button from '@components/Button';
 import BorderBox from '@components/Box/BorderBox';
@@ -30,7 +30,7 @@ interface Props {
   setValue: UseFormSetValue<FieldValues>;
 }
 
-const SelectToken: React.FC<Props> = ({ type, register, setValue }) => {
+const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
@@ -50,7 +50,7 @@ const SelectToken: React.FC<Props> = ({ type, register, setValue }) => {
           placeholder="0"
           {...register(`${type}-amount`, {
             required: true,
-            min: Unit.fromMinUnit(1).toDecimalStandardUnit(),
+            min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals),
           })}
         />
 
@@ -91,4 +91,4 @@ const SelectToken: React.FC<Props> = ({ type, register, setValue }) => {
   );
 };
 
-export default memo(SelectToken);
+export default memo(SelectedToken);

@@ -9,6 +9,7 @@ import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
 import { useBalance } from '@service/balance';
 import { getTokenByAddress } from '@service/tokens';
+const Zero = Unit.fromMinUnit(0);
 
 export type Status = 'checking-approve' | 'need-approve' | 'approving' | 'approved';
 
@@ -18,12 +19,14 @@ const transitions = {
     insufficient_balance: 'Insufficient {token} Balance',
     need_approve: 'Need Approve',
     checking_approve: 'Checking Approve...',
+    amount_should_greater_than_zero: 'Amount should greater than zero',
   },
   zh: {
     checking_balance: '检测约中...',
     insufficient_balance: '{token} 余额不足',
     need_approve: '需要许可',
     checking_approve: '检测许可中...',
+    amount_should_greater_than_zero: '输入金额应该大于0',
   },
 } as const;
 
@@ -90,14 +93,13 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       });
 
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
-      const txReceipt = await receiptPromise;
-      checkApprove();
-      return txReceipt;
+      await receiptPromise;
+      checkApproveFunc.current?.();
     } catch (err) {
       setStatus('need-approve');
       console.error('Handle approve err', err);
     }
-  }, [checkApprove]);
+  }, []);
 
   useEffect(() => {
     if (status !== 'checking-approve') {
@@ -110,13 +112,23 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
   }, [tokenAddress, needApprove, amount]);
 
   const checkingBalance = balance === null;
+  const isAmountGreateThanZero = amountUnit ? amountUnit.greaterThan(Zero) : false;
   const isBalanceSufficient = useMemo(() => (balance && amountUnit ? balance.greaterThanOrEqualTo(amountUnit) : null), [balance, amountUnit]);
 
-  if (!account || !amount || (isBalanceSufficient && !needApprove) || status === 'approved') return children as React.ReactElement;
+  if (!account || !amount || (isAmountGreateThanZero && isBalanceSufficient && (!needApprove || status === 'approved'))) return children as React.ReactElement;
 
   return (
-    <Button id="auth-approve-btn" {...props} onClick={handleApprove} loading={status === 'approving'} disabled={status === 'checking-approve' || !isBalanceSufficient}>
-      {checkingBalance
+    <Button
+      id="auth-approve-btn"
+      {...props}
+      onClick={handleApprove}
+      loading={status === 'approving'}
+      disabled={status === 'checking-approve' || !isBalanceSufficient}
+      type="button"
+    >
+      {!isAmountGreateThanZero
+        ? i18n.amount_should_greater_than_zero
+        : checkingBalance
         ? i18n.checking_balance
         : !isBalanceSufficient
         ? compiled(i18n.insufficient_balance, { token: token?.symbol ?? '' })

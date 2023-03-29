@@ -15,6 +15,7 @@
     "@use-gesture/react": "^10.2.25",
     "clsx": "^1.2.1",
     "custom-react-scrollbar": "^0.0.4",
+    "dayjs": "^1.11.7",
     "ethers": "^6.2.2",
     "localstorage-enhance": "1.0.1",
     "lodash-es": "^4.17.21",
