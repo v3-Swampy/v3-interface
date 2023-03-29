@@ -5,7 +5,7 @@ import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
 import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
-import SelectToken from './SelectToken';
+import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
 import Settings from './Settings';
 import SwapDetail from './SwapDetail';
@@ -35,7 +35,7 @@ const SwapPage: React.FC = () => {
   );
 
   useCalcDetailAndRouter();
-  
+
   return (
     <PageWrapper className="pt-56px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">
@@ -45,13 +45,13 @@ const SwapPage: React.FC = () => {
         </div>
 
         <form onSubmit={onSubmit}>
-          <SelectToken type="sourceToken" register={register} setValue={setValue} />
+          <SelectedToken type="sourceToken" register={register} setValue={setValue} />
           <div className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer" onClick={exchangeTokenDirection}>
             <div className="w-40px h-40px flex justify-center items-center rounded-full bg-orange-light">
               <ExchangeIcon className="w-26px h-26px" />
             </div>
           </div>
-          <SelectToken type="destinationToken" register={register} setValue={setValue} />
+          <SelectedToken type="destinationToken" register={register} setValue={setValue} />
 
           <SwapDetail />
 

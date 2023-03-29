@@ -3,6 +3,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_ESpaceRpcUrl: string;
+  readonly VITE_ESpaceScanUrl: string;
 }
 
 interface ImportMeta {

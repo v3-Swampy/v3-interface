@@ -16,15 +16,15 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
 };
 
 export const NonfungiblePositionManager = createContract(
-  isProduction ? '0x892103c345ea74687769657032e702cb1914cde4' : '0x892103c345ea74687769657032e702cb1914cde4',
+  isProduction ? '0x0bf349e17364c95538206fd69850457bd0fb6e3f' : '0x0bf349e17364c95538206fd69850457bd0fb6e3f',
   NonfungiblePositionManagerABI
 );
 
-export const UniswapV3Factory = createContract(isProduction ? '0xe9ff789500b09e68d683cf97e1de0ccd413a7e04' : '0xe9ff789500b09e68d683cf97e1de0ccd413a7e04', UniswapV3FactoryABI);
+export const UniswapV3Factory = createContract(isProduction ? '0xd1498be6f640308715ac1a95f630a9002105c0db' : '0xd1498be6f640308715ac1a95f630a9002105c0db', UniswapV3FactoryABI);
 
-export const UniswapV3Pool = createContract(isProduction ? '0x0000000000000000000000000000000000000000' : '0x0000000000000000000000000000000000000000', UniswapV3PoolABI);
+export const UniswapV3Quoter = createContract(isProduction ? '0x4be0921c85b0e3403be214a9c15f06ab657a0123' : '0x4be0921c85b0e3403be214a9c15f06ab657a0123', UniswapV3PoolABI);
 
-export const SwapRouter = createContract(isProduction ? '0x55fd38cd37fc097a8b859e5888c04167904092a7' : '0x55fd38cd37fc097a8b859e5888c04167904092a7', SwapRouterABI);
+export const SwapRouter = createContract(isProduction ? '0x97128d5505c38d6bc85a72b053f9e7606b008f47' : '0x97128d5505c38d6bc85a72b053f9e7606b008f47', SwapRouterABI);
 
 export const MulticallContract = createContract(isProduction ? '0xd59149a01f910c3c448e41718134baeae55fa784' : '0x9f208d7226f05b4f43d0d36eb21d8545c3143685', Multicall);
 

@@ -4,15 +4,6 @@ export * from './Toast';
 
 let currentPopup: string | number | null = null;
 
-export const recordCurrentPopup = (popupId: string | number) => (currentPopup = popupId);
-export const recordToHidePopup = () => {
-  const currentPopupNow = currentPopup;
-  return () => {
-    if (currentPopup !== currentPopupNow || location.hash?.indexOf?.('#modal') === -1) return;
-    history.back();
-  };
-};
-
 export const hidePopup = () => {
   setTimeout(() => {
     const url = new URL(location.href);
@@ -25,3 +16,14 @@ export const hidePopup = () => {
     }, 16);
   }, 16);
 };
+
+
+export const recordCurrentPopup = (popupId: string | number) => (currentPopup = popupId);
+export const recordToHidePopup = () => {
+  const currentPopupNow = currentPopup;
+  return () => {
+    if (currentPopup !== currentPopupNow || location.hash?.indexOf?.('#modal') === -1) return;
+    hidePopup();
+  };
+};
+

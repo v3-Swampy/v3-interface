@@ -18,6 +18,12 @@ const tokensKey = `tokenState-${import.meta.env.MODE}`;
 
 const cachedTokens = (LocalStorage.getItem(tokensKey, 'swap') as Array<Token>) ?? [];
 
+export let TokenVST: Token = null!;
+const setTokenVST = (tokens: Array<Token>) => {
+  TokenVST = tokens?.find((token) => token.symbol === 'PPI')!; // TODO: chaozhou -- VST is not in the repository list now
+};
+setTokenVST(cachedTokens);
+
 export const tokensMap = new Map<string, Token>();
 export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address) ?? null) : null;
 const resetTokensMap = (tokens: Array<Token>) => {
@@ -25,6 +31,7 @@ const resetTokensMap = (tokens: Array<Token>) => {
   tokens?.forEach((token) => {
     tokensMap.set(token.address, token);
   });
+  setTokenVST(tokens);
 };
 resetTokensMap(cachedTokens);
 

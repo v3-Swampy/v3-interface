@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
+import AuthConnectButton from '@modules/AuthConnectButton';
 import useI18n, { compiled } from '@hooks/useI18n';
 import DataDetail from './DataDetail';
+import showStakeModal from './StakeModal';
 
 const transitions = {
   en: {
@@ -21,6 +23,7 @@ const transitions = {
 
 const StakingPage: React.FC = () => {
   const i18n = useI18n(transitions);
+
   return (
     <PageWrapper className="pt-56px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">
@@ -33,9 +36,11 @@ const StakingPage: React.FC = () => {
         <BorderBox variant="gradient-orange-light-hover" className="mt-16px flex p-16px rounded-20px">
           <div className="w-1/2">
             <p className="leading-20px text-12px text-black-normal">{compiled(i18n.stake_tip, { token: 'VST' })}</p>
-            <Button color="gradient" fullWidth className="mt-26px h-36px rounded-10px text-14px">
-              {compiled(i18n.stake_button, { token: 'VST' })}
-            </Button>
+            <AuthConnectButton {...buttonProps}>
+              <Button {...buttonProps} onClick={showStakeModal}>
+                {compiled(i18n.stake_button, { token: 'VST' })}
+              </Button>
+            </AuthConnectButton>
           </div>
 
           <div className="w-1/2 flex flex-col justify-center items-end">
@@ -50,5 +55,11 @@ const StakingPage: React.FC = () => {
     </PageWrapper>
   );
 };
+
+const buttonProps = {
+  color: 'gradient',
+  fullWidth: true,
+  className: 'mt-26px h-36px rounded-10px text-14px',
+} as const;
 
 export default StakingPage;
