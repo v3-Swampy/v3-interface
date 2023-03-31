@@ -1,12 +1,13 @@
 import { atom, useRecoilValue } from 'recoil';
 import { getRecoil } from 'recoil-nexus';
 import { template, templateSettings } from 'lodash-es';
-import LocalStorage from 'localstorage-enhance';
+import { persistAtomWithDefault } from '@utils/recoilUtils';
 
 type Local = 'en' | 'zh';
 const localeState = atom<Local>({
-  key: 'localeState-vSwap',
-  default: (LocalStorage.getItem('locale') as Local) ?? 'en',
+  key: `localeState-vSwap-${import.meta.env.MODE}`,
+  default: 'en',
+  effects: [persistAtomWithDefault('en')],
 });
 
 export const useLocale = () => useRecoilValue(localeState);
