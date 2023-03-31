@@ -12,7 +12,7 @@ const Zero = Unit.fromMinUnit(0);
 
 interface Props extends Omit<ComponentProps<'div'>, 'children'> {
   address: string;
-  decimals: number;
+  decimals?: number;
   abbrDecimals?: 2 | 4;
   symbolPrefix?: string;
   symbol?: string;
@@ -26,7 +26,7 @@ const abbrStr = {
   4: '0.0001',
 };
 
-const Balance: React.FC<Props> = ({ className, address, decimals, abbrDecimals = 4, symbolPrefix, symbol, showEllipsis = false, placement, children, ...props }) => {
+const Balance: React.FC<Props> = ({ className, address, decimals = 18, abbrDecimals = 4, symbolPrefix, symbol, showEllipsis = false, placement, children, ...props }) => {
   const usedPlacement = placement || (abbrDecimals === 4 ? 'top' : 'bottom');
   const balance = useBalance(address);
 

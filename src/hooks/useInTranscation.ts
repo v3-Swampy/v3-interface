@@ -8,8 +8,9 @@ const useInTranscation = <T extends (params: any) => void | Promise<any> | null 
       const res = await transcationFunc(params);
       setInTranscation(false);
       return res;
-    } catch(_) {
+    } catch(err) {
       setInTranscation(false);
+      throw err;
     }
   }, [transcationFunc]) as T;
 

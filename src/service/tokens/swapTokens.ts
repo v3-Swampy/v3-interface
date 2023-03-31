@@ -1,5 +1,5 @@
 import { atom, useRecoilValue } from 'recoil';
-import { setRecoil } from 'recoil-nexus';
+import { getRecoil, setRecoil } from 'recoil-nexus';
 import LocalStorage from 'localstorage-enhance';
 import { isEqual } from 'lodash-es';
 import waitAsyncResult from '@utils/waitAsyncResult';
@@ -26,7 +26,9 @@ setTokenVST(cachedTokens);
 
 export const tokensMap = new Map<string, Token>();
 export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address) ?? null) : null;
+const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
 const resetTokensMap = (tokens: Array<Token>) => {
+  tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
   tokensMap.clear();
   tokens?.forEach((token) => {
     tokensMap.set(token.address, token);
@@ -34,6 +36,19 @@ const resetTokensMap = (tokens: Array<Token>) => {
   setTokenVST(tokens);
 };
 resetTokensMap(cachedTokens);
+
+export const handleTokensChange = (callback: (tokens: Array<Token>) => void) => {
+  if (typeof callback !== 'function') return;
+  tokensChangeCallbacks.push(callback);
+  let tokens!: Array<Token>;
+  try {
+    tokens = getRecoil(tokensState);
+  } catch(_) {
+    tokens = cachedTokens;
+  } finally {
+    callback(tokens);
+  }
+}
 
 export const tokensState = atom<Array<Token>>({
   key: tokensKey,
@@ -73,6 +88,7 @@ export const deleteFromCommonTokens = (token: Token) => {
       fetcher: (): Promise<{ tokens: Array<Token> }> => fetch(tokensURL).then((res) => res.json()),
     });
     const { tokens } = await p;
+
     if (isEqual(tokens, cachedTokens)) return;
     try {
       LocalStorage.setItem({ key: tokensKey, data: tokens, namespace: 'swap' });

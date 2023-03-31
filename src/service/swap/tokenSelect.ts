@@ -96,5 +96,6 @@ export const setToken = ({ type, token }: { type: 'sourceToken' | 'destinationTo
     exchangeTokenDirection();
     return;
   }
+
   setRecoil(tokenAddressState, token.address);
 };
