@@ -4,6 +4,9 @@ export const isFunction = (obj: any): obj is Function => typeof obj === 'functio
 
 export const isNegative = (num: number): num is number => typeof num === 'number' && num < 0;
 
+export const isOdd = (num: number) => num & 1;
+export const isEven = (num: number) => !(num & 1);
+
 export const isString = (str: string): str is string => typeof str === 'string';
 
 export const isDOMElement = (obj: HTMLElement): obj is HTMLElement => {
