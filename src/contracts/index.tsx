@@ -5,6 +5,7 @@ import NonfungiblePositionManagerABI from './abis/NonfungiblePositionManager.jso
 import SwapRouterABI from './abis/SwapRouter.json';
 import UniswapV3FactoryABI from './abis/UniswapV3Factory.json';
 import UniswapV3PoolABI from './abis/UniswapV3Pool.json';
+import VotingEscrowABI from './abis/VotingEscrow.json';
 import { isProduction } from '@utils/is';
 
 const createContract = (address: string, ABI: InterfaceAbi) => {
@@ -20,6 +21,7 @@ export const NonfungiblePositionManager = createContract(
   NonfungiblePositionManagerABI
 );
 
+//TODO double-check the contract address
 export const UniswapV3Factory = createContract(isProduction ? '0xd1498be6f640308715ac1a95f630a9002105c0db' : '0xd1498be6f640308715ac1a95f630a9002105c0db', UniswapV3FactoryABI);
 
 export const UniswapV3Quoter = createContract(isProduction ? '0x4be0921c85b0e3403be214a9c15f06ab657a0123' : '0x4be0921c85b0e3403be214a9c15f06ab657a0123', UniswapV3PoolABI);
@@ -28,4 +30,8 @@ export const SwapRouter = createContract(isProduction ? '0x97128d5505c38d6bc85a7
 
 export const MulticallContract = createContract(isProduction ? '0xd59149a01f910c3c448e41718134baeae55fa784' : '0x9f208d7226f05b4f43d0d36eb21d8545c3143685', Multicall);
 
+export const VotingEscrowContract = createContract(isProduction ? '0xf270e44105c1270bc7a4ffedbcb699486ada7a6a' : '0xb2459c6445fe94cc2d2d2aff9ffc70157f77c649', VotingEscrowABI);
+
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);
+
+export const VSTTokenContract=createERC20Contract(isProduction ? '0x22f41abf77905f50df398f21213290597e7414dd' : '0x49916ba65d0048c4bbb0a786a527d98d10a1cd2d')
