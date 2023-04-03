@@ -1,20 +1,46 @@
 import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { UniswapV3Factory } from '@contracts/index';
+import { VSTTokenContract, VotingEscrowContract } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
-import { TokenVST } from '@service/tokens';
+// import { TokenVST } from '@service/tokens';
 
-
-// TODO: chaozhou
-const contractAddress = '0x102e0fb8a5ED6E0f0899C3ed9896cb8973aA29bB'; // UniswapV3Factory.address
+//VST Contract
 const totalStakeVSTQuery = selector({
-  key: `TotalStateVSTQuery-${import.meta.env.MODE}`,
+  key: `VSTTotalStateQuery-${import.meta.env.MODE}`,
   get: () =>
     fetchChain<string>({
       params: [
         {
-          data: '0x70a08231000000000000000000000000' + contractAddress.slice(2),
-          to: TokenVST.address,
+          data: VSTTokenContract.func.encodeFunctionData('balanceOf', [VotingEscrowContract?.address]),
+          to: VSTTokenContract.address,
+        },
+        'latest',
+      ],
+    }),
+});
+
+const vstDecimalsQuery = selector({
+  key: `VSTDecimals-${import.meta.env.MODE}`,
+  get: () =>
+    fetchChain<any>({
+      params: [
+        {
+          data: VSTTokenContract.func.encodeFunctionData('decimals'),
+          to: VSTTokenContract.address,
+        },
+        'latest',
+      ],
+    }),
+});
+
+const vstTotalSupplyQuery = selector({
+  key: `VSTTotalSupply-${import.meta.env.MODE}`,
+  get: () =>
+    fetchChain<any>({
+      params: [
+        {
+          data: VSTTokenContract.func.encodeFunctionData('totalSupply'),
+          to: VSTTokenContract.address,
         },
         'latest',
       ],
@@ -27,16 +53,46 @@ const vSTPriceQuery = selector({
   get: () => '0x1',
 });
 
-// TODO: chaozhou
-const percentageOfCulatingtionQuery = selector({
-  key: `percentageOfCulatingtionQuery-${import.meta.env.MODE}`,
-  get: () => '24.21',
+const escrowTotalSupplyQuery = selector({
+  key: `escrowTotalSupply-${import.meta.env.MODE}`,
+  get: () =>
+    fetchChain<string>({
+      params: [
+        {
+          data: VotingEscrowContract.func.encodeFunctionData('totalSupply'),
+          to: VotingEscrowContract.address,
+        },
+        'latest',
+      ],
+    }),
 });
 
-// TODO: chaozhou
-const averageStakeDurationQuery = selector({
-  key: `averageStakeDurationQuery-${import.meta.env.MODE}`,
-  get: () => '7.59',
+const escrowTotalMaxTimeQuery = selector({
+  key: `escrowTotalMaxTime-${import.meta.env.MODE}`,
+  get: () =>
+    fetchChain<string>({
+      params: [
+        {
+          data: VotingEscrowContract.func.encodeFunctionData('maxTime'),
+          to: VotingEscrowContract.address,
+        },
+        'latest',
+      ],
+    }),
+});
+
+const escrowDecimalsQuery = selector({
+  key: `escrowDecimals-${import.meta.env.MODE}`,
+  get: () =>
+    fetchChain<string>({
+      params: [
+        {
+          data: VotingEscrowContract.func.encodeFunctionData('decimals'),
+          to: VotingEscrowContract.address,
+        },
+        'latest',
+      ],
+    }),
 });
 
 export const useTotalStakeVST = () => {
@@ -49,5 +105,21 @@ export const useVSTPrice = () => {
   return VSTPrice ? Unit.fromMinUnit(VSTPrice) : null;
 };
 
-export const usePercentageOfCulatingtion = () => useRecoilValue(percentageOfCulatingtionQuery);
-export const useAverageStakeDuration = () => useRecoilValue(averageStakeDurationQuery);
+export const usePercentageOfCulatingtion = () => {
+  const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
+  const totalSupply = useRecoilValue(vstTotalSupplyQuery);
+  if (!+totalSupply) return '-';
+  return `${((+totalStakeVST / +totalSupply) * 100).toFixed(2)}`;
+};
+
+export const useAverageStakeDuration = () => {
+  const totalLocked = useRecoilValue(totalStakeVSTQuery);
+  const vePPITotalSupply = useRecoilValue(escrowTotalSupplyQuery);
+  const maxTime = useRecoilValue(escrowTotalMaxTimeQuery);
+  if (!+vePPITotalSupply || !+totalLocked || !maxTime) return '-';
+  const avgValue: number = (+vePPITotalSupply * +maxTime) / +totalLocked;
+  const SECONDS_PER_DAY = 86400;
+
+  if (avgValue > SECONDS_PER_DAY * 30) return `${(avgValue / (SECONDS_PER_DAY * 30)).toFixed(2)} months`;
+  return `${(avgValue / (SECONDS_PER_DAY * 7)).toFixed(2)} weeks`;
+};
