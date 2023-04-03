@@ -24,14 +24,30 @@ const setTokenVST = (tokens: Array<Token>) => {
 };
 setTokenVST(cachedTokens);
 
+export const TokenCFX: Token = {
+  name: 'Conflux',
+  symbol: 'CFX',
+  decimals: 18,
+  address: 'CFX',
+  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aacwnngzd52ztm8m32j9c3hekyn8njcgsrjg4p7yzea.png',
+}
+
+const wrapperTokenMap = new Map<string, Token>();
 export const tokensMap = new Map<string, Token>();
 export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address) ?? null) : null;
+export const getWrapperTokenByAddress = (address?: string | null) => address ? (wrapperTokenMap.get(address) ?? null) : null;
 const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
 const resetTokensMap = (tokens: Array<Token>) => {
   tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
   tokensMap.clear();
   tokens?.forEach((token) => {
     tokensMap.set(token.address, token);
+    if (token.symbol === 'WCFX') {
+      wrapperTokenMap.set('CFX', token);
+      wrapperTokenMap.set(token.address, token);
+    } else if (token.symbol !== 'CFX') {
+      wrapperTokenMap.set(token.address, token);
+    }
   });
   setTokenVST(tokens);
 };
@@ -59,22 +75,27 @@ export const useTokens = () => useRecoilValue(tokensState);
 
 const CommonTokensCount = 5;
 const commonTokensCache = new Cache<Token>(CommonTokensCount - 1, 'swap-common-token');
-const CFX = cachedTokens?.find((token) => token.address === 'CFX');
 const commonTokensState = atom<Array<Token>>({
   key: `${tokensKey}-common`,
-  default: [...(CFX ? [CFX] : []), ...commonTokensCache.toArr()],
+  default: [TokenCFX, ...commonTokensCache.toArr()],
 });
 
 export const useCommonTokens  = () => useRecoilValue(commonTokensState);
+
 export const setCommonToken = (token: Token) => {
+  if (!getTokenByAddress(token.address)) {
+    deleteFromCommonTokens(token);
+    return;
+  }
   if (token.address === 'CFX') return;
   commonTokensCache.set(token.address, token);
-  setRecoil(commonTokensState, [...(CFX ? [CFX] : []), ...commonTokensCache.toArr()]);
+  setRecoil(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
 }
+
 export const deleteFromCommonTokens = (token: Token) => {
   if (token.address === 'CFX') return;
   if (!commonTokensCache.delete(token.address)) return;
-  setRecoil(commonTokensState, [...(CFX ? [CFX] : []), ...commonTokensCache.toArr()]);
+  setRecoil(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
 }
 
 // init tokens data;
@@ -104,3 +125,4 @@ export const deleteFromCommonTokens = (token: Token) => {
     console.error('Failed to get the latest token list: ', err);
   }
 })();
+

@@ -6,10 +6,10 @@ import Input from '@components/Input';
 import Button from '@components/Button';
 import BorderBox from '@components/Box/BorderBox';
 import Balance from '@modules/Balance';
+import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
-import { useSourceToken, useDestinationToken } from '@service/swap';
-import showTokenListModal from './TokenListModal';
+import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
 
 const transitions = {
   en: {
@@ -60,7 +60,7 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
             currentSelectToken ? 'bg-orange-light' : 'bg-transparent'
           )}
           variant={!currentSelectToken ? 'gradient-orange-light-hover' : 'transparent'}
-          onClick={() => showTokenListModal(type)}
+          onClick={() => showTokenSelectModal({ currentSelectToken, onSelect: (token) => setToken({ type, token }) })}
         >
           {currentSelectToken && <img className="w-24px h-24px mr-4px" src={currentSelectToken.logoURI} alt={`${currentSelectToken.symbol} logo`} />}
           {currentSelectToken && currentSelectToken.symbol}

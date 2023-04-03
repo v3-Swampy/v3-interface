@@ -70,7 +70,7 @@ button.button--text.is-disabled {
 
 .button--text.button--orange:hover,
 .button--text.button--orange:focus-visible {
-  @apply bg-orange-normal bg-opacity-10 text-white-normal;
+  @apply bg-orange-normal bg-opacity-25;
 }
 
 /* outlined button */

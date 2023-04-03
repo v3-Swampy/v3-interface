@@ -1,6 +1,6 @@
 import { atom, useRecoilValue } from 'recoil';
 import { getRecoil, setRecoil } from 'recoil-nexus';
-import { getTokenByAddress, setCommonToken, deleteFromCommonTokens, type Token } from '@service/tokens';
+import { getTokenByAddress, type Token } from '@service/tokens';
 
 /** <--------------- Two-lane Data-Binding TokenAddressState & URLSearchParams -----------------> */
 const getValidTokenBySearchParams = (type: 'sourceToken' | 'destinationToken') => {
@@ -85,13 +85,6 @@ export const setToken = ({ type, token }: { type: 'sourceToken' | 'destinationTo
   const anotherTokenAddressState = type === 'sourceToken' ? destinationTokenAddressState : sourceTokenAddressState;
   const anotherTokenAddress = getRecoil(anotherTokenAddressState);
 
-  if (!getTokenByAddress(token.address)) {
-    deleteFromCommonTokens(token);
-    setRecoil(tokenAddressState, null);
-    return;
-  }
-
-  setCommonToken(token);
   if (token.address === anotherTokenAddress) {
     exchangeTokenDirection();
     return;
