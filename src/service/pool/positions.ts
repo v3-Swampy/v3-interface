@@ -3,7 +3,7 @@ import { selectorFamily, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
-import { type Token, TokenVST, TokenCFX } from '@service/tokens';
+import { type Token, TokenVST, TokenCFX, getTokenByAddress } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
 
 export enum PositionStatus {
@@ -13,13 +13,13 @@ export enum PositionStatus {
 }
 
 interface Position {
-  id: string;
-  tokenA: Token;
-  tokenB: Token;
-  min: string;
-  max: string;
+  tokenId: Unit;
+  token0: string;
+  token1: string;
+  tickLower: number;
+  tickUpper: number;
   fee: FeeAmount;
-  status: PositionStatus;
+  liquidity: Unit;
 }
 
 const positionBalanceQuery = selectorFamily<number, string>({
@@ -142,4 +142,27 @@ export function usePositions(account: string) {
   return {
     positions: positions?.map((position: Position, i: number) => ({ ...position, tokenId: inputs[i][0] })),
   };
+}
+
+export function usePosition(position: Position) {
+  const { token0: token0Address, token1: token1Address, tokenId, fee: feeAmount, liquidity, tickLower, tickUpper } = position;
+
+  const token0 = getTokenByAddress(token0Address)
+  const token1 = getTokenByAddress(token1Address)
+
+  // construct Position from details returned
+  const [, pool] = usePool(currency0 ?? undefined, currency1 ?? undefined, feeAmount)
+
+
+
+  const tickAtLimit = useIsTickAtLimit(feeAmount, tickLower, tickUpper)
+
+  // prices
+  const { priceLower, priceUpper, quote, base } = getPriceOrderingFromPositionForUI(position)
+
+  const currencyQuote = quote && unwrappedToken(quote)
+  const currencyBase = base && unwrappedToken(base)
+
+  // check if price is within range
+  const outOfRange: boolean = pool ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper : false
 }
