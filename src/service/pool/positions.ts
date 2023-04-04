@@ -3,6 +3,24 @@ import { selectorFamily, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
+import { type Token, TokenVST, TokenCFX } from '@service/tokens';
+import { FeeAmount } from '@service/pairs&pool';
+
+export enum PositionStatus {
+  InRange,
+  OutOfRange,
+  Closed,
+}
+
+interface Position {
+  id: string;
+  tokenA: Token;
+  tokenB: Token;
+  min: string;
+  max: string;
+  fee: FeeAmount;
+  status: PositionStatus;
+}
 
 const positionBalanceQuery = selectorFamily<number, string>({
   key: `positionBalanceQuery-${import.meta.env.MODE}`,
@@ -95,6 +113,33 @@ export function usePositions(account: string) {
   }, [account, accountBalance]);
   const tokenIds = useTokenIds(account, tokenIdsArgs);
   const inputs = useMemo(() => (tokenIds ? tokenIds.map((tokenId) => [Unit.fromMinUnit(tokenId)]) : []), [tokenIds]);
-  const positions = usePositionsFromTokenIds(inputs);
-  return positions;
+  const results = usePositionsFromTokenIds(inputs);
+  const positions = useMemo(() => {
+    if (tokenIds) {
+      return results.map((call: any, i: number) => {
+        const tokenId = tokenIds[i];
+        const result = call.result;
+        return {
+          tokenId,
+          fee: result.fee,
+          feeGrowthInside0LastX128: result.feeGrowthInside0LastX128,
+          feeGrowthInside1LastX128: result.feeGrowthInside1LastX128,
+          liquidity: result.liquidity,
+          nonce: result.nonce,
+          operator: result.operator,
+          tickLower: result.tickLower,
+          tickUpper: result.tickUpper,
+          token0: result.token0,
+          token1: result.token1,
+          tokensOwed0: result.tokensOwed0,
+          tokensOwed1: result.tokensOwed1,
+        };
+      });
+    }
+    return undefined;
+  }, [results, tokenIds]);
+
+  return {
+    positions: positions?.map((position: Position, i: number) => ({ ...position, tokenId: inputs[i][0] })),
+  };
 }
