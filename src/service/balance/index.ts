@@ -8,7 +8,7 @@ import { useAccount } from '@service/account';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
 
 const balanceState = atomFamily<string | null, string>({
-  key: 'balanceState-vSwap',
+  key: `balanceState-${import.meta.env.MODE}`,
 });
 
 const fetchBalance = async ({ account, tokenAddress }: { account: string; tokenAddress: string }) => {
@@ -41,24 +41,25 @@ const balanceTracker = new Map<string, boolean>();
 export const useBalance = (tokenAddress?: string | null) => {
   const userActiveStatus = useUserActiveStatus();
   const account = useAccount();
+  const balanceKey = `${account ?? 'WaitSignIn'}:${tokenAddress}`;
 
-  const [{ state, contents }, setBalance] = useRecoilStateLoadable(balanceState(`${account ?? 'WaitSignIn'}:${tokenAddress}`));
+  const [{ state, contents }, setBalance] = useRecoilStateLoadable(balanceState(balanceKey));
   const fetchAndSetBalance = useCallback(
     throttle(() => account && tokenAddress && fetchBalance({ account, tokenAddress }).then((balanceStr) => balanceStr && setBalance(balanceStr)), 2000),
     [account, tokenAddress]
   );
 
   useEffect(() => {
-    if (!account || !tokenAddress || balanceTracker.has(`${account}:${tokenAddress}`)) {
+    if (!account || !tokenAddress || balanceTracker.has(balanceKey)) {
       return;
     }
 
-    balanceTracker.set(`${account}:${tokenAddress}`, true);
+    balanceTracker.set(balanceKey, true);
     fetchAndSetBalance();
     const timer = setInterval(fetchAndSetBalance, userActiveStatus === UserActiveStatus.Active ? 5000 : 20000);
 
     return () => {
-      balanceTracker.delete(`${account}:${tokenAddress}`);
+      balanceTracker.delete(balanceKey);
       clearInterval(timer);
     };
   }, [account, tokenAddress, userActiveStatus]);
@@ -73,5 +74,6 @@ export const useBalance = (tokenAddress?: string | null) => {
  */
 export const updateBalance = async ({ account, tokenAddress }: { account: string; tokenAddress: string }) => {
   const balanceStr = await fetchBalance({ account, tokenAddress });
-  setRecoil(balanceState(`${account}:${tokenAddress}`), balanceStr);
+  const balanceKey = `${account ?? 'WaitSignIn'}:${tokenAddress}`;
+  setRecoil(balanceState(balanceKey), balanceStr);
 };
