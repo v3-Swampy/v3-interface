@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import { useSourceToken, useDestinationToken } from './tokenSelect';
 
+export declare enum TradeType {
+  EXACT_INPUT = 0,
+  EXACT_OUTPUT = 1
+}
 
 export const useCalcDetailAndRouter = () => {
   const sourceToken = useSourceToken();

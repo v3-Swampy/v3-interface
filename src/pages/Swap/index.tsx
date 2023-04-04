@@ -22,7 +22,7 @@ const transitions = {
 const SwapPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const sourceTokenAmount = watch('sourceToken-amount');
+  const sourceTokenAmount = watch('sourceToken-amount', '');
 
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -35,7 +35,7 @@ const SwapPage: React.FC = () => {
   );
 
   useCalcDetailAndRouter();
-
+    
   return (
     <PageWrapper className="pt-56px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">

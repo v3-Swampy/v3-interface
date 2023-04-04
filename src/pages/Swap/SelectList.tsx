@@ -35,7 +35,7 @@ const TokenSelectModalContent: React.FC = () => {
             <p className="mt-4px text-12px">{token.symbol}</p>
           </div>
 
-          <Balance tokenAddress={token.address} />
+          <Balance address={token.address} />
         </div>
       );
     },
