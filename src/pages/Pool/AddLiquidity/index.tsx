@@ -11,6 +11,7 @@ import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
 import SelectPair from './SelectPair';
 import SelectFeeTier, { defaultFee } from './SelectFeeTier';
+import DepositAmounts from './DepositAmounts';
 
 const transitions = {
   en: {
@@ -71,6 +72,7 @@ const PoolPage: React.FC = () => {
             <div className="w-310px flex-grow-1 flex-shrink-1">
               <SelectPair tokenA={tokenA} tokenB={tokenB} setTokenA={setTokenA} setTokenB={setTokenB} />
               <SelectFeeTier isBothTokenSelected={isBothTokenSelected} register={register} setValue={setValue} currentFee={currentFee} />
+              <DepositAmounts isBothTokenSelected={isBothTokenSelected} register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} />
             </div>
 
             <div className="w-426px flex-grow-1 flex-shrink-1"></div>
