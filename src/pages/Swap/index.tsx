@@ -2,12 +2,12 @@ import React, { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
+import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
-import Settings from './Settings';
 import SwapDetail from './SwapDetail';
 
 const transitions = {

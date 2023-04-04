@@ -7,28 +7,24 @@ import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
 import SwapPage from '@pages/Swap';
-import { PoolPage, FarmingPage, StakingPage } from './lazyPages';
+import { PoolPage, PoolAddLiquidityPage, FarmingPage, StakingPage } from './lazyPages';
 
 export const routes = [
   {
     name: 'Swap',
     path: 'swap',
-    element: SwapPage,
   },
   {
     name: 'Pool',
     path: 'pool',
-    element: PoolPage,
   },
   {
     name: 'Farming',
     path: 'farming',
-    element: FarmingPage,
   },
   {
     name: 'Staking',
     path: 'staking',
-    element: StakingPage,
   },
 ];
 
@@ -38,9 +34,13 @@ const AppRouter: React.FC = () => {
       <TopLevelErrorBoundary>
         <Routes>
           <Route path="/" element={<RouteWrapper />}>
-            {routes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element ? <route.element /> : null} />
-            ))}
+            <Route path="swap" element={<SwapPage />} />
+            <Route path="pool">
+              <Route index element={<PoolPage />} />
+              <Route path="add_liquidity" element={<PoolAddLiquidityPage />} />
+            </Route>
+            <Route path="farming" element={<FarmingPage />} />
+            <Route path="staking" element={<StakingPage />} />
             <Route path="*" element={<Navigate to="swap" />} />
             <Route path="/" element={<Navigate to="swap" />} />
           </Route>

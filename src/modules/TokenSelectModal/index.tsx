@@ -8,9 +8,8 @@ import Input from '@components/Input';
 import Balance from '@modules/Balance';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
-import { useTokens, useCommonTokens, type Token } from '@service/tokens';
-import { useSourceToken, useDestinationToken } from '@service/swap';
-import { setToken } from '@service/swap';
+import { useTokens, useCommonTokens, setCommonToken, type Token } from '@service/tokens';
+
 import { isMobile } from '@utils/is';
 
 const transitions = {
@@ -22,7 +21,12 @@ const transitions = {
   },
 } as const;
 
-const TokenListModalContent: React.FC<{ type: 'sourceToken' | 'destinationToken' }> = ({ type }) => {
+interface Props {
+  currentSelectToken: Token | null;
+  onSelect: (token: Token) => void;
+}
+
+const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
@@ -39,9 +43,6 @@ const TokenListModalContent: React.FC<{ type: 'sourceToken' | 'destinationToken'
     if (!filter) return tokens;
     return tokens?.filter((token) => [token.name, token.symbol, token.address].some((str) => str.search(new RegExp(escapeRegExp(filter), 'i')) !== -1));
   }, [filter, tokens]);
-
-  const useCurrentSelectToken = type === 'sourceToken' ? useSourceToken : useDestinationToken;
-  const currentSelectToken = useCurrentSelectToken();
 
   const listRef = useRef<HTMLDivElement>();
   const handleScroll = useCallback<React.UIEventHandler<HTMLDivElement>>(({ target }) => {
@@ -60,8 +61,9 @@ const TokenListModalContent: React.FC<{ type: 'sourceToken' | 'destinationToken'
             )}
             style={style}
             onClick={() => {
-              setToken({ type, token });
+              onSelect(token);
               hidePopup();
+              setTimeout(() => setCommonToken(token), 88);
             }}
           >
             <img className="w-24px h-24px mr-8px" src={token.logoURI} alt={`${token.symbol} logo`} />
@@ -88,7 +90,7 @@ const TokenListModalContent: React.FC<{ type: 'sourceToken' | 'destinationToken'
         <Input id="input--token_search" className="text-14px h-40px" clearIcon placeholder={i18n.search_placeholder} onChange={handleFilterChange} />
       </div>
 
-      <CommonTokens currentSelectToken={currentSelectToken} type={type} />
+      <CommonTokens currentSelectToken={currentSelectToken} onSelect={onSelect} />
 
       <div className="my-16px h-2px bg-orange-light-hover" />
 
@@ -103,7 +105,7 @@ const TokenListModalContent: React.FC<{ type: 'sourceToken' | 'destinationToken'
   );
 };
 
-const CommonTokens: React.FC<{ currentSelectToken: Token | null; type: 'sourceToken' | 'destinationToken' }> = ({ type, currentSelectToken }) => {
+const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const commonTokens = useCommonTokens();
 
   return (
@@ -116,8 +118,9 @@ const CommonTokens: React.FC<{ currentSelectToken: Token | null; type: 'sourceTo
             currentSelectToken?.address === token.address ? 'bg-orange-light-hover pointer-events-none' : 'bg-transparent hover:bg-orange-light-hover'
           )}
           onClick={() => {
-            setToken({ type, token });
+            onSelect(token);
             hidePopup();
+            setTimeout(() => setCommonToken(token), 88);
           }}
         >
           <img className="w-24px h-24px mr-6px" src={token.logoURI} alt={`${token.symbol} logo`} />
@@ -128,11 +131,11 @@ const CommonTokens: React.FC<{ currentSelectToken: Token | null; type: 'sourceTo
   );
 };
 
-const showTokenListModal = (type: 'sourceToken' | 'destinationToken') => {
+const showTokenListModal = (props: Props) => {
   if (isMobile) {
-    showDrawer({ Content: <TokenListModalContent type={type} />, title: '选择代币' });
+    showDrawer({ Content: <TokenListModalContent {...props} />, title: '选择代币' });
   } else {
-    showModal({ Content: <TokenListModalContent type={type} />, className: '!max-w-572px', title: '选择代币' }) as string;
+    showModal({ Content: <TokenListModalContent {...props} />, className: '!max-w-572px', title: '选择代币' }) as string;
   }
 };
 
