@@ -27,8 +27,8 @@ const basePairsState = atom<Array<[Token, Token]>>({
 const useBasePairs = () => useRecoilValue(basePairsState);
 
 export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
-  const basePairs = useBasePairs();
   const baseCheckTradeTokens = useBaseCheckTradeTokens();
+  const basePairs = useBasePairs();
   const wrapperedTokenA = useMemo(() => getWrapperTokenByAddress(tokenA?.address), [tokenA]);
   const wrapperedTokenB = useMemo(() => getWrapperTokenByAddress(tokenB?.address), [tokenB]);
 
