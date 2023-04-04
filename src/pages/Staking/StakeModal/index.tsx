@@ -1,15 +1,18 @@
-import React, { useCallback } from 'react';
+import React, { useCallback,useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import useI18n, { toI18n } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { TokenVST } from '@service/tokens';
 import AuthTokenButton from '@modules/AuthTokenButton';
 import Button from '@components/Button';
-import { UniswapV3Quoter } from '@contracts/index';
+import { VotingEscrowContract } from '@contracts/index';
 import useInTranscation from '@hooks/useInTranscation';
 import { handleStakingVST as _handleStakingVST } from '@service/staking';
 import AmountInput from './AmountInput';
 import DurationSelect from './DurationSelect';
+import { useAccount } from '@service/account';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+
 
 const transitions = {
   en: {
@@ -22,23 +25,61 @@ const transitions = {
   },
 } as const;
 
-const StakeModal: React.FC<ConfirmModalInnerProps> = ({ setNextInfo }) => {
-  const i18n = useI18n(transitions);
+export enum ModalMode{
+  Unknown,
+  CreateLock,
+  IncreaseAmount,
+  IncreaseUnlockTime,
+}
 
+interface CommonProps{
+  type?:ModalMode;
+  currentUnlockTime?:number;
+}
+type Props=ConfirmModalInnerProps&CommonProps
+
+const StakeModal: React.FC<Props> = ({ setNextInfo,type,currentUnlockTime }) => {
+  const i18n = useI18n(transitions);
+  const disabledAmount=type===ModalMode.IncreaseUnlockTime
+  const disabledLocktime=type===ModalMode.IncreaseAmount
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
   const currentStakeDuration = watch('VST-stake-duration');
   const stakeAmount = watch('VST-stake-amount');
+  const account = useAccount();
 
   const { inTranscation, execTranscation: handleStakingVST } = useInTranscation(_handleStakingVST);
 
+  const modalMode = useMemo(() => {
+    if (!disabledAmount && !disabledLocktime) return ModalMode.CreateLock
+    if (!!disabledAmount) return ModalMode.IncreaseUnlockTime
+    return ModalMode.IncreaseAmount
+  }, [disabledAmount, disabledLocktime])
+
   const onSubmit = useCallback(
     withForm(async (data) => {
+      let methodName,methodParams;
+      let unlockTime=Math.ceil(new Date().valueOf() / 1000)+data['VST-stake-duration']
+      let amount= Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit(); 
+      switch(modalMode){
+        case ModalMode.CreateLock:
+          methodName='createLock'
+          methodParams=[amount, unlockTime]
+          break;
+        case ModalMode.IncreaseUnlockTime:
+          methodName='increaseUnlockTime'
+          unlockTime = currentUnlockTime && data['VST-stake-duration'] ? currentUnlockTime + data['VST-stake-duration'] : null
+          methodParams=[unlockTime]
+          break;
+        case ModalMode.IncreaseAmount:
+          methodName='increaseAmount'
+          methodParams=[account,amount]
+          break;    
+      }
       try {
         const txHash = await handleStakingVST({
-          amount: data['VST-stake-amount'],
-          durationSeconds: data['VST-stake-duration'],
+          methodName,methodParams
         });
-        txHash && setNextInfo({ txHash, action: `Stake <strong>${data['VST-stake-amount']}</strong> VST` });
+        txHash &&setNextInfo&&setNextInfo({ txHash, action: `Stake <strong>${data['VST-stake-amount']}</strong> VST` });
       } catch (err) {
         console.error('Create stake VST transcation failed: ', err);
       }
@@ -50,10 +91,10 @@ const StakeModal: React.FC<ConfirmModalInnerProps> = ({ setNextInfo }) => {
   return (
     <div className="mt-24px">
       <form onSubmit={onSubmit}>
-        <AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />
-        <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} />
+        {!disabledAmount&&<AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />}
+        {!disabledLocktime&&<DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} />}
 
-        <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={UniswapV3Quoter.address} amount={stakeAmount}>
+        <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
           <Button {...buttonProps} loading={inTranscation}>
             {i18n.confirm}
           </Button>
@@ -69,11 +110,11 @@ const buttonProps = {
   className: 'mt-26px h-36px rounded-10px text-14px',
 } as const;
 
-const showStakeModal = () => {
+const showStakeModal = (type:ModalMode) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
-    ConfirmContent: StakeModal,
-    className: '!max-w-572px !h-466px',
+    ConfirmContent:()=> <StakeModal type={type} />,
+    className: '!max-w-572px !max-h-466px',
   });
 };
 
