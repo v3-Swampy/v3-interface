@@ -44,9 +44,18 @@ button.button--text.is-disabled {
   @apply bg-orange-normal text-white-normal;
 }
 
-.button--contained.button--purple:hover,
-.button--contained.button--purple:focus-visible {
+.button--contained.button--orange:hover,
+.button--contained.button--orange:focus-visible {
   @apply bg-orange-normal text-white-normal;
+}
+
+.button--contained.button--orange-light {
+  @apply bg-orange-light text-black-normal;
+}
+
+.button--contained.button--orange-light:hover,
+.button--contained.button--orange-light:focus-visible {
+  @apply bg-orange-light text-black-normal;
 }
 
 .button--contained.button--gradient {
@@ -70,7 +79,7 @@ button.button--text.is-disabled {
 
 .button--text.button--orange:hover,
 .button--text.button--orange:focus-visible {
-  @apply bg-orange-normal bg-opacity-10 text-white-normal;
+  @apply bg-orange-normal bg-opacity-25;
 }
 
 /* outlined button */
@@ -132,6 +141,6 @@ button.button--text.is-disabled {
   transition: 0s;
 }
 
-.button--contained.button--purple::after {
+.button--contained.button--orange::after {
   box-shadow: 0 0 0 6px #d0d0e5;
 }

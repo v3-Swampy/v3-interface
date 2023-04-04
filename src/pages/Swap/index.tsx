@@ -2,12 +2,12 @@ import React, { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
+import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
-import Settings from './Settings';
 import SwapDetail from './SwapDetail';
 
 const transitions = {
@@ -22,7 +22,7 @@ const transitions = {
 const SwapPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const sourceTokenAmount = watch('sourceToken-amount');
+  const sourceTokenAmount = watch('sourceToken-amount', '');
 
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -35,7 +35,7 @@ const SwapPage: React.FC = () => {
   );
 
   useCalcDetailAndRouter();
-
+    
   return (
     <PageWrapper className="pt-56px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">
