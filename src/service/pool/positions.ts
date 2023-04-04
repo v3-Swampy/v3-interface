@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { selectorFamily, useRecoilValue } from 'recoil';
+import { nearestUsableTick, TICK_SPACINGS, TickMath, Position } from '@uniswap/v3-sdk'
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import { type Token, TokenVST, TokenCFX, getTokenByAddress } from '@service/tokens';
-import { FeeAmount } from '@service/pairs&pool';
+import { FeeAmount, usePool } from '@service/pairs&pool';
 
 export enum PositionStatus {
   InRange,
@@ -12,7 +13,7 @@ export enum PositionStatus {
   Closed,
 }
 
-interface Position {
+interface ORIG_Position {
   tokenId: Unit;
   token0: string;
   token1: string;
@@ -140,28 +141,53 @@ export function usePositions(account: string) {
   }, [results, tokenIds]);
 
   return {
-    positions: positions?.map((position: Position, i: number) => ({ ...position, tokenId: inputs[i][0] })),
+    positions: positions?.map((position: ORIG_Position, i: number) => ({ ...position, tokenId: inputs[i][0] })),
   };
 }
 
-export function usePosition(position: Position) {
-  const { token0: token0Address, token1: token1Address, tokenId, fee: feeAmount, liquidity, tickLower, tickUpper } = position;
+export enum Bound {
+  LOWER = 'LOWER',
+  UPPER = 'UPPER',
+}
+
+export default function useIsTickAtLimit(
+  feeAmount: FeeAmount | undefined,
+  tickLower: number | undefined,
+  tickUpper: number | undefined
+) {
+  return useMemo(
+    () => ({
+      [Bound.LOWER]:
+        feeAmount && tickLower
+          ? tickLower === nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount as FeeAmount])
+          : undefined,
+      [Bound.UPPER]:
+        feeAmount && tickUpper
+          ? tickUpper === nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount as FeeAmount])
+          : undefined,
+    }),
+    [feeAmount, tickLower, tickUpper]
+  )
+}
+
+
+export function usePosition(data: ORIG_Position) {
+  const { token0: token0Address, token1: token1Address, tokenId, fee: feeAmount, liquidity, tickLower, tickUpper } = data;
 
   const token0 = getTokenByAddress(token0Address)
   const token1 = getTokenByAddress(token1Address)
 
   // construct Position from details returned
-  const [, pool] = usePool(currency0 ?? undefined, currency1 ?? undefined, feeAmount)
+  const pool = usePool({tokenA: token0, tokenB: token1, fee: feeAmount})
 
-
+  const position = useMemo(() => {
+    if (pool) {
+      return new Position({ pool, liquidity: liquidity.toString(), tickLower, tickUpper })
+    }
+    return undefined
+  }, [liquidity, pool, tickLower, tickUpper])
 
   const tickAtLimit = useIsTickAtLimit(feeAmount, tickLower, tickUpper)
-
-  // prices
-  const { priceLower, priceUpper, quote, base } = getPriceOrderingFromPositionForUI(position)
-
-  const currencyQuote = quote && unwrappedToken(quote)
-  const currencyBase = base && unwrappedToken(base)
 
   // check if price is within range
   const outOfRange: boolean = pool ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper : false
