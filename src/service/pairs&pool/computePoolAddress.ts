@@ -4,14 +4,9 @@ import { keccak256 } from '@ethersproject/solidity';
 import { UniswapV3Factory } from '@contracts/index';
 import { type Token } from '@service/tokens';
 import { LRUCacheFunction } from '@utils/LRUCache';
+import { FeeAmount } from './';
 
-export const POOL_INIT_CODE_HASH = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54';
-export enum FeeAmount {
-  LOWEST = 100,
-  LOW = 500,
-  MEDIUM = 3000,
-  HIGH = 10000,
-}
+const POOL_INIT_CODE_HASH = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54';
 
 /**
  * Computes a pool address
