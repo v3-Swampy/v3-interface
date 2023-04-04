@@ -1,4 +1,6 @@
 import React, { useCallback } from 'react';
+import { atom, useRecoilState } from 'recoil';
+import { persistAtom } from '@utils/recoilUtils';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import PageWrapper from '@components/Layout/PageWrapper';
@@ -7,9 +9,8 @@ import Button from '@components/Button';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
-import { FeeAmount } from '@service/pairs&pool';
 import SelectPair from './SelectPair';
-import SelectFeeTier from './SelectFeeTier';
+import SelectFeeTier, { defaultFee } from './SelectFeeTier';
 
 const transitions = {
   en: {
@@ -22,15 +23,27 @@ const transitions = {
   },
 } as const;
 
+const tokenAState = atom<Token | null>({
+  key: `pool-tokenAState-${import.meta.env.MODE}`,
+  default: null,
+  effects: [persistAtom],
+});
+
+const tokenBState = atom<Token | null>({
+  key: `pool-tokenBState-${import.meta.env.MODE}`,
+  default: null,
+  effects: [persistAtom],
+});
+
 const PoolPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
 
-  const [tokenA, setTokenA] = React.useState<Token | null>(null);
-  const [tokenB, setTokenB] = React.useState<Token | null>(null);
+  const [tokenA, setTokenA] = useRecoilState(tokenAState);
+  const [tokenB, setTokenB] = useRecoilState(tokenBState);
   const isBothTokenSelected = !!tokenA && !!tokenB;
 
-  const currentFee = watch('fee', FeeAmount.LOW);
+  const currentFee = watch('fee', defaultFee);
 
   const onSubmit = useCallback(
     withForm(async (data) => {

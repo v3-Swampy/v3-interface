@@ -54,7 +54,7 @@ const SelectDropdown: React.FC<Pick<Props, 'currentFee' | 'setValue'> & { setVis
   );
 };
 
-const SelectFeeTier: React.FC<Props> = ({ isBothTokenSelected, setValue, register, currentFee }) => {
+const DepositAmounts: React.FC<Props> = ({ isBothTokenSelected, setValue, register, currentFee }) => {
   const i18n = useI18n(transitions);
   const [visible, setVisible] = useState(false);
 
@@ -97,4 +97,4 @@ const SelectFeeTier: React.FC<Props> = ({ isBothTokenSelected, setValue, registe
   );
 };
 
-export default SelectFeeTier;
+export default DepositAmounts;
