@@ -6,7 +6,7 @@ import './index.css';
 
 export interface Props extends ComponentProps<'button'> {
   variant?: 'contained' | 'text' | 'outlined';
-  color?: 'orange' | 'gradient';
+  color?: 'orange' | 'gradient' | 'orange-light';
   fullWidth?: boolean;
   loading?: boolean | 'start' | 'end';
   icon?: ReactNode;
@@ -14,6 +14,7 @@ export interface Props extends ComponentProps<'button'> {
   endIcon?: ReactNode;
   href?: string;
   target?: '_blank' | '_self' | '_parent' | '_top';
+  contentClassName?: string;
 }
 
 const Button = forwardRef<HTMLButtonElement, PropsWithChildren<Props>>(
@@ -21,6 +22,7 @@ const Button = forwardRef<HTMLButtonElement, PropsWithChildren<Props>>(
     {
       children,
       className,
+      contentClassName,
       variant = 'contained',
       color = 'orange',
       disabled = false,
@@ -50,7 +52,7 @@ const Button = forwardRef<HTMLButtonElement, PropsWithChildren<Props>>(
       <>
         {startIcon && <span className="button__icon">{renderReactNode(startIcon)}</span>}
         {children && (
-          <span className="button__content">
+          <span className={cx('button__content', contentClassName)}>
             {loading === 'start' && <Spin className="mr-8px text-1.4em translate-y-[-.3em]" />}
             {children}
           </span>
