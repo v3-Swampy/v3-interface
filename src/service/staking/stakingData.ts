@@ -1,7 +1,8 @@
-import { selector, useRecoilValue } from 'recoil';
+import { selector, useRecoilValue, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { VSTTokenContract, VotingEscrowContract } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
+import { useAccount } from '@service/account';
 // import { TokenVST } from '@service/tokens';
 
 //VST Contract
@@ -67,6 +68,8 @@ const escrowTotalSupplyQuery = selector({
     }),
 });
 
+// VotingEscrow Contract
+
 const escrowTotalMaxTimeQuery = selector({
   key: `escrowTotalMaxTime-${import.meta.env.MODE}`,
   get: () =>
@@ -95,6 +98,25 @@ const escrowDecimalsQuery = selector({
     }),
 });
 
+const escrowUserInfoQuery = selectorFamily({
+  key: `escrowUserInfo-${import.meta.env.MODE}`,
+  get:
+    (account) =>
+    async ({}) => {
+      const fetchRes = await fetchChain<string>({
+        params: [
+          {
+            data: VotingEscrowContract.func.encodeFunctionData('userInfo', [account]),
+            to: VotingEscrowContract.address,
+          },
+          'latest',
+        ],
+      });
+      const decodedRes = VotingEscrowContract.func.decodeFunctionResult('userInfo', fetchRes);
+      return decodedRes;
+    },
+});
+
 export const useTotalStakeVST = () => {
   const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
   return totalStakeVST ? Unit.fromMinUnit(totalStakeVST) : null;
@@ -114,12 +136,20 @@ export const usePercentageOfCulatingtion = () => {
 
 export const useAverageStakeDuration = () => {
   const totalLocked = useRecoilValue(totalStakeVSTQuery);
-  const vePPITotalSupply = useRecoilValue(escrowTotalSupplyQuery);
+  const veVSTTotalSupply = useRecoilValue(escrowTotalSupplyQuery);
   const maxTime = useRecoilValue(escrowTotalMaxTimeQuery);
-  if (!+vePPITotalSupply || !+totalLocked || !maxTime) return '-';
-  const avgValue: number = (+vePPITotalSupply * +maxTime) / +totalLocked;
+  if (!+veVSTTotalSupply || !+totalLocked || !maxTime) return '-';
+  const avgValue: number = (+veVSTTotalSupply * +maxTime) / +totalLocked;
   const SECONDS_PER_DAY = 86400;
 
   if (avgValue > SECONDS_PER_DAY * 30) return `${(avgValue / (SECONDS_PER_DAY * 30)).toFixed(2)} months`;
   return `${(avgValue / (SECONDS_PER_DAY * 7)).toFixed(2)} weeks`;
+};
+
+export const useUserInfo = () => {
+  const account = useAccount();
+  const userInfo = useRecoilValue(escrowUserInfoQuery(account));
+  const vstDecimals = useRecoilValue(vstDecimalsQuery);
+  const lockedAmount = account ? Unit.fromMinUnit(userInfo[0].toString()).toDecimalStandardUnit(0, vstDecimals) : 0;
+  return [lockedAmount, userInfo[1].toString()];
 };
