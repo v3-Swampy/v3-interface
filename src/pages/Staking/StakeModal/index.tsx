@@ -9,7 +9,7 @@ import { VotingEscrowContract } from '@contracts/index';
 import useInTranscation from '@hooks/useInTranscation';
 import { handleStakingVST as _handleStakingVST } from '@service/staking';
 import AmountInput from './AmountInput';
-import DurationSelect from './DurationSelect';
+import DurationSelect,{ defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 
@@ -43,7 +43,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo,type,currentUnlockTime }) => 
   const disabledAmount=type===ModalMode.IncreaseUnlockTime
   const disabledLocktime=type===ModalMode.IncreaseAmount
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const currentStakeDuration = watch('VST-stake-duration');
+  const currentStakeDuration = watch('VST-stake-duration',defaultDuration);
   const stakeAmount = watch('VST-stake-amount');
   const account = useAccount();
 
@@ -58,7 +58,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo,type,currentUnlockTime }) => 
   const onSubmit = useCallback(
     withForm(async (data) => {
       let methodName,methodParams;
-      let unlockTime=Math.ceil(new Date().valueOf() / 1000)+data['VST-stake-duration']
+      let unlockTime=Math.ceil(new Date().valueOf() / 1000)+currentStakeDuration
       let amount= Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit(); 
       switch(modalMode){
         case ModalMode.CreateLock:
@@ -67,7 +67,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo,type,currentUnlockTime }) => 
           break;
         case ModalMode.IncreaseUnlockTime:
           methodName='increaseUnlockTime'
-          unlockTime = currentUnlockTime && data['VST-stake-duration'] ? currentUnlockTime + data['VST-stake-duration'] : null
+          unlockTime = currentUnlockTime && currentStakeDuration ? currentUnlockTime + currentStakeDuration : null
           methodParams=[unlockTime]
           break;
         case ModalMode.IncreaseAmount:

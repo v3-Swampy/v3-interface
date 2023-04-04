@@ -99,7 +99,7 @@ export const sendTransaction = async (params: Parameters<typeof sendTransactionW
   if (!accountMethod) {
     throw new Error('No account connected');
   }
-  return methodsMap[accountMethod].sendTransaction(params) as unknown as string;
+  return methodsMap[accountMethod].sendTransaction(params);
 };
 
 export const useAccount = () => useRecoilValue(accountState);
