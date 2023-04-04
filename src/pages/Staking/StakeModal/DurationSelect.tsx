@@ -34,7 +34,7 @@ const transitions = {
 } as const;
 
 const DurationOptions = [duration(1, 'week'), duration(2, 'week'), duration(1, 'month'), duration(2, 'month'), duration(3, 'month'), duration(4, 'month')];
-const defaultDuration = DurationOptions[0].asSeconds();
+export const defaultDuration = DurationOptions[0].asSeconds();
 
 const DurationSelect: React.FC<Props> = ({ register, setValue, currentStakeDuration }) => {
   const i18n = useI18n(transitions);

@@ -9,7 +9,7 @@ import { UniswapV3Quoter } from '@contracts/index';
 import useInTranscation from '@hooks/useInTranscation';
 import { handleStakingVST as _handleStakingVST } from '@service/staking';
 import AmountInput from './AmountInput';
-import DurationSelect from './DurationSelect';
+import DurationSelect, { defaultDuration } from './DurationSelect';
 
 const transitions = {
   en: {
@@ -26,8 +26,8 @@ const StakeModal: React.FC<ConfirmModalInnerProps> = ({ setNextInfo }) => {
   const i18n = useI18n(transitions);
 
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const currentStakeDuration = watch('VST-stake-duration');
-  const stakeAmount = watch('VST-stake-amount');
+  const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
+  const stakeAmount = watch('VST-stake-amount', '');
 
   const { inTranscation, execTranscation: handleStakingVST } = useInTranscation(_handleStakingVST);
 

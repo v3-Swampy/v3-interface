@@ -79,7 +79,7 @@ export const usePositionBalance = (account: string) => useRecoilValue(positionBa
 
 export const useTokenIds = (account: string, tokenIdsArgs: Array<Array<string | number>>) => useRecoilValue(tokenIdsQuery({ tokenIdsArgs, account }));
 
-export const usePositionsFromTokenIds = (tokenIds: Unit[][]) => useRecoilValue(positionsQuery(tokenIds))
+export const usePositionsFromTokenIds = (tokenIds: Unit[][]) => useRecoilValue(positionsQuery(tokenIds));
 
 export function usePositions(account: string) {
   const accountBalance: number = usePositionBalance(account);
