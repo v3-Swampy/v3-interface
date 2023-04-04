@@ -33,22 +33,32 @@ export const TokenCFX: Token = {
 }
 
 const wrapperTokenMap = new Map<string, Token>();
-export const tokensMap = new Map<string, Token>();
+const unwrapperTokenMap = new Map<string, Token>();
+const tokensMap = new Map<string, Token>();
 export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address) ?? null) : null;
 export const getWrapperTokenByAddress = (address?: string | null) => address ? (wrapperTokenMap.get(address) ?? null) : null;
+export const getUnwrapperTokenByAddress = (address?: string | null) => address ? (unwrapperTokenMap.get(address) ?? null) : null;
 const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
 const resetTokensMap = (tokens: Array<Token>) => {
   tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
   tokensMap.clear();
+
+  const WCFX = tokens.find(token => token.symbol === 'WCFX');
+  const CFX = tokens.find(token => token.symbol === 'CFX');
   tokens?.forEach((token) => {
     tokensMap.set(token.address, token);
-    if (token.symbol === 'WCFX') {
-      wrapperTokenMap.set('CFX', token);
-      wrapperTokenMap.set(token.address, token);
-    } else if (token.symbol !== 'CFX') {
+    if (token.symbol !== 'CFX') {
       wrapperTokenMap.set(token.address, token);
     }
+    if (token.symbol !== 'WCFX') {
+      unwrapperTokenMap.set(token.address, token);
+    }
   });
+  if (CFX && WCFX) {
+    wrapperTokenMap.set(CFX.address, WCFX);
+    unwrapperTokenMap.set(WCFX.address, CFX);
+  }
+  
   setTokenVST(tokens);
 };
 resetTokensMap(cachedTokens);

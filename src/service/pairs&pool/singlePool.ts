@@ -44,7 +44,7 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
   const poolKey = `${tokenA?.address ?? 'tokenA'}:${tokenB?.address ?? 'tokenB'}:${fee ?? 'fee'}`;
 
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
-  const fetchAndSetBalance = useCallback(
+  const fetchAndSetPool = useCallback(
     throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => pool && setPool(pool)), 2000),
     [tokenA?.address, tokenB?.address, fee]
   );
@@ -55,8 +55,8 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
     }
 
     poolTracker.set(poolKey, true);
-    fetchAndSetBalance();
-    const timer = setInterval(fetchAndSetBalance, userActiveStatus === UserActiveStatus.Active ? 5000 : 20000);
+    fetchAndSetPool();
+    const timer = setInterval(fetchAndSetPool, userActiveStatus === UserActiveStatus.Active ? 5000 : 20000);
 
     return () => {
       poolTracker.delete(poolKey);
@@ -72,7 +72,7 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
  * Force to get the latest info of a pool.
  * Usually used after a transaction is completed.
  */
-export const updateBalance = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
+export const updatePool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
   const pool = await fetchPool({ tokenA, tokenB, fee });
   const poolKey = `${tokenA?.address ?? 'tokenA'}:${tokenB?.address ?? 'tokenB'}:${fee ?? 'fee'}`;
   setRecoil(poolState(poolKey), pool);
