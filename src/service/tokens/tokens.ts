@@ -32,6 +32,32 @@ export const TokenCFX: Token = {
   logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aacwnngzd52ztm8m32j9c3hekyn8njcgsrjg4p7yzea.png',
 }
 
+export const TokenWCFX: Token = {
+  name: 'Conflux',
+  symbol: 'WCFX',
+  decimals: 18,
+  address: '0x2ed3dddae5b2f321af0806181fbfa6d049be47d8',
+  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aacwnngzd52ztm8m32j9c3hekyn8njcgsrjg4p7yzea.png',
+}
+
+export const TokenUSDT: Token = {
+  name: 'Tether USD',
+  symbol: 'USDT',
+  decimals: 18,
+  address: '0x7d682e65efc5c13bf4e394b8f376c48e6bae0355',
+  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aad9kt4c7csz7xusdgscstf1vbr33azv132611febg1.png',
+}
+
+export const TokenPPI: Token = {
+  name: 'Swappi Token',
+  symbol: 'PPI',
+  decimals: 18,
+  address: '0x54593e02c39aeff52b166bd036797d2b1478de8d',
+  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aaavtjgz9s8jf8yg9hghwcjkwwbp167ay5ynubph265.png',
+}
+
+
+
 const wrapperTokenMap = new Map<string, Token>();
 const unwrapperTokenMap = new Map<string, Token>();
 const tokensMap = new Map<string, Token>();
@@ -58,7 +84,7 @@ const resetTokensMap = (tokens: Array<Token>) => {
     wrapperTokenMap.set(CFX.address, WCFX);
     unwrapperTokenMap.set(WCFX.address, CFX);
   }
-  
+
   setTokenVST(tokens);
 };
 resetTokensMap(cachedTokens);
