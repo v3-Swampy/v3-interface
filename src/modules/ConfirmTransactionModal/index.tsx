@@ -24,7 +24,7 @@ interface CommonProps {
 }
 
 export interface ConfirmModalInnerProps {
-  setNextInfo: (info: { txHash: string; action: string }) => void;
+  setNextInfo?: (info: { txHash: string; action: string }) => void;
 }
 
 const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({ initialStep = Step.Confirm, ConfirmContent, tokenNeededAdd }) => {
