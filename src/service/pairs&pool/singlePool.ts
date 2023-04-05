@@ -5,7 +5,7 @@ import { throttle } from 'lodash-es';
 import { createPoolContract, fetchMulticall } from '@contracts/index';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
 import { type Token } from '@service/tokens';
-import { FeeAmount, type Pool } from './';
+import { FeeAmount, Pool } from './';
 import computePoolAddress from './computePoolAddress';
 
 const poolState = atomFamily<Pool | null, string>({
@@ -22,13 +22,13 @@ export const fetchPool = async (params: { tokenA: Token; tokenB: Token; fee: Fee
   ]).then((res) => {
     const slots = res?.[0] && res?.[0] !== '0x' ? poolContract.func.decodeFunctionResult('slot0', res[0]) : null;
     const liquidityRes = res?.[1] && res?.[1] !== '0x' ? poolContract.func.decodeFunctionResult('liquidity', res[1]) : null;
-    const pool: Pool = {
+    const pool = new Pool({
       ...params,
       address: poolAddress,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
-      tick: slots?.[1] ? slots?.[1]?.toString() : null,
-    };
+      tickCurrent: slots?.[1] ? +(slots?.[1].toString()) : null,
+    });
     return pool;
   });
 };

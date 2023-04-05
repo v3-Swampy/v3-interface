@@ -30,11 +30,11 @@ const SelectDropdown: React.FC<Pick<Props, 'currentFee' | 'setValue'> & { setVis
   return (
     <div className="bg-orange-light rounded-bl-16px rounded-br-16px overflow-hidden">
       {FeeAmountList.map((feeAmount, index) =>
-        FeeAmountValues[index] === currentFee ? null : (
+        FeeAmountValues[index] === (+currentFee) ? null : (
           <div
             className={cx(
               'flex items-center h-56px px-16px cursor-pointer hover:bg-orange-light-hover hover:bg-opacity-60 transition-colors transition-opacity',
-              currentFee === FeeAmountValues[index] && 'bg-orange-light-hover pointer-events-none'
+              Number(currentFee) === FeeAmountValues[index] && 'bg-orange-light-hover pointer-events-none'
             )}
             key={feeAmount}
             onClick={() => {

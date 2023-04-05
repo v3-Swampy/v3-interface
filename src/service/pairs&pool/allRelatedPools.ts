@@ -7,7 +7,7 @@ import { createPoolContract, fetchMulticall } from '@contracts/index';
 import { isEqual } from 'lodash-es';
 import { isOdd } from '@utils/is';
 import computePoolAddress from './computePoolAddress';
-import { FeeAmount, type Pool } from './';
+import { FeeAmount, Pool } from './';
 
 const baseCheckTradeTokenSymbols = ['WCFX', 'WBTC', 'USDT', 'ETH'];
 const baseCheckTradeTokensState = atom<Array<Token>>({
@@ -88,17 +88,21 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
         ])
         .flat()
     )
-      .then((res) => res?.map((data, index) => (data === '0x' ? null : poolContracts[index].func.decodeFunctionResult(isOdd(index) ? 'liquidity' : 'slot0', data))))
+      .then((res) => res?.map((data, index) => {
+        return (data === '0x' ? null : poolContracts[Math.floor(index / 2)].func.decodeFunctionResult(isOdd(index) ? 'liquidity' : 'slot0', data));
+      }))
       .then((res) => mergePairs(res))
       .then((res) => {
-        const pools: Array<Pool> = res?.map((data, index) => ({
+        const pools: Array<Pool> = res?.map((data, index) => new Pool ({
           ...allTokenPairsWithAllFees[index],
           address: poolAddresses[index],
           sqrtPriceX96: data?.[0]?.[0] ? data?.[0]?.[0].toString() : null,
           liquidity: data?.[1]?.[0] ? data?.[1]?.[0].toString() : null,
-          tick: data?.[0]?.[1] ? data?.[0]?.[1].toString() : null,
+          tickCurrent: data?.[0]?.[1] ? +(data?.[0]?.[1].toString()) : null,
         }));
 
+        console.log(pools[28], pools[28].tokenAPrice?.toDecimalMinUnit(4))
+        console.log(pools[28], pools[28].tokenBPrice?.toDecimalMinUnit(4))
         if (!pools?.length) return;
         setValidPools(pools);
         // console.log(pools);
