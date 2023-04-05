@@ -30,47 +30,28 @@ export const TokenCFX: Token = {
   decimals: 18,
   address: 'CFX',
   logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aacwnngzd52ztm8m32j9c3hekyn8njcgsrjg4p7yzea.png',
-}
+};
 
-export const TokenWCFX: Token = {
-  name: 'Conflux',
-  symbol: 'WCFX',
-  decimals: 18,
-  address: '0x2ed3dddae5b2f321af0806181fbfa6d049be47d8',
-  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aacwnngzd52ztm8m32j9c3hekyn8njcgsrjg4p7yzea.png',
-}
+const stableSymbols = ['USDT'];
 
-export const TokenUSDT: Token = {
-  name: 'Tether USD',
-  symbol: 'USDT',
-  decimals: 18,
-  address: '0x7d682e65efc5c13bf4e394b8f376c48e6bae0355',
-  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aad9kt4c7csz7xusdgscstf1vbr33azv132611febg1.png',
-}
+const baseSymbols = ['WCFX', 'WBTC'];
 
-export const TokenPPI: Token = {
-  name: 'Swappi Token',
-  symbol: 'PPI',
-  decimals: 18,
-  address: '0x54593e02c39aeff52b166bd036797d2b1478de8d',
-  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aaavtjgz9s8jf8yg9hghwcjkwwbp167ay5ynubph265.png',
-}
-
-
+export const stables = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
+export const bases = baseSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
 
 const wrapperTokenMap = new Map<string, Token>();
 const unwrapperTokenMap = new Map<string, Token>();
 const tokensMap = new Map<string, Token>();
-export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address) ?? null) : null;
-export const getWrapperTokenByAddress = (address?: string | null) => address ? (wrapperTokenMap.get(address) ?? null) : null;
-export const getUnwrapperTokenByAddress = (address?: string | null) => address ? (unwrapperTokenMap.get(address) ?? null) : null;
+export const getTokenByAddress = (address?: string | null) => (address ? tokensMap.get(address) ?? null : null);
+export const getWrapperTokenByAddress = (address?: string | null) => (address ? wrapperTokenMap.get(address) ?? null : null);
+export const getUnwrapperTokenByAddress = (address?: string | null) => (address ? unwrapperTokenMap.get(address) ?? null : null);
 const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
 const resetTokensMap = (tokens: Array<Token>) => {
   tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
   tokensMap.clear();
 
-  const WCFX = tokens.find(token => token.symbol === 'WCFX');
-  const CFX = tokens.find(token => token.symbol === 'CFX');
+  const WCFX = tokens.find((token) => token.symbol === 'WCFX');
+  const CFX = tokens.find((token) => token.symbol === 'CFX');
   tokens?.forEach((token) => {
     tokensMap.set(token.address, token);
     if (token.symbol !== 'CFX') {
@@ -95,12 +76,12 @@ export const handleTokensChange = (callback: (tokens: Array<Token>) => void) => 
   let tokens!: Array<Token>;
   try {
     tokens = getRecoil(tokensState);
-  } catch(_) {
+  } catch (_) {
     tokens = cachedTokens;
   } finally {
     callback(tokens);
   }
-}
+};
 
 export const tokensState = atom<Array<Token>>({
   key: tokensKey,
@@ -116,7 +97,7 @@ const commonTokensState = atom<Array<Token>>({
   default: [TokenCFX, ...commonTokensCache.toArr()],
 });
 
-export const useCommonTokens  = () => useRecoilValue(commonTokensState);
+export const useCommonTokens = () => useRecoilValue(commonTokensState);
 
 export const setCommonToken = (token: Token) => {
   if (!getTokenByAddress(token.address)) {
@@ -126,13 +107,13 @@ export const setCommonToken = (token: Token) => {
   if (token.address === 'CFX') return;
   commonTokensCache.set(token.address, token);
   setRecoil(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
-}
+};
 
 export const deleteFromCommonTokens = (token: Token) => {
   if (token.address === 'CFX') return;
   if (!commonTokensCache.delete(token.address)) return;
   setRecoil(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
-}
+};
 
 // init tokens data;
 (async function () {
@@ -161,4 +142,3 @@ export const deleteFromCommonTokens = (token: Token) => {
     console.error('Failed to get the latest token list: ', err);
   }
 })();
-
