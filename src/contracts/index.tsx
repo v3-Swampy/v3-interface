@@ -6,6 +6,7 @@ import SwapRouterABI from './abis/SwapRouter.json';
 import UniswapV3FactoryABI from './abis/UniswapV3Factory.json';
 import UniswapV3QuoterABI from './abis/Quoter.json';
 import UniswapV3PoolABI from './abis/UniswapV3PoolState.json';
+import VotingEscrowABI from './abis/VotingEscrow.json';
 import { isProduction } from '@utils/is';
 import { fetchChain } from '@utils/fetch';
 
@@ -47,5 +48,9 @@ export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
     else return null;
   });
 
+export const VotingEscrowContract = createContract(isProduction ? '0xf270e44105c1270bc7a4ffedbcb699486ada7a6a' : '0xb2459c6445fe94cc2d2d2aff9ffc70157f77c649', VotingEscrowABI);
+
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);
+
+export const VSTTokenContract=createERC20Contract(isProduction ? '0x22f41abf77905f50df398f21213290597e7414dd' : '0x49916ba65d0048c4bbb0a786a527d98d10a1cd2d')
