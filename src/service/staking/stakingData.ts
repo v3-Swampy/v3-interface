@@ -103,6 +103,7 @@ const escrowUserInfoQuery = selectorFamily({
   get:
     (account) =>
     async ({}) => {
+      if (!account) return null;
       const fetchRes = await fetchChain<string>({
         params: [
           {
@@ -151,5 +152,5 @@ export const useUserInfo = () => {
   const userInfo = useRecoilValue(escrowUserInfoQuery(account));
   const vstDecimals = useRecoilValue(vstDecimalsQuery);
   const lockedAmount = account ? Unit.fromMinUnit(userInfo[0].toString()).toDecimalStandardUnit(0, vstDecimals) : 0;
-  return [lockedAmount, userInfo[1].toString()];
+  return [lockedAmount, userInfo?.[1]?.toString()];
 };

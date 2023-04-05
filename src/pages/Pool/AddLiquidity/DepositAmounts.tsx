@@ -1,98 +1,94 @@
-import React, { useState } from 'react';
-import cx from 'clsx';
+import React, { useEffect } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
-import Dropdown from '@components/Dropdown';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import cx from 'clsx';
+import Input from '@components/Input';
+import Button from '@components/Button';
+import Balance from '@modules/Balance';
+import { type Token } from '@service/tokens';
+import { useAccount } from '@service/account';
 import useI18n from '@hooks/useI18n';
-import { FeeAmount } from '@service/pairs&pool';
 
 const transitions = {
   en: {
-    select_fee_tier: 'Select fee tier',
+    deposit_amounts: 'Deposit Amounts',
+    select_token: 'Select Token',
+    balance: 'Balance',
+    max: 'MAX',
   },
   zh: {
-    select_fee_tier: '选择手续费级别',
+    deposit_amounts: '存入金额',
+    select_token: '选择代币',
+    balance: '余额',
+    max: '最大值',
   },
 } as const;
 
-interface Props {
+interface CommonProps {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
-  currentFee: FeeAmount;
   isBothTokenSelected: boolean;
 }
 
-export const defaultFee = FeeAmount.LOW;
-const FeeAmountLengh = Object.values(FeeAmount).length / 2;
-const FeeAmountList = Object.values(FeeAmount).slice(0, FeeAmountLengh) as FeeAmount[];
-const FeeAmountValues = Object.values(FeeAmount).slice(FeeAmountLengh) as number[];
+const DepositAmount: React.FC<Omit<CommonProps, 'isBothTokenSelected'> & { token: Token | null; type: 'TokenA' | 'TokenB' }> = ({ type, token, register, setValue }) => {
+  const i18n = useI18n(transitions);
+  const account = useAccount();
 
-const SelectDropdown: React.FC<Pick<Props, 'currentFee' | 'setValue'> & { setVisible: (visible: boolean) => void }> = ({ currentFee, setValue, setVisible }) => {
+  useEffect(() => {
+    setValue(`${type}-amount`, '');
+  }, [token, account]);
+
   return (
-    <div className="bg-orange-light rounded-bl-16px rounded-br-16px overflow-hidden">
-      {FeeAmountList.map((feeAmount, index) =>
-        FeeAmountValues[index] === currentFee ? null : (
-          <div
-            className={cx(
-              'flex items-center h-56px px-16px cursor-pointer hover:bg-orange-light-hover hover:bg-opacity-60 transition-colors transition-opacity',
-              currentFee === FeeAmountValues[index] && 'bg-orange-light-hover pointer-events-none'
+    <div className="mt-4px h-84px pt-8px pl-16px pr-8px rounded-16px bg-orange-light-hover">
+      <div className="flex justify-between items-center">
+        <Input
+          className="text-24px"
+          clearIcon
+          disabled={!token}
+          placeholder="0"
+          {...register(`${type}-amount`, {
+            required: true,
+            min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals),
+          })}
+        />
+
+        <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium cursor-pointer">
+          {token && <img className="w-24px h-24px mr-4px" src={token.logoURI} alt={`${token.symbol} logo`} />}
+          {token && token.symbol}
+          {!token && i18n.select_token}
+        </div>
+      </div>
+
+      {account && token && (
+        <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">
+          {i18n.balance}:{' '}
+          <Balance className="ml-2px" address={token.address} decimals={token.decimals}>
+            {(balance) => (
+              <Button
+                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
+                color="orange"
+                disabled={!balance || balance === '0'}
+                onClick={() => setValue(`${type}-amount`, balance)}
+                type="button"
+              >
+                {i18n.max}
+              </Button>
             )}
-            key={feeAmount}
-            onClick={() => {
-              setValue('fee', FeeAmountValues[index]);
-              setVisible(false);
-            }}
-          >
-            <div className="mr-auto">
-              <p className="text-18px leading-24px text-black-normal font-medium">{FeeAmountValues[index] / 10000}%</p>
-              <p className="text-14px leading-20px text-gray-normal">Best for most pairs</p>
-            </div>
-            <span className="text-12px text-black-light font-light">1% select</span>
-          </div>
-        )
+          </Balance>
+        </div>
       )}
     </div>
   );
 };
 
-const DepositAmounts: React.FC<Props> = ({ isBothTokenSelected, setValue, register, currentFee }) => {
+const DepositAmounts: React.FC<CommonProps & { tokenA: Token | null; tokenB: Token | null }> = ({ isBothTokenSelected, tokenA, tokenB, ...props }) => {
   const i18n = useI18n(transitions);
-  const [visible, setVisible] = useState(false);
-
   return (
-    <div className={cx('mt-16px mb-8px', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
-      <p className="leading-18px text-14px text-black-normal font-medium">{i18n.select_fee_tier}</p>
-      <Dropdown
-        visible={visible}
-        Content={<SelectDropdown currentFee={currentFee} setValue={setValue} setVisible={setVisible} />}
-        sameWidth
-        offset={[0, 0]}
-        className="w-full"
-        onClickOutside={() => setVisible(false)}
-      >
-        <div
-          className={cx('rounded-tl-16px rounded-tr-16px overflow-hidden transition-colors', visible ? 'bg-orange-light' : 'bg-transparent')}
-          onClick={() => setVisible((pre) => !pre)}
-        >
-          <div
-            className={cx(
-              'flex items-center px-16px h-56px border-2px border-solid rounded-16px cursor-pointer transition-colors',
-              visible ? 'bg-orange-light-hover border-transparent' : 'bg-white-normal border-orange-light'
-            )}
-          >
-            <input
-              className="display-none"
-              defaultValue={defaultFee}
-              {...register('fee', {
-                required: true,
-              })}
-              type="number"
-            />
-            <span className="text-18px text-black-normal font-medium mr-auto">{currentFee / 10000}% fee tier</span>
-            <span className="px-8px h-20px leading-20px rounded-4px bg-orange-light-hover text-12px text-black-light font-light">93% select</span>
-            <span className={cx('i-ic:sharp-keyboard-arrow-down ml-12px flex-shrink-0 text-16px font-medium transition-transform', visible && 'rotate-180deg')} />
-          </div>
-        </div>
-      </Dropdown>
+    <div className={cx('mt-24px', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
+      <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.deposit_amounts}</p>
+
+      <DepositAmount {...props} token={tokenA} type="TokenA" />
+      <DepositAmount {...props} token={tokenB} type="TokenB" />
     </div>
   );
 };
