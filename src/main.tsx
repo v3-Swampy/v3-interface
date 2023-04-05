@@ -1,6 +1,8 @@
 import { RecoilRoot } from 'recoil';
 import RecoilNexus from 'recoil-nexus';
 import ReactDOM from 'react-dom/client';
+import dayjs from 'dayjs';
+import durationPlugin from 'dayjs/plugin/duration'
 import { completeDetect } from '@cfxjs/use-wallet-react/conflux';
 import { initializeRecoil } from '@utils/recoilUtils';
 import { ModalPopup, DrawerPopup, Toast } from '@components/showPopup';
@@ -11,6 +13,8 @@ import 'reseter.css/css/reseter.css';
 import 'custom-react-scrollbar/dist/style.css';
 import './index.css';
 import '@service/tokens';
+
+dayjs.extend(durationPlugin);
 
 if (isMobile) {
   document.styleSheets[0].insertRule('.scrollbar__thumbPlaceholder--vertical { display:none !important; }', 0);
