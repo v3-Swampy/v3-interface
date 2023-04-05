@@ -1,6 +1,4 @@
 import React, { useCallback } from 'react';
-import { atom, useRecoilState } from 'recoil';
-import { persistAtom } from '@utils/recoilUtils';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import PageWrapper from '@components/Layout/PageWrapper';
@@ -8,10 +6,11 @@ import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
-import { type Token } from '@service/tokens';
 import SelectPair from './SelectPair';
-import SelectFeeTier, { defaultFee } from './SelectFeeTier';
+import SelectFeeTier from './SelectFeeTier';
 import DepositAmounts from './DepositAmounts';
+import SetPriceRange from './SetPriceRange';
+import SubmitButton from './SubmitButton';
 
 const transitions = {
   en: {
@@ -24,27 +23,12 @@ const transitions = {
   },
 } as const;
 
-const tokenAState = atom<Token | null>({
-  key: `pool-tokenAState-${import.meta.env.MODE}`,
-  default: null,
-  effects: [persistAtom],
-});
-
-const tokenBState = atom<Token | null>({
-  key: `pool-tokenBState-${import.meta.env.MODE}`,
-  default: null,
-  effects: [persistAtom],
-});
-
 const PoolPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
 
-  const [tokenA, setTokenA] = useRecoilState(tokenAState);
-  const [tokenB, setTokenB] = useRecoilState(tokenBState);
-  const isBothTokenSelected = !!tokenA && !!tokenB;
-
-  const currentFee = watch('fee', defaultFee);
+  const lowRange = watch('range-low', '');
+  const upperRange = watch('range-upper', '');
 
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -70,12 +54,16 @@ const PoolPage: React.FC = () => {
         <form onSubmit={onSubmit}>
           <BorderBox className="relative w-full p-16px rounded-28px flex gap-32px lt-md:gap-16px" variant="gradient-white">
             <div className="w-310px flex-grow-1 flex-shrink-1">
-              <SelectPair tokenA={tokenA} tokenB={tokenB} setTokenA={setTokenA} setTokenB={setTokenB} />
-              <SelectFeeTier isBothTokenSelected={isBothTokenSelected} register={register} setValue={setValue} currentFee={currentFee} />
-              <DepositAmounts isBothTokenSelected={isBothTokenSelected} register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} />
+              <SelectPair  />
+              <SelectFeeTier register={register} />
+              <DepositAmounts register={register} setValue={setValue} />
             </div>
 
-            <div className="w-426px flex-grow-1 flex-shrink-1"></div>
+            <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col">
+              <SetPriceRange register={register} lowRange={lowRange} upperRange={upperRange} />
+
+              <SubmitButton />
+            </div>
           </BorderBox>
         </form>
       </div>

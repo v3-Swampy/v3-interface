@@ -100,9 +100,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
           liquidity: data?.[1]?.[0] ? data?.[1]?.[0].toString() : null,
           tickCurrent: data?.[0]?.[1] ? +(data?.[0]?.[1].toString()) : null,
         }));
-
-        console.log(pools[28], pools[28].tokenAPrice?.toDecimalMinUnit(4))
-        console.log(pools[28], pools[28].tokenBPrice?.toDecimalMinUnit(4))
+ 
         if (!pools?.length) return;
         setValidPools(pools);
         // console.log(pools);

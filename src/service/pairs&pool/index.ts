@@ -30,8 +30,8 @@ export class Pool implements PoolProps {
   public sqrtPriceX96: string | null;
   public liquidity: string | null;
   public tickCurrent: number | null;
-  private _tokenAPrice: Unit | null = null;
-  private _tokenBPrice: Unit | null = null;
+  public tokenAPrice: Unit | null;
+  public tokenBPrice: Unit | null;
   constructor({ tokenA, tokenB, fee, address, sqrtPriceX96, liquidity, tickCurrent }: PoolProps) {
     this.tokenA = tokenA;
     this.tokenB = tokenB;
@@ -40,16 +40,8 @@ export class Pool implements PoolProps {
     this.sqrtPriceX96 = sqrtPriceX96;
     this.liquidity = liquidity;
     this.tickCurrent = tickCurrent;
-  }
-
-  public get tokenAPrice() {
-    if (!this.sqrtPriceX96) return null;
-    return this._tokenAPrice ?? (this._tokenAPrice = Unit.fromMinUnit(this.sqrtPriceX96).mul(Unit.fromMinUnit(this.sqrtPriceX96)).div(Q192Unit));
-  }
-
-  public get tokenBPrice() {
-    if (!this.sqrtPriceX96) return null;
-    return this._tokenBPrice ?? (this._tokenAPrice = Unit.fromMinUnit(1).div(this.tokenAPrice!));
+    this.tokenAPrice = !sqrtPriceX96 ? null : Unit.fromMinUnit(sqrtPriceX96).mul(Unit.fromMinUnit(sqrtPriceX96)).div(Q192Unit);
+    this.tokenBPrice = !sqrtPriceX96 ? null : Unit.fromMinUnit(1).div(this.tokenAPrice!);
   }
 
   public priceOf = (token: Token) => {
