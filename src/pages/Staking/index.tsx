@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo,useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
@@ -8,8 +8,8 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import DataDetail from './DataDetail';
 import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
-import { TokenVST } from '@service/tokens';
 import dayjs from 'dayjs';
+import { handleUnStake  } from '@service/staking';
 
 const transitions = {
   en: {
@@ -22,6 +22,8 @@ const transitions = {
     launchpad_priority: 'Stake PPI for priority eligibility in Launchpad',
     stake_more: 'Stake More',
     extend: 'Extend',
+    unStake:'Unlock',
+    unStake_tip:'Your Staked VST is ready to unstake. Please unstake and stake again to get boost on farming'
   },
   zh: {
     staking: '质押',
@@ -33,6 +35,8 @@ const transitions = {
     launchpad_priority: 'Stake PPI for priority eligibility in Launchpad',
     stake_more: 'Stake More',
     extend: 'Extend',
+    unStake:'Unlock',
+    unStake_tip:'Your Staked VST is ready to unstake. Please unstake and stake again to get boost on farming'
   },
 } as const;
 
@@ -106,6 +110,22 @@ const StakingPage: React.FC = () => {
                 <p className="leading-23px h-14px text-black-normal font-medium"></p>
                   <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
                     {i18n.extend}
+                  </Button>
+              </div>
+            </>
+          )}
+          {stakingStatus === PersonalStakingStatus.TO_UNLOCK && (
+            <>
+              <div className="w-1/2">
+                <p className="leading-23px text-14px text-gray-normal">{compiled(i18n.my_staked, { token: 'VST' })}</p>
+                <p className="leading-23px text-16px text-black-normal font-medium">{lockedAmount ?? '...'}</p>
+                <p className="leading-23px h-14px text-black-normal">~ ${'8000'}</p>
+              </div>
+
+              <div className="w-1/2 flex flex-col justify-center">
+                <p className="leading-23px text-16px text-black-normal font-medium">{i18n.unStake_tip}</p>
+                  <Button {...smallButtonProps} onClick={handleUnStake}>
+                    {i18n.unStake}
                   </Button>
               </div>
             </>
