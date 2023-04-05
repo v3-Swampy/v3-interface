@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { selectorFamily, useRecoilValue } from 'recoil';
-import { nearestUsableTick, TICK_SPACINGS, TickMath, Position } from '@uniswap/v3-sdk'
+import { nearestUsableTick, TICK_SPACINGS, TickMath } from '@uniswap/v3-sdk';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
-import { type Token, TokenVST, TokenCFX, getTokenByAddress } from '@service/tokens';
-import { FeeAmount, usePool } from '@service/pairs&pool';
+import { type Token, getTokenByAddress, stables, bases } from '@service/tokens';
+import { FeeAmount, usePool, type Pool } from '@service/pairs&pool';
 
 export enum PositionStatus {
   InRange,
@@ -13,14 +13,16 @@ export enum PositionStatus {
   Closed,
 }
 
-interface ORIG_Position {
+interface Position {
   tokenId: Unit;
-  token0: string;
-  token1: string;
+  tokenA: string;
+  tokenB: string;
   tickLower: number;
   tickUpper: number;
   fee: FeeAmount;
   liquidity: Unit;
+  priceLower: Unit;
+  priceHigher: Unit;
 }
 
 const positionBalanceQuery = selectorFamily<number, string>({
@@ -130,10 +132,10 @@ export function usePositions(account: string) {
           operator: result.operator,
           tickLower: result.tickLower,
           tickUpper: result.tickUpper,
-          token0: result.token0,
-          token1: result.token1,
-          tokensOwed0: result.tokensOwed0,
-          tokensOwed1: result.tokensOwed1,
+          tokenA: result.token0,
+          tokenB: result.token1,
+          tokensOwedA: result.tokensOwed0,
+          tokensOwedB: result.tokensOwed1,
         };
       });
     }
@@ -141,7 +143,7 @@ export function usePositions(account: string) {
   }, [results, tokenIds]);
 
   return {
-    positions: positions?.map((position: ORIG_Position, i: number) => ({ ...position, tokenId: inputs[i][0] })),
+    positions: positions?.map((position: Position, i: number) => ({ ...position, tokenId: inputs[i][0] })),
   };
 }
 
@@ -150,45 +152,86 @@ export enum Bound {
   UPPER = 'UPPER',
 }
 
-export default function useIsTickAtLimit(
-  feeAmount: FeeAmount | undefined,
-  tickLower: number | undefined,
-  tickUpper: number | undefined
-) {
+export default function useIsTickAtLimit(feeAmount: FeeAmount | undefined, tickLower: number | undefined, tickUpper: number | undefined) {
   return useMemo(
     () => ({
-      [Bound.LOWER]:
-        feeAmount && tickLower
-          ? tickLower === nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount as FeeAmount])
-          : undefined,
-      [Bound.UPPER]:
-        feeAmount && tickUpper
-          ? tickUpper === nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount as FeeAmount])
-          : undefined,
+      [Bound.LOWER]: feeAmount && tickLower ? tickLower === nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount as FeeAmount]) : undefined,
+      [Bound.UPPER]: feeAmount && tickUpper ? tickUpper === nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount as FeeAmount]) : undefined,
     }),
     [feeAmount, tickLower, tickUpper]
-  )
+  );
+}
+
+export function getPositionPriceRange({tickLower, tickUpper, tokenADecimals, tokenBDecimals}: {tickLower :number, tickUpper: number, tokenADecimals: number, tokenBDecimals: number}) {
+  const priceLower = Unit.pow(Unit.fromMinUnit(1.0001), Unit.fromMinUnit(tickLower)).mul(Unit.fromMinUnit(`1e${tokenADecimals}`)).div(Unit.fromMinUnit(`1e${tokenBDecimals}`))
+  const priceUpper = Unit.pow(Unit.fromMinUnit(1.0001), Unit.fromMinUnit(tickUpper)).mul(Unit.fromMinUnit(`1e${tokenADecimals}`)).div(Unit.fromMinUnit(`1e${tokenBDecimals}`))
+  return {priceLower, priceUpper}
+}
+
+export function getPriceOrderingFromPositionForUI(pool: Pool, position: Position): {
+  priceLower?: Unit | null
+  priceUpper?: Unit | null
+  quote?: Token
+  base?: Token
+} {
+  if (!pool) {
+    return {}
+  }
+  const tokenA = pool.tokenA
+  const tokenB = pool.tokenB
+  const tokenADecimals = tokenA.decimals;
+  const tokenBDecimals = tokenB.decimals;
+  const {tickLower, tickUpper} = position;
+  const {priceLower, priceUpper} : {priceLower: Unit, priceUpper: Unit} = getPositionPriceRange({tickLower, tickUpper, tokenADecimals, tokenBDecimals})
+  const {priceLower: priceLowerInvert, priceUpper: priceUpperInvert} : {priceLower: Unit, priceUpper: Unit} = getPositionPriceRange({tickLower, tickUpper, tokenADecimals: tokenBDecimals, tokenBDecimals: tokenADecimals})
+
+  // if token0 is a dollar-stable asset, set it as the quote token
+  if (stables.some((stable) => stable?.address === tokenA.address)) {
+    return {
+      priceLower: priceLowerInvert,
+      priceUpper: priceUpperInvert,
+      quote: tokenA,
+      base: tokenB,
+    }
+  }
+
+  // if token1 is an ETH-/BTC-stable asset, set it as the base token
+
+  if (bases.some((base) => base?.address === tokenB.address)) {
+    return {
+      priceLower: priceLowerInvert,
+      priceUpper: priceUpperInvert,
+      quote: tokenA,
+      base: tokenB,
+    }
+  }
+
+  // otherwise, just return the default
+  return {
+    priceLower,
+    priceUpper,
+    quote: tokenA,
+    base: tokenB,
+  }
 }
 
 
-export function usePosition(data: ORIG_Position) {
-  const { token0: token0Address, token1: token1Address, tokenId, fee: feeAmount, liquidity, tickLower, tickUpper } = data;
 
-  const token0 = getTokenByAddress(token0Address)
-  const token1 = getTokenByAddress(token1Address)
+export function usePosition(position: Position) {
+  const { tokenA: tokenAAddress, tokenB: tokenBAddress, fee: feeAmount, tickLower, tickUpper } = position;
+
+  const tokenA = getTokenByAddress(tokenAAddress);
+  const tokenB = getTokenByAddress(tokenBAddress);
 
   // construct Position from details returned
-  const pool = usePool({tokenA: token0, tokenB: token1, fee: feeAmount})
+  const pool: Pool = usePool({ tokenA, tokenB, fee: feeAmount });
 
-  const position = useMemo(() => {
-    if (pool) {
-      return new Position({ pool, liquidity: liquidity.toString(), tickLower, tickUpper })
-    }
-    return undefined
-  }, [liquidity, pool, tickLower, tickUpper])
 
-  const tickAtLimit = useIsTickAtLimit(feeAmount, tickLower, tickUpper)
+  const tickAtLimit = useIsTickAtLimit(feeAmount, tickLower, tickUpper);
+
+    // prices
+  const { priceLower, priceUpper, quote, base } = getPriceOrderingFromPositionForUI(pool, position)
 
   // check if price is within range
-  const outOfRange: boolean = pool ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper : false
+  const outOfRange: boolean = pool && pool.tickCurrent && pool.tickCurrent ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper : false;
 }
