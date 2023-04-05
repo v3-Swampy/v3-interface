@@ -1,10 +1,10 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { atomFamily, useRecoilStateLoadable } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { throttle } from 'lodash-es';
 import { createPoolContract, fetchMulticall } from '@contracts/index';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
-import { type Token } from '@service/tokens';
+import { getWrapperTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount, Pool } from './';
 import computePoolAddress from './computePoolAddress';
 
@@ -12,7 +12,11 @@ const poolState = atomFamily<Pool | null, string>({
   key: `poolState-${import.meta.env.MODE}`,
 });
 
-export const fetchPool = async (params: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
+export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
+  const wrapperedTokenA = getWrapperTokenByAddress(tokenA?.address)!;
+  const wrapperedTokenB = getWrapperTokenByAddress(tokenB?.address)!;
+  const params = { tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee };
+  
   const poolAddress = computePoolAddress(params);
   const poolContract = createPoolContract(poolAddress);
 
@@ -39,7 +43,7 @@ const poolTracker = new Map<string, boolean>();
  * tracker for the same token, only one should exist at the same time.
  * The balance will be updated every 5 seconds when the user is active, and every 20 seconds when the user is inactive.
  */
-export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB: Token | null; fee: FeeAmount | null }) => {
+export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB: Token | null; fee: FeeAmount | null }): Pool | null => {
   const userActiveStatus = useUserActiveStatus();
   const poolKey = `${tokenA?.address ?? 'tokenA'}:${tokenB?.address ?? 'tokenB'}:${fee ?? 'fee'}`;
 

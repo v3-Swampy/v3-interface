@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
@@ -8,6 +8,7 @@ import Balance from '@modules/Balance';
 import { type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
 import useI18n from '@hooks/useI18n';
+import { useTokenA, useTokenB } from './SelectPair';
 
 const transitions = {
   en: {
@@ -24,18 +25,17 @@ const transitions = {
   },
 } as const;
 
-interface CommonProps {
+interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
-  isBothTokenSelected: boolean;
 }
 
-const DepositAmount: React.FC<Omit<CommonProps, 'isBothTokenSelected'> & { token: Token | null; type: 'TokenA' | 'TokenB' }> = ({ type, token, register, setValue }) => {
+const DepositAmount: React.FC<Props & { token: Token | null; type: 'tokenA' | 'tokenB' }> = ({ type, token, register, setValue }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
   useEffect(() => {
-    setValue(`${type}-amount`, '');
+    setValue(`amount-${type}`, '');
   }, [token, account]);
 
   return (
@@ -46,7 +46,8 @@ const DepositAmount: React.FC<Omit<CommonProps, 'isBothTokenSelected'> & { token
           clearIcon
           disabled={!token}
           placeholder="0"
-          {...register(`${type}-amount`, {
+          id={`input--${type}-amount`}
+          {...register(`amount-${type}`, {
             required: true,
             min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals),
           })}
@@ -68,7 +69,7 @@ const DepositAmount: React.FC<Omit<CommonProps, 'isBothTokenSelected'> & { token
                 className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
                 color="orange"
                 disabled={!balance || balance === '0'}
-                onClick={() => setValue(`${type}-amount`, balance)}
+                onClick={() => setValue(`amount-${type}`, balance)}
                 type="button"
               >
                 {i18n.max}
@@ -81,16 +82,20 @@ const DepositAmount: React.FC<Omit<CommonProps, 'isBothTokenSelected'> & { token
   );
 };
 
-const DepositAmounts: React.FC<CommonProps & { tokenA: Token | null; tokenB: Token | null }> = ({ isBothTokenSelected, tokenA, tokenB, ...props }) => {
+const DepositAmounts: React.FC<Props> = ({ ...props }) => {
   const i18n = useI18n(transitions);
+  const tokenA = useTokenA();
+  const tokenB = useTokenB();
+  const isBothTokenSelected = !!tokenA && !!tokenB;
+
   return (
     <div className={cx('mt-24px', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.deposit_amounts}</p>
 
-      <DepositAmount {...props} token={tokenA} type="TokenA" />
-      <DepositAmount {...props} token={tokenB} type="TokenB" />
+      <DepositAmount {...props} token={tokenA} type="tokenA" />
+      <DepositAmount {...props} token={tokenB} type="tokenB" />
     </div>
   );
 };
 
-export default DepositAmounts;
+export default memo(DepositAmounts);
