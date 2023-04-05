@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, type Componen
 import { debounce } from 'lodash-es';
 import { sendTransaction, Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n, { compiled } from '@hooks/useI18n';
-import { createERC20Contract } from '@contracts/index';
+import { createERC20Contract, NonfungiblePositionManager } from '@contracts/index';
 import Button from '@components/Button';
 import { fetchChain } from '@utils/fetch';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';

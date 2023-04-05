@@ -29,6 +29,8 @@ const PoolPage: React.FC = () => {
 
   const lowRange = watch('range-low', '');
   const upperRange = watch('range-upper', '');
+  const amountTokenA = watch('amount-tokenA', '');
+  const amountTokenB = watch('amount-tokenB', '');
 
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -62,7 +64,7 @@ const PoolPage: React.FC = () => {
             <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col">
               <SetPriceRange register={register} lowRange={lowRange} upperRange={upperRange} />
 
-              <SubmitButton />
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB}/>
             </div>
           </BorderBox>
         </form>

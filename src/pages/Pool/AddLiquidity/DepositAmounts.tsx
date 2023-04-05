@@ -47,6 +47,7 @@ const DepositAmount: React.FC<Props & { token: Token | null; type: 'tokenA' | 't
           disabled={!token}
           placeholder="0"
           id={`input--${type}-amount`}
+          type='number'
           {...register(`amount-${type}`, {
             required: true,
             min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals),

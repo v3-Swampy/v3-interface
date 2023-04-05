@@ -4,8 +4,6 @@ import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 're
 import Input from '@components/Input';
 import useI18n, { compiled } from '@hooks/useI18n';
 import dayjs from 'dayjs';
-import durationPlugin from 'dayjs/plugin/duration';
-dayjs.extend(durationPlugin);
 const duration = dayjs.duration;
 
 interface Props {
