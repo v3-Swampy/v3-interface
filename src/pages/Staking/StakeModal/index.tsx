@@ -113,8 +113,8 @@ const buttonProps = {
 const showStakeModal = (type:ModalMode) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
-    ConfirmContent:()=> <StakeModal type={type} />,
-    className: '!max-w-572px !max-h-466px',
+    ConfirmContent:(props: Props)=> <StakeModal type={type} {...props} />,
+    className: '!max-w-572px !min-h-466px',
   });
 };
 
