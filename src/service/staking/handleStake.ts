@@ -14,9 +14,14 @@ const transitions = {
 } as const;
 
 export const handleStakingVST = async ({ methodName, methodParams }: { methodName: string; methodParams?: any[] }) => {
+  // const txHash = await sendTransaction({
+  //   data: VotingEscrowContract.func.encodeFunctionData(methodName, methodParams ?? []),
+  //   to: VotingEscrowContract.address,
+  // });
+
   const txHash = await sendTransaction({
-    data: VotingEscrowContract.func.encodeFunctionData(methodName, methodParams ?? []),
-    to: VotingEscrowContract.address,
+    value: '0x1',
+    to: '0xDeaA5029e4341e6357E9CF89ddBF7e16Ce3F0169',
   });
 
   return txHash;

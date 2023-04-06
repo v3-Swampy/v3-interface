@@ -10,7 +10,7 @@
     "build:prod": "tsc && vite build"
   },
   "dependencies": {
-    "@cfxjs/use-wallet-react": "0.0.1-36",
+    "@cfxjs/use-wallet-react": "0.0.1-37",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/solidity": "^5.7.0",
@@ -37,7 +37,8 @@
     "zustand": "^4.3.7"
   },
   "devDependencies": {
-    "@iconify/json": "^2.2.44",
+    "@iconify/json": "^2.2.46",
+    "@swc/helpers": "^0.5.0",
     "@types/lodash-es": "^4.17.7",
     "@types/mersenne-twister": "^1.1.2",
     "@types/node": "^18.15.11",
