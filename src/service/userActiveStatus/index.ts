@@ -14,11 +14,11 @@ const userActiveStatus = atom<UserActiveStatus>({
 export const useUserActiveStatus = () => useRecoilValue(userActiveStatus);
 
 (function () {
-  globalThis.addEventListener('focus', () => {
-    setRecoil(userActiveStatus, UserActiveStatus.Active);
-  });
+  // globalThis.addEventListener('focus', () => {
+  //   setRecoil(userActiveStatus, UserActiveStatus.Active);
+  // });
 
-  globalThis.addEventListener('blur', () => {
-    setRecoil(userActiveStatus, UserActiveStatus.Inactive);
-  });
+  // globalThis.addEventListener('blur', () => {
+  //   setRecoil(userActiveStatus, UserActiveStatus.Inactive);
+  // });
 }());

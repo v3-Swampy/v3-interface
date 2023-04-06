@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, type Componen
 import { debounce } from 'lodash-es';
 import { sendTransaction, Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n, { compiled } from '@hooks/useI18n';
-import { createERC20Contract, NonfungiblePositionManager } from '@contracts/index';
+import { createERC20Contract } from '@contracts/index';
 import Button from '@components/Button';
 import { fetchChain } from '@utils/fetch';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
 import { useBalance } from '@service/balance';
-import { getUnwrapperTokenByAddress } from '@service/tokens';
+import { getTokenByAddress } from '@service/tokens';
 const Zero = Unit.fromMinUnit(0);
 
 export type Status = 'checking-approve' | 'need-approve' | 'approving' | 'approved';
@@ -46,14 +46,12 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
 
   const account = useAccount();
 
-  const token = useMemo(() => getUnwrapperTokenByAddress(tokenAddress), [tokenAddress]);
+  const token = useMemo(() => getTokenByAddress(tokenAddress), [tokenAddress]);
   const tokenContract = useMemo(() => (token?.address ? createERC20Contract(token.address) : undefined), [token?.address]);
   const amountUnit = useMemo(() => (amount && token?.decimals ? Unit.fromStandardUnit(amount, token.decimals) : null), [amount, token?.decimals]);
   const balance = useBalance(token?.address);
   const needApprove = token?.address !== 'CFX';
-
   const [status, setStatus] = useState<Status>('checking-approve');
-
 
   const checkApproveFunc = useRef<VoidFunction>();
   useEffect(() => {

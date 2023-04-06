@@ -35,9 +35,9 @@ export const TokenCFX: Token = {
 const wrapperTokenMap = new Map<string, Token>();
 const unwrapperTokenMap = new Map<string, Token>();
 const tokensMap = new Map<string, Token>();
-export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address) ?? null) : null;
-export const getWrapperTokenByAddress = (address?: string | null) => address ? (wrapperTokenMap.get(address) ?? null) : null;
-export const getUnwrapperTokenByAddress = (address?: string | null) => address ? (unwrapperTokenMap.get(address) ?? null) : null;
+export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address.toLowerCase()) ?? null) : null;
+export const getWrapperTokenByAddress = (address?: string | null) => address ? (wrapperTokenMap.get(address.toLowerCase()) ?? null) : null;
+export const getUnwrapperTokenByAddress = (address?: string | null) => address ? (unwrapperTokenMap.get(address.toLowerCase()) ?? null) : null;
 const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
 const resetTokensMap = (tokens: Array<Token>) => {
   tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
@@ -46,17 +46,17 @@ const resetTokensMap = (tokens: Array<Token>) => {
   const WCFX = tokens.find(token => token.symbol === 'WCFX');
   const CFX = tokens.find(token => token.symbol === 'CFX');
   tokens?.forEach((token) => {
-    tokensMap.set(token.address, token);
+    tokensMap.set(token.address.toLowerCase(), token);
     if (token.symbol !== 'CFX') {
-      wrapperTokenMap.set(token.address, token);
+      wrapperTokenMap.set(token.address.toLowerCase(), token);
     }
     if (token.symbol !== 'WCFX') {
-      unwrapperTokenMap.set(token.address, token);
+      unwrapperTokenMap.set(token.address.toLowerCase(), token);
     }
   });
   if (CFX && WCFX) {
-    wrapperTokenMap.set(CFX.address, WCFX);
-    unwrapperTokenMap.set(WCFX.address, CFX);
+    wrapperTokenMap.set(CFX.address.toLowerCase(), WCFX);
+    unwrapperTokenMap.set(WCFX.address.toLowerCase(), CFX);
   }
   
   setTokenVST(tokens);

@@ -12,7 +12,10 @@ export function numFormat(num?: string) {
   return resArr.reverse().join('') + (dec ? `.${dec}` : '');
 }
 
-
 export function trimDecimalZeros(numStr: string) {
-  return numStr.replace(/(\.\d*?[1-9])0+$/g, '$1').replace(/\.$/, '');
+  if (typeof numStr !== 'string') {
+    return numStr;
+  }
+
+  return numStr.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0*$/, '');
 }

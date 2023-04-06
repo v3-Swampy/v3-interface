@@ -4,6 +4,7 @@ import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 're
 import Input from '@components/Input';
 import useI18n, { compiled } from '@hooks/useI18n';
 import dayjs from 'dayjs';
+import { type Duration } from 'dayjs/plugin/duration';
 const duration = dayjs.duration;
 
 interface Props {
@@ -75,7 +76,7 @@ const DurationSelect: React.FC<Props> = ({ register, setValue, currentStakeDurat
 };
 
 const Duration: React.FC<{
-  duration: durationPlugin.Duration;
+  duration: Duration;
   currentStakeDuration: number;
   onClick: (durationSeconds: number, durationText: { value: number; unit: string }) => void;
 }> = memo(({ duration, currentStakeDuration, onClick }) => {

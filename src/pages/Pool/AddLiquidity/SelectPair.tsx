@@ -53,6 +53,7 @@ const SelectPair: React.FC = () => {
           contentClassName={cx('w-full pr-16px', tokenA ? 'pl-8px' : 'pl-16px')}
           color={tokenA ? 'orange-light' : 'gradient'}
           onClick={() => showTokenSelectModal({ currentSelectToken: tokenA, onSelect: setTokenA })}
+          type='button'
         >
           {tokenA && (
             <>
@@ -69,6 +70,7 @@ const SelectPair: React.FC = () => {
           contentClassName={cx('w-full pr-16px', tokenB ? 'pl-8px' : 'pl-16px')}
           color={tokenB ? 'orange-light' : 'gradient'}
           onClick={() => showTokenSelectModal({ currentSelectToken: tokenB, onSelect: setTokenB })}
+          type='button'
         >
           {tokenB && (
             <>
