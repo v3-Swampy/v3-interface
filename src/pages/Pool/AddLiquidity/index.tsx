@@ -25,12 +25,13 @@ const transitions = {
 
 const PoolPage: React.FC = () => {
   const i18n = useI18n(transitions);
-  const { register, handleSubmit: withForm, setValue, watch } = useForm();
+  const { register, handleSubmit: withForm, setValue, getValues, watch} = useForm();
 
   const lowRange = watch('range-low', '');
   const upperRange = watch('range-upper', '');
   const amountTokenA = watch('amount-tokenA', '');
   const amountTokenB = watch('amount-tokenB', '');
+  const priceInit = watch('price-init', '');
 
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -56,15 +57,15 @@ const PoolPage: React.FC = () => {
         <form onSubmit={onSubmit}>
           <BorderBox className="relative w-full p-16px rounded-28px flex gap-32px lt-md:gap-16px" variant="gradient-white">
             <div className="w-310px flex-grow-1 flex-shrink-1">
-              <SelectPair  />
+              <SelectPair />
               <SelectFeeTier register={register} />
-              <DepositAmounts register={register} setValue={setValue} />
+              <DepositAmounts register={register} setValue={setValue} getValues={getValues} lowRange={lowRange} upperRange={upperRange} priceInit={priceInit} />
             </div>
 
             <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col">
-              <SetPriceRange register={register} lowRange={lowRange} upperRange={upperRange} />
+              <SetPriceRange register={register} lowRange={lowRange} upperRange={upperRange} priceInit={priceInit} />
 
-              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB}/>
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} />
             </div>
           </BorderBox>
         </form>

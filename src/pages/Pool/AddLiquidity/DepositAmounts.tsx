@@ -1,5 +1,5 @@
-import React, { useEffect, memo } from 'react';
-import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
+import React, { memo, useMemo, useCallback, useEffect } from 'react';
+import { type UseFormRegister, type UseFormSetValue, type UseFormGetValues, type FieldValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import Input from '@components/Input';
@@ -7,8 +7,11 @@ import Button from '@components/Button';
 import Balance from '@modules/Balance';
 import { type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
+import { usePool } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { useTokenA, useTokenB } from './SelectPair';
+import { useCurrentFee } from './SelectFeeTier';
 
 const transitions = {
   en: {
@@ -28,15 +31,41 @@ const transitions = {
 interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
+  getValues: UseFormGetValues<FieldValues>;
+  lowRange: string;
+  upperRange: string;
+  priceInit: string;
 }
 
-const DepositAmount: React.FC<Props & { token: Token | null; type: 'tokenA' | 'tokenB' }> = ({ type, token, register, setValue }) => {
+const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | null; type: 'tokenA' | 'tokenB'; price: Unit | null | undefined }> = ({
+  type,
+  token,
+  pairToken,
+  price,
+  register,
+  setValue,
+}) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
   useEffect(() => {
     setValue(`amount-${type}`, '');
   }, [token, account]);
+
+  const changePairAmount = useCallback(
+    (newAmount: string) => {
+      if (!price) return;
+      const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
+      if (!newAmount) {
+        setValue(pairKey, '');
+        return;
+      }
+      const currentInputAmount = Unit.fromMinUnit(newAmount);
+      const pairTokenExpectedAmount = currentInputAmount?.mul(price);
+      setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit()));
+    },
+    [type, price, pairToken]
+  );
 
   return (
     <div className="mt-4px h-84px pt-8px pl-16px pr-8px rounded-16px bg-orange-light-hover">
@@ -47,11 +76,12 @@ const DepositAmount: React.FC<Props & { token: Token | null; type: 'tokenA' | 't
           disabled={!token}
           placeholder="0"
           id={`input--${type}-amount`}
-          type='number'
+          type="number"
           {...register(`amount-${type}`, {
             required: true,
             min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals),
           })}
+          onBlur={(evt) => changePairAmount(evt.target.value)}
         />
 
         <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium cursor-pointer">
@@ -70,7 +100,10 @@ const DepositAmount: React.FC<Props & { token: Token | null; type: 'tokenA' | 't
                 className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
                 color="orange"
                 disabled={!balance || balance === '0'}
-                onClick={() => setValue(`amount-${type}`, balance)}
+                onClick={() => {
+                  setValue(`amount-${type}`, balance);
+                  changePairAmount(balance ?? '');
+                }}
                 type="button"
               >
                 {i18n.max}
@@ -83,18 +116,29 @@ const DepositAmount: React.FC<Props & { token: Token | null; type: 'tokenA' | 't
   );
 };
 
-const DepositAmounts: React.FC<Props> = ({ ...props }) => {
+const DepositAmounts: React.FC<Props> = (props) => {
   const i18n = useI18n(transitions);
   const tokenA = useTokenA();
   const tokenB = useTokenB();
-  const isBothTokenSelected = !!tokenA && !!tokenB;
+  const fee = useCurrentFee();
+  const { state, pool } = usePool({ tokenA, tokenB, fee });
+
+  const { lowRange, upperRange, priceInit, setValue, getValues } = props;
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.tokenAPrice), [pool, priceInit]);
+  const priceTokenB = useMemo(() => (priceTokenA ? Unit.fromMinUnit(1).div(priceTokenA) : null), [priceTokenA]);
+  const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB;
+
+  const tokenAPriceFixed4 = useMemo(() => priceTokenA ? priceTokenA.toDecimalMinUnit(4) : null, [priceTokenA])
+  useEffect(() => {
+    console.log(getValues())
+  }, [tokenAPriceFixed4])
 
   return (
-    <div className={cx('mt-24px', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
+    <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.deposit_amounts}</p>
 
-      <DepositAmount {...props} token={tokenA} type="tokenA" />
-      <DepositAmount {...props} token={tokenB} type="tokenB" />
+      <DepositAmount {...props} token={tokenA} pairToken={tokenB} type="tokenA" price={priceTokenA} />
+      <DepositAmount {...props} token={tokenB} pairToken={tokenB} type="tokenB" price={priceTokenB} />
     </div>
   );
 };

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { atomFamily, useRecoilStateLoadable } from 'recoil';
-import { setRecoil } from 'recoil-nexus';
+import { getRecoil, setRecoil } from 'recoil-nexus';
 import { throttle } from 'lodash-es';
 import { createPoolContract, fetchMulticall } from '@contracts/index';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
 import { getWrapperTokenByAddress, type Token } from '@service/tokens';
-import { FeeAmount, Pool } from './';
+import { FeeAmount, Pool, isPoolEqual } from './';
 import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
 
@@ -56,7 +56,7 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
 
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
   const fetchAndSetPool = useCallback(
-    throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => setPool(pool)), 2000),
+    throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => !isPoolEqual(pool, getRecoil(poolState(poolKey))) && setPool(pool)), 2000),
     [tokenA?.address, tokenB?.address, fee]
   );
 

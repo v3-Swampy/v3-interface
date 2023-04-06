@@ -38,9 +38,10 @@ interface Props {
   register: UseFormRegister<FieldValues>;
   lowRange: string;
   upperRange: string;
+  priceInit: string;
 }
 
-const RangeInput: React.FC<Props & { type: 'lower' | 'upper'; tokenA: Token | null; tokenB: Token | null; price: Unit | null | undefined }> = ({
+const RangeInput: React.FC<Omit<Props, 'priceInit'> & { type: 'lower' | 'upper'; tokenA: Token | null; tokenB: Token | null; price: Unit | null | undefined }> = ({
   type,
   tokenA,
   tokenB,
@@ -84,7 +85,7 @@ const RangeInput: React.FC<Props & { type: 'lower' | 'upper'; tokenA: Token | nu
   );
 };
 
-const SetPriceRange: React.FC<Props> = (props) => {
+const SetPriceRange: React.FC<Props> = ({ priceInit, ...props }) => {
   const i18n = useI18n(transitions);
   const tokenA = useTokenA();
   const tokenB = useTokenB();
@@ -110,14 +111,14 @@ const SetPriceRange: React.FC<Props> = (props) => {
             <Input
               className="h-36px text-14px text-black-normal"
               id="input--price-init"
-              {...props.register(`price-init`, {
+              {...props.register('price-init', {
                 required: true,
                 min: 0,
               })}
             />
           </div>
           <div className="flex items-center h-36px px-16px rounded-bl-16px rounded-br-16px bg-orange-light text-14px text-black-normal font-medium">
-            {compiled(i18n.current_tokenA_price, { tokenASymbol: tokenA?.symbol ?? '' })}:
+            {compiled(i18n.current_tokenA_price, { tokenASymbol: tokenA?.symbol ?? '' })}: {priceInit}
           </div>
         </>
       )}
