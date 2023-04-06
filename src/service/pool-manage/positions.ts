@@ -1,7 +1,38 @@
 import { selector, useRecoilValue } from 'recoil';
+import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
-import { useAccount, accountState } from '@service/account';
+import { accountState } from '@service/account';
+import { FeeAmount, calcPriceFromTick } from '@service/pairs&pool';
+import { getTokenByAddress, type Token } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
+
+export enum PositionStatus {
+  InRange,
+  OutOfRange,
+  Closed,
+}
+
+export interface Position {
+  id: number;
+  nonce: number;
+  operator: string;
+  token0: Token;
+  token1: Token;
+  fee: FeeAmount;
+  tickLower: number;
+  tickUpper: number;
+  priceLower: Unit;
+  priceUpper: Unit;
+  liquidity: string;
+  /** The fee growth of token0 as of the last action on the individual position. */
+  feeGrowthInside0LastX128: string;
+  /** The fee growth of token1 as of the last action on the individual position. */
+  feeGrowthInside1LastX128: string;
+  /** The uncollected amount of token0 owed to the position as of the last computation. */
+  tokensOwed0: string;
+  /** The uncollected amount of token1 owed to the position as of the last computation. */
+  tokensOwed1: string;
+}
 
 const positionBalanceQuery = selector({
   key: `positionBalanceQuery-${import.meta.env.MODE}`,
@@ -49,7 +80,39 @@ const positionsQuery = selector({
 
     const positionsResult = await fetchMulticall(tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.encodeFunctionData('positions', [id])]));
 
-    if (Array.isArray(positionsResult)) return positionsResult?.map((singleRes) => NonfungiblePositionManager.func.decodeFunctionResult('positions', singleRes));
+    if (Array.isArray(positionsResult))
+      return positionsResult?.map((singleRes, index) => {
+        const decodeRes = NonfungiblePositionManager.func.decodeFunctionResult('positions', singleRes);
+
+        const position: Position = {
+          id: tokenIds[index],
+          nonce: Number(decodeRes?.[0]),
+          operator: String(decodeRes?.[1]),
+          token0: getTokenByAddress(decodeRes?.[2])!,
+          token1: getTokenByAddress(decodeRes?.[3])!,
+          fee: Number(decodeRes?.[4]),
+          tickLower: Number(decodeRes?.[5]),
+          tickUpper: Number(decodeRes?.[6]),
+          liquidity: String(decodeRes?.[7]),
+          feeGrowthInside0LastX128: String(decodeRes?.[8]),
+          feeGrowthInside1LastX128: String(decodeRes?.[9]),
+          tokensOwed0: String(decodeRes?.[10]),
+          tokensOwed1: String(decodeRes?.[11]),
+          priceLower: calcPriceFromTick({
+            tick: Number(decodeRes?.[5]),
+            tokenA: getTokenByAddress(decodeRes?.[2])!,
+            tokenB: getTokenByAddress(decodeRes?.[3])!,
+            fee: Number(decodeRes?.[4]),
+          }),
+          priceUpper: calcPriceFromTick({
+            tick: Number(decodeRes?.[6]),
+            tokenA: getTokenByAddress(decodeRes?.[2])!,
+            tokenB: getTokenByAddress(decodeRes?.[3])!,
+            fee: Number(decodeRes?.[4]),
+          }),
+        };
+        return position;
+      });
     return [];
   },
 });

@@ -3,12 +3,13 @@ import { fetchChain } from '@utils/fetch';
 import { type Token } from '@service/tokens';
 import { FeeAmount } from '.';
 
-export const isPoolExist = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) =>
-  fetchChain({
+export const isPoolExist = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
+  const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
+  return fetchChain({
     params: [
       {
         to: UniswapV3Factory.address,
-        data: UniswapV3Factory.func.encodeFunctionData('getPool', [tokenA.address, tokenB.address, fee]),
+        data: UniswapV3Factory.func.encodeFunctionData('getPool', [token0.address, token1.address, fee]),
       },
     ],
   }).then((res) => {
@@ -18,3 +19,4 @@ export const isPoolExist = async ({ tokenA, tokenB, fee }: { tokenA: Token; toke
     const poolAddress = UniswapV3Factory.func.decodeFunctionResult('getPool', res)?.[0];
     return poolAddress !== '0x0000000000000000000000000000000000000000';
   });
+};

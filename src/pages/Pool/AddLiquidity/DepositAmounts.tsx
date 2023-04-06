@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback, useEffect } from 'react';
+import React, { memo, useMemo, useCallback, useLayoutEffect } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type UseFormGetValues, type FieldValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
@@ -32,25 +32,25 @@ interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
   getValues: UseFormGetValues<FieldValues>;
-  lowRange: string;
-  upperRange: string;
+  isRangeValid: boolean | null;
   priceInit: string;
 }
 
-const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | null; type: 'tokenA' | 'tokenB'; price: Unit | null | undefined }> = ({
+const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | null; type: 'tokenA' | 'tokenB'; price: Unit | null | undefined; isValidToInput: boolean }> = ({
   type,
   token,
   pairToken,
   price,
+  isRangeValid,
   register,
   setValue,
 }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setValue(`amount-${type}`, '');
-  }, [token, account]);
+  }, [token?.address, account]);
 
   const changePairAmount = useCallback(
     (newAmount: string) => {
@@ -62,7 +62,7 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
       }
       const currentInputAmount = Unit.fromMinUnit(newAmount);
       const pairTokenExpectedAmount = currentInputAmount?.mul(price);
-      setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit()));
+      setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     },
     [type, price, pairToken]
   );
@@ -73,7 +73,7 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
         <Input
           className="text-24px"
           clearIcon
-          disabled={!token}
+          disabled={!isRangeValid}
           placeholder="0"
           id={`input--${type}-amount`}
           type="number"
@@ -81,6 +81,8 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
             required: true,
             min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals),
           })}
+          min={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals)}
+          step={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals)}
           onBlur={(evt) => changePairAmount(evt.target.value)}
         />
 
@@ -123,22 +125,29 @@ const DepositAmounts: React.FC<Props> = (props) => {
   const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
-  const { lowRange, upperRange, priceInit, setValue, getValues } = props;
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.tokenAPrice), [pool, priceInit]);
+  const { isRangeValid, priceInit, setValue, getValues } = props;
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.token0Price), [pool, priceInit]);
   const priceTokenB = useMemo(() => (priceTokenA ? Unit.fromMinUnit(1).div(priceTokenA) : null), [priceTokenA]);
-  const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB;
+  const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
 
-  const tokenAPriceFixed4 = useMemo(() => priceTokenA ? priceTokenA.toDecimalMinUnit(4) : null, [priceTokenA])
-  useEffect(() => {
-    console.log(getValues())
-  }, [tokenAPriceFixed4])
+  const token0PriceFixed5 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(5) : null), [priceTokenA]);
+  useLayoutEffect(() => {
+    const value = getValues();
+    const amountTokenA = value['amount-tokenA'];
+    if (!priceTokenA || !amountTokenA) {
+      setValue('amount-tokenB', '');
+      return;
+    }
+    const tokenBExpectedAmount = Unit.fromMinUnit(amountTokenA).mul(priceTokenA);
+    setValue('amount-tokenB', trimDecimalZeros(tokenBExpectedAmount.toDecimalMinUnit(tokenB?.decimals)));
+  }, [token0PriceFixed5]);
 
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.deposit_amounts}</p>
 
-      <DepositAmount {...props} token={tokenA} pairToken={tokenB} type="tokenA" price={priceTokenA} />
-      <DepositAmount {...props} token={tokenB} pairToken={tokenB} type="tokenB" price={priceTokenB} />
+      <DepositAmount {...props} token={tokenA} pairToken={tokenB} type="tokenA" price={priceTokenA} isValidToInput={isValidToInput} />
+      <DepositAmount {...props} token={tokenB} pairToken={tokenB} type="tokenB" price={priceTokenB} isValidToInput={isValidToInput} />
     </div>
   );
 };
