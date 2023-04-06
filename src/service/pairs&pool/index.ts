@@ -3,8 +3,9 @@ export * from './singlePool';
 import { type Token } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
+
 const Q96Unit = Unit.fromMinUnit(new Decimal(2).toPower(96).toString());
-export const Q192Unit = Unit.fromMinUnit(new Decimal(2).toPower(192).toString());
+const Q192Unit = Unit.fromMinUnit(new Decimal(2).toPower(192).toString());
 
 export enum FeeAmount {
   LOWEST = 100,

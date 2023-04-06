@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import { usePositions, PositionStatus } from '@service/pools-test';
-import { usePositions as usePositions2 } from '@service/pool';
+import { usePositions as usePositions2 } from '@service/pool-manage';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { ReactComponent as SuccessIcon } from '@assets/icons/pool_success.svg';
 import { ReactComponent as WarningIcon } from '@assets/icons/pool_warning.svg';

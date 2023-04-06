@@ -4,7 +4,7 @@ import { getWrapperTokenByAddress } from '@service/tokens';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import AuthTokenButton from '@modules/AuthTokenButton';
 import { NonfungiblePositionManager } from '@contracts/index';
-import { addLiquidity } from '@service/pool';
+import { addLiquidity } from '@service/pool-manage';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
 
