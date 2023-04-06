@@ -23,6 +23,7 @@ interface PoolProps {
   liquidity: string | null;
   tickCurrent: number | null;
 }
+
 export class Pool implements PoolProps {
   public tokenA: Token;
   public tokenB: Token;
@@ -51,3 +52,40 @@ export class Pool implements PoolProps {
     return null;
   };
 }
+
+export const isPoolEqual = (poolA: Pool | null | undefined, poolB: Pool | null | undefined) => {
+  if ((poolA === undefined && poolB !== undefined) || (poolA !== undefined && poolB === undefined)) return false;
+  if (!(poolA && poolB)) return true;
+  return poolA.sqrtPriceX96 === poolB.sqrtPriceX96 && poolA.liquidity === poolB.liquidity && poolA.tickCurrent === poolB.tickCurrent;
+};
+
+export const calcTickFromPrice = ({ price, tokenA, tokenB }: { price: Unit; tokenA: Token; tokenB: Token }) => {
+  const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
+
+  return Unit.log(price.mul(Unit.fromMinUnit(`1e${token1.decimals}`)).div(Unit.fromMinUnit(`1e${token0.decimals}`)), Unit.fromMinUnit(1.0001));
+};
+
+export const calcPriceFromTick = ({ tick, tokenA, tokenB }: { tick: Unit; tokenA: Token; tokenB: Token }) => {
+  const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
+
+  return Unit.fromMinUnit(1.0001)
+    .pow(tick)
+    .mul(Unit.fromMinUnit(`1e${token0.decimals}`))
+    .div(Unit.fromMinUnit(`1e${token1.decimals}`));
+};
+
+export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; searchTick: Unit }) => {
+  const atom = Unit.fromMinUnit(fee / 50);
+  const r = searchTick.mod(atom);
+  if (r.lessThan(atom.div(Unit.fromMinUnit(2)))) {
+    return searchTick.sub(r);
+  } else {
+    return searchTick.add(atom).sub(r);
+  }
+};
+
+export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fee: FeeAmount; searchPrice: Unit; tokenA: Token; tokenB: Token }) => {
+  const tick = calcTickFromPrice({ price: searchPrice, tokenA, tokenB });
+  const closestValidTick = findClosestValidTick({ fee, searchTick: tick });
+  return calcPriceFromTick({ tick: closestValidTick, tokenA, tokenB });
+};

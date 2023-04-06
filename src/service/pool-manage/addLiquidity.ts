@@ -3,9 +3,11 @@ import { NonfungiblePositionManager } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { type FeeAmount, Q192Unit } from '@service/pairs&pool';
+import { type FeeAmount } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import Decimal from 'decimal.js';
+import { calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
+
 const duration = dayjs.duration;
 
 export const addLiquidity = async ({
@@ -39,32 +41,16 @@ export const addLiquidity = async ({
 
     const deadline = dayjs().add(duration(30, 'minute')).unix();
 
-    const feeAtom = fee / 50;
-    const tickLower = Math.floor(
-      +Unit.log(
-        Unit.fromMinUnit(priceLower)
-          .mul(Unit.fromMinUnit(`1e${token1.decimals}`))
-          .div(Unit.fromMinUnit(`1e${token0.decimals}`)),
-        Unit.fromMinUnit(1.0001)
-      ).toDecimalMinUnit()
-    );
-    const tickUpper = Math.floor(
-      +Unit.log(
-        Unit.fromMinUnit(priceUpper)
-          .mul(Unit.fromMinUnit(`1e${token1.decimals}`))
-          .div(Unit.fromMinUnit(`1e${token0.decimals}`)),
-        Unit.fromMinUnit(1.0001)
-      ).toDecimalMinUnit()
-    );
-    
+    const tickLower = calcTickFromPrice({ price: Unit.fromMinUnit(priceLower), tokenA, tokenB });
+    const tickUpper = calcTickFromPrice({ price: Unit.fromMinUnit(priceUpper), tokenA, tokenB });
 
     const data1 = NonfungiblePositionManager.func.encodeFunctionData('mint', [
       {
         token0: token0.address,
         token1: token1.address,
         fee,
-        tickLower: findClosestMultipleOfAtom(feeAtom, tickLower),
-        tickUpper: findClosestMultipleOfAtom(feeAtom, tickUpper),
+        tickLower: findClosestValidTick({ fee, searchTick: tickLower }).toDecimalMinUnit(),
+        tickUpper: findClosestValidTick({ fee, searchTick: tickUpper }).toDecimalMinUnit(),
         amount0Desired: +token0Amount,
         amount1Desired: +token1Amount,
         amount0Min: 0,
@@ -86,12 +72,3 @@ export const addLiquidity = async ({
     console.error('addLiquidity failed:', err);
   }
 };
-
-function findClosestMultipleOfAtom(atom: number, searchNum: number) {
-  const r = searchNum % atom;
-  if (r <= atom / 2) {
-    return searchNum - r;
-  } else {
-    return searchNum + atom - r;
-  }
-}
