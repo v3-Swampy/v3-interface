@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
@@ -7,6 +7,7 @@ import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import { usePool } from '@service/pairs&pool';
 import { usePositions, PositionStatus, type Position } from '@service/pool-manage';
+import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { ReactComponent as SuccessIcon } from '@assets/icons/pool_success.svg';
@@ -55,28 +56,27 @@ const PositionStatuMap = {
 
 const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
   const { pool } = usePool({ tokenA: position.token0, tokenB: position.token1, fee: position.fee });
+  const unwrapperToken0 = useMemo(() => getUnwrapperTokenByAddress(position.token0.address), [position.token0.address]);
+  const unwrapperToken1 = useMemo(() => getUnwrapperTokenByAddress(position.token1.address), [position.token1.address]);
+
   const priceLowerStr = trimDecimalZeros(position.priceLower.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(position.priceUpper.toDecimalMinUnit(5));
   const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
-  
-  const status =
-    pool === undefined
-      ? undefined
-      : pool === null || !pool?.token0Price
-      ? PositionStatus.Closed
-      : (pool.token0Price.lessThan(position.priceUpper) || _priceUpperStr === 'NaN') && (pool.token0Price.greaterThan(position.priceLower) || priceLowerStr === '0')
-      ? PositionStatus.InRange
-      : PositionStatus.OutOfRange;
-  console.log(pool?.token0Price?.toDecimalMinUnit(4), pool?.token1Price?.toDecimalMinUnit());
+  // console.log(position?.id, position?.fee, unwrapperToken0?.symbol, unwrapperToken1?.symbol, pool?.token0Price?.toDecimalMinUnit(5));
+  const status = !pool?.token0Price
+    ? undefined
+    : (pool.token0Price.lessThan(position.priceUpper) || _priceUpperStr === 'NaN') && (pool.token0Price.greaterThan(position.priceLower) || priceLowerStr === '0')
+    ? PositionStatus.InRange
+    : PositionStatus.OutOfRange;
 
   return (
     <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
       <div className="inline-block">
         <div className="flex items-center">
-          <img className="w-24px h-24px" src={position.token0.logoURI} alt={`${position.token0.symbol} icon`} />
-          <img className="w-24px h-24px -ml-8px" src={position.token1.logoURI} alt={`${position.token1.symbol} icon`} />
+          <img className="w-24px h-24px" src={unwrapperToken0?.logoURI} alt={`${unwrapperToken0?.symbol} icon`} />
+          <img className="w-24px h-24px -ml-8px" src={unwrapperToken1?.logoURI} alt={`${unwrapperToken1?.symbol} icon`} />
           <span className="mx-4px text-14px text-black-normal font-medium">
-            {position.token0.symbol} / {position.token1.symbol}
+            {unwrapperToken0?.symbol} / {unwrapperToken1?.symbol}
           </span>
           <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">
             {position.fee / 10000}%
@@ -86,14 +86,14 @@ const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
           <span className="text-gray-normal">
             Min:&nbsp;
             <span className="text-black-normal">
-              {priceLowerStr} {position.token0.symbol} per {position.token1.symbol}
+              {priceLowerStr} {unwrapperToken0?.symbol} per {unwrapperToken1?.symbol}
             </span>
           </span>
           <DoubleArrowIcon className="mx-8px w-16px h-8px" />
           <span className="text-gray-normal">
             Max:&nbsp;
             <span className="text-black-normal">
-              {priceUpperStr} {position.token0.symbol} per {position.token1.symbol}
+              {priceUpperStr} {unwrapperToken0?.symbol} per {unwrapperToken1?.symbol}
             </span>
           </span>
         </div>
