@@ -1,3 +1,4 @@
+import { getWrapperTokenByAddress } from './../tokens/tokens';
 export * from './allRelatedPools';
 export * from './singlePool';
 import { type Token } from '@service/tokens';
@@ -34,7 +35,6 @@ export class Pool implements PoolProps {
   public token1Price: Unit | null;
   constructor({ tokenA, tokenB, fee, address, sqrtPriceX96, liquidity, tickCurrent }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token }) {
     const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
-
     this.token0 = token0;
     this.token1 = token1;
     this.fee = fee;
@@ -47,8 +47,10 @@ export class Pool implements PoolProps {
   }
 
   public priceOf = (token: Token) => {
-    if (token.address === this.token0.address) return this.token0Price;
-    if (token.address === this.token1.address) return this.token1Price;
+    const wrapperTokenByAddress = getWrapperTokenByAddress(token.address)!;
+    if (!wrapperTokenByAddress?.address) return undefined;
+    if (wrapperTokenByAddress.address === this.token0.address) return this.token0Price;
+    if (wrapperTokenByAddress.address === this.token1.address) return this.token1Price;
     return null;
   };
 }

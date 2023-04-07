@@ -51,21 +51,24 @@ const RangeInput: React.FC<
 > = ({ type, tokenA, tokenB, price, fee, priceUpper, register, setValue }) => {
   const i18n = useI18n(transitions);
 
-  const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
-    if (!tokenA || !tokenB || !evt.target.value) return;
-    try {
-      if (Unit.fromMinUnit(evt.target.value).lessThan(Unit.fromMinUnit(0))) {
+  const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
+    (evt) => {
+      if (!tokenA || !tokenB || !evt.target.value) return;
+      try {
+        if (Unit.fromMinUnit(evt.target.value).lessThan(Unit.fromMinUnit(0))) {
+          setValue(`price-${type}`, type === 'lower' ? '0' : 'NaN');
+          return;
+        }
+      } catch {
         setValue(`price-${type}`, type === 'lower' ? '0' : 'NaN');
         return;
       }
-    } catch {
-      setValue(`price-${type}`, type === 'lower' ? '0' : 'NaN');
-      return;
-    }
 
-    setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
-  }, [fee, tokenA?.address, tokenB?.address]);
-  
+      setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
+    },
+    [fee, tokenA?.address, tokenB?.address]
+  );
+
   return (
     <div className={cx('flex-grow-1 flex-shrink-1', !price && 'opacity-50 pointer-events-none')}>
       <div className="mb-6px flex justify-between w-full">
@@ -113,7 +116,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
   const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.token0Price), [pool, priceInit]);
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
 
   useLayoutEffect(() => {
     setValue('price-init', '');
@@ -145,7 +148,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
       {pool !== null && (
         <p className={cx('text-center text-12px text-black-normal font-light transition-opacity', (!tokenA || !tokenB) && 'opacity-0')}>
-          {i18n.current_price}:&nbsp;&nbsp;<span className="font-medium">{pool?.token0Price?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
+          {i18n.current_price}:&nbsp;&nbsp;<span className="font-medium">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
           {`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}
         </p>
       )}
