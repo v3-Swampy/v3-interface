@@ -125,7 +125,8 @@ const PositionsForUISelector = selector({
   key: `PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
-    const exchangeTokens = (position: Position) => {
+    if(!positions) return [];
+    return positions.map((position) => {
       const { token0, token1, priceLower, priceUpper } = position;
       if (
         // if token0 is a dollar-stable asset, set it as the quote token
@@ -144,8 +145,7 @@ const PositionsForUISelector = selector({
         };
       }
       return position;
-    };
-    return positions?.map((position) => exchangeTokens(position));
+    });
   },
 });
 
