@@ -151,6 +151,6 @@ export const useUserInfo = () => {
   const account = useAccount();
   const userInfo = useRecoilValue(escrowUserInfoQuery(account));
   const vstDecimals = useRecoilValue(vstDecimalsQuery);
-  const lockedAmount = account ? Unit.fromMinUnit(userInfo[0].toString()).toDecimalStandardUnit(0, vstDecimals) : 0;
+  const lockedAmount = account ? Unit.fromMinUnit(userInfo?.[0].toString()).toDecimalStandardUnit(0, vstDecimals) : 0;
   return [lockedAmount, userInfo?.[1]?.toString()];
 };
