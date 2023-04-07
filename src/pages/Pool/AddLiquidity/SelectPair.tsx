@@ -1,4 +1,5 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
+import { setRecoil } from 'recoil-nexus';
 import { atom, useRecoilState, useRecoilValue } from 'recoil';
 import { persistAtom } from '@utils/recoilUtils';
 import cx from 'clsx';
@@ -6,6 +7,7 @@ import Button from '@components/Button';
 import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
+import { getRecoil } from 'recoil-nexus';
 
 const transitions = {
   en: {
@@ -30,6 +32,14 @@ const tokenBState = atom<Token | null>({
   effects: [persistAtom],
 });
 
+export const swapTokenAB = () => {
+  const tokenA = getRecoil(tokenAState);
+  const tokenB = getRecoil(tokenBState);
+  setRecoil(tokenAState, tokenB);
+  setRecoil(tokenBState, tokenA);
+  if (!tokenA || !tokenB) return false;
+  return true;
+};
 export const useTokenA = () => useRecoilValue(tokenAState);
 export const useTokenB = () => useRecoilValue(tokenBState);
 export const useIsBothTokenSelected = () => {
@@ -38,11 +48,24 @@ export const useIsBothTokenSelected = () => {
   return !!tokenA && !!tokenB;
 };
 
-const SelectPair: React.FC = () => {
+const SelectPair: React.FC<{ handleSwapToken: VoidFunction }> = ({ handleSwapToken }) => {
   const i18n = useI18n(transitions);
 
   const [tokenA, setTokenA] = useRecoilState(tokenAState);
   const [tokenB, setTokenB] = useRecoilState(tokenBState);
+
+  const handleSetToken = useCallback(
+    ({ token, type }: { token: Token; type: 'tokenA' | 'tokenB' }) => {
+      const anotherToken = type === 'tokenA' ? tokenB : tokenA;
+      const setToken = type === 'tokenA' ? setTokenA : setTokenB;
+      if (anotherToken?.address === token.address) {
+        handleSwapToken();
+      } else {
+        setToken(token);
+      }
+    },
+    [tokenA, tokenB]
+  );
 
   return (
     <>
@@ -52,8 +75,8 @@ const SelectPair: React.FC = () => {
           className="!flex-shrink-1 w-50% h-40px rounded-100px !px-0"
           contentClassName={cx('w-full pr-16px', tokenA ? 'pl-8px' : 'pl-16px')}
           color={tokenA ? 'orange-light' : 'gradient'}
-          onClick={() => showTokenSelectModal({ currentSelectToken: tokenA, onSelect: setTokenA })}
-          type='button'
+          onClick={() => showTokenSelectModal({ currentSelectToken: tokenA, onSelect: (token) => handleSetToken({ token, type: 'tokenA' }) })}
+          type="button"
         >
           {tokenA && (
             <>
@@ -69,8 +92,8 @@ const SelectPair: React.FC = () => {
           className="!flex-shrink-1 w-50% h-40px rounded-100px !px-0"
           contentClassName={cx('w-full pr-16px', tokenB ? 'pl-8px' : 'pl-16px')}
           color={tokenB ? 'orange-light' : 'gradient'}
-          onClick={() => showTokenSelectModal({ currentSelectToken: tokenB, onSelect: setTokenB })}
-          type='button'
+          onClick={() => showTokenSelectModal({ currentSelectToken: tokenB, onSelect: (token) => handleSetToken({ token, type: 'tokenB' }) })}
+          type="button"
         >
           {tokenB && (
             <>

@@ -44,7 +44,7 @@ export const addLiquidity = async ({
     const isPriceUpperInfinity = _priceUpper === 'NaN';
     const [priceLower, priceUpper] = notNeedSwap
       ? [_priceLower, _priceUpper]
-      : [isPriceLowerZero ? _priceLower : (1 / +_priceUpper).toFixed(5), isPriceUpperInfinity ? _priceUpper : (1 / +_priceLower).toFixed(5)];
+      : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'NaN' : (1 / +_priceLower).toFixed(5)];
 
     const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
     const data0 = NonfungiblePositionManager.func.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
