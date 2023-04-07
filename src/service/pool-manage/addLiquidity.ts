@@ -52,22 +52,6 @@ export const addLiquidity = async ({
 
     const tickLower = Unit.fromMinUnit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: Unit.fromMinUnit(priceLower), tokenA: token0, tokenB: token1 });
     const tickUpper = priceUpper === 'NaN' ? getMaxTick(fee) : calcTickFromPrice({ price: Unit.fromMinUnit(priceUpper), tokenA: token0, tokenB: token1 });
-    console.log([token0.address, token1.address, +fee, sqrtPriceX96])
-    console.log([
-      {
-        token0: token0.address,
-        token1: token1.address,
-        fee,
-        tickLower: typeof tickLower === 'number' ? tickLower : +findClosestValidTick({ fee, searchTick: tickLower }).toDecimalMinUnit(),
-        tickUpper: typeof tickUpper === 'number' ? tickUpper : +findClosestValidTick({ fee, searchTick: tickUpper }).toDecimalMinUnit(),
-        amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
-        amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
-        amount0Min: 0,
-        amount1Min: 0,
-        recipient: account,
-        deadline,
-      },
-    ])
 
     const data1 = NonfungiblePositionManager.func.encodeFunctionData('mint', [
       {
@@ -90,6 +74,7 @@ export const addLiquidity = async ({
     const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
 
     const txHash = await sendTransaction({
+      value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
       data: NonfungiblePositionManager.func.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0, data1]]),
       to: NonfungiblePositionManager.address,
     });
