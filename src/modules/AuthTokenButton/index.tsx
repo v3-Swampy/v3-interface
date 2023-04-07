@@ -17,14 +17,14 @@ const transitions = {
   en: {
     checking_balance: 'Checking Balance...',
     insufficient_balance: 'Insufficient {token} Balance',
-    need_approve: 'Need Approve',
+    need_approve: '{token} Need Approve',
     checking_approve: 'Checking Approve...',
     amount_should_greater_than_zero: 'Amount should greater than zero',
   },
   zh: {
     checking_balance: '检测约中...',
     insufficient_balance: '{token} 余额不足',
-    need_approve: '需要许可',
+    need_approve: '{token} 需要许可',
     checking_approve: '检测许可中...',
     amount_should_greater_than_zero: '输入金额应该大于0',
   },
@@ -44,14 +44,13 @@ interface Props extends ComponentProps<typeof Button> {
 const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddress, amount, ...props }) => {
   const i18n = useI18n(transitions);
 
-  const needApprove = tokenAddress !== 'CFX';
   const account = useAccount();
 
-  const balance = useBalance(tokenAddress);
   const token = useMemo(() => getTokenByAddress(tokenAddress), [tokenAddress]);
-  const tokenContract = useMemo(() => (tokenAddress ? createERC20Contract(tokenAddress) : undefined), [tokenAddress]);
+  const tokenContract = useMemo(() => (token?.address ? createERC20Contract(token.address) : undefined), [token?.address]);
   const amountUnit = useMemo(() => (amount && token?.decimals ? Unit.fromStandardUnit(amount, token.decimals) : null), [amount, token?.decimals]);
-
+  const balance = useBalance(token?.address);
+  const needApprove = token?.address !== 'CFX';
   const [status, setStatus] = useState<Status>('checking-approve');
 
   const checkApproveFunc = useRef<VoidFunction>();
@@ -77,18 +76,18 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
         console.log('Check approve err', err);
       }
     };
-  }, [tokenAddress, amount]);
+  }, [token?.address, amount]);
   const checkApprove = useCallback(
     debounce(() => checkApproveFunc.current?.(), 666),
     []
   );
 
   const handleApprove = useCallback(async () => {
-    if (!tokenContract || !tokenAddress) return;
+    if (!tokenContract || !token?.address) return;
     try {
       setStatus('approving');
       const txHash = await sendTransaction({
-        to: tokenAddress,
+        to: token?.address,
         data: tokenContract.func.encodeFunctionData('approve', [contractAddress, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff']),
       });
 
@@ -109,7 +108,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       return;
     }
     checkApprove();
-  }, [tokenAddress, needApprove, amount]);
+  }, [token?.address, needApprove, amount]);
 
   const checkingBalance = balance === null;
   const isAmountGreateThanZero = amountUnit ? amountUnit.greaterThan(Zero) : false;
@@ -134,7 +133,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
         ? compiled(i18n.insufficient_balance, { token: token?.symbol ?? '' })
         : status === 'checking-approve'
         ? i18n.checking_approve
-        : i18n.need_approve}
+        : compiled(i18n.need_approve, { token: token?.symbol ?? '' })}
     </Button>
   );
 };

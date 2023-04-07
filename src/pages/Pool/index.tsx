@@ -5,7 +5,9 @@ import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
-import { usePositions, PositionStatus } from '@service/pools-test';
+import { usePool } from '@service/pairs&pool';
+import { usePositions, PositionStatus, type Position } from '@service/pool-manage';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { ReactComponent as SuccessIcon } from '@assets/icons/pool_success.svg';
 import { ReactComponent as WarningIcon } from '@assets/icons/pool_warning.svg';
@@ -51,6 +53,62 @@ const PositionStatuMap = {
   },
 } as const;
 
+const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
+  const { pool } = usePool({ tokenA: position.token0, tokenB: position.token1, fee: position.fee });
+  const priceLowerStr = trimDecimalZeros(position.priceLower.toDecimalMinUnit(5));
+  const _priceUpperStr = trimDecimalZeros(position.priceUpper.toDecimalMinUnit(5));
+  const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
+  
+  const status =
+    pool === undefined
+      ? undefined
+      : pool === null || !pool?.token0Price
+      ? PositionStatus.Closed
+      : (pool.token0Price.lessThan(position.priceUpper) || _priceUpperStr === 'NaN') && (pool.token0Price.greaterThan(position.priceLower) || priceLowerStr === '0')
+      ? PositionStatus.InRange
+      : PositionStatus.OutOfRange;
+  console.log(pool?.token0Price?.toDecimalMinUnit(4), pool?.token1Price?.toDecimalMinUnit());
+
+  return (
+    <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
+      <div className="inline-block">
+        <div className="flex items-center">
+          <img className="w-24px h-24px" src={position.token0.logoURI} alt={`${position.token0.symbol} icon`} />
+          <img className="w-24px h-24px -ml-8px" src={position.token1.logoURI} alt={`${position.token1.symbol} icon`} />
+          <span className="mx-4px text-14px text-black-normal font-medium">
+            {position.token0.symbol} / {position.token1.symbol}
+          </span>
+          <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">
+            {position.fee / 10000}%
+          </span>
+        </div>
+        <div className="flex items-center h-16px mt-4px text-12px font-medium">
+          <span className="text-gray-normal">
+            Min:&nbsp;
+            <span className="text-black-normal">
+              {priceLowerStr} {position.token0.symbol} per {position.token1.symbol}
+            </span>
+          </span>
+          <DoubleArrowIcon className="mx-8px w-16px h-8px" />
+          <span className="text-gray-normal">
+            Max:&nbsp;
+            <span className="text-black-normal">
+              {priceUpperStr} {position.token0.symbol} per {position.token1.symbol}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {typeof status === 'number' && (
+        <div className="inline-flex items-center text-12px font-medium" style={{ color: PositionStatuMap[status].color }}>
+          {PositionStatuMap[status].text}
+          {PositionStatuMap[status].Icon}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositions();
@@ -69,40 +127,7 @@ const PoolContent: React.FC = () => {
         {i18n.your_positions} ({positions.length})
       </div>
       {positions.map((position) => (
-        <div key={position.id} className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
-          <div className="inline-block">
-            <div className="flex items-center">
-              <img className="w-24px h-24px" src={position.tokenA.logoURI} alt={`${position.tokenA.symbol} icon`} />
-              <img className="w-24px h-24px -ml-8px" src={position.tokenB.logoURI} alt={`${position.tokenB.symbol} icon`} />
-              <span className="mx-4px text-14px text-black-normal font-medium">
-                {position.tokenA.symbol} / {position.tokenB.symbol}
-              </span>
-              <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">
-                {position.fee / 10000}%
-              </span>
-            </div>
-            <div className="flex items-center h-16px mt-4px text-12px font-medium">
-              <span className="text-gray-normal">
-                Min:&nbsp;
-                <span className="text-black-normal">
-                  {position.min} {position.tokenA.symbol} per {position.tokenB.symbol}
-                </span>
-              </span>
-              <DoubleArrowIcon className="mx-8px w-16px h-8px" />
-              <span className="text-gray-normal">
-                Max:&nbsp;
-                <span className="text-black-normal">
-                  {position.max} {position.tokenA.symbol} per {position.tokenB.symbol}
-                </span>
-              </span>
-            </div>
-          </div>
-
-          <div className="inline-flex items-center text-12px font-medium" style={{ color: PositionStatuMap[position.status].color }}>
-            {PositionStatuMap[position.status].text}
-            {PositionStatuMap[position.status].Icon}
-          </div>
-        </div>
+        <PositionItem key={position.id} position={position} />
       ))}
     </>
   );
@@ -117,7 +142,7 @@ const PoolPage: React.FC = () => {
         <div className="flex justify-between items-center pl-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           {i18n.pool}
 
-          <Link to="/pool/add_liquidity" className='no-underline'>
+          <Link to="/pool/add_liquidity" className="no-underline">
             <Button color="gradient" className="px-24px h-40px rounded-100px">
               <span className="i-material-symbols:add mr-8px text-white-normal text-24px font-medium" />
               {i18n.new_positions}

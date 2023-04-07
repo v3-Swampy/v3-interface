@@ -1,21 +1,31 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { atomFamily, useRecoilStateLoadable } from 'recoil';
-import { setRecoil } from 'recoil-nexus';
+import { getRecoil, setRecoil } from 'recoil-nexus';
 import { throttle } from 'lodash-es';
 import { createPoolContract, fetchMulticall } from '@contracts/index';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
-import { type Token } from '@service/tokens';
-import { FeeAmount, Pool } from './';
+import { getWrapperTokenByAddress, type Token } from '@service/tokens';
+import { FeeAmount, Pool, isPoolEqual } from './';
+import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
 
-const poolState = atomFamily<Pool | null, string>({
+const poolState = atomFamily<Pool | null | undefined, string>({
   key: `poolState-${import.meta.env.MODE}`,
+  default: undefined,
 });
 
-export const fetchPool = async (params: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
+/**
+ * fetch pool info.
+ * return null is not exist.
+ */
+export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
+  const wrapperedTokenA = getWrapperTokenByAddress(tokenA?.address)!;
+  const wrapperedTokenB = getWrapperTokenByAddress(tokenB?.address)!;
+  const params = { tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee };
+  if (!(await isPoolExist(params))) return null;
+
   const poolAddress = computePoolAddress(params);
   const poolContract = createPoolContract(poolAddress);
-
   return await fetchMulticall([
     [poolContract.address, poolContract.func.encodeFunctionData('slot0')],
     [poolContract.address, poolContract.func.encodeFunctionData('liquidity')],
@@ -27,7 +37,7 @@ export const fetchPool = async (params: { tokenA: Token; tokenB: Token; fee: Fee
       address: poolAddress,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
-      tickCurrent: slots?.[1] ? +(slots?.[1].toString()) : null,
+      tickCurrent: slots?.[1] ? +slots?.[1].toString() : null,
     });
     return pool;
   });
@@ -37,7 +47,8 @@ const poolTracker = new Map<string, boolean>();
 /**
  * get and continuously track the info of a pool.
  * tracker for the same token, only one should exist at the same time.
- * The balance will be updated every 5 seconds when the user is active, and every 20 seconds when the user is inactive.
+ * The poolInfo will be updated every 5 seconds when the user is active, and every 20 seconds when the user is inactive.
+ * return null is not exist.
  */
 export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB: Token | null; fee: FeeAmount | null }) => {
   const userActiveStatus = useUserActiveStatus();
@@ -45,7 +56,7 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
 
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
   const fetchAndSetPool = useCallback(
-    throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => pool && setPool(pool)), 2000),
+    throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => !isPoolEqual(pool, getRecoil(poolState(poolKey))) && setPool(pool)), 2000),
     [tokenA?.address, tokenB?.address, fee]
   );
 
@@ -64,8 +75,10 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
     };
   }, [tokenA?.address, tokenB?.address, fee, userActiveStatus]);
 
-  if (state === 'hasValue' && contents) return !!tokenA && !!contents && !!tokenB && !!fee ? contents : null;
-  return null;
+  return {
+    state,
+    pool: contents as Pool | null | undefined,
+  } as const;
 };
 
 /**

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
+import { atom, useRecoilValue, useRecoilState } from 'recoil';
+import { persistAtomWithDefault } from '@utils/recoilUtils';
 import cx from 'clsx';
-import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
+import { type UseFormRegister, type FieldValues } from 'react-hook-form';
 import Dropdown from '@components/Dropdown';
 import useI18n from '@hooks/useI18n';
 import { FeeAmount } from '@service/pairs&pool';
+import { useIsBothTokenSelected } from './SelectPair';
 
 const transitions = {
   en: {
@@ -16,21 +19,25 @@ const transitions = {
 
 interface Props {
   register: UseFormRegister<FieldValues>;
-  setValue: UseFormSetValue<FieldValues>;
-  currentFee: FeeAmount;
-  isBothTokenSelected: boolean;
 }
 
-export const defaultFee = FeeAmount.LOW;
+const currentFeeState = atom<FeeAmount>({
+  key: `pool-currentFeeState-${import.meta.env.MODE}`,
+  effects: [persistAtomWithDefault(FeeAmount.LOW)],
+});
+export const useCurrentFee = () => useRecoilValue(currentFeeState);
+
 const FeeAmountLengh = Object.values(FeeAmount).length / 2;
 const FeeAmountList = Object.values(FeeAmount).slice(0, FeeAmountLengh) as FeeAmount[];
 const FeeAmountValues = Object.values(FeeAmount).slice(FeeAmountLengh) as number[];
 
-const SelectDropdown: React.FC<Pick<Props, 'currentFee' | 'setValue'> & { setVisible: (visible: boolean) => void }> = ({ currentFee, setValue, setVisible }) => {
+const SelectDropdown: React.FC<{ setVisible: (visible: boolean) => void }> = ({ setVisible }) => {
+  const [currentFee, setCurrentFee] = useRecoilState(currentFeeState);
+
   return (
     <div className="bg-orange-light rounded-bl-16px rounded-br-16px overflow-hidden">
       {FeeAmountList.map((feeAmount, index) =>
-        FeeAmountValues[index] === (+currentFee) ? null : (
+        FeeAmountValues[index] === currentFee ? null : (
           <div
             className={cx(
               'flex items-center h-56px px-16px cursor-pointer hover:bg-orange-light-hover hover:bg-opacity-60 transition-colors transition-opacity',
@@ -38,7 +45,7 @@ const SelectDropdown: React.FC<Pick<Props, 'currentFee' | 'setValue'> & { setVis
             )}
             key={feeAmount}
             onClick={() => {
-              setValue('fee', FeeAmountValues[index]);
+              setCurrentFee(FeeAmountValues[index]);
               setVisible(false);
             }}
           >
@@ -54,21 +61,16 @@ const SelectDropdown: React.FC<Pick<Props, 'currentFee' | 'setValue'> & { setVis
   );
 };
 
-const SelectFeeTier: React.FC<Props> = ({ isBothTokenSelected, setValue, register, currentFee }) => {
+const SelectFeeTier: React.FC<Props> = ({ register }) => {
   const i18n = useI18n(transitions);
   const [visible, setVisible] = useState(false);
+  const currentFee = useRecoilValue(currentFeeState);
+  const isBothTokenSelected = useIsBothTokenSelected();
 
   return (
     <div className={cx('mt-16px', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.select_fee_tier}</p>
-      <Dropdown
-        visible={visible}
-        Content={<SelectDropdown currentFee={currentFee} setValue={setValue} setVisible={setVisible} />}
-        sameWidth
-        offset={[0, 0]}
-        className="w-full"
-        onClickOutside={() => setVisible(false)}
-      >
+      <Dropdown visible={visible} Content={<SelectDropdown setVisible={setVisible} />} sameWidth offset={[0, 0]} className="w-full" onClickOutside={() => setVisible(false)}>
         <div
           className={cx('rounded-tl-16px rounded-tr-16px overflow-hidden transition-colors', visible ? 'bg-orange-light' : 'bg-transparent')}
           onClick={() => setVisible((pre) => !pre)}
@@ -81,7 +83,7 @@ const SelectFeeTier: React.FC<Props> = ({ isBothTokenSelected, setValue, registe
           >
             <input
               className="display-none"
-              defaultValue={defaultFee}
+              value={currentFee}
               {...register('fee', {
                 required: true,
               })}
@@ -97,4 +99,4 @@ const SelectFeeTier: React.FC<Props> = ({ isBothTokenSelected, setValue, registe
   );
 };
 
-export default SelectFeeTier;
+export default memo(SelectFeeTier);

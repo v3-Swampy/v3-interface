@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { memo } from 'react';
+import { atom, useRecoilState, useRecoilValue } from 'recoil';
+import { persistAtom } from '@utils/recoilUtils';
 import cx from 'clsx';
 import Button from '@components/Button';
 import showTokenSelectModal from '@modules/TokenSelectModal';
@@ -16,15 +18,31 @@ const transitions = {
   },
 } as const;
 
-interface Props {
-  tokenA: Token | null;
-  tokenB: Token | null;
-  setTokenA: (token: Token | null) => void;
-  setTokenB: (token: Token | null) => void;
-}
+const tokenAState = atom<Token | null>({
+  key: `pool-tokenAState-${import.meta.env.MODE}`,
+  default: null,
+  effects: [persistAtom],
+});
 
-const SelectPair: React.FC<Props> = ({ tokenA, tokenB, setTokenA, setTokenB, }) => {
+const tokenBState = atom<Token | null>({
+  key: `pool-tokenBState-${import.meta.env.MODE}`,
+  default: null,
+  effects: [persistAtom],
+});
+
+export const useTokenA = () => useRecoilValue(tokenAState);
+export const useTokenB = () => useRecoilValue(tokenBState);
+export const useIsBothTokenSelected = () => {
+  const tokenA = useRecoilValue(tokenAState);
+  const tokenB = useRecoilValue(tokenBState);
+  return !!tokenA && !!tokenB;
+};
+
+const SelectPair: React.FC = () => {
   const i18n = useI18n(transitions);
+
+  const [tokenA, setTokenA] = useRecoilState(tokenAState);
+  const [tokenB, setTokenB] = useRecoilState(tokenBState);
 
   return (
     <>
@@ -35,6 +53,7 @@ const SelectPair: React.FC<Props> = ({ tokenA, tokenB, setTokenA, setTokenB, }) 
           contentClassName={cx('w-full pr-16px', tokenA ? 'pl-8px' : 'pl-16px')}
           color={tokenA ? 'orange-light' : 'gradient'}
           onClick={() => showTokenSelectModal({ currentSelectToken: tokenA, onSelect: setTokenA })}
+          type='button'
         >
           {tokenA && (
             <>
@@ -51,6 +70,7 @@ const SelectPair: React.FC<Props> = ({ tokenA, tokenB, setTokenA, setTokenB, }) 
           contentClassName={cx('w-full pr-16px', tokenB ? 'pl-8px' : 'pl-16px')}
           color={tokenB ? 'orange-light' : 'gradient'}
           onClick={() => showTokenSelectModal({ currentSelectToken: tokenB, onSelect: setTokenB })}
+          type='button'
         >
           {tokenB && (
             <>
@@ -66,4 +86,4 @@ const SelectPair: React.FC<Props> = ({ tokenA, tokenB, setTokenA, setTokenB, }) 
   );
 };
 
-export default SelectPair;
+export default memo(SelectPair);
