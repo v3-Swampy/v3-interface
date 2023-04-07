@@ -1,17 +1,19 @@
-import React, { useCallback } from 'react';
-import { atom, useRecoilState } from 'recoil';
-import { persistAtom } from '@utils/recoilUtils';
+import React, { useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
-import { type Token } from '@service/tokens';
-import SelectPair from './SelectPair';
-import SelectFeeTier, { defaultFee } from './SelectFeeTier';
+import { addLiquidity } from '@service/pool-manage';
+import SelectPair, { useTokenA, useTokenB } from './SelectPair';
+import SelectFeeTier from './SelectFeeTier';
 import DepositAmounts from './DepositAmounts';
+import SetPriceRange from './SetPriceRange';
+import SubmitButton from './SubmitButton';
+import './index.css';
 
 const transitions = {
   en: {
@@ -24,33 +26,41 @@ const transitions = {
   },
 } as const;
 
-const tokenAState = atom<Token | null>({
-  key: `pool-tokenAState-${import.meta.env.MODE}`,
-  default: null,
-  effects: [persistAtom],
-});
-
-const tokenBState = atom<Token | null>({
-  key: `pool-tokenBState-${import.meta.env.MODE}`,
-  default: null,
-  effects: [persistAtom],
-});
-
 const AddLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
-  const { register, handleSubmit: withForm, setValue, watch } = useForm();
+  const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
 
-  const [tokenA, setTokenA] = useRecoilState(tokenAState);
-  const [tokenB, setTokenB] = useRecoilState(tokenBState);
-  const isBothTokenSelected = !!tokenA && !!tokenB;
+  const tokenA = useTokenA();
+  const tokenB = useTokenB();
+  const priceLower = watch('price-lower', '');
+  const priceUpper = watch('price-upper', '');
+  /** null means range not input */
+  const isRangeValid = useMemo(() => {
+    try {
+      return priceLower && priceUpper
+        ? Unit.fromMinUnit(priceUpper).greaterThan(Unit.fromMinUnit(0))
+          ? Unit.fromMinUnit(priceLower).lessThan(Unit.fromMinUnit(priceUpper))
+          : true
+        : null;
+    } catch {
+      return null;
+    }
+  }, [priceLower, priceUpper]);
 
-  const currentFee = watch('fee', defaultFee);
+  const amountTokenA = watch('amount-tokenA', '');
+  const amountTokenB = watch('amount-tokenB', '');
+  const priceInit = watch('price-init', '');
 
   const onSubmit = useCallback(
     withForm(async (data) => {
-      console.log(data);
+      if (!tokenA || !tokenB) return;
+      addLiquidity({
+        ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; fee: string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
+        tokenA,
+        tokenB,
+      });
     }),
-    []
+    [tokenA, tokenB]
   );
 
   return (
@@ -70,12 +80,16 @@ const AddLiquidity: React.FC = () => {
         <form onSubmit={onSubmit}>
           <BorderBox className="relative w-full p-16px rounded-28px flex gap-32px lt-md:gap-16px" variant="gradient-white">
             <div className="w-310px flex-grow-1 flex-shrink-1">
-              <SelectPair tokenA={tokenA} tokenB={tokenB} setTokenA={setTokenA} setTokenB={setTokenB} />
-              <SelectFeeTier isBothTokenSelected={isBothTokenSelected} register={register} setValue={setValue} currentFee={currentFee} />
-              <DepositAmounts isBothTokenSelected={isBothTokenSelected} register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} />
+              <SelectPair />
+              <SelectFeeTier register={register} />
+              <DepositAmounts register={register} setValue={setValue} getValues={getValues} isRangeValid={isRangeValid} priceInit={priceInit} />
             </div>
 
-            <div className="w-426px flex-grow-1 flex-shrink-1"></div>
+            <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between">
+              <SetPriceRange register={register} setValue={setValue} isRangeValid={isRangeValid} priceInit={priceInit} priceUpper={priceUpper}/>
+
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} />
+            </div>
           </BorderBox>
         </form>
       </div>

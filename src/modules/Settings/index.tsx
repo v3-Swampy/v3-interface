@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import cx from 'clsx';
 import Dropdown from '@components/Dropdown';
 import BorderBox from '@components/Box/BorderBox';
@@ -6,6 +6,7 @@ import ToolTip from '@components/Tooltip';
 import Input from '@components/Input';
 import Switch from '@components/Switch';
 import useI18n from '@hooks/useI18n';
+import { useTransactionDeadline } from '@service/settings';
 import { ReactComponent as SettingsIcon } from '@assets/icons/settings.svg';
 
 const transitions = {
@@ -44,6 +45,11 @@ const transitions = {
 const SettingsContent: React.FC = () => {
   const i18n = useI18n(transitions);
 
+  const [transactionDeadline, setTransactionDeadline] = useTransactionDeadline();
+  const onTranscationDeadlineChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
+    setTransactionDeadline(+value);
+  }, []);
+
   return (
     <BorderBox variant="orange" className="w-240px p-16px rounded-28px bg-white-normal shadow-popper">
       <p className="mb-16px leading-18px text-14px text-orange-normal font-medium">{i18n.settings}</p>
@@ -78,7 +84,14 @@ const SettingsContent: React.FC = () => {
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
         <div className="flex-shrink-1 flex items-center w-full h-full px-16px rounded-100px border-1px border-solid border-orange-light">
-          <Input className="h-40px text-14px text-black-light" type="number" max={100} id="input--transaction_deadline" />
+          <Input
+            className="h-40px text-14px text-black-light"
+            type="number"
+            value={transactionDeadline}
+            onChange={onTranscationDeadlineChange}
+            step={1}
+            id="input--transaction_deadline"
+          />
         </div>
 
         <span className="block flex-shrink-0 min-w-62px  leading-40px text-14px text-black-light">{i18n.minutes}</span>
