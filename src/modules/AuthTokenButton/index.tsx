@@ -65,7 +65,6 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
         });
         const allowance = tokenContract.func.decodeFunctionResult('allowance', fetchRes)?.[0];
         const approveBalance = Unit.fromMinUnit(String(allowance));
-
         if (approveBalance.greaterThanOrEqualTo(amountUnit)) {
           setStatus('approved');
         } else {
@@ -76,7 +75,8 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
         console.log('Check approve err', err);
       }
     };
-  }, [token?.address, amount]);
+  }, [token?.address, contractAddress, amount, account]);
+  
   const checkApprove = useCallback(
     debounce(() => checkApproveFunc.current?.(), 666),
     []
