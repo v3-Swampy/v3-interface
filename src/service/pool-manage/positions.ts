@@ -18,8 +18,6 @@ export interface Position {
   operator: string;
   token0: Token;
   token1: Token;
-  base: Token;
-  quote: Token;
   fee: FeeAmount;
   tickLower: number;
   tickUpper: number;
@@ -34,6 +32,12 @@ export interface Position {
   tokensOwed0: string;
   /** The uncollected amount of token1 owed to the position as of the last computation. */
   tokensOwed1: string;
+}
+export interface PositionForUI extends Position {
+  baseToken: Token;
+  quoteToken: Token;
+  priceLowerForUI: Unit;
+  priceUpperForUI: Unit;
 }
 
 const positionBalanceQuery = selector({
@@ -92,8 +96,6 @@ const positionsQuery = selector({
           operator: String(decodeRes?.[1]),
           token0: getTokenByAddress(decodeRes?.[2])!,
           token1: getTokenByAddress(decodeRes?.[3])!,
-          base: getTokenByAddress(decodeRes?.[2])!,
-          quote: getTokenByAddress(decodeRes?.[3])!,
           fee: Number(decodeRes?.[4]),
           tickLower: Number(decodeRes?.[5]),
           tickUpper: Number(decodeRes?.[6]),
@@ -125,26 +127,32 @@ const PositionsForUISelector = selector({
   key: `PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
-    if(!positions) return [];
+    if (!positions) return [];
     return positions.map((position) => {
       const { token0, token1, priceLower, priceUpper } = position;
       if (
         // if token0 is a dollar-stable asset, set it as the quote token
         stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
-         // if token1 is an ETH-/BTC-stable asset, set it as the base token
+        // if token1 is an ETH-/BTC-stable asset, set it as the base token
         baseTokens.some((baseToken) => baseToken?.address === token1.address) ||
         // if both prices are below 1, invert
         priceUpper.lessThan(Unit.fromMinUnit(1))
       ) {
         return {
           ...position,
-          base: token1,
-          quote: token0,
-          priceLower: Unit.fromMinUnit(1).div(priceUpper),
-          priceUpper: Unit.fromMinUnit(1).div(priceLower),
+          baseToken: token1,
+          quoteToken: token0,
+          priceLowerForUI: priceUpper.equals(Unit.fromMinUnit('NaN')) ? priceLower : Unit.fromMinUnit(1).div(priceUpper),
+          priceUpperForUI: priceLower.equals(Unit.fromMinUnit('0')) ? priceUpper : Unit.fromMinUnit(1).div(priceLower),
         };
       }
-      return position;
+      return {
+        ...position,
+        baseToken: token0,
+        quoteToken: token1,
+        priceLowerForUI: priceLower,
+        priceUpperForUI: priceUpper,
+      };
     });
   },
 });
@@ -155,4 +163,4 @@ export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
 export const usePositions = () => useRecoilValue(positionsQuery);
 
-export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector)
+export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
