@@ -59,10 +59,11 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
   const quoteToken = useMemo(() => getUnwrapperTokenByAddress(position.quoteToken.address), [position.quoteToken.address]);
   const baseToken = useMemo(() => getUnwrapperTokenByAddress(position.baseToken.address), [position.baseToken.address]);
 
+  
   const priceLowerStr = trimDecimalZeros(position.priceLower.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(position.priceUpper.toDecimalMinUnit(5));
   const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
-  // console.log(position?.id, position?.fee, quoteToken?.symbol, baseToken?.symbol, pool?.token0Price?.toDecimalMinUnit(5));
+
   const status =
     pool?.liquidity === '0'
       ? PositionStatus.Closed
