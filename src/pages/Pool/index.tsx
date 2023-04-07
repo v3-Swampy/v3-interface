@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import { usePool } from '@service/pairs&pool';
-import { usePositions, PositionStatus, type Position, usePositionsForUI } from '@service/pool-manage';
+import { PositionStatus, type PositionForUI, usePositionsForUI } from '@service/pool-manage';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
@@ -54,15 +54,15 @@ const PositionStatuMap = {
   },
 } as const;
 
-const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
+const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
   const { pool } = usePool({ tokenA: position.token0, tokenB: position.token1, fee: position.fee });
-  const unwrapperToken0 = useMemo(() => getUnwrapperTokenByAddress(position.quote.address), [position.quote.address]);
-  const unwrapperToken1 = useMemo(() => getUnwrapperTokenByAddress(position.base.address), [position.base.address]);
+  const quoteToken = useMemo(() => getUnwrapperTokenByAddress(position.quoteToken.address), [position.quoteToken.address]);
+  const baseToken = useMemo(() => getUnwrapperTokenByAddress(position.baseToken.address), [position.baseToken.address]);
 
   const priceLowerStr = trimDecimalZeros(position.priceLower.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(position.priceUpper.toDecimalMinUnit(5));
   const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
-  // console.log(position?.id, position?.fee, unwrapperToken0?.symbol, unwrapperToken1?.symbol, pool?.token0Price?.toDecimalMinUnit(5));
+  // console.log(position?.id, position?.fee, quoteToken?.symbol, baseToken?.symbol, pool?.token0Price?.toDecimalMinUnit(5));
   const status =
     pool?.liquidity === '0'
       ? PositionStatus.Closed
@@ -76,10 +76,10 @@ const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
     <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
       <div className="inline-block">
         <div className="flex items-center">
-          <img className="w-24px h-24px" src={unwrapperToken0?.logoURI} alt={`${unwrapperToken0?.symbol} icon`} />
-          <img className="w-24px h-24px -ml-8px" src={unwrapperToken1?.logoURI} alt={`${unwrapperToken1?.symbol} icon`} />
+          <img className="w-24px h-24px" src={quoteToken?.logoURI} alt={`${quoteToken?.symbol} icon`} />
+          <img className="w-24px h-24px -ml-8px" src={baseToken?.logoURI} alt={`${baseToken?.symbol} icon`} />
           <span className="mx-4px text-14px text-black-normal font-medium">
-            {unwrapperToken0?.symbol} / {unwrapperToken1?.symbol}
+            {quoteToken?.symbol} / {baseToken?.symbol}
           </span>
           <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">
             {position.fee / 10000}%
@@ -89,14 +89,14 @@ const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
           <span className="text-gray-normal">
             Min:&nbsp;
             <span className="text-black-normal">
-              {priceLowerStr} {unwrapperToken0?.symbol} per {unwrapperToken1?.symbol}
+              {priceLowerStr} {quoteToken?.symbol} per {baseToken?.symbol}
             </span>
           </span>
           <DoubleArrowIcon className="mx-8px w-16px h-8px" />
           <span className="text-gray-normal">
             Max:&nbsp;
             <span className="text-black-normal">
-              {priceUpperStr} {unwrapperToken0?.symbol} per {unwrapperToken1?.symbol}
+              {priceUpperStr} {quoteToken?.symbol} per {baseToken?.symbol}
             </span>
           </span>
         </div>
