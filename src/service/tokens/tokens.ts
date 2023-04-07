@@ -36,8 +36,8 @@ const stableSymbols = ['USDT'];
 
 const baseSymbols = ['WCFX', 'WBTC'];
 
-export const stables = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
-export const bases = baseSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
+export const stableTokens = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
+export const baseTokens = baseSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
 
 const wrapperTokenMap = new Map<string, Token>();
 const unwrapperTokenMap = new Map<string, Token>();
