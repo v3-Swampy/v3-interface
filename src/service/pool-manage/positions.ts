@@ -3,7 +3,7 @@ import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick } from '@service/pairs&pool';
-import { getTokenByAddress, type Token } from '@service/tokens';
+import { getTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
 
 export enum PositionStatus {
@@ -18,6 +18,8 @@ export interface Position {
   operator: string;
   token0: Token;
   token1: Token;
+  base: Token;
+  quote: Token;
   fee: FeeAmount;
   tickLower: number;
   tickUpper: number;
@@ -90,6 +92,8 @@ const positionsQuery = selector({
           operator: String(decodeRes?.[1]),
           token0: getTokenByAddress(decodeRes?.[2])!,
           token1: getTokenByAddress(decodeRes?.[3])!,
+          base: getTokenByAddress(decodeRes?.[2])!,
+          quote: getTokenByAddress(decodeRes?.[3])!,
           fee: Number(decodeRes?.[4]),
           tickLower: Number(decodeRes?.[5]),
           tickUpper: Number(decodeRes?.[6]),
@@ -117,8 +121,38 @@ const positionsQuery = selector({
   },
 });
 
+const PositionsForUISelector = selector({
+  key: `PositionListForUI-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const positions = get(positionsQuery);
+    const exchangeTokens = (position: Position) => {
+      const { token0, token1, priceLower, priceUpper } = position;
+      if (
+        // if token0 is a dollar-stable asset, set it as the quote token
+        stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
+         // if token1 is an ETH-/BTC-stable asset, set it as the base token
+        baseTokens.some((baseToken) => baseToken?.address === token1.address) ||
+        // if both prices are below 1, invert
+        priceUpper.lessThan(Unit.fromMinUnit(1))
+      ) {
+        return {
+          ...position,
+          base: token1,
+          quote: token0,
+          priceLower: Unit.fromMinUnit(1).div(priceUpper),
+          priceUpper: Unit.fromMinUnit(1).div(priceLower),
+        };
+      }
+      return position;
+    };
+    return positions?.map((position) => exchangeTokens(position));
+  },
+});
+
 export const usePositionBalance = () => useRecoilValue(positionBalanceQuery);
 
 export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
 export const usePositions = () => useRecoilValue(positionsQuery);
+
+export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector)

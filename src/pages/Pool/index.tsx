@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import { usePool } from '@service/pairs&pool';
-import { usePositions, PositionStatus, type Position } from '@service/pool-manage';
+import { usePositions, PositionStatus, type Position, usePositionsForUI } from '@service/pool-manage';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
@@ -56,18 +56,21 @@ const PositionStatuMap = {
 
 const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
   const { pool } = usePool({ tokenA: position.token0, tokenB: position.token1, fee: position.fee });
-  const unwrapperToken0 = useMemo(() => getUnwrapperTokenByAddress(position.token0.address), [position.token0.address]);
-  const unwrapperToken1 = useMemo(() => getUnwrapperTokenByAddress(position.token1.address), [position.token1.address]);
+  const unwrapperToken0 = useMemo(() => getUnwrapperTokenByAddress(position.quote.address), [position.quote.address]);
+  const unwrapperToken1 = useMemo(() => getUnwrapperTokenByAddress(position.base.address), [position.base.address]);
 
   const priceLowerStr = trimDecimalZeros(position.priceLower.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(position.priceUpper.toDecimalMinUnit(5));
   const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
   // console.log(position?.id, position?.fee, unwrapperToken0?.symbol, unwrapperToken1?.symbol, pool?.token0Price?.toDecimalMinUnit(5));
-  const status = !pool?.token0Price
-    ? undefined
-    : (pool.token0Price.lessThan(position.priceUpper) || _priceUpperStr === 'NaN') && (pool.token0Price.greaterThan(position.priceLower) || priceLowerStr === '0')
-    ? PositionStatus.InRange
-    : PositionStatus.OutOfRange;
+  const status =
+    pool?.liquidity === '0'
+      ? PositionStatus.Closed
+      : !pool?.tickCurrent
+      ? undefined
+      : pool.tickCurrent < position.tickLower || pool.tickCurrent >= position.tickUpper
+      ? PositionStatus.OutOfRange
+      : PositionStatus.InRange;
 
   return (
     <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
@@ -111,7 +114,7 @@ const PositionItem: React.FC<{ position: Position }> = ({ position }) => {
 
 const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
-  const positions = usePositions();
+  const positions = usePositionsForUI();
 
   if (!positions?.length) {
     return (
