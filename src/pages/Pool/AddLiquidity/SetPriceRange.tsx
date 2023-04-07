@@ -8,6 +8,7 @@ import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
+import { getSwapLock } from './';
 
 const transitions = {
   en: {
@@ -119,15 +120,16 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
   const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
 
   useLayoutEffect(() => {
+    if (getSwapLock()) return;
     setValue('price-init', '');
     if (pool?.token0Price) {
-      setValue('price-lower', pool.token0Price.div(Unit.fromMinUnit(2)).toDecimalMinUnit(5));
-      setValue('price-upper', pool.token0Price.mul(Unit.fromMinUnit(2)).toDecimalMinUnit(5));
+      setValue('price-lower', pool?.priceOf(tokenA!)?.div(Unit.fromMinUnit(2)).toDecimalMinUnit(5));
+      setValue('price-upper', pool?.priceOf(tokenA!)?.mul(Unit.fromMinUnit(2)).toDecimalMinUnit(5));
     } else {
       setValue('price-lower', '');
       setValue('price-upper', '');
     }
-  }, [tokenA?.address, tokenB?.address, fee]);
+  }, [pool, tokenA?.address, tokenB?.address, fee]);
 
   const handlePriceInitChange = useCallback<React.FocusEventHandler<HTMLInputElement>>(
     (evt) => {
@@ -149,7 +151,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
       {pool !== null && (
         <p className={cx('text-center text-12px text-black-normal font-light transition-opacity', (!tokenA || !tokenB) && 'opacity-0')}>
           {i18n.current_price}:&nbsp;&nbsp;<span className="font-medium">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
-          {`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}
+          {`${tokenB?.symbol} ${i18n.per} ${tokenA?.symbol}`}
         </p>
       )}
 
