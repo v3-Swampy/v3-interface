@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import Button from '@components/Button';
 import Status from '@modules/Status';
@@ -30,10 +30,10 @@ const DetailHeader: React.FC = () => {
         <Status position={detail} />
       </div>
       <div className="flex justify-end gap-16px">
-        <Button className="px-24px h-40px rounded-full text-14px text-white-normal font-medium" color="orange-light">
+        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="orange-light">
           {i18n.increase_liquidity}
         </Button>
-        <Button className="px-24px h-40px rounded-full text-14px text-white-normal font-medium" color="gradient">{i18n.remove_liquidity}</Button>
+        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient">{i18n.remove_liquidity}</Button>
       </div>
     </div>
   );

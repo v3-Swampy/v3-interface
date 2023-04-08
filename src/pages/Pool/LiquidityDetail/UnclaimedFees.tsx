@@ -17,7 +17,7 @@ const transitions = {
 const UnclaimedFees: React.FC = () => {
   const i18n = useI18n(transitions);
 
-  return <div>UnclaimedFees</div>;
+  return <div className="flex w-full">UnclaimedFees</div>;
 };
 
 export default UnclaimedFees;

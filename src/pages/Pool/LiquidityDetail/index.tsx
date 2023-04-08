@@ -1,7 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import cx from 'clsx';
-import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
@@ -34,10 +32,16 @@ const LiquidityDetail: React.FC = () => {
           </Link>
         </div>
         <BorderBox className="w-full p-16px rounded-28px flex flex-col gap-16px lt-md:gap-12px" variant="gradient-white">
-          <div className='ml-16px'><DetailHeader /></div>
-          <div className='flex gap-16px lt-md:gap-12px'>
-            <div className='flex flex-1'><SelectedRange /></div>
-            <div className='flex flex-1'><UnclaimedFees /></div>
+          <div className="ml-16px">
+            <DetailHeader />
+          </div>
+          <div className="flex gap-16px lt-md:gap-12px">
+            <div className="flex flex-1">
+              <Liquidity />
+            </div>
+            <div className="flex flex-1">
+              <UnclaimedFees />
+            </div>
           </div>
           <SelectedRange />
           <CurrentPrice />

@@ -28,10 +28,10 @@ const transitions = {
 } as const;
 
 const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
-  const { leftToken, rightToken, fee, priceLower, priceUpper, id } = position;
+  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, id } = position;
 
-  const priceLowerStr = trimDecimalZeros(priceLower.toDecimalMinUnit(5));
-  const _priceUpperStr = trimDecimalZeros(priceUpper.toDecimalMinUnit(5));
+  const priceLowerStr = trimDecimalZeros(priceLowerForUI.toDecimalMinUnit(5));
+  const _priceUpperStr = trimDecimalZeros(priceUpperForUI.toDecimalMinUnit(5));
   const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
 
   return (
