@@ -29,3 +29,5 @@ stats.html
 package-lock.json
 yarn.lock
 __unconfig_vite.config.ts
+
+tailwind.config.js
