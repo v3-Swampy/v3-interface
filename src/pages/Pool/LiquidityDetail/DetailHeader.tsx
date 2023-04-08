@@ -23,10 +23,20 @@ const DetailHeader: React.FC = () => {
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   if (!detail) return <div>loading...</div>;
 
-  return <div className="flex width-full">
-    <Status position={detail} />
-
-  </div>;
+  return (
+    <div className="flex width-full justify-between">
+      <div className="flex gap-22px">
+        <TokenPair position={detail} />
+        <Status position={detail} />
+      </div>
+      <div className="flex justify-end gap-16px">
+        <Button className="px-24px h-40px rounded-full text-14px text-white-normal font-medium" color="orange-light">
+          {i18n.increase_liquidity}
+        </Button>
+        <Button className="px-24px h-40px rounded-full text-14px text-white-normal font-medium" color="gradient">{i18n.remove_liquidity}</Button>
+      </div>
+    </div>
+  );
 };
 
 export default DetailHeader;

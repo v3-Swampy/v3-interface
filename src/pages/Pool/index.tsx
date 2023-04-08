@@ -28,7 +28,7 @@ const transitions = {
 } as const;
 
 const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
-  const { quoteToken, baseToken, fee, priceLower, priceUpper, id } = position;
+  const { leftToken, rightToken, fee, priceLower, priceUpper, id } = position;
 
   const priceLowerStr = trimDecimalZeros(priceLower.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(priceUpper.toDecimalMinUnit(5));
@@ -38,19 +38,19 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
     <Link to={String(id)} className="no-underline">
       <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
         <div className="inline-block">
-          <TokenPair quoteTokenSymbol={quoteToken?.symbol} quoteTokenLogo={quoteToken?.logoURI} baseTokenSymbol={baseToken?.symbol} baseTokenLogo={baseToken?.logoURI} fee={fee} />
+          <TokenPair position={position} />
           <div className="flex items-center h-16px mt-4px text-12px font-medium">
             <span className="text-gray-normal">
               Min:&nbsp;
               <span className="text-black-normal">
-                {priceLowerStr} {quoteToken?.symbol} per {baseToken?.symbol}
+                {priceLowerStr} {leftToken?.symbol} per {rightToken?.symbol}
               </span>
             </span>
             <DoubleArrowIcon className="mx-8px w-16px h-8px" />
             <span className="text-gray-normal">
               Max:&nbsp;
               <span className="text-black-normal">
-                {priceUpperStr} {quoteToken?.symbol} per {baseToken?.symbol}
+                {priceUpperStr} {leftToken?.symbol} per {rightToken?.symbol}
               </span>
             </span>
           </div>

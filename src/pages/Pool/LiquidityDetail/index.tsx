@@ -34,7 +34,7 @@ const LiquidityDetail: React.FC = () => {
           </Link>
         </div>
         <BorderBox className="w-full p-16px rounded-28px flex flex-col gap-16px lt-md:gap-12px" variant="gradient-white">
-          <div className='mx-16px'><DetailHeader /></div>
+          <div className='ml-16px'><DetailHeader /></div>
           <div className='flex gap-16px lt-md:gap-12px'>
             <div className='flex flex-1'><SelectedRange /></div>
             <div className='flex flex-1'><UnclaimedFees /></div>

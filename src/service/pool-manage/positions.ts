@@ -34,8 +34,8 @@ export interface Position {
   tokensOwed1: string;
 }
 export interface PositionForUI extends Position {
-  baseToken: Token | null;
-  quoteToken: Token | null;
+  leftToken: Token | null;
+  rightToken: Token | null;
   priceLowerForUI: Unit;
   priceUpperForUI: Unit;
 }
@@ -146,16 +146,16 @@ export const PositionsForUISelector = selector({
         const isPriceUpperInfinity = priceUpper.equals(INFINITY);
         return {
           ...position,
-          baseToken: unwrapToken1,
-          quoteToken: unwrapToken0,
+          rightToken: unwrapToken1,
+          leftToken: unwrapToken0,
           priceLowerForUI: isPriceUpperInfinity ? ZERO : Unit.fromMinUnit(1).div(priceUpper),
           priceUpperForUI: isPriceLowerZero ? INFINITY : Unit.fromMinUnit(1).div(priceLower),
         };
       }
       return {
         ...position,
-        baseToken: unwrapToken0,
-        quoteToken: unwrapToken1,
+        rightToken: unwrapToken0,
+        leftToken: unwrapToken1,
         priceLowerForUI: priceLower,
         priceUpperForUI: priceUpper,
       };
