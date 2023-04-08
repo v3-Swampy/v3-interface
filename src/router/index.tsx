@@ -7,7 +7,7 @@ import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
 import SwapPage from '@pages/Swap';
-import { PoolPage, PoolAddLiquidityPage, FarmingPage, StakingPage } from './lazyPages';
+import { PoolPage, PoolAddLiquidityPage, PoolLiquidityItemPage, FarmingPage, StakingPage } from './lazyPages';
 
 export const routes = [
   {
@@ -38,6 +38,7 @@ const AppRouter: React.FC = () => {
             <Route path="pool">
               <Route index element={<PoolPage />} />
               <Route path="add_liquidity" element={<PoolAddLiquidityPage />} />
+              <Route path=":tokenId" element={<PoolLiquidityItemPage />} />
             </Route>
             <Route path="farming" element={<FarmingPage />} />
             <Route path="staking" element={<StakingPage />} />

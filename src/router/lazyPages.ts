@@ -11,6 +11,7 @@ const lazyWithPreload = (factory: Factory) => {
 export const FarmingPage = lazyWithPreload(() => import('@pages/Farming'));
 export const StakingPage = lazyWithPreload(() => import('@pages/Staking'));
 export const PoolPage = lazyWithPreload(() => import('@pages/Pool'));
+export const PoolLiquidityItemPage = lazyWithPreload(() => import('@pages/Pool/LiquidityDetail'));
 export const PoolAddLiquidityPage = lazyWithPreload(() => import('@pages/Pool/AddLiquidity'));
 
 (function () {

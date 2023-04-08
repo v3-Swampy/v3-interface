@@ -4,15 +4,12 @@ import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Spin from '@components/Spin';
+import Status from '@modules/Status';
+import TokenPair from '@modules/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { usePool } from '@service/pairs&pool';
-import { PositionStatus, type PositionForUI, usePositionsForUI } from '@service/pool-manage';
-import { getUnwrapperTokenByAddress } from '@service/tokens';
+import { type PositionForUI, usePositionsForUI } from '@service/pool-manage';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
-import { ReactComponent as SuccessIcon } from '@assets/icons/pool_success.svg';
-import { ReactComponent as WarningIcon } from '@assets/icons/pool_warning.svg';
-import { ReactComponent as ErrorIcon } from '@assets/icons/pool_error.svg';
 import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
 
 const transitions = {
@@ -21,95 +18,46 @@ const transitions = {
     your_positions: 'Your Positions',
     new_positions: 'New Positions',
     positions_appear_here: 'Your active liquidity positions will appear here.',
-    in_range: 'In Range',
-    out_of_range: 'Out of Range',
-    closed: 'Closed',
   },
   zh: {
     pool: '流动池',
     your_positions: '你的仓位',
     new_positions: '新仓位',
     positions_appear_here: '您的流动性仓位将在此显示。',
-    in_range: '范围内',
-    out_of_range: '超范围',
-    closed: '已关闭',
-  },
-} as const;
-
-const PositionStatuMap = {
-  [PositionStatus.InRange]: {
-    Icon: <SuccessIcon className="ml-4px w-18px h-18px" />,
-    color: '#009595',
-    text: 'in_range',
-  },
-  [PositionStatus.OutOfRange]: {
-    Icon: <WarningIcon className="ml-4px w-18px h-18px" />,
-    color: '#FFB75D',
-    text: 'out_of_range',
-  },
-  [PositionStatus.Closed]: {
-    Icon: <ErrorIcon className="ml-4px w-18px h-18px" />,
-    color: '#C2C4D0',
-    text: 'closed',
   },
 } as const;
 
 const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
-  const { pool } = usePool({ tokenA: position.token0, tokenB: position.token1, fee: position.fee });
-  const quoteToken = useMemo(() => getUnwrapperTokenByAddress(position.quoteToken.address), [position.quoteToken.address]);
-  const baseToken = useMemo(() => getUnwrapperTokenByAddress(position.baseToken.address), [position.baseToken.address]);
+  const { quoteToken, baseToken, fee, priceLower, priceUpper, id } = position;
 
-  
-  const priceLowerStr = trimDecimalZeros(position.priceLower.toDecimalMinUnit(5));
-  const _priceUpperStr = trimDecimalZeros(position.priceUpper.toDecimalMinUnit(5));
+  const priceLowerStr = trimDecimalZeros(priceLower.toDecimalMinUnit(5));
+  const _priceUpperStr = trimDecimalZeros(priceUpper.toDecimalMinUnit(5));
   const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
 
-  const status =
-    pool?.liquidity === '0'
-      ? PositionStatus.Closed
-      : !pool?.tickCurrent
-      ? undefined
-      : pool.tickCurrent < position.tickLower || pool.tickCurrent >= position.tickUpper
-      ? PositionStatus.OutOfRange
-      : PositionStatus.InRange;
-
   return (
-    <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
-      <div className="inline-block">
-        <div className="flex items-center">
-          <img className="w-24px h-24px" src={quoteToken?.logoURI} alt={`${quoteToken?.symbol} icon`} />
-          <img className="w-24px h-24px -ml-8px" src={baseToken?.logoURI} alt={`${baseToken?.symbol} icon`} />
-          <span className="mx-4px text-14px text-black-normal font-medium">
-            {quoteToken?.symbol} / {baseToken?.symbol}
-          </span>
-          <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">
-            {position.fee / 10000}%
-          </span>
-        </div>
-        <div className="flex items-center h-16px mt-4px text-12px font-medium">
-          <span className="text-gray-normal">
-            Min:&nbsp;
-            <span className="text-black-normal">
-              {priceLowerStr} {quoteToken?.symbol} per {baseToken?.symbol}
+    <Link to={String(id)} className="no-underline">
+      <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
+        <div className="inline-block">
+          <TokenPair quoteTokenSymbol={quoteToken?.symbol} quoteTokenLogo={quoteToken?.logoURI} baseTokenSymbol={baseToken?.symbol} baseTokenLogo={baseToken?.logoURI} fee={fee} />
+          <div className="flex items-center h-16px mt-4px text-12px font-medium">
+            <span className="text-gray-normal">
+              Min:&nbsp;
+              <span className="text-black-normal">
+                {priceLowerStr} {quoteToken?.symbol} per {baseToken?.symbol}
+              </span>
             </span>
-          </span>
-          <DoubleArrowIcon className="mx-8px w-16px h-8px" />
-          <span className="text-gray-normal">
-            Max:&nbsp;
-            <span className="text-black-normal">
-              {priceUpperStr} {quoteToken?.symbol} per {baseToken?.symbol}
+            <DoubleArrowIcon className="mx-8px w-16px h-8px" />
+            <span className="text-gray-normal">
+              Max:&nbsp;
+              <span className="text-black-normal">
+                {priceUpperStr} {quoteToken?.symbol} per {baseToken?.symbol}
+              </span>
             </span>
-          </span>
+          </div>
         </div>
+        <Status position={position} />
       </div>
-
-      {typeof status === 'number' && (
-        <div className="inline-flex items-center text-12px font-medium" style={{ color: PositionStatuMap[status].color }}>
-          {PositionStatuMap[status].text}
-          {PositionStatuMap[status].Icon}
-        </div>
-      )}
-    </div>
+    </Link>
   );
 };
 
