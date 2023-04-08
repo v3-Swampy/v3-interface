@@ -118,7 +118,7 @@ const AddLiquidity: React.FC = () => {
 
   return (
     <PageWrapper className="pt-56px">
-      <div className="mx-auto max-w-800px ">
+      <div className="mx-auto max-w-800px">
         <div className="relative flex items-center pl-16px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           <span className="i-material-symbols:keyboard-arrow-left absolute -left-10px translate-y-1px text-24px text-gray-normal" />
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline text-orange-normal">
