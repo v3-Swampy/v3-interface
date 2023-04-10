@@ -17,6 +17,7 @@
     "@react-spring/web": "^9.7.1",
     "@tippyjs/react": "^4.2.6",
     "@uniswap/sdk-core": "^3.2.2",
+    "@uniswap/v2-sdk": "^3.0.1",
     "@uniswap/v3-sdk": "^3.9.0",
     "@use-gesture/react": "^10.2.25",
     "clsx": "^1.2.1",

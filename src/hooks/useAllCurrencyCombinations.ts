@@ -1,6 +1,6 @@
 import { Currency, Token } from '@uniswap/sdk-core'
 import { useMemo } from 'react'
-import {useBaseTokenTrade} from '@hooks/useBaseTokenTrade';
+import {useBaseTokensTrade} from '@hooks/useTokensBySymbols';
 
 const ADDITIONAL_BASES:any={}
 const CUSTOM_BASES:any={}
@@ -10,12 +10,12 @@ export function useAllCurrencyCombinations(currencyA?: Currency, currencyB?: Cur
 
   const [tokenA, tokenB] = chainId ? [currencyA?.wrapped, currencyB?.wrapped] : [undefined, undefined]
 
-  const base_to_check_trades_against=useBaseTokenTrade()
+  const base_to_check_trades_against=useBaseTokensTrade()
 
   const bases: Token[] = useMemo(() => {
     if (!chainId || chainId !== tokenB?.chainId) return []
 
-    const common = base_to_check_trades_against[chainId] ?? []
+    const common = base_to_check_trades_against ?? []
     const additionalA = tokenA ? ADDITIONAL_BASES[chainId]?.[tokenA.address] ?? [] : []
     const additionalB = tokenB ? ADDITIONAL_BASES[chainId]?.[tokenB.address] ?? [] : []
 
@@ -74,3 +74,5 @@ export function useAllCurrencyCombinations(currencyA?: Currency, currencyB?: Cur
     [tokenA, tokenB, bases, basePairs, chainId]
   )
 }
+
+export default useAllCurrencyCombinations

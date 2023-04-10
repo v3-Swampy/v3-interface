@@ -10,6 +10,11 @@ import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
 import { handleUnStake  } from '@service/staking';
+import useAllCurrencyCombinations from '@hooks/useAllCurrencyCombinations';
+import {useTokenFromList} from '@hooks/useTokensBySymbols';
+import {useV2Pairs} from '@hooks/useV2Pairs';
+import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
+
 
 const transitions = {
   en: {
@@ -50,7 +55,12 @@ enum PersonalStakingStatus {
 const StakingPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const [lockedAmount, unlockTime] = useUserInfo();
-
+  const currencyIn=useTokenFromList('WCFX')
+  const currencyOut=useTokenFromList('USDT')
+  const currencyOut2=CurrencyAmount.fromRawAmount(currencyOut, 100_000e6)
+  const allCurrencyCombinations=useAllCurrencyCombinations(currencyIn,currencyOut2.currency)
+  const allPairs = useV2Pairs(allCurrencyCombinations)
+  console.info('allPairs', allPairs)
   const stakingStatus = useMemo(() => {
     if (!lockedAmount && !unlockTime) return PersonalStakingStatus.UNKNOWN;
     if (!+lockedAmount) return PersonalStakingStatus.UNLOCKED;
