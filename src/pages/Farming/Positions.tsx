@@ -65,8 +65,8 @@ const className = {
   title: 'color-gray-normal text-xs font-500 not-italic leading-15px mb-2',
   content: 'color-black-normal text-12px font-500 not-italic leading-15px',
   buttonBase: 'flex items-center h-8 rounded-full py-7px px-20.5px relative cursor-pointer',
-  buttonFarming: 'bg-green-light color-green-normal',
-  buttonPaused: 'bg-orange-dotbg color-orange-dot',
+  buttonFarming: 'bg-green-normal/10 color-green-normal',
+  buttonPaused: 'bg-orange-dot/10 color-orange-dot',
   buttonPausedSolid: 'color-orange-dot border border-solid border-orange-dot',
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
@@ -85,7 +85,7 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
         <span className="text-14px font-500 font-not-italic leading-18px color-gray-normal">
           {i18n.myPosition} ({data.length})
         </span>
-        <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-normal' : 'color-orange-normal bg-orange-normalbg'}`}>
+        <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-normal' : 'color-orange-normal bg-orange-normal/10'}`}>
           <span className="i-mdi:clock"></span>
           <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: xxx</span>
         </span>
