@@ -1,6 +1,5 @@
 import React from 'react';
 import { type PositionForUI } from '@service/pool-manage';
-import { FeeAmount } from '@service/pairs&pool';
 
 const TokenPair: React.FC<{ position: PositionForUI }> = ({position}) => {
   const {leftToken, rightToken, fee} = position

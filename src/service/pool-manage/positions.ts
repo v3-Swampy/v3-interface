@@ -2,7 +2,7 @@ import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
-import { FeeAmount, calcPriceFromTick } from '@service/pairs&pool';
+import { FeeAmount, calcPriceFromTick, revertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
 
@@ -140,16 +140,12 @@ export const PositionsForUISelector = selector({
         // if both prices are below 1, invert
         priceUpper.lessThan(Unit.fromMinUnit(1))
       ) {
-        const ZERO = Unit.fromMinUnit(0);
-        const INFINITY = Unit.fromMinUnit('NaN')
-        const isPriceLowerZero = priceLower.equals(ZERO);
-        const isPriceUpperInfinity = priceUpper.equals(INFINITY);
         return {
           ...position,
           rightToken: unwrapToken1,
           leftToken: unwrapToken0,
-          priceLowerForUI: isPriceUpperInfinity ? ZERO : Unit.fromMinUnit(1).div(priceUpper),
-          priceUpperForUI: isPriceLowerZero ? INFINITY : Unit.fromMinUnit(1).div(priceLower),
+          priceLowerForUI: revertPrice(priceUpper),
+          priceUpperForUI: revertPrice(priceLower),
         };
       }
       return {
