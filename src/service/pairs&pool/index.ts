@@ -100,6 +100,17 @@ export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fe
   return calcPriceFromTick({ tick: closestValidTick, tokenA, tokenB });
 };
 
+export const revertPrice = (price: Unit | string | number) => {
+  const usedPrice = typeof price !== 'object' ? Unit.fromMinUnit(price) : price
+  const ZERO = Unit.fromMinUnit(0);
+  const INFINITY = Unit.fromMinUnit('NaN')
+  const isPriceZero = usedPrice.equals(ZERO);
+  const isPriceInfinity = usedPrice.equals(INFINITY);
+  if(isPriceZero) return INFINITY;
+  if(isPriceInfinity) return ZERO;
+  return Unit.fromMinUnit(1).div(usedPrice);
+}
+
 const MIN_TICK_Base = -887272;
 export const getMinTick = (fee: FeeAmount) => +findClosestValidTick({ fee, searchTick: MIN_TICK_Base }).toDecimalMinUnit();
 export const getMaxTick = (fee: FeeAmount) => -getMinTick(fee);

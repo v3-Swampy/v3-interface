@@ -2,13 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
-import Button from '@components/Button';
 import useI18n from '@hooks/useI18n';
 import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';
 import SelectedRange from './SelectedRange';
-import CurrentPrice from './CurrentPrice';
 
 const transitions = {
   en: {
@@ -36,15 +34,14 @@ const LiquidityDetail: React.FC = () => {
             <DetailHeader />
           </div>
           <div className="flex gap-16px lt-md:gap-12px">
-            <div className="flex flex-1">
+            <div className="flex flex-1 min-w-0">
               <Liquidity />
             </div>
-            <div className="flex flex-1">
+            <div className="flex flex-1 min-w-0">
               <UnclaimedFees />
             </div>
           </div>
           <SelectedRange />
-          <CurrentPrice />
         </BorderBox>
       </div>
     </PageWrapper>

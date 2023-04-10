@@ -42,7 +42,7 @@ const Status: React.FC<{ position: PositionForUI }> = ({ position }) => {
 
   const { token0, token1, fee, liquidity, tickLower, tickUpper } = position;
 
-  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee: fee });
+  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
 
   const tickCurrent = pool?.tickCurrent;
 
