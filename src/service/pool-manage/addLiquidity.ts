@@ -48,7 +48,7 @@ export const addLiquidity = async ({
 
     const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
     const data0 = NonfungiblePositionManager.func.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
-    const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
+    const deadline = dayjs(new Date()).add(duration(getTransactionDeadline(), 'minute')).unix() * 1000;
 
     const tickLower = Unit.fromMinUnit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: Unit.fromMinUnit(priceLower), tokenA: token0, tokenB: token1 });
     const tickUpper = priceUpper === 'NaN' ? getMaxTick(fee) : calcTickFromPrice({ price: Unit.fromMinUnit(priceUpper), tokenA: token0, tokenB: token1 });
