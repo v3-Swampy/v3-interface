@@ -103,7 +103,7 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
   const isEnded = dayjs().isAfter(dayjs.unix(Number(data.incentiveTime)));
 
   return (
-    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-lightbg' : 'bg-orange-lightHover'}`}>
+    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-light/30' : 'bg-orange-lightHover'}`}>
       <Corner timestatmp={Number(data.incentiveTime)}></Corner>
       <div className="flex justify-between relative px-4">
         <div className="ml-20px">
@@ -140,7 +140,7 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
           <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">{numFormat(data.claimable)} VST</div>
         </div>
         <div className="flex items-center">
-          <ChevronDownIcon onClick={handleShow} className={`rotate-${isShow ? '0' : '90'} cursor-pointer`}></ChevronDownIcon>
+          <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
       {isShow && <Positions poolAddress={data.poolAddress}></Positions>}

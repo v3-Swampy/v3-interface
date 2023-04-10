@@ -7,6 +7,7 @@ import ToolTip from '@components/Tooltip';
 import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import Corner from './Corner';
+import showStakeLPModal, { ModalMode } from './StakeLPModal';
 
 const FAKE_DATA_ALL_FARMS = [
   {
@@ -121,7 +122,7 @@ const AllFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
       </div>
       <div>
         <div className={`${className.title}`}>{i18n.tvl}</div>
-        <div className={`${className.content}`}>$ {numFormat(data.TVL)}</div>
+        <div className={`${className.content}`}>${numFormat(data.TVL)}</div>
       </div>
       <div>
         <div className={`${className.title}`}>
@@ -138,7 +139,7 @@ const AllFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
       <div className="flex items-center">
         <div
           className="flex items-center justify-center px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer"
-          onClick={handleStakeLP}
+          onClick={() => showStakeLPModal(ModalMode.CreateLock)}
         >
           {i18n.stakeLP}
         </div>
