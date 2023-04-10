@@ -109,14 +109,15 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   return null;
 };
 
-const showConfirmTransactionModal = ({ className, title, ...props }: CommonProps & { title: string }) => {
+const showConfirmTransactionModal = ({ className, title, subTitle, ...props }: CommonProps & { title: string; subTitle?: string }) => {
   if (isMobile) {
     showDrawer({
       Content: <ConfirmTransactionModal {...props} />,
       title,
+      subTitle,
     });
   } else {
-    showModal({ Content: <ConfirmTransactionModal {...props} />, className: className, title });
+    showModal({ Content: <ConfirmTransactionModal {...props} />, className: className, title, subTitle });
   }
 };
 

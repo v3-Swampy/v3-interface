@@ -39,6 +39,7 @@ export default defineConfig({
             normal: '#E14E28', // className="bg-purple-primary"
             light: '#FFE9CB',
             lightHover: '#FFF5E7',
+            dot: '#FFB75D',
           },
           black: {
             normal: '#225050',
@@ -46,12 +47,19 @@ export default defineConfig({
           },
           gray: {
             normal: '#C2C4D0',
+            light: '#E1E1E7',
           },
           white: {
             normal: '#FFFDFA',
           },
           error: {
             normal: '#E96170',
+          },
+          green: {
+            normal: '#009595',
+          },
+          blue: {
+            normal: '#9FB6EF',
           },
         },
         boxShadow: {
