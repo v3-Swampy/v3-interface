@@ -6,6 +6,8 @@ import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
 import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
+import dayjs from 'dayjs';
+import Corner from './Corner';
 
 const FAKE_DATA_MY_FARMS = [
   {
@@ -98,8 +100,11 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
     setIsShow(!isShow);
   };
 
+  const isEnded = dayjs().isAfter(dayjs.unix(Number(data.incentiveTime)));
+
   return (
-    <div className="bg-orange-lightHover rounded-2xl mb-6 last:mb-0 py-4 px-4 relative">
+    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-lightbg' : 'bg-orange-lightHover'}`}>
+      <Corner timestatmp={Number(data.incentiveTime)}></Corner>
       <div className="flex justify-between relative px-4">
         <div className="ml-20px">
           <div className={`${className.title}`}>{i18n.poolName}</div>
