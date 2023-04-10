@@ -1,26 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
 
+import AllFarms from './AllFarms';
+import MyFarms from './MyFarms';
+
 const transitions = {
   en: {
     farming: 'Farming',
+    desc: 'Concentrated and effective liquidity providers will get more rewards.',
+    allFarms: 'All Farms',
+    myFarms: 'My Farms',
   },
   zh: {
     farming: '挖矿',
+    desc: 'Concentrated and effective liquidity providers will get more rewards.',
+    allFarms: 'All Farms',
+    myFarms: 'My Farms',
   },
 } as const;
 
 const FarmingPage: React.FC = () => {
   const i18n = useI18n(transitions);
+  const [activeTab, setActiveTab] = useState<'all' | 'my'>('my');
+
+  const buttonClass =
+    'inline-block py-10px leading-18px px-6 rounded-full text-center text-sm font-medium border border-solid text-gray box-border cursor-pointer hover:bg-orange-lightHover hover:border-orange-lightHover hover:text-black-normal';
+  const buttonClassActive = 'bg-orange-light !text-black-normal border border-solid border-orange-light hover:bg-orange-light';
+
   return (
     <PageWrapper className="pt-56px">
-      <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">
-        <div className="mb-16px flex justify-between items-center pr-8px">
-          <span className="w-84px h-40px leading-40px rounded-100px text-center text-14px text-black-normal font-medium bg-orange-light-hover">{i18n.farming}</span>
+      <div className="mx-auto max-w-800px">
+        <div className="flex justify-start items-end pl-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+          {i18n.farming}
+          <div className="font-500 text-14px leading-18px ml-2 color-#C2C4D0">{i18n.desc}</div>
         </div>
-      </BorderBox>
+        <BorderBox className="relative w-full p-16px rounded-28px" variant="gradient-white">
+          <div>
+            <div className={`${buttonClass} mr-2 ${activeTab === 'my' ? buttonClassActive : ''}`} onClick={() => setActiveTab('my')}>
+              {i18n.myFarms}
+            </div>
+            <div className={`${buttonClass} ${activeTab === 'all' ? buttonClassActive : ''}`} onClick={() => setActiveTab('all')}>
+              {i18n.allFarms}
+            </div>
+          </div>
+          {activeTab === 'all' && <AllFarms />}
+          {activeTab === 'my' && <MyFarms />}
+        </BorderBox>
+      </div>
     </PageWrapper>
   );
 };
