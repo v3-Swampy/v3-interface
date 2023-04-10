@@ -3,10 +3,10 @@ import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
-import { ReactComponent as FarmingNearIcon } from '@assets/icons/farming_near.svg';
 import ToolTip from '@components/Tooltip';
 import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
+import Corner from './Corner';
 
 const FAKE_DATA_ALL_FARMS = [
   {
@@ -92,15 +92,13 @@ const AllFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
     content: 'color-black-normal text-14px font-500 not-italic leading-18px',
   };
 
-  const isNear = new Decimal(data.incentiveTime).minus(dayjs().valueOf() / 1000).lessThan(24 * 60 * 60);
-
   const handleStakeLP = () => {
     console.log('handleStakeLP: ', data.poolAddress);
   };
 
   return (
     <div className="bg-orange-lightHover rounded-2xl mb-6 last:mb-0 flex justify-between py-4 px-8 relative">
-      {isNear && <FarmingNearIcon className="absolute left-0 top-0 -translate-y-1/3" />}
+      <Corner timestatmp={Number(data.incentiveTime)}></Corner>
       <div>
         <div className={`${className.title}`}>{i18n.poolName}</div>
         <div className={`${className.content} inline-flex justify-center items-center`}>
