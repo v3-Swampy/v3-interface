@@ -24,17 +24,17 @@ const transitions = {
   },
 } as const;
 
-const PriceItem: React.FC<{ tokenA: Token | null; tokenB: Token | null; type: string; price: string }> = ({ tokenA, tokenB, type, price }) => {
+const PriceItem: React.FC<{ tokenA: Token | null; tokenB: Token | null; type: string; price: string; className?: string }> = ({ tokenA, tokenB, type, price, className = '' }) => {
   const i18n = useI18n(transitions);
 
   return (
-    <div>
-      <div>{type === 'min' ? i18n.minPrice : i18n.maxPrice}</div>
-      <div>{price === 'NaN' ? '∞' : price}</div>
-      <div>
-        {tokenB?.name} {i18n.per} {tokenA?.name}
-      </div>
-      <div>{i18n.priceDes.replace('$1', tokenA?.name || '')}</div>
+    <div className={`border-2 border-solid rounded-10px border-orange-light  text-center p-16px ${className}`}>
+      <p className="text-sm leading-18px font-medium">{type === 'min' ? i18n.minPrice : i18n.maxPrice}</p>
+      <p className="font-medium text-2xl leading-30px">{price === 'NaN' ? '∞' : price}</p>
+      <p className="font-normal text-xs	text-gray-normal my-1px">
+        {tokenB?.symbol} {i18n.per} {tokenA?.symbol}
+      </p>
+      <p className="text-xs font-normal">{i18n.priceDes.replace('$1', tokenA?.symbol || '')}</p>
     </div>
   );
 };
@@ -71,9 +71,9 @@ const SelectedRange: React.FC<{ detail: PositionForUI }> = ({ detail }) => {
     }
   }, [priceLowerForUI, priceUpperForUI, tokenA, rightToken, revertPrice]);
   return (
-    <div>
-      <div className="flex items-center">
-        <div>{i18n.selectedRange}</div>
+    <div className="mt-16px">
+      <div className="flex items-center justify-between ">
+        <div className="px-8px font-medium text-sm">{i18n.selectedRange}</div>
         <div className="ml-4px mr-8px h-28px leading-28px rounded-4px bg-orange-light text-14px font-medium">
           <span
             className={cx('px-10px cursor-pointer', tokenA === leftToken ? 'text-orange-normal pointer-events-none' : 'text-gray-normal')}
@@ -89,18 +89,15 @@ const SelectedRange: React.FC<{ detail: PositionForUI }> = ({ detail }) => {
           </span>
         </div>
       </div>
-      <div className="flex">
-        <PriceItem tokenA={tokenA} tokenB={tokenB} type={'min'} price={lowerPrice} />
+      <div className="flex mt-8px">
+        <PriceItem tokenA={tokenA} tokenB={tokenB} type={'min'} price={lowerPrice} className="mr-16px" />
         <PriceItem tokenA={tokenA} tokenB={tokenB} type={'max'} price={upperPrice} />
       </div>
-      <div>
-        <p>{i18n.currentPrice}</p>
-        <p>
-          {i18n.currentPrice}:&nbsp;&nbsp;<span className="font-medium">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
-        </p>
-
-        <p>
-          {tokenB?.name} {i18n.per} {tokenA?.name}
+      <div className="border-2 border-solid rounded-10px border-orange-light text-center mt-16px font-medium py-12px">
+        <p className="text-sm	leading-18px">{i18n.currentPrice}</p>
+        <p className="text-2xl leading-30px">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</p>
+        <p className="font-normal text-gray-normal text-xs">
+          {tokenB?.symbol} {i18n.per} {tokenA?.symbol}
         </p>
       </div>
     </div>

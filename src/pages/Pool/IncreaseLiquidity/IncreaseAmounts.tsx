@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import useI18n from '@hooks/useI18n';
 import { PositionForUI } from '@service/pool-manage';
@@ -27,12 +27,7 @@ const IncreaseAmounts: React.FC<{ detail: PositionForUI }> = ({ detail }) => {
     }
   }, [priceLower, priceUpper]);
 
-  return (
-    <div>
-      <div>{i18n.addMoreLiquidity}</div>
-      <DepositAmounts register={register} setValue={setValue} getValues={getValues} isRangeValid={isRangeValid} detail={detail} />
-    </div>
-  );
+  return <DepositAmounts title={i18n.addMoreLiquidity} register={register} setValue={setValue} getValues={getValues} isRangeValid={isRangeValid} detail={detail} />;
 };
 
 export default IncreaseAmounts;

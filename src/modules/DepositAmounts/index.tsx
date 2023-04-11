@@ -120,7 +120,7 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
   );
 };
 
-const DepositAmounts: React.FC<Props & { detail: PositionForUI }> = ({ detail, ...props }) => {
+const DepositAmounts: React.FC<Props & { detail: PositionForUI; title: string }> = ({ detail, title, ...props }) => {
   const { leftToken: tokenA, rightToken: tokenB, fee } = detail;
   const i18n = useI18n(transitions);
   // const tokenA = useTokenA();
@@ -146,7 +146,7 @@ const DepositAmounts: React.FC<Props & { detail: PositionForUI }> = ({ detail, .
 
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
-      <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.deposit_amounts}</p>
+      <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-medium">{title || i18n.deposit_amounts}</p>
       <DepositAmount {...props} token={tokenA} pairToken={tokenB} type="tokenA" price={priceTokenA} isValidToInput={isValidToInput} />
       <DepositAmount {...props} token={tokenB} pairToken={tokenB} type="tokenB" price={priceTokenB} isValidToInput={isValidToInput} />
     </div>
