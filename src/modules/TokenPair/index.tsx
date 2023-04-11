@@ -1,7 +1,7 @@
 import React from 'react';
 import { type PositionForUI } from '@service/pool-manage';
 
-const TokenPair: React.FC<{ position: PositionForUI; inverted?: boolean }> = ({ position, inverted = false }) => {
+const TokenPair: React.FC<{ position: PositionForUI; inverted?: boolean; showFee?: boolean }> = ({ position, inverted = false, showFee = true }) => {
   const { leftToken, rightToken, fee } = position;
   const leftTokenForUI = !inverted ? leftToken : rightToken;
   const rightTokenForUI = !inverted ? rightToken : leftToken;
@@ -13,7 +13,9 @@ const TokenPair: React.FC<{ position: PositionForUI; inverted?: boolean }> = ({ 
       <span className="mx-4px text-14px text-black-normal font-medium">
         {leftTokenForUI?.symbol} / {rightTokenForUI?.symbol}
       </span>
-      <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">{fee / 10000}%</span>
+      {showFee && (
+        <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">{fee / 10000}%</span>
+      )}
     </div>
   );
 };
