@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Button from '@components/Button';
 import Status from '@modules/Status';
 import TokenPair from '@modules/TokenPair';
@@ -21,6 +21,7 @@ const DetailHeader: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
+  const navigate = useNavigate();
   if (!detail) return <div>loading...</div>;
 
   return (
@@ -30,10 +31,12 @@ const DetailHeader: React.FC = () => {
         <Status position={detail} />
       </div>
       <div className="flex justify-end gap-16px">
-        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="orange-light">
+        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="orange-light" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
           {i18n.increase_liquidity}
         </Button>
-        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient">{i18n.remove_liquidity}</Button>
+        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
+          {i18n.remove_liquidity}
+        </Button>
       </div>
     </div>
   );
