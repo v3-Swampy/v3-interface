@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import Corner from './Corner';
 import showStakeLPModal, { ModalMode } from './StakeLPModal';
+import { usePoolList } from '@service/farming';
 
 const FAKE_DATA_ALL_FARMS: Array<FarmsItemProps> = [
   {
@@ -149,6 +150,10 @@ const AllFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
 };
 
 const AllFarms = () => {
+  const { loading, poolList } = usePoolList([0]);
+
+  console.log('loading status is: ', loading, ', all farms list is: ', poolList);
+
   return (
     <div className="mt-6">
       {FAKE_DATA_ALL_FARMS.map((item) => (
