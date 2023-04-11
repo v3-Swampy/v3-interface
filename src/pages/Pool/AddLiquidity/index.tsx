@@ -74,7 +74,7 @@ const AddLiquidity: React.FC = () => {
   );
 
   const handleSwapToken = useCallback(() => {
-    if (!swapTokenAB()) return
+    if (!swapTokenAB()) return;
     setSwapLock(true);
     const values = getValues();
     const amountTokenA = values['amount-tokenA'];
