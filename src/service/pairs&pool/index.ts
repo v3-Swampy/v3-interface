@@ -81,6 +81,44 @@ export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee }: { tick: Unit | 
     .div(Unit.fromMinUnit(`1e${token1.decimals}`));
 };
 
+export const calcAmountFromTick = ({
+  liquidity,
+  tickLower,
+  tickUpper,
+  tickCurrent,
+}: {
+  liquidity: number | string;
+  tickLower: number | string;
+  tickUpper: number | string;
+  tickCurrent: number | string;
+}) => {
+  const usedLiquidity = new Decimal(liquidity);
+  const usedTickLower = new Decimal(tickLower);
+  const usedTickUpper = new Decimal(tickUpper);
+  const usedTickCurrent = new Decimal(tickCurrent);
+  let amount0: string, amount1: string;
+  if (usedTickCurrent.lessThan(usedTickLower)) {
+    //只有amount0
+    amount0 = usedLiquidity
+      .mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower)))
+      .div(Decimal.sqrt(usedTickUpper).mul(Decimal.sqrt(usedTickLower)))
+      .toFixed();
+    amount1 = '';
+  } else if (usedTickCurrent.greaterThanOrEqualTo(usedTickLower)) {
+    //只有amount1
+    amount0 = '';
+    amount1 = usedLiquidity.mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower))).toFixed();
+  } else {
+    // in range
+    amount0 = usedLiquidity
+      .mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower)))
+      .div(Decimal.sqrt(usedTickUpper).mul(Decimal.sqrt(usedTickLower)))
+      .toFixed();
+    amount1 = usedLiquidity.mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower))).toFixed();
+  }
+  return [amount0, amount1];
+};
+
 export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; searchTick: Unit | string | number }) => {
   const usedSearchTick = typeof searchTick !== 'object' ? Unit.fromMinUnit(searchTick) : searchTick;
 
@@ -101,15 +139,15 @@ export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fe
 };
 
 export const revertPrice = (price: Unit | string | number) => {
-  const usedPrice = typeof price !== 'object' ? Unit.fromMinUnit(price) : price
+  const usedPrice = typeof price !== 'object' ? Unit.fromMinUnit(price) : price;
   const ZERO = Unit.fromMinUnit(0);
-  const INFINITY = Unit.fromMinUnit('NaN')
+  const INFINITY = Unit.fromMinUnit('NaN');
   const isPriceZero = usedPrice.equals(ZERO);
   const isPriceInfinity = usedPrice.equals(INFINITY);
-  if(isPriceZero) return INFINITY;
-  if(isPriceInfinity) return ZERO;
+  if (isPriceZero) return INFINITY;
+  if (isPriceInfinity) return ZERO;
   return Unit.fromMinUnit(1).div(usedPrice);
-}
+};
 
 const MIN_TICK_Base = -887272;
 export const getMinTick = (fee: FeeAmount) => +findClosestValidTick({ fee, searchTick: MIN_TICK_Base }).toDecimalMinUnit();
