@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
-import { atom } from 'recoil';
+import { atom, useRecoilState } from 'recoil';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { getRecoil, setRecoil } from 'recoil-nexus';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import { invertPrice, usePool } from '@service/pairs&pool';
@@ -53,9 +52,7 @@ const PriceItem: React.FC<{ price: Unit | null; tokenA: Token | null; tokenB: To
   );
 };
 
-const invertedState = atom({ key: 'inverted', default: false });
-export const getInverted = () => getRecoil(invertedState);
-const setInverted = (inverted: boolean) => setRecoil(invertedState, inverted);
+export const invertedState = atom({ key: 'inverted', default: false });
 
 const SelectedRange: React.FC = () => {
   const i18n = useI18n(transitions);
@@ -67,10 +64,11 @@ const SelectedRange: React.FC = () => {
 
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
 
-  const inverted = getInverted();
+  const [inverted, setInverted] = useRecoilState(invertedState);
+
+  console.log('ui', inverted)
 
   const handleSwapToken = () => {
-    const inverted = getInverted();
     setInverted(!inverted);
   };
 

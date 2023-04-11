@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
+import { useRecoilState } from 'recoil';
 import { useParams } from 'react-router-dom';
 import useI18n from '@hooks/useI18n';
 import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { type Token } from '@service/tokens';
+import { type Token, getUnwrapperTokenByAddress } from '@service/tokens';
 import { usePool, calcAmountFromPrice, calcRatio } from '@service/pairs&pool';
-import { getInverted } from './SelectedRange';
+import { invertedState } from './SelectedRange';
 
 const transitions = {
   en: {
@@ -43,18 +44,20 @@ const Liquidity: React.FC = () => {
   console.log('tick', tickLower, tickUpper);
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
   // ui token pair revert button
-  const inverted = getInverted();
-  const amountInverted = token1 === rightToken && !inverted;
+  const [inverted] = useRecoilState(invertedState);
+  // ui init display is inverted with token1/token0
+  const displayReverted = getUnwrapperTokenByAddress(token1.address)?.address === getUnwrapperTokenByAddress(rightToken?.address)?.address;
+  const amountInverted = inverted !== displayReverted;
   const lower = Unit.fromMinUnit(1.0001).pow(Unit.fromMinUnit(tickLower));
   const upper = Unit.fromMinUnit(1.0001).pow(Unit.fromMinUnit(tickUpper));
   const [amount0, amount1] = useMemo(
     () => (pool?.token0Price ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : []),
     [liquidity, lower.toDecimalMinUnit(), upper.toDecimalMinUnit(), pool?.token0Price?.toDecimalMinUnit()]
   );
-  const amountA = !amountInverted ? amount0 : amount1;
-  const amountB = !amountInverted ? amount1 : amount0;
   const tokenA = !inverted ? leftToken : rightToken;
   const tokenB = !inverted ? rightToken : leftToken;
+  const amountA = !amountInverted ? amount1 : amount0;
+  const amountB = !amountInverted ? amount0 : amount1;
   const amountAStr = trimDecimalZeros(amountA?.toDecimalStandardUnit(5, tokenA?.decimals));
   const amountBStr = trimDecimalZeros(amountB?.toDecimalStandardUnit(5, tokenB?.decimals));
   const removed = liquidity === '0';
