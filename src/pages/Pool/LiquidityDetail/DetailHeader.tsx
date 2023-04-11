@@ -1,11 +1,12 @@
 import React from 'react';
+import { useRecoilState } from 'recoil';
 import { useParams, useNavigate } from 'react-router-dom';
 import Button from '@components/Button';
 import Status from '@modules/Status';
 import TokenPair from '@modules/TokenPair';
 import useI18n from '@hooks/useI18n';
 import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
-import { getInverted } from './SelectedRange';
+import { invertedState } from './SelectedRange';
 
 const transitions = {
   en: {
@@ -24,7 +25,7 @@ const DetailHeader: React.FC = () => {
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   const navigate = useNavigate();
   if (!detail) return <div>loading...</div>;
-  const inverted = getInverted();
+  const [inverted] = useRecoilState(invertedState);
 
   return (
     <div className="flex width-full justify-between">
