@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useLayoutEffect } from 'react';
 import { type Token } from '@service/tokens';
 import cx from 'clsx';
 import useI18n from '@hooks/useI18n';
-import { usePool, revertPrice } from '@service/pairs&pool';
+import { usePool, invertPrice } from '@service/pairs&pool';
 import { PositionForUI } from '@service/pool-manage';
 
 const transitions = {
@@ -66,10 +66,10 @@ const SelectedRange: React.FC<{ detail: PositionForUI }> = ({ detail }) => {
       setLowerPrice(priceLowerForUI.toDecimalMinUnit(5));
       setUpperPrice(priceUpperForUI.toDecimalMinUnit(5));
     } else {
-      setLowerPrice(revertPrice(priceUpperForUI).toDecimalMinUnit(5));
-      setUpperPrice(revertPrice(priceLowerForUI).toDecimalMinUnit(5));
+      setLowerPrice(invertPrice(priceUpperForUI).toDecimalMinUnit(5));
+      setUpperPrice(invertPrice(priceLowerForUI).toDecimalMinUnit(5));
     }
-  }, [priceLowerForUI, priceUpperForUI, tokenA, rightToken, revertPrice]);
+  }, [priceLowerForUI, priceUpperForUI, tokenA, rightToken, invertPrice]);
   return (
     <div className="mt-16px">
       <div className="flex items-center justify-between ">
