@@ -2,7 +2,7 @@ import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
-import { FeeAmount, calcPriceFromTick, revertPrice } from '@service/pairs&pool';
+import { FeeAmount, calcPriceFromTick, invertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
 
@@ -21,7 +21,9 @@ export interface Position {
   fee: FeeAmount;
   tickLower: number;
   tickUpper: number;
+  // priceLower calculated by tickLower
   priceLower: Unit;
+  // priceUpper calculated by tickUpper
   priceUpper: Unit;
   liquidity: string;
   /** The fee growth of token0 as of the last action on the individual position. */
@@ -36,7 +38,9 @@ export interface Position {
 export interface PositionForUI extends Position {
   leftToken: Token | null;
   rightToken: Token | null;
+  // priceLower for ui
   priceLowerForUI: Unit;
+  // priceUpper for ui
   priceUpperForUI: Unit;
 }
 
@@ -108,13 +112,11 @@ const positionsQuery = selector({
             tick: Number(decodeRes?.[5]),
             tokenA: getTokenByAddress(decodeRes?.[2])!,
             tokenB: getTokenByAddress(decodeRes?.[3])!,
-            fee: Number(decodeRes?.[4]),
           }),
           priceUpper: calcPriceFromTick({
             tick: Number(decodeRes?.[6]),
             tokenA: getTokenByAddress(decodeRes?.[2])!,
             tokenB: getTokenByAddress(decodeRes?.[3])!,
-            fee: Number(decodeRes?.[4]),
           }),
         };
         return position;
@@ -129,9 +131,11 @@ export const PositionsForUISelector = selector({
     const positions = get(positionsQuery);
     if (!positions) return [];
     return positions.map((position) => {
-      const { token0, token1, priceLower, priceUpper } = position;
+      const { token0, token1, tickLower, tickUpper, fee, priceUpper } = position;
       const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
       const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
+      const priceLowerForUI = calcPriceFromTick({tokenA: token0, tokenB: token1, tick: tickLower, fee});
+      const priceUpperForUI = calcPriceFromTick({tokenA: token0, tokenB: token1, tick: tickUpper, fee});
       if (
         // if token0 is a dollar-stable asset, set it as the quote token
         stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
@@ -144,16 +148,16 @@ export const PositionsForUISelector = selector({
           ...position,
           rightToken: unwrapToken1,
           leftToken: unwrapToken0,
-          priceLowerForUI: revertPrice(priceUpper),
-          priceUpperForUI: revertPrice(priceLower),
+          priceLowerForUI: invertPrice(priceUpperForUI),
+          priceUpperForUI: invertPrice(priceLowerForUI),
         };
       }
       return {
         ...position,
         rightToken: unwrapToken0,
         leftToken: unwrapToken1,
-        priceLowerForUI: priceLower,
-        priceUpperForUI: priceUpper,
+        priceLowerForUI,
+        priceUpperForUI,
       };
     });
   },

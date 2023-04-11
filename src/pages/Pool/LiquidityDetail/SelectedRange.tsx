@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
+import { atom } from 'recoil';
+import { trimDecimalZeros } from '@utils/numberUtils';
+import { getRecoil, setRecoil } from 'recoil-nexus';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
-import { revertPrice, usePool } from '@service/pairs&pool';
+import { invertPrice, usePool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/detail_exchange.svg';
 
@@ -35,10 +38,13 @@ enum PriceType {
 const PriceItem: React.FC<{ price: Unit | null; tokenA: Token | null; tokenB: Token | null; type: PriceType }> = ({ price, tokenA, tokenB, type }) => {
   const i18n = useI18n(transitions);
 
+  const _priceStr = price ? trimDecimalZeros(price.toDecimalMinUnit(5)) : '-';
+  const priceStr = _priceStr === 'NaN' ? '∞' : _priceStr;
+
   return (
     <div className="flex flex-col items-center w-full">
       <span className="font-medium">{type === PriceType.Min ? i18n.min_price : i18n.max_price}</span>
-      <span className="text-24px leading-30px">{price?.toDecimalMinUnit(5) ?? '-'}</span>
+      <span className="text-24px leading-30px">{priceStr}</span>
       <span className="text-gray-normal text-12px leading-15px">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</span>
       <span className="max-w-172px text-12px leading-15px text-center">
         {compiled(i18n.price_desc, { tokenSymbol: type === PriceType.Min ? tokenA?.symbol ?? '' : tokenB?.symbol ?? '' })}
@@ -47,10 +53,13 @@ const PriceItem: React.FC<{ price: Unit | null; tokenA: Token | null; tokenB: To
   );
 };
 
+const invertedState = atom({ key: 'inverted', default: false });
+export const getInverted = () => getRecoil(invertedState);
+const setInverted = (inverted: boolean) => setRecoil(invertedState, inverted);
+
 const SelectedRange: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-  const [revert, setRevert] = useState(false);
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   if (!detail) return <div>loading...</div>;
 
@@ -58,8 +67,11 @@ const SelectedRange: React.FC = () => {
 
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
 
+  const inverted = getInverted();
+
   const handleSwapToken = () => {
-    setRevert((revert) => !revert);
+    const inverted = getInverted();
+    setInverted(!inverted);
   };
 
   return (
@@ -71,10 +83,10 @@ const SelectedRange: React.FC = () => {
             className="flex h-28px box-centent border-2px border-solid border-orange-light rounded-4px bg-orange-light text-14px font-medium cursor-pointer"
             onClick={handleSwapToken}
           >
-            <span className={cx('px-8px rounded-4px h-24px flex items-center', revert ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
+            <span className={cx('px-8px rounded-4px h-24px flex items-center', inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
               {leftToken.symbol}
             </span>
-            <span className={cx('px-8px rounded-4px h-24px flex items-center', !revert ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
+            <span className={cx('px-8px rounded-4px h-24px flex items-center', !inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
               {rightToken.symbol}
             </span>
           </div>
@@ -84,27 +96,27 @@ const SelectedRange: React.FC = () => {
         <div className="flex flex-1 border-2px border-orange-light border-solid rounded-10px p-12px">
           <PriceItem
             type={PriceType.Min}
-            price={!revert ? priceLowerForUI : revertPrice(priceUpperForUI)}
-            tokenA={!revert ? leftToken : rightToken}
-            tokenB={!revert ? rightToken : leftToken}
+            price={!inverted ? priceLowerForUI : invertPrice(priceUpperForUI)}
+            tokenA={!inverted ? leftToken : rightToken}
+            tokenB={!inverted ? rightToken : leftToken}
           />
         </div>
         <ExchangeIcon className="w-24px h-24px text-gray-normal mx-8px" />
         <div className="flex flex-1 border-2px border-orange-light border-solid rounded-10px p-12px">
           <PriceItem
             type={PriceType.Max}
-            price={!revert ? priceUpperForUI : revertPrice(priceLowerForUI)}
-            tokenA={!revert ? leftToken : rightToken}
-            tokenB={!revert ? rightToken : leftToken}
+            price={!inverted ? priceUpperForUI : invertPrice(priceLowerForUI)}
+            tokenA={!inverted ? leftToken : rightToken}
+            tokenB={!inverted ? rightToken : leftToken}
           />
         </div>
       </div>
       <div className="flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal">
         <span className="font-medium">{i18n.current_price}</span>
-        {leftToken && rightToken && <span className="text-24px leading-30px">{pool?.priceOf(!revert ? rightToken : leftToken)?.toDecimalMinUnit(5) ?? '-'}</span>}
+        {leftToken && rightToken && <span className="text-24px leading-30px">{pool?.priceOf(!inverted ? rightToken : leftToken)?.toDecimalMinUnit(5) ?? '-'}</span>}
         <span className="max-w-172px text-12px leading-15px text-center">
-          <span className="text-gray-normal text-12px leading-15px">{`${!revert ? leftToken?.symbol : rightToken?.symbol} ${i18n.per} ${
-            !revert ? rightToken?.symbol : leftToken?.symbol
+          <span className="text-gray-normal text-12px leading-15px">{`${!inverted ? leftToken?.symbol : rightToken?.symbol} ${i18n.per} ${
+            !inverted ? rightToken?.symbol : leftToken?.symbol
           }`}</span>
         </span>
       </div>
