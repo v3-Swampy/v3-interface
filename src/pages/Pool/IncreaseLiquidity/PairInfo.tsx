@@ -16,14 +16,15 @@ const transitions = {
   },
 } as const;
 
-const TokenItem: React.FC<{ token: Token | null }> = ({ token }) => {
+const TokenItem: React.FC<{ token: Token | null; className?: string }> = ({ token, className = '' }) => {
   return (
-    <div className="flex items-center justify-between text-14px leading-18px text-black-normal w-full">
+    <div className={`font-medium flex items-center justify-between text-14px leading-18px text-black-normal w-full ${className}`}>
       <div className="flex items-center">
         <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
+        <span className="ml-4px">{token?.symbol}</span>
       </div>
       <div>
-        <span className="mr-8px">0.123</span>
+        <span className="mr-8px text-xs">0.123</span>
       </div>
     </div>
   );
@@ -35,14 +36,14 @@ const PairInfo: React.FC<{ detail: PositionForUI }> = ({ detail }) => {
 
   return (
     <div>
-      <div className="flex gap-22px">
+      <div className="flex p-x-16px justify-between">
         <TokenPair position={detail} showFee={false} />
         <Status position={detail} />
       </div>
-      <div className="flex flex-col gap-8px w-full">
+      <div className="flex flex-col gap-8px w-full mt-12px rounded-20px bg-orange-light-hover p-16px">
         <TokenItem token={leftToken} />
-        <TokenItem token={rightToken} />
-        <div>
+        <TokenItem token={rightToken} className="mt-8px" />
+        <div className="mt-18px font-medium text-sm flex justify-between">
           <span>{i18n.feeTier}</span>
           <span>{fee / 10000}%</span>
         </div>
