@@ -35,7 +35,7 @@ const SwapPage: React.FC = () => {
   );
 
   useCalcDetailAndRouter();
-    
+
   return (
     <PageWrapper className="pt-56px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">

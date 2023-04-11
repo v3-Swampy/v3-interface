@@ -47,7 +47,7 @@ const Status: React.FC<{ position: PositionForUI }> = ({ position }) => {
   const tickCurrent = pool?.tickCurrent;
 
   const status =
-    liquidity === '0' ? PositionStatus.Closed : !tickCurrent ? undefined : tickCurrent < tickLower || tickCurrent >= tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
+    liquidity === '0' ? PositionStatus.Closed : !tickCurrent ? undefined : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
 
   return (
     <>

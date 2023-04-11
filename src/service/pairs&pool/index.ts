@@ -81,40 +81,42 @@ export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee }: { tick: Unit | 
     .div(Unit.fromMinUnit(`1e${token1.decimals}`));
 };
 
-export const calcAmountFromTick = ({
+export const calcAmountFromPrice = ({
   liquidity,
-  tickLower,
-  tickUpper,
-  tickCurrent,
+  lower,
+  upper,
+  current,
 }: {
-  liquidity: number | string;
-  tickLower: number | string;
-  tickUpper: number | string;
-  tickCurrent: number | string;
+  liquidity: Unit | number | string;
+  lower: Unit | number | string;
+  upper: Unit | number | string;
+  current: Unit | number | string;
 }) => {
-  const usedLiquidity = new Decimal(liquidity);
-  const usedTickLower = new Decimal(tickLower);
-  const usedTickUpper = new Decimal(tickUpper);
-  const usedTickCurrent = new Decimal(tickCurrent);
-  let amount0: string, amount1: string;
-  if (usedTickCurrent.lessThan(usedTickLower)) {
+  console.log(liquidity, lower, upper, current);
+  const usedLiquidity = typeof liquidity !== 'object' ? Unit.fromMinUnit(liquidity) : liquidity;
+  const usedLower = typeof lower !== 'object' ? Unit.fromMinUnit(lower) : lower;
+  const usedUpper = typeof upper !== 'object' ? Unit.fromMinUnit(upper) : upper;
+  const usedCurrent = typeof current !== 'object' ? Unit.fromMinUnit(current) : current;
+  let amount0: Unit, amount1: Unit;
+  if (usedCurrent.lessThan(usedLower)) {
     //只有amount0
     amount0 = usedLiquidity
-      .mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower)))
-      .div(Decimal.sqrt(usedTickUpper).mul(Decimal.sqrt(usedTickLower)))
-      .toFixed();
-    amount1 = '';
-  } else if (usedTickCurrent.greaterThanOrEqualTo(usedTickLower)) {
+      .mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)))
+      .div(Unit.sqrt(usedUpper).mul(Unit.sqrt(usedLower)));
+    amount1 = Unit.fromMinUnit(0);
+  } else if (usedCurrent.greaterThan(usedUpper)) {
     //只有amount1
-    amount0 = '';
-    amount1 = usedLiquidity.mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower))).toFixed();
+    amount0 = Unit.fromMinUnit(0);
+    amount1 = usedLiquidity.mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)));
   } else {
     // in range
+    // amount0 = liquidity * (sqrt(upper) - sqrt(current)) / (sqrt(upper) * sqrt(current))
+    // amount1 = liquidity * (sqrt(upper) - sqrt(current))
+    console.log('in range');
     amount0 = usedLiquidity
-      .mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower)))
-      .div(Decimal.sqrt(usedTickUpper).mul(Decimal.sqrt(usedTickLower)))
-      .toFixed();
-    amount1 = usedLiquidity.mul(Decimal.sqrt(usedTickUpper).sub(Decimal.sqrt(usedTickLower))).toFixed();
+      .mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)))
+      .div(Unit.sqrt(usedUpper).mul(Unit.sqrt(usedLower)));
+    amount1 = usedLiquidity.mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)));
   }
   return [amount0, amount1];
 };
@@ -138,12 +140,12 @@ export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fe
   return calcPriceFromTick({ tick: closestValidTick, tokenA, tokenB });
 };
 
-export const revertPrice = (price: Unit | string | number) => {
+export const invertPrice = (price: Unit | string | number) => {
   const usedPrice = typeof price !== 'object' ? Unit.fromMinUnit(price) : price;
   const ZERO = Unit.fromMinUnit(0);
   const INFINITY = Unit.fromMinUnit('NaN');
   const isPriceZero = usedPrice.equals(ZERO);
-  const isPriceInfinity = usedPrice.equals(INFINITY);
+  const isPriceInfinity = usedPrice.toDecimalMinUnit() === 'NaN';
   if (isPriceZero) return INFINITY;
   if (isPriceInfinity) return ZERO;
   return Unit.fromMinUnit(1).div(usedPrice);
