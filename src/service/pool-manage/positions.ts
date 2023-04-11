@@ -112,11 +112,13 @@ const positionsQuery = selector({
             tick: Number(decodeRes?.[5]),
             tokenA: getTokenByAddress(decodeRes?.[2])!,
             tokenB: getTokenByAddress(decodeRes?.[3])!,
+            fee: Number(decodeRes?.[4]),
           }),
           priceUpper: calcPriceFromTick({
             tick: Number(decodeRes?.[6]),
             tokenA: getTokenByAddress(decodeRes?.[2])!,
             tokenB: getTokenByAddress(decodeRes?.[3])!,
+            fee: Number(decodeRes?.[4]),
           }),
         };
         return position;
@@ -131,11 +133,9 @@ export const PositionsForUISelector = selector({
     const positions = get(positionsQuery);
     if (!positions) return [];
     return positions.map((position) => {
-      const { token0, token1, tickLower, tickUpper, fee, priceUpper } = position;
+      const { token0, token1, priceLower, priceUpper } = position;
       const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
       const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
-      const priceLowerForUI = calcPriceFromTick({tokenA: token0, tokenB: token1, tick: tickLower, fee});
-      const priceUpperForUI = calcPriceFromTick({tokenA: token0, tokenB: token1, tick: tickUpper, fee});
       if (
         // if token0 is a dollar-stable asset, set it as the quote token
         stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
@@ -148,16 +148,16 @@ export const PositionsForUISelector = selector({
           ...position,
           rightToken: unwrapToken1,
           leftToken: unwrapToken0,
-          priceLowerForUI: invertPrice(priceUpperForUI),
-          priceUpperForUI: invertPrice(priceLowerForUI),
+          priceLowerForUI: invertPrice(priceUpper),
+          priceUpperForUI: invertPrice(priceLower),
         };
       }
       return {
         ...position,
         rightToken: unwrapToken0,
         leftToken: unwrapToken1,
-        priceLowerForUI,
-        priceUpperForUI,
+        priceLowerForUI: priceLower,
+        priceUpperForUI: priceUpper,
       };
     });
   },

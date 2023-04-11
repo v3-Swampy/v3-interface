@@ -92,11 +92,11 @@ export const calcAmountFromPrice = ({
   upper: Unit | number | string;
   current: Unit | number | string;
 }) => {
-  console.log(liquidity, lower, upper, current);
   const usedLiquidity = typeof liquidity !== 'object' ? Unit.fromMinUnit(liquidity) : liquidity;
   const usedLower = typeof lower !== 'object' ? Unit.fromMinUnit(lower) : lower;
   const usedUpper = typeof upper !== 'object' ? Unit.fromMinUnit(upper) : upper;
   const usedCurrent = typeof current !== 'object' ? Unit.fromMinUnit(current) : current;
+  console.log('amount', usedLiquidity.toDecimalMinUnit(), usedLower.toDecimalMinUnit(), usedUpper.toDecimalMinUnit(), usedCurrent.toDecimalMinUnit());
   let amount0: Unit, amount1: Unit;
   if (usedCurrent.lessThan(usedLower)) {
     //只有amount0
@@ -111,15 +111,44 @@ export const calcAmountFromPrice = ({
   } else {
     // in range
     // amount0 = liquidity * (sqrt(upper) - sqrt(current)) / (sqrt(upper) * sqrt(current))
-    // amount1 = liquidity * (sqrt(upper) - sqrt(current))
+    // amount1 = liquidity * (sqrt(current) - sqrt(lower))
     console.log('in range');
     amount0 = usedLiquidity
-      .mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)))
-      .div(Unit.sqrt(usedUpper).mul(Unit.sqrt(usedLower)));
-    amount1 = usedLiquidity.mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)));
+      .mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedCurrent)))
+      .div(Unit.sqrt(usedUpper).mul(Unit.sqrt(usedCurrent)));
+    amount1 = usedLiquidity.mul(Unit.sqrt(usedCurrent).sub(Unit.sqrt(usedLower)));
   }
   return [amount0, amount1];
 };
+
+
+export const calcRatio = (lower: Unit, current: Unit | null | undefined, upper: Unit) => {
+  try {
+    if (!current) {
+      return undefined;
+    }
+    if (!current.greaterThan(lower)) {
+      return 100;
+    } else if (!current.lessThan(upper)) {
+      return 0;
+    }
+
+    const a = Number.parseFloat(lower.toDecimalMinUnit(15));
+    const b = Number.parseFloat(upper.toDecimalMinUnit(15));
+    const c = Number.parseFloat(current.toDecimalMinUnit(15));
+
+    console.log('ratio', a, b, c);
+
+    const ratio = Math.floor((1 / ((Math.sqrt(a * b) - Math.sqrt(b * c)) / (c - Math.sqrt(b * c)) + 1)) * 100);
+
+    if (ratio < 0 || ratio > 100) {
+      throw Error('Out of range');
+    }
+    return ratio;
+  } catch {
+    return undefined;
+  }
+}
 
 export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; searchTick: Unit | string | number }) => {
   const usedSearchTick = typeof searchTick !== 'object' ? Unit.fromMinUnit(searchTick) : searchTick;
