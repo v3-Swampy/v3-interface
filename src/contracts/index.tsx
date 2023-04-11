@@ -21,15 +21,15 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
 };
 
 export const NonfungiblePositionManager = createContract(
-  isProduction ? '0x0b52f6678193aa5a4939b8f2ebb479e291d85f0f' : '0x0b52f6678193aa5a4939b8f2ebb479e291d85f0f',
+  isProduction ? '0x8ae50674593fff83a2967325fdaea6b34b456cc1' : '0x8ae50674593fff83a2967325fdaea6b34b456cc1',
   NonfungiblePositionManagerABI
 );
 
-export const UniswapV3Factory = createContract(isProduction ? '0x1a1ca1c3c7f30d09110a2ff3a6a29301605d7c50' : '0x1a1ca1c3c7f30d09110a2ff3a6a29301605d7c50', UniswapV3FactoryABI);
+export const UniswapV3Factory = createContract(isProduction ? '0xa5fa1005c10bbe414f4a9d56987e2c0ed0d48eea' : '0xa5fa1005c10bbe414f4a9d56987e2c0ed0d48eea', UniswapV3FactoryABI);
 
 export const UniswapV3Quoter = createContract(isProduction ? '0xd3b18426e516f570233c022408795a59ff18cb93' : '0xd3b18426e516f570233c022408795a59ff18cb93', UniswapV3QuoterABI);
 
-export const UniswapV3SwapRouter = createContract(isProduction ? '0xbff67ee63ecce5b6265c794c42a0f6be0288fcd2' : '0xbff67ee63ecce5b6265c794c42a0f6be0288fcd2', SwapRouterABI);
+export const UniswapV3SwapRouter = createContract(isProduction ? '0x8094e129c8a5c9e8a4bf4fadc360f405175efa3f' : '0x8094e129c8a5c9e8a4bf4fadc360f405175efa3f', SwapRouterABI);
 
 export const MulticallContract = createContract(isProduction ? '0x9f208d7226f05b4f43d0d36eb21d8545c3143685' : '0xd59149a01f910c3c448e41718134baeae55fa784', MulticallABI);
 
@@ -48,7 +48,7 @@ export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
     else return null;
   });
 
-export const VotingEscrowContract = createContract(isProduction ? '0x40f5276e4747835e394ce53d65d1aa7b63151adc' : '0x40f5276e4747835e394ce53d65d1aa7b63151adc', VotingEscrowABI);
+export const VotingEscrowContract = createContract(isProduction ? '0xd0f24c0acb48d051e43230afb43bdae5cf664cfa' : '0xd0f24c0acb48d051e43230afb43bdae5cf664cfa', VotingEscrowABI);
 
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);

@@ -14,38 +14,41 @@ ModalPopup.initPromise.then(() => {
   ModalPopup.setListClassName('modal-wrapper');
 });
 
-const Modal: React.FC<{ Content: ReactNode | Function; title: string; className?: string; onClose?: VoidFunction }> = memo(({ Content, title, className, onClose }) => {
-  const account = useAccount();
+const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?: string; className?: string; onClose?: VoidFunction }> = memo(
+  ({ Content, title, subTitle, className, onClose }) => {
+    const account = useAccount();
 
-  const hasInit = useRef(false);
-  useEffect(() => {
-    if (!hasInit.current) {
-      hasInit.current = true;
-      return;
-    }
-    hidePopup();
-  }, [account]);
+    const hasInit = useRef(false);
+    useEffect(() => {
+      if (!hasInit.current) {
+        hasInit.current = true;
+        return;
+      }
+      hidePopup();
+    }, [account]);
 
-  const handleClose = useCallback(() => {
-    ModalPopup.hideAll();
-    onClose?.();
-  }, [onClose]);
+    const handleClose = useCallback(() => {
+      ModalPopup.hideAll();
+      onClose?.();
+    }, [onClose]);
 
-  usePressEsc(hidePopup);
-  useCloseOnRouterBack(handleClose);
+    usePressEsc(hidePopup);
+    useCloseOnRouterBack(handleClose);
 
-  return (
-    <BorderBox variant="gradient-white" className={cx('relative w-90vw max-w-400px px-16px py-24px rounded-24px overflow-hidden shadow-popper', className)}>
-      <div className="px-8px flex justify-between items-center text-14px text-black-normal">
-        {title}
-        <span className="i-ep:close-bold text-14px cursor-pointer" onClick={hidePopup} />
-      </div>
-      {renderReactNode(Content)}
-    </BorderBox>
-  );
-});
+    return (
+      <BorderBox variant="gradient-white" className={cx('relative w-90vw max-w-400px px-16px py-24px rounded-24px overflow-hidden shadow-popper', className)}>
+        <div className="px-8px flex justify-between items-center text-14px text-black-normal">
+          {title}
+          <span className="i-ep:close-bold text-14px cursor-pointer" onClick={hidePopup} />
+        </div>
+        {subTitle && <div className="px-8px text-14px font-500 leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
+        {renderReactNode(Content)}
+      </BorderBox>
+    );
+  }
+);
 
-export const showModal = (props: { Content: Function | ReactNode; title: string; className?: string; onClose?: VoidFunction }) => {
+export const showModal = (props: { Content: Function | ReactNode; title: string; subTitle?: string; className?: string; onClose?: VoidFunction }) => {
   const popupId = ModalPopup.show({
     Content: <Modal {...props} />,
     duration: 0,
