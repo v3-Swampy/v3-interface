@@ -67,7 +67,8 @@ const Liquidity: React.FC = () => {
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   if (!detail) return <div>loading...</div>;
-  const { token0, token1, liquidity, leftToken, rightToken, fee, priceLower: lower, priceUpper: upper } = detail;
+  const { token0, token1, liquidity, leftToken, rightToken, fee, priceLower: lower, priceUpper: upper, tickLower, tickUpper } = detail;
+  console.log('tick', tickLower, tickUpper);
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
   // ui token pair revert button
   const inverted = getInverted();
