@@ -20,10 +20,9 @@ const useI18n = <T extends Record<Local, Record<string, string>>>(transitions: T
 templateSettings.interpolate = /{([\s\S]+?)}/g;
 export const compiled = (str: string, params: Record<string, string>) => template(str)(params);
 
-
 export const toI18n = <T extends Record<Local, Record<string, string>>>(transitions: T): T[Local] => {
   const locale = getRecoil(localeState);
   return transitions[locale];
-}
+};
 
 export default useI18n;

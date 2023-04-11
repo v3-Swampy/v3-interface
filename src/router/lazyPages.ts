@@ -13,6 +13,7 @@ export const StakingPage = lazyWithPreload(() => import('@pages/Staking'));
 export const PoolPage = lazyWithPreload(() => import('@pages/Pool'));
 export const PoolLiquidityItemPage = lazyWithPreload(() => import('@pages/Pool/LiquidityDetail'));
 export const PoolAddLiquidityPage = lazyWithPreload(() => import('@pages/Pool/AddLiquidity'));
+export const PoolIncreaseLiquidity = lazyWithPreload(() => import('@pages/Pool/IncreaseLiquidity'));
 
 (function () {
   const preLoadAll = () => {
