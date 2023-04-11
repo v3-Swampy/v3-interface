@@ -39,9 +39,7 @@ export default defineConfig({
             normal: '#E14E28', // className="bg-purple-primary"
             light: '#FFE8C9',
             lightHover: '#FFF6EA',
-            normalbg: '#E14E281A', // opacity 0.1
             dot: '#FFB75D',
-            dotbg: '#FFB75D1A', // opacity 0.1
           },
           black: {
             normal: '#225050',
@@ -50,7 +48,6 @@ export default defineConfig({
           gray: {
             normal: '#C2C4D0',
             light: '#E1E1E7',
-            lightbg: '#E1E1E74D', // opacity 0.4
           },
           white: {
             normal: '#FFFDFA',
@@ -60,7 +57,6 @@ export default defineConfig({
           },
           green: {
             normal: '#009595',
-            light: '#0095951A',
           },
           blue: {
             normal: '#9FB6EF',
