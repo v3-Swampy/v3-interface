@@ -130,7 +130,7 @@ export const PositionsForUISelector = selector({
     if (!positions) return [];
     return positions.map((position) => {
       const { token0, token1, priceLower, priceUpper } = position;
-      const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address)
+      const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
       const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
       if (
         // if token0 is a dollar-stable asset, set it as the quote token
