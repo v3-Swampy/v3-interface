@@ -1,5 +1,5 @@
 import { selector, useRecoilValue } from 'recoil';
-import { Unit } from '@cfxjs/use-wallet-react/conflux';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice } from '@service/pairs&pool';
