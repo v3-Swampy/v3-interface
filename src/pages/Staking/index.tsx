@@ -118,7 +118,7 @@ const StakingPage: React.FC = () => {
                 <p className="leading-23px text-14px text-gray-normal">{i18n.unstake_time}</p>
                 <p className="leading-23px text-16px text-black-normal font-medium">{displayedUnlockedTime}</p>
                 <p className="leading-23px h-14px text-black-normal font-medium"></p>
-                  <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
+                  <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime,unlockTime)}>
                     {i18n.extend}
                   </Button>
               </div>

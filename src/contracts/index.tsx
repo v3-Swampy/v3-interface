@@ -9,6 +9,7 @@ import UniswapV3PoolABI from './abis/UniswapV3PoolState.json';
 import VotingEscrowABI from './abis/VotingEscrow.json';
 import { isProduction } from '@utils/is';
 import { fetchChain } from '@utils/fetch';
+import { TokenVST } from '@service/tokens';
 
 const Provider = new JsonRpcProvider(import.meta.env.VITE_ESpaceRpcUrl);
 
@@ -53,4 +54,4 @@ export const VotingEscrowContract = createContract(isProduction ? '0xd0f24c0acb4
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);
 
-export const VSTTokenContract=createERC20Contract(isProduction ? '0x757fb802dc967e5372fa1b214ce2877907cc59cf' : '0x757fb802dc967e5372fa1b214ce2877907cc59cf')
+export const VSTTokenContract=createERC20Contract(TokenVST.address)
