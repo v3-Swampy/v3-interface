@@ -1,5 +1,5 @@
 import { selectorFamily, useRecoilValue } from 'recoil';
-import { PositionsForUISelector } from './positions';
+import { PositionsForUISelector, type PositionForUI } from './positions';
 
 const liquidityDetailSelector = selectorFamily({
   key: `PositionDetailForUI-${import.meta.env.MODE}`,
