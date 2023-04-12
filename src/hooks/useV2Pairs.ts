@@ -1,13 +1,9 @@
-import { Interface } from '@ethersproject/abi'
 import { Currency, CurrencyAmount,Token } from '@uniswap/sdk-core'
-import { abi as IUniswapV2PairABI } from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 import { useMemo,useEffect, useState } from 'react'
 import { Pair } from '@uniswap-v2-sdk/index'
 import {computePoolAddress,FeeAmount} from '@service/pairs&pool'
 import { fetchMulticall,createERC20Contract } from '@contracts/index';
-
-
-const PAIR_INTERFACE = new Interface(IUniswapV2PairABI)
+import mergePairs  from '@utils/mergePairs';
 
 export enum PairState {
   LOADING,
@@ -73,16 +69,6 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
     })
   },[tokenArr])
   
-}
-
-function mergePairs(arr: any) {
-  const merged = [];
-
-  for (let i = 0; i < arr.length; i += 2) {
-    merged.push([arr[i], arr[i + 1]]);
-  }
-
-  return merged;
 }
 
 export function useV2Pair(tokenA?: Currency, tokenB?: Currency): [Pair | null] {
