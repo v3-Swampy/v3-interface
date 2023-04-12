@@ -13,7 +13,7 @@ const TokenPair: React.FC<{ position: PositionForUI; inverted?: boolean; showFee
     <div className="flex items-center">
       <img className="w-24px h-24px" src={leftTokenForUI?.logoURI} alt={`${leftTokenForUI?.logoURI} icon`} />
       <img className="w-24px h-24px -ml-8px" src={rightTokenForUI?.logoURI} alt={`${rightTokenForUI?.logoURI} icon`} />
-      <span className="mx-4px text-14px text-black-normal font-medium">
+      <span className="mx-4px text-14px text-black-normal font-bold">
         {leftTokenForUI?.symbol} / {rightTokenForUI?.symbol}
       </span>
       {showFee && (

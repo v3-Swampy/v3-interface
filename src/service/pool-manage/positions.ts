@@ -2,7 +2,7 @@ import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
-import { FeeAmount, calcPriceFromTick, invertPrice } from '@service/pairs&pool';
+import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
@@ -43,6 +43,12 @@ export interface PositionForUI extends Position {
   priceLowerForUI: Unit;
   // priceUpper for ui
   priceUpperForUI: Unit;
+  // token0 amount in position
+  amount0: Unit;
+  // token1 amount in position
+  amount1: Unit;
+  // position token0 ratio
+  ratio: number | undefined;
 }
 
 const positionBalanceQuery = selector({
@@ -134,8 +140,13 @@ export const PositionsForUISelector = selector({
     const positions = get(positionsQuery);
     if (!positions) return [];
     return positions.map((position) => {
-      const { token0, token1, priceLower, priceUpper, fee } = position;
-      const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee})));
+      const { token0, token1, priceLower, priceUpper, fee, tickLower, tickUpper, liquidity } = position;
+      const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
+
+      const lower = new Unit(1.0001).pow(new Unit(tickLower));
+      const upper = new Unit(1.0001).pow(new Unit(tickUpper));
+      const [amount0, amount1] = pool?.token0Price ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : [];
+      const ratio = lower && pool && upper ? calcRatio(lower, pool.token0Price, upper) : undefined;
 
       const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
       const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
@@ -149,6 +160,9 @@ export const PositionsForUISelector = selector({
       ) {
         return {
           ...position,
+          amount0,
+          amount1,
+          ratio,
           rightToken: unwrapToken1,
           leftToken: unwrapToken0,
           priceLowerForUI: invertPrice(priceUpper),
@@ -157,6 +171,9 @@ export const PositionsForUISelector = selector({
       }
       return {
         ...position,
+        amount0,
+        amount1,
+        ratio,
         rightToken: unwrapToken0,
         leftToken: unwrapToken1,
         priceLowerForUI: priceLower,

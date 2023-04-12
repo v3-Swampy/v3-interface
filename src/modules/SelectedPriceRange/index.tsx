@@ -47,9 +47,9 @@ const PriceItem: React.FC<{ price: Unit | null; tokenA: Token | null; tokenB: To
   return (
     <div className="flex flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px p-10px">
       <p className="font-medium">{type === PriceType.Min ? i18n.min_price : i18n.max_price}</p>
-      <p className="text-24px leading-30px">{priceStr}</p>
-      <p className="text-gray-normal text-12px leading-15px">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</p>
-      <p className="max-w-172px text-12px leading-15px text-center">
+      <p className="text-24px leading-30px font-medium">{priceStr}</p>
+      <p className="text-gray-normal text-12px leading-15px font-normal">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</p>
+      <p className="max-w-172px text-12px leading-15px text-center font-normal">
         {compiled(i18n.price_desc, { tokenSymbol: type === PriceType.Min ? tokenA?.symbol ?? '' : tokenB?.symbol ?? '' })}
       </p>
     </div>
@@ -76,7 +76,7 @@ const SelectedPriceRange: React.FC = () => {
 
   return (
     <div className="flex flex-col text-black-normal text-14px leading-18px">
-      <div className="flex items-center justify-between mb-8px">
+      <div className="flex items-center justify-between mb-8px font-medium">
         <span>{i18n.selected_range}</span>
         {leftToken && rightToken && (
           <div
@@ -111,8 +111,8 @@ const SelectedPriceRange: React.FC = () => {
       </div>
       <div className="flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal">
         <p className="font-medium">{i18n.current_price}</p>
-        {leftToken && rightToken && <p className="text-24px leading-30px">{trimDecimalZeros(pool?.priceOf(!inverted ? rightToken : leftToken)?.toDecimalMinUnit(5)!) ?? '-'}</p>}
-        <p className="text-gray-normal text-12px leading-15px text-center">
+        {leftToken && rightToken && <p className="text-24px leading-30px font-medium">{trimDecimalZeros(pool?.priceOf(!inverted ? rightToken : leftToken)?.toDecimalMinUnit(5)!) ?? '-'}</p>}
+        <p className="text-gray-normal text-12px leading-15px text-center font-normal">
           {`${!inverted ? leftToken?.symbol : rightToken?.symbol} ${i18n.per} ${!inverted ? rightToken?.symbol : leftToken?.symbol}`}
         </p>
       </div>

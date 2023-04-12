@@ -4,7 +4,7 @@ import useI18n from '@hooks/useI18n';
 import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import { type Token } from '@service/tokens';
-import { usePool, calcAmountFromPrice, calcRatio } from '@service/pairs&pool';
+import { usePool, calcAmountFromPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/TokenPairAmount';
 
 const transitions = {
@@ -16,37 +16,12 @@ const transitions = {
   },
 } as const;
 
-const TokenItem: React.FC<{ token: Token | null; amount: string; ratio: number | undefined }> = ({ token, amount, ratio }) => {
-  return (
-    <div className="flex items-center justify-between text-14px leading-18px text-black-normal w-full">
-      <div className="flex items-center">
-        <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
-        <span className="ml-8px">{token?.symbol}</span>
-      </div>
-      <div>
-        <span className="mr-8px">{amount}</span>
-        {typeof ratio === 'number' && (
-          <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium">{ratio}%</span>
-        )}
-      </div>
-    </div>
-  );
-};
-
 const Liquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   if (!detail) return <div>loading...</div>;
-  const { token0, token1, liquidity, fee, tickLower, tickUpper } = detail;
-  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
-  const lower = new Unit(1.0001).pow(new Unit(tickLower));
-  const upper = new Unit(1.0001).pow(new Unit(tickUpper));
-  const [amount0, amount1] = useMemo(
-    () => (pool?.token0Price ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : []),
-    [liquidity, lower.toDecimalMinUnit(), upper.toDecimalMinUnit(), pool?.token0Price?.toDecimalMinUnit()]
-  );
-
+  const { token0, token1, liquidity, amount0, amount1 } = detail;
 
   // price 0 and price1 need the best routing api, xxx USDC/token is the token price
   // const liquidity = amount0 * price0 + amount1 * price1;
