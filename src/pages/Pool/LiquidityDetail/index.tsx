@@ -6,7 +6,7 @@ import useI18n from '@hooks/useI18n';
 import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';
-import SelectedRange from './SelectedRange';
+import SelectedPriceRange from '@modules/SelectedPriceRange';
 
 const transitions = {
   en: {
@@ -41,7 +41,7 @@ const LiquidityDetail: React.FC = () => {
               <UnclaimedFees />
             </div>
           </div>
-          <SelectedRange />
+          <SelectedPriceRange />
         </BorderBox>
       </div>
     </PageWrapper>

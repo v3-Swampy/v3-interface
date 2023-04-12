@@ -1,3 +1,7 @@
+/**
+ * display the price range in liquidity detail and increase liquidity page
+ * when click the inverted button invert the token pair
+ */
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -41,20 +45,20 @@ const PriceItem: React.FC<{ price: Unit | null; tokenA: Token | null; tokenB: To
   const priceStr = _priceStr === 'NaN' ? '∞' : _priceStr;
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <span className="font-medium">{type === PriceType.Min ? i18n.min_price : i18n.max_price}</span>
-      <span className="text-24px leading-30px">{priceStr}</span>
-      <span className="text-gray-normal text-12px leading-15px">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</span>
-      <span className="max-w-172px text-12px leading-15px text-center">
+    <div className="flex flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px p-10px">
+      <p className="font-medium">{type === PriceType.Min ? i18n.min_price : i18n.max_price}</p>
+      <p className="text-24px leading-30px">{priceStr}</p>
+      <p className="text-gray-normal text-12px leading-15px">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</p>
+      <p className="max-w-172px text-12px leading-15px text-center">
         {compiled(i18n.price_desc, { tokenSymbol: type === PriceType.Min ? tokenA?.symbol ?? '' : tokenB?.symbol ?? '' })}
-      </span>
+      </p>
     </div>
   );
 };
 
 export const invertedState = atom({ key: 'inverted', default: false });
 
-const SelectedRange: React.FC = () => {
+const SelectedPriceRange: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
@@ -65,8 +69,6 @@ const SelectedRange: React.FC = () => {
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
 
   const [inverted, setInverted] = useRecoilState(invertedState);
-
-  console.log('ui', inverted)
 
   const handleSwapToken = () => {
     setInverted(!inverted);
@@ -90,36 +92,32 @@ const SelectedRange: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="flex items-center mb-16px">
-        <div className="flex flex-1 border-2px border-orange-light border-solid rounded-10px p-12px">
-          <PriceItem
-            type={PriceType.Min}
-            price={!inverted ? priceLowerForUI : invertPrice(priceUpperForUI)}
-            tokenA={!inverted ? leftToken : rightToken}
-            tokenB={!inverted ? rightToken : leftToken}
-          />
+      <div className="flex items-stretch mb-16px">
+        <PriceItem
+          type={PriceType.Min}
+          price={!inverted ? priceLowerForUI : invertPrice(priceUpperForUI)}
+          tokenA={!inverted ? leftToken : rightToken}
+          tokenB={!inverted ? rightToken : leftToken}
+        />
+        <div className="flex items-center">
+          <ExchangeIcon className="w-24px h-24px text-gray-normal mx-8px" />
         </div>
-        <ExchangeIcon className="w-24px h-24px text-gray-normal mx-8px" />
-        <div className="flex flex-1 border-2px border-orange-light border-solid rounded-10px p-12px">
-          <PriceItem
-            type={PriceType.Max}
-            price={!inverted ? priceUpperForUI : invertPrice(priceLowerForUI)}
-            tokenA={!inverted ? leftToken : rightToken}
-            tokenB={!inverted ? rightToken : leftToken}
-          />
-        </div>
+        <PriceItem
+          type={PriceType.Max}
+          price={!inverted ? priceUpperForUI : invertPrice(priceLowerForUI)}
+          tokenA={!inverted ? leftToken : rightToken}
+          tokenB={!inverted ? rightToken : leftToken}
+        />
       </div>
       <div className="flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal">
-        <span className="font-medium">{i18n.current_price}</span>
-        {leftToken && rightToken && <span className="text-24px leading-30px">{pool?.priceOf(!inverted ? rightToken : leftToken)?.toDecimalMinUnit(5) ?? '-'}</span>}
-        <span className="max-w-172px text-12px leading-15px text-center">
-          <span className="text-gray-normal text-12px leading-15px">{`${!inverted ? leftToken?.symbol : rightToken?.symbol} ${i18n.per} ${
-            !inverted ? rightToken?.symbol : leftToken?.symbol
-          }`}</span>
-        </span>
+        <p className="font-medium">{i18n.current_price}</p>
+        {leftToken && rightToken && <p className="text-24px leading-30px">{trimDecimalZeros(pool?.priceOf(!inverted ? rightToken : leftToken)?.toDecimalMinUnit(5)!) ?? '-'}</p>}
+        <p className="text-gray-normal text-12px leading-15px text-center">
+          {`${!inverted ? leftToken?.symbol : rightToken?.symbol} ${i18n.per} ${!inverted ? rightToken?.symbol : leftToken?.symbol}`}
+        </p>
       </div>
     </div>
   );
 };
 
-export default SelectedRange;
+export default SelectedPriceRange;
