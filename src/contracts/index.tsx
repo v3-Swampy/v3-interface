@@ -6,6 +6,7 @@ import SwapRouterABI from './abis/SwapRouter.json';
 import UniswapV3FactoryABI from './abis/UniswapV3Factory.json';
 import UniswapV3QuoterABI from './abis/Quoter.json';
 import UniswapV3PoolABI from './abis/UniswapV3PoolState.json';
+import UniswapV3PairABI from './abis/UniswapV3Pool.json';
 import VotingEscrowABI from './abis/VotingEscrow.json';
 import { isProduction } from '@utils/is';
 import { fetchChain } from '@utils/fetch';
@@ -18,6 +19,7 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
   return {
     func: _Contract.interface,
     address,
+    contract: _Contract,
   } as const;
 };
 
@@ -51,6 +53,7 @@ export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
 
 export const VotingEscrowContract = createContract(isProduction ? '0xd0f24c0acb48d051e43230afb43bdae5cf664cfa' : '0xd0f24c0acb48d051e43230afb43bdae5cf664cfa', VotingEscrowABI);
 
+export const createPairContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PairABI);
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);
 
