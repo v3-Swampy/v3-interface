@@ -174,7 +174,7 @@ export const invertPrice = (price: Unit | string | number) => {
   const ZERO = new Unit(0);
   const INFINITY = new Unit('Infinity');
   const isPriceZero = usedPrice.equals(ZERO);
-  const isPriceInfinity = usedPrice.toDecimalMinUnit() === 'Infinity';
+  const isPriceInfinity = usedPrice.equals(INFINITY);
   if (isPriceZero) return INFINITY;
   if (isPriceInfinity) return ZERO;
   return new Unit(1).div(usedPrice);
