@@ -41,13 +41,13 @@ const Status: React.FC<{ position: PositionForUI }> = ({ position }) => {
   const i18n = useI18n(transitions);
 
   const { token0, token1, fee, liquidity, tickLower, tickUpper } = position;
-
-  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee: fee });
+  
+  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
 
   const tickCurrent = pool?.tickCurrent;
 
   const status =
-    liquidity === '0' ? PositionStatus.Closed : !tickCurrent ? undefined : tickCurrent < tickLower || tickCurrent >= tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
+    liquidity === '0' ? PositionStatus.Closed : !tickCurrent ? undefined : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
 
   return (
     <>

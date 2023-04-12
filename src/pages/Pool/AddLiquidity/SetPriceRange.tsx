@@ -56,12 +56,12 @@ const RangeInput: React.FC<
     (evt) => {
       if (!tokenA || !tokenB || !evt.target.value) return;
       try {
-        if (Unit.fromMinUnit(evt.target.value).lessThan(Unit.fromMinUnit(0))) {
-          setValue(`price-${type}`, type === 'lower' ? '0' : 'NaN');
+        if (evt.target.value === 'Infinity' || evt.target.value === 'NaN' || new Unit(evt.target.value).lessThan(new Unit(0))) {
+          setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
           return;
         }
       } catch {
-        setValue(`price-${type}`, type === 'lower' ? '0' : 'NaN');
+        setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
         return;
       }
 
@@ -95,8 +95,8 @@ const RangeInput: React.FC<
           onBlur={handlePriceChange}
         />
 
-        {type === 'upper' && priceUpper === 'NaN' && (
-          <div className="add-liquidity-price-infinity absolute flex justify-center items-center left-36px h-36px w-40px bg-orange-light-hover pointer-events-none">
+        {type === 'upper' && priceUpper === 'Infinity' && (
+          <div className="add-liquidity-price-infinity absolute flex justify-center items-center left-36px h-36px w-56px bg-orange-light-hover pointer-events-none">
             <span className="i-icomoon-free:infinite text-18px text-black-normal font-medium" />
           </div>
         )}
@@ -117,14 +117,14 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
   const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
 
   useLayoutEffect(() => {
     if (getSwapLock()) return;
     setValue('price-init', '');
     if (pool?.token0Price) {
-      setValue('price-lower', pool?.priceOf(tokenA!)?.div(Unit.fromMinUnit(2)).toDecimalMinUnit(5));
-      setValue('price-upper', pool?.priceOf(tokenA!)?.mul(Unit.fromMinUnit(2)).toDecimalMinUnit(5));
+      setValue('price-lower', pool?.priceOf(tokenA!)?.div(new Unit(2)).toDecimalMinUnit(5));
+      setValue('price-upper', pool?.priceOf(tokenA!)?.mul(new Unit(2)).toDecimalMinUnit(5));
     } else {
       setValue('price-lower', '');
       setValue('price-upper', '');
@@ -141,7 +141,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
   const setFullRange = useCallback(() => {
     setValue('price-lower', '0');
-    setValue('price-upper', 'NaN');
+    setValue('price-upper', 'Infinity');
   }, []);
 
   return (

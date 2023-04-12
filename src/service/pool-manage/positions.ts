@@ -2,9 +2,10 @@ import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
-import { FeeAmount, calcPriceFromTick } from '@service/pairs&pool';
+import { FeeAmount, calcPriceFromTick, invertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
+import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 
 export enum PositionStatus {
   InRange,
@@ -21,7 +22,9 @@ export interface Position {
   fee: FeeAmount;
   tickLower: number;
   tickUpper: number;
+  // priceLower calculated by tickLower
   priceLower: Unit;
+  // priceUpper calculated by tickUpper
   priceUpper: Unit;
   liquidity: string;
   /** The fee growth of token0 as of the last action on the individual position. */
@@ -36,7 +39,9 @@ export interface Position {
 export interface PositionForUI extends Position {
   leftToken: Token | null;
   rightToken: Token | null;
+  // priceLower for ui
   priceLowerForUI: Unit;
+  // priceUpper for ui
   priceUpperForUI: Unit;
 }
 
@@ -129,8 +134,10 @@ export const PositionsForUISelector = selector({
     const positions = get(positionsQuery);
     if (!positions) return [];
     return positions.map((position) => {
-      const { token0, token1, priceLower, priceUpper } = position;
-      const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address)
+      const { token0, token1, priceLower, priceUpper, fee } = position;
+      const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee})));
+
+      const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
       const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
       if (
         // if token0 is a dollar-stable asset, set it as the quote token
@@ -138,18 +145,14 @@ export const PositionsForUISelector = selector({
         // if token1 is an ETH-/BTC-stable asset, set it as the base token
         baseTokens.some((baseToken) => baseToken?.address === token1.address) ||
         // if both prices are below 1, invert
-        priceUpper.lessThan(Unit.fromMinUnit(1))
+        priceUpper.lessThan(new Unit(1))
       ) {
-        const ZERO = Unit.fromMinUnit(0);
-        const INFINITY = Unit.fromMinUnit('NaN')
-        const isPriceLowerZero = priceLower.equals(ZERO);
-        const isPriceUpperInfinity = priceUpper.equals(INFINITY);
         return {
           ...position,
           rightToken: unwrapToken1,
           leftToken: unwrapToken0,
-          priceLowerForUI: isPriceUpperInfinity ? ZERO : Unit.fromMinUnit(1).div(priceUpper),
-          priceUpperForUI: isPriceLowerZero ? INFINITY : Unit.fromMinUnit(1).div(priceLower),
+          priceLowerForUI: invertPrice(priceUpper),
+          priceUpperForUI: invertPrice(priceLower),
         };
       }
       return {

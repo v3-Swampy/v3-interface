@@ -6,7 +6,7 @@ import ToolTip from '@components/Tooltip';
 import Input from '@components/Input';
 import Switch from '@components/Switch';
 import useI18n from '@hooks/useI18n';
-import { useTransactionDeadline } from '@service/settings';
+import { useTransactionDeadline, useSlippageTolerance, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
 import { ReactComponent as SettingsIcon } from '@assets/icons/settings.svg';
 
 const transitions = {
@@ -45,6 +45,11 @@ const transitions = {
 const SettingsContent: React.FC = () => {
   const i18n = useI18n(transitions);
 
+  const { method: slippageToleranceMethod, value: slippageToleranceValue } = useSlippageTolerance();
+  const onSlippageToleranceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
+    setSlippageTolerance(+value);
+  }, []);
+
   const [transactionDeadline, setTransactionDeadline] = useTransactionDeadline();
   const onTranscationDeadlineChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
     setTransactionDeadline(+value);
@@ -62,15 +67,25 @@ const SettingsContent: React.FC = () => {
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
         <div className="flex-shrink-1 flex items-center w-full h-full pl-16px pr-12px rounded-100px border-1px border-solid border-orange-light">
-          <Input className="h-40px text-14px text-black-light" type="number" max={100} id="input--slippage_tolerance" />
+          <Input
+            className="h-40px text-14px text-black-light"
+            id="input--slippage_tolerance"
+            type="number"
+            max={100}
+            min={0}
+            value={slippageToleranceMethod === 'manual' ? slippageToleranceValue : ''}
+            placeholder={slippageToleranceMethod === 'auto' ? `${slippageToleranceValue}` : ''}
+            onChange={onSlippageToleranceChange}
+          />
           <span className="flex-shrink-0 ml-8px leading-40px text-14px text-black-normal font-medium">%</span>
         </div>
 
         <button
           className={cx('flex-shrink-0 min-w-62px h-full rounded-100px text-14px', {
-            'text-orange-normal bg-orange-light pointer-events-none': true,
-            'border-1px border-solid border-gray-normal text-black-normal bg-white-normal': false,
+            'text-orange-normal bg-orange-light': slippageToleranceMethod === 'auto',
+            'border-1px border-solid border-gray-normal text-black-normal bg-white-normal': slippageToleranceMethod === 'manual',
           })}
+          onClick={toggleSlippageToleranceMethod}
         >
           {i18n.auto}
         </button>

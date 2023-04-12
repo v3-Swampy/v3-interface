@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { atomFamily, useRecoilStateLoadable } from 'recoil';
 import { getRecoil, setRecoil } from 'recoil-nexus';
 import { throttle } from 'lodash-es';
@@ -9,10 +9,16 @@ import { FeeAmount, Pool, isPoolEqual } from './';
 import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
 
-const poolState = atomFamily<Pool | null | undefined, string>({
+export const poolState = atomFamily<Pool | null | undefined, string>({
   key: `poolState-${import.meta.env.MODE}`,
   default: undefined,
 });
+
+export const generatePoolKey = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB: Token | null; fee: FeeAmount | null }) => {
+  if (!tokenA || !tokenB || !fee) return 'nullPool';
+  const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
+  return `${token0.address}:${token1.address}:${fee}`;
+};
 
 /**
  * fetch pool info.
@@ -52,8 +58,7 @@ const poolTracker = new Map<string, boolean>();
  */
 export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB: Token | null; fee: FeeAmount | null }) => {
   const userActiveStatus = useUserActiveStatus();
-  const poolKey = `${tokenA?.address ?? 'tokenA'}:${tokenB?.address ?? 'tokenB'}:${fee ?? 'fee'}`;
-
+  const poolKey = generatePoolKey({ tokenA, tokenB, fee });
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
   const fetchAndSetPool = useCallback(
     throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => !isPoolEqual(pool, getRecoil(poolState(poolKey))) && setPool(pool)), 2000),

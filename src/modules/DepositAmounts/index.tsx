@@ -10,8 +10,10 @@ import { useAccount } from '@service/account';
 import { usePool } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { useTokenA, useTokenB } from './SelectPair';
-import { useCurrentFee } from './SelectFeeTier';
+import { PositionForUI } from '@service/pool-manage';
+
+// import { useTokenA, useTokenB } from '././SelectPair';
+// import { useCurrentFee } from './SelectFeeTier';
 
 const transitions = {
   en: {
@@ -33,7 +35,7 @@ interface Props {
   setValue: UseFormSetValue<FieldValues>;
   getValues: UseFormGetValues<FieldValues>;
   isRangeValid: boolean | null;
-  priceInit: string;
+  priceInit?: string;
 }
 
 const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | null; type: 'tokenA' | 'tokenB'; price: Unit | null | undefined; isValidToInput: boolean }> = ({
@@ -118,13 +120,13 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
   );
 };
 
-const DepositAmounts: React.FC<Props> = (props) => {
+const DepositAmounts: React.FC<Props & { detail: PositionForUI; title: string }> = ({ detail, title, ...props }) => {
+  const { leftToken: tokenA, rightToken: tokenB, fee } = detail;
   const i18n = useI18n(transitions);
-  const tokenA = useTokenA();
-  const tokenB = useTokenB();
-  const fee = useCurrentFee();
+  // const tokenA = useTokenA();
+  // const tokenB = useTokenB();
+  // const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
-
   const { isRangeValid, priceInit, setValue, getValues } = props;
   const priceTokenA = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
@@ -144,8 +146,7 @@ const DepositAmounts: React.FC<Props> = (props) => {
 
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
-      <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.deposit_amounts}</p>
-
+      <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-medium">{title || i18n.deposit_amounts}</p>
       <DepositAmount {...props} token={tokenA} pairToken={tokenB} type="tokenA" price={priceTokenA} isValidToInput={isValidToInput} />
       <DepositAmount {...props} token={tokenB} pairToken={tokenB} type="tokenB" price={priceTokenB} isValidToInput={isValidToInput} />
     </div>

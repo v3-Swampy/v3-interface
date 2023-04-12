@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
@@ -32,7 +32,7 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 
   const priceLowerStr = trimDecimalZeros(priceLowerForUI.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(priceUpperForUI.toDecimalMinUnit(5));
-  const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
+  const priceUpperStr = _priceUpperStr === 'Infinity' ? '∞' : _priceUpperStr;
 
   return (
     <Link to={String(id)} className="no-underline">
@@ -64,7 +64,7 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
-
+  
   if (!positions?.length) {
     return (
       <>

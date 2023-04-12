@@ -37,8 +37,8 @@ export default defineConfig({
         colors: {
           orange: {
             normal: '#E14E28', // className="bg-purple-primary"
-            light: '#FFE9CB',
-            lightHover: '#FFF5E7',
+            light: '#FFE8C9',
+            lightHover: '#FFF6EA',
             dot: '#FFB75D',
           },
           black: {
