@@ -42,7 +42,7 @@ const PriceItem: React.FC<{ price: Unit | null; tokenA: Token | null; tokenB: To
   const i18n = useI18n(transitions);
 
   const _priceStr = price ? trimDecimalZeros(price.toDecimalMinUnit(5)) : '-';
-  const priceStr = _priceStr === 'NaN' ? '∞' : _priceStr;
+  const priceStr = _priceStr === 'Infinity' ? '∞' : _priceStr;
 
   return (
     <div className="flex flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px p-10px">

@@ -50,10 +50,10 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
           placeholder="0"
           {...register(`${type}-amount`, {
             required: true,
-            min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals),
+            min: new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals),
           })}
-          min={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
-          step={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
+          min={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
+          step={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
         />
 
         <BorderBox

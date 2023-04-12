@@ -21,7 +21,7 @@ const IncreaseAmounts: React.FC<{ detail: PositionForUI }> = ({ detail }) => {
   const { priceLower, priceUpper } = detail;
   const isRangeValid = useMemo(() => {
     try {
-      return priceLower && priceUpper ? (priceUpper.greaterThan(Unit.fromMinUnit(0)) ? priceLower.lessThan(priceUpper) : true) : null;
+      return priceLower && priceUpper ? (priceUpper.greaterThan(new Unit(0)) ? priceLower.lessThan(priceUpper) : true) : null;
     } catch {
       return null;
     }

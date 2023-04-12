@@ -8,7 +8,7 @@ import { useBalance } from '@service/balance';
 import { numFormat } from '@utils/numberUtils';
 import Spin from '@components/Spin';
 
-const Zero = Unit.fromMinUnit(0);
+const Zero = new Unit(0);
 
 interface Props extends Omit<ComponentProps<'div'>, 'children'> {
   address: string;

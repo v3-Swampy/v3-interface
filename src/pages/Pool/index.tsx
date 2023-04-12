@@ -32,7 +32,7 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 
   const priceLowerStr = trimDecimalZeros(priceLowerForUI.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(priceUpperForUI.toDecimalMinUnit(5));
-  const priceUpperStr = _priceUpperStr === 'NaN' ? '∞' : _priceUpperStr;
+  const priceUpperStr = _priceUpperStr === 'Infinity' ? '∞' : _priceUpperStr;
 
   return (
     <Link to={String(id)} className="no-underline">

@@ -39,10 +39,10 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
           placeholder="0"
           {...register('VST-stake-amount', {
             required: true,
-            min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, TokenVST.decimals),
+            min: new Unit(1).toDecimalStandardUnit(undefined, TokenVST.decimals),
           })}
-          min={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, TokenVST.decimals)}
-          step={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, TokenVST.decimals)}
+          min={new Unit(1).toDecimalStandardUnit(undefined, TokenVST.decimals)}
+          step={new Unit(1).toDecimalStandardUnit(undefined, TokenVST.decimals)}
         />
 
         <span className="text-14px text-black-normal font-medium">PPI</span>

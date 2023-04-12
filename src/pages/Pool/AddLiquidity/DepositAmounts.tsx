@@ -60,7 +60,7 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
         setValue(pairKey, '');
         return;
       }
-      const currentInputAmount = Unit.fromMinUnit(newAmount);
+      const currentInputAmount = new Unit(newAmount);
       const pairTokenExpectedAmount = currentInputAmount?.mul(price);
       setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     },
@@ -79,10 +79,10 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
           type="number"
           {...register(`amount-${type}`, {
             required: true,
-            min: Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals),
+            min: new Unit(1).toDecimalStandardUnit(undefined, token?.decimals),
           })}
-          min={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals)}
-          step={Unit.fromMinUnit(1).toDecimalStandardUnit(undefined, token?.decimals)}
+          min={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
+          step={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
           onBlur={(evt) => changePairAmount(evt.target.value)}
         />
 
@@ -126,8 +126,8 @@ const DepositAmounts: React.FC<Props> = (props) => {
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
   const { isRangeValid, priceInit, setValue, getValues } = props;
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? Unit.fromMinUnit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
-  const priceTokenB = useMemo(() => (priceTokenA ? Unit.fromMinUnit(1).div(priceTokenA) : null), [priceTokenA]);
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
+  const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
 
   const token0PriceFixed5 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(5) : null), [priceTokenA]);
@@ -138,7 +138,7 @@ const DepositAmounts: React.FC<Props> = (props) => {
       setValue('amount-tokenB', '');
       return;
     }
-    const tokenBExpectedAmount = Unit.fromMinUnit(amountTokenA).mul(priceTokenA);
+    const tokenBExpectedAmount = new Unit(amountTokenA).mul(priceTokenA);
     setValue('amount-tokenB', trimDecimalZeros(tokenBExpectedAmount.toDecimalMinUnit(tokenB?.decimals)));
   }, [token0PriceFixed5]);
 

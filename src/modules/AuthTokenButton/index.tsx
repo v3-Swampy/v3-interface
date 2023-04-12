@@ -9,7 +9,7 @@ import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
 import { useBalance } from '@service/balance';
 import { getTokenByAddress } from '@service/tokens';
-const Zero = Unit.fromMinUnit(0);
+const Zero = new Unit(0);
 
 export type Status = 'checking-approve' | 'need-approve' | 'approving' | 'approved';
 
@@ -64,7 +64,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
           params: [{ data: tokenContract.func.encodeFunctionData('allowance', [account, contractAddress]), to: tokenContract.address }, 'latest'],
         });
         const allowance = tokenContract.func.decodeFunctionResult('allowance', fetchRes)?.[0];
-        const approveBalance = Unit.fromMinUnit(String(allowance));
+        const approveBalance = new Unit(String(allowance));
         if (approveBalance.greaterThanOrEqualTo(amountUnit)) {
           setStatus('approved');
         } else {

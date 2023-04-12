@@ -120,12 +120,12 @@ const escrowUserInfoQuery = selectorFamily({
 
 export const useTotalStakeVST = () => {
   const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
-  return totalStakeVST ? Unit.fromMinUnit(totalStakeVST) : null;
+  return totalStakeVST ? new Unit(totalStakeVST) : null;
 };
 
 export const useVSTPrice = () => {
   const VSTPrice = useRecoilValue(vSTPriceQuery);
-  return VSTPrice ? Unit.fromMinUnit(VSTPrice) : null;
+  return VSTPrice ? new Unit(VSTPrice) : null;
 };
 
 export const usePercentageOfCulatingtion = () => {
@@ -151,6 +151,6 @@ export const useUserInfo = () => {
   const account = useAccount();
   const userInfo = useRecoilValue(escrowUserInfoQuery(account));
   const vstDecimals = useRecoilValue(vstDecimalsQuery);
-  const lockedAmount = account ? Unit.fromMinUnit(userInfo?.[0].toString()).toDecimalStandardUnit(0, vstDecimals) : 0;
+  const lockedAmount = account ? new Unit(userInfo?.[0].toString()).toDecimalStandardUnit(0, vstDecimals) : 0;
   return [lockedAmount, userInfo?.[1]?.toString()];
 };
