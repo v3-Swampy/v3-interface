@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { atom, useRecoilValue } from 'recoil';
 import { getRecoil, setRecoil } from 'recoil-nexus';
 import LocalStorage from 'localstorage-enhance';
@@ -19,18 +20,19 @@ const tokensKey = `tokenState-${import.meta.env.MODE}`;
 const cachedTokens = (LocalStorage.getItem(tokensKey, 'swap') as Array<Token>) ?? [];
 
 export let TokenVST: Token = null!;
-const setTokenVST = (tokens: Array<Token>) => {
-  TokenVST = tokens?.find((token) => token.symbol === 'PPI')!; // TODO: chaozhou -- VST is not in the repository list now
-};
-setTokenVST(cachedTokens);
-
-export const TokenCFX: Token = {
+export let TokenCFX: Token = {
   name: 'Conflux',
   symbol: 'CFX',
   decimals: 18,
   address: 'CFX',
-  logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aacwnngzd52ztm8m32j9c3hekyn8njcgsrjg4p7yzea.png',
+  logoURI: '',
 };
+
+const setTokenVST = (tokens: Array<Token>) => {
+  TokenVST = tokens?.find((token) => token.symbol === 'PPI')!; // TODO: chaozhou -- VST is not in the repository list now
+  TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!; // TODO: chaozhou -- VST is not in the repository list now
+};
+setTokenVST(cachedTokens);
 
 const stableSymbols = ['USDT'];
 
@@ -88,7 +90,11 @@ export const tokensState = atom<Array<Token>>({
   default: cachedTokens,
 });
 
-export const useTokens = () => useRecoilValue(tokensState);
+export const useTokens = () => {
+  const tokens = useRecoilValue(tokensState);
+  const tokensWithoutWCFX = useMemo(() => tokens?.filter((token) => token.symbol !== 'WCFX'), [tokens]);
+  return tokensWithoutWCFX
+}
 
 const CommonTokensCount = 5;
 const commonTokensCache = new Cache<Token>(CommonTokensCount - 1, 'swap-common-token');
