@@ -22,7 +22,7 @@ const IncreaseLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
-
+  console.log(detail);
   if (!detail) return <div>loading...</div>;
 
   return (
