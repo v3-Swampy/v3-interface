@@ -48,8 +48,8 @@ const AddLiquidity: React.FC = () => {
   const isRangeValid = useMemo(() => {
     try {
       return priceLower && priceUpper
-        ? Unit.fromMinUnit(priceUpper).greaterThan(Unit.fromMinUnit(0))
-          ? Unit.fromMinUnit(priceLower).lessThan(Unit.fromMinUnit(priceUpper))
+        ? new Unit(priceUpper).greaterThan(new Unit(0))
+          ? new Unit(priceLower).lessThan(new Unit(priceUpper))
           : true
         : null;
     } catch {
@@ -89,16 +89,16 @@ const AddLiquidity: React.FC = () => {
       }
 
       if (priceLower) {
-        const isPriceLowerZero = Unit.fromMinUnit(priceLower).equals(Unit.fromMinUnit(0));
+        const isPriceLowerZero = new Unit(priceLower).equals(new Unit(0));
         if (!isPriceLowerZero) {
           setValue('price-upper', (1 / priceLower).toFixed(5));
         } else {
-          setValue('price-upper', 'NaN');
+          setValue('price-upper', 'Infinity');
         }
       }
 
       if (priceUpper) {
-        const isPriceUpperInfinity = priceUpper === 'NaN';
+        const isPriceUpperInfinity = priceUpper === 'Infinity';
         if (!isPriceUpperInfinity) {
           setValue('price-lower', (1 / priceUpper).toFixed(5));
         } else {

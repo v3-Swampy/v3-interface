@@ -1,4 +1,4 @@
-export function numFormat(num?: string) {
+export const numFormat = (num?: string) => {
   if (!num) return '';
   const [int, dec] = num.split('.');
   const intLen = int.length;
@@ -12,7 +12,7 @@ export function numFormat(num?: string) {
   return resArr.reverse().join('') + (dec ? `.${dec}` : '');
 }
 
-export function trimDecimalZeros(numStr: string) {
+export const trimDecimalZeros = (numStr: string) => {
   if (typeof numStr !== 'string') {
     return numStr;
   }

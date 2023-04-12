@@ -66,7 +66,7 @@ export const useBalance = (tokenAddress?: string | null) => {
     };
   }, [account, tokenAddress, userActiveStatus]);
 
-  if (state === 'hasValue' && contents) return !!account && !!contents && !!tokenAddress ? Unit.fromMinUnit(contents) : null;
+  if (state === 'hasValue' && contents) return !!account && !!contents && !!tokenAddress ? new Unit(contents) : null;
   return null;
 };
 

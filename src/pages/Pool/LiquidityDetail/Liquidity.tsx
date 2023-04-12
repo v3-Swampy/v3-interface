@@ -48,8 +48,8 @@ const Liquidity: React.FC = () => {
   // ui init display is inverted with token1/token0
   const displayReverted = getUnwrapperTokenByAddress(token1.address)?.address === getUnwrapperTokenByAddress(rightToken?.address)?.address;
   const amountInverted = inverted !== displayReverted;
-  const lower = Unit.fromMinUnit(1.0001).pow(Unit.fromMinUnit(tickLower));
-  const upper = Unit.fromMinUnit(1.0001).pow(Unit.fromMinUnit(tickUpper));
+  const lower = new Unit(1.0001).pow(new Unit(tickLower));
+  const upper = new Unit(1.0001).pow(new Unit(tickUpper));
   const [amount0, amount1] = useMemo(
     () => (pool?.token0Price ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : []),
     [liquidity, lower.toDecimalMinUnit(), upper.toDecimalMinUnit(), pool?.token0Price?.toDecimalMinUnit()]

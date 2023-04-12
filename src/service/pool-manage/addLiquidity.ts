@@ -4,14 +4,14 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { FeeAmount } from '@service/pairs&pool';
+import { FeeAmount, calcPriceFromTick } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { getTransactionDeadline } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 
 const duration = dayjs.duration;
 const Q192 = new Decimal(2).toPower(192);
-const Zero = Unit.fromMinUnit(0);
+const Zero = new Unit(0);
 
 export const addLiquidity = async ({
   fee: _fee,
@@ -40,19 +40,19 @@ export const addLiquidity = async ({
     const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
     const [token0, token1] = notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
     const [token0Amount, token1Amount] = notNeedSwap ? [amountTokenA, amountTokenB] : [amountTokenB, amountTokenA];
-    const isPriceLowerZero = Unit.fromMinUnit(_priceLower).equals(Zero);
-    const isPriceUpperInfinity = _priceUpper === 'NaN';
+    const isPriceLowerZero = new Unit(_priceLower).equals(Zero);
+    const isPriceUpperInfinity = _priceUpper === 'Infinity';
     const [priceLower, priceUpper] = notNeedSwap
       ? [_priceLower, _priceUpper]
-      : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'NaN' : (1 / +_priceLower).toFixed(5)];
+      : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'Infinity' : (1 / +_priceLower).toFixed(5)];
 
     const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
     const data0 = NonfungiblePositionManager.func.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
     const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
 
-    const tickLower = Unit.fromMinUnit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: Unit.fromMinUnit(priceLower), tokenA: token0, tokenB: token1 });
-    const tickUpper = priceUpper === 'NaN' ? getMaxTick(fee) : calcTickFromPrice({ price: Unit.fromMinUnit(priceUpper), tokenA: token0, tokenB: token1 });
-
+    const tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
+    const tickUpper = priceUpper === 'Infinity' ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
+    console.log(getMinTick(fee), getMaxTick(fee), calcPriceFromTick({ tick: getMinTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit(), calcPriceFromTick({ tick: getMaxTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit());
     const data1 = NonfungiblePositionManager.func.encodeFunctionData('mint', [
       {
         token0: token0.address,

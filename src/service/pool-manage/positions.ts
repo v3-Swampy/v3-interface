@@ -142,7 +142,7 @@ export const PositionsForUISelector = selector({
         // if token1 is an ETH-/BTC-stable asset, set it as the base token
         baseTokens.some((baseToken) => baseToken?.address === token1.address) ||
         // if both prices are below 1, invert
-        priceUpper.lessThan(Unit.fromMinUnit(1))
+        priceUpper.lessThan(new Unit(1))
       ) {
         return {
           ...position,
