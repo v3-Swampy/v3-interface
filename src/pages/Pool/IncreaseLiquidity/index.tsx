@@ -7,7 +7,7 @@ import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import Settings from '@modules/Settings';
 import PairInfo from './PairInfo';
 import IncreaseAmounts from './IncreaseAmounts';
-import SelectedRange from './SelectedRange';
+import SelectedPriceRange from '@modules/SelectedPriceRange';
 
 const transitions = {
   en: {
@@ -35,13 +35,13 @@ const IncreaseLiquidity: React.FC = () => {
           </Link>
           <Settings />
         </div>
-        <BorderBox className="w-full p-16px rounded-28px flex justify-between gap-16px lt-md:gap-12px" variant="gradient-white">
-          <div className="max-w-310px mr-32px mt-8px">
+        <BorderBox className="w-full p-16px rounded-28px flex justify-between gap-32px lt-md:gap-12px" variant="gradient-white">
+          <div className="max-w-310px mt-8px">
             <PairInfo detail={detail} />
             <IncreaseAmounts detail={detail} />
           </div>
-          <div className="max-w-426px">
-            <SelectedRange detail={detail} />
+          <div className="mt-8px flex-1">
+            <SelectedPriceRange />
           </div>
         </BorderBox>
       </div>

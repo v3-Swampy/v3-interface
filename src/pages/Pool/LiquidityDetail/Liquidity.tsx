@@ -7,7 +7,7 @@ import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { type Token, getUnwrapperTokenByAddress } from '@service/tokens';
 import { usePool, calcAmountFromPrice, calcRatio } from '@service/pairs&pool';
-import { invertedState } from './SelectedRange';
+import { invertedState } from '@modules/SelectedPriceRange';
 
 const transitions = {
   en: {
