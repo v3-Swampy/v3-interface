@@ -8,11 +8,12 @@ import { handleRecoilInit } from '@utils/recoilUtils';
 import Cache from '@utils/LRUCache';
 
 export interface Token {
-  name: string;
-  symbol: string;
+  chainId:number;
+  name?: string;
+  symbol?: string;
   decimals: number;
   address: string;
-  logoURI: string;
+  logoURI?: string;
 }
 
 const tokensKey = `tokenState-${import.meta.env.MODE}`;
@@ -21,6 +22,7 @@ const cachedTokens = (LocalStorage.getItem(tokensKey, 'swap') as Array<Token>) ?
 
 export let TokenVST: Token = null!;
 export let TokenCFX: Token = {
+  chainId:71,
   name: 'Conflux',
   symbol: 'CFX',
   decimals: 18,

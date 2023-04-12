@@ -1,6 +1,7 @@
 import { getWrapperTokenByAddress } from './../tokens/tokens';
 export * from './allRelatedPools';
 export * from './singlePool';
+export {default as computePoolAddress} from './computePoolAddress';
 import { type Token } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';

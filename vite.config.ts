@@ -81,6 +81,8 @@ export default defineConfig({
       '@hooks': resolve(__dirname, 'src/hooks'),
       '@components': resolve(__dirname, 'src/components'),
       '@service': resolve(__dirname, 'src/service'),
+      '@constants': resolve(__dirname, 'src/constants'),
+      '@uniswap-v2-sdk': resolve(__dirname, 'src/uniswap-v2-sdk'),
     },
   },
   build: {

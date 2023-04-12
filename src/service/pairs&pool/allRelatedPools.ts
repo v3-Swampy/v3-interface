@@ -6,6 +6,7 @@ import { persistAtom, handleRecoilInit } from '@utils/recoilUtils';
 import { createPoolContract, fetchMulticall } from '@contracts/index';
 import { isEqual } from 'lodash-es';
 import { isOdd } from '@utils/is';
+import mergePairs  from '@utils/mergePairs';
 import computePoolAddress from './computePoolAddress';
 import { FeeAmount, Pool } from './';
 
@@ -110,16 +111,6 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
   // console.log(validPools);
   return validPools;
 };
-
-function mergePairs(arr: any) {
-  const merged = [];
-
-  for (let i = 0; i < arr.length; i += 2) {
-    merged.push([arr[i], arr[i + 1]]);
-  }
-
-  return merged;
-}
 
 const pairTokens = (tokens: Array<Token>, biDirectional: boolean = false) => {
   const result: Array<[Token, Token]> = [];
