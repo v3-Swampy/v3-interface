@@ -1,10 +1,7 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import useI18n from '@hooks/useI18n';
-import { Unit } from '@cfxjs/use-wallet-react/conflux';
 import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
-import { type Token } from '@service/tokens';
-import { usePool, calcAmountFromPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/TokenPairAmount';
 
 const transitions = {
