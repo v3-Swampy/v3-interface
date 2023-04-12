@@ -21,7 +21,6 @@ export function useAllCurrencyCombinations(currencyA?: Currency, currencyB?: Cur
 
     return [...common, ...additionalA, ...additionalB]
   }, [chainId, tokenA, tokenB])
-  console.info('bases', bases)
   const basePairs: [Token, Token][] = useMemo(
     () =>
       bases
@@ -30,7 +29,6 @@ export function useAllCurrencyCombinations(currencyA?: Currency, currencyB?: Cur
         .filter(([t0, t1]) => !t0.equals(t1)),
     [bases]
   )
-  console.info('basePairs', basePairs)
   return useMemo(
     () =>
       tokenA && tokenB

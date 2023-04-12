@@ -19,3 +19,13 @@ export function trimDecimalZeros(numStr: string) {
 
   return numStr.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0*$/, '');
 }
+
+export const numberWithCommas = (x: number | string) => {
+  const idx = x.toString().indexOf('.')
+  return idx !== -1
+    ? x
+        .toString()
+        .slice(0, idx)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',') + x.toString().slice(idx)
+    : x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}

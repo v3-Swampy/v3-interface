@@ -10,10 +10,8 @@ import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
 import { handleUnStake  } from '@service/staking';
-import useAllCurrencyCombinations from '@hooks/useAllCurrencyCombinations';
-import {useTokenFromList} from '@hooks/useTokensBySymbols';
-import {useV2Pairs} from '@hooks/useV2Pairs';
-import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
+import {useVSTPrice} from '@hooks/usePairPrice';
+import {numberWithCommas} from '@utils/numberUtils'
 
 
 const transitions = {
@@ -55,12 +53,8 @@ enum PersonalStakingStatus {
 const StakingPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const [lockedAmount, unlockTime] = useUserInfo();
-  const currencyIn=useTokenFromList('WCFX')
-  const currencyOut=useTokenFromList('USDT')
-  const currencyOut2=CurrencyAmount.fromRawAmount(currencyOut, 100_000e6)
-  const allCurrencyCombinations=useAllCurrencyCombinations(currencyIn,currencyOut2.currency)
-  const allPairs = useV2Pairs(allCurrencyCombinations)
-  console.info('allPairs', allPairs)
+  const VSTPrice=useVSTPrice()
+  console.info('VSTPrice',VSTPrice)
   const stakingStatus = useMemo(() => {
     if (!lockedAmount && !unlockTime) return PersonalStakingStatus.UNKNOWN;
     if (!+lockedAmount) return PersonalStakingStatus.UNLOCKED;
@@ -70,7 +64,13 @@ const StakingPage: React.FC = () => {
 
   const displayedUnlockedTime = useMemo(() => {
     return unlockTime ? dayjs.unix(unlockTime).format('YYYY-MM-DD HH:mm:ss') : '-'
-  }, [unlockTime]) 
+  }, [unlockTime])
+  
+  const lockedBalanceUSD = useMemo(() => {
+    return VSTPrice && lockedAmount
+      ? numberWithCommas(parseFloat((+VSTPrice * +lockedAmount).toFixed(3).slice(0, -1)))
+      : '-'
+  }, [VSTPrice, lockedAmount])
 
   return (
     <PageWrapper className="pt-56px">
@@ -108,7 +108,7 @@ const StakingPage: React.FC = () => {
               <div className="w-1/2">
                 <p className="leading-23px text-14px text-gray-normal">{compiled(i18n.my_staked, { token: 'VST' })}</p>
                 <p className="leading-23px text-16px text-black-normal font-medium">{lockedAmount ?? '...'}</p>
-                <p className="leading-23px h-14px text-black-normal">~ ${'8000'}</p>
+                <p className="leading-23px h-14px text-black-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                   <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>
                     {i18n.stake_more}
                   </Button>
@@ -129,7 +129,7 @@ const StakingPage: React.FC = () => {
               <div className="w-1/2">
                 <p className="leading-23px text-14px text-gray-normal">{compiled(i18n.my_staked, { token: 'VST' })}</p>
                 <p className="leading-23px text-16px text-black-normal font-medium">{lockedAmount ?? '...'}</p>
-                <p className="leading-23px h-14px text-black-normal">~ ${'8000'}</p>
+                <p className="leading-23px h-14px text-black-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
               </div>
 
               <div className="w-1/2 flex flex-col justify-center">

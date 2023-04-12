@@ -1,9 +1,11 @@
-import React, { Suspense } from 'react';
+import React, { Suspense,useMemo } from 'react';
 import BorderBox from '@components/Box/BorderBox';
 import Spin from '@components/Spin';
 import useI18n, { compiled } from '@hooks/useI18n';
-import { useTotalStakeVST, useVSTPrice, usePercentageOfCulatingtion, useAverageStakeDuration } from '@service/staking';
+import { useTotalStakeVST, usePercentageOfCulatingtion, useAverageStakeDuration } from '@service/staking';
 import { TokenVST } from '@service/tokens';
+import {useVSTPrice} from '@hooks/usePairPrice';
+import {numberWithCommas} from '@utils/numberUtils'
 
 const transitions = {
   en: {
@@ -20,20 +22,23 @@ const transitions = {
 
 const DataDetailContent: React.FC = () => {
   const i18n = useI18n(transitions);
-
   const totalStakeVST = useTotalStakeVST();
-  const VSTPrice = useVSTPrice();
+  const VSTPrice=useVSTPrice()
   const percentageOfCulatingtion = usePercentageOfCulatingtion();
   const averageStakeDuration = useAverageStakeDuration();
 
-  const totalPrice = totalStakeVST && VSTPrice ? totalStakeVST.mul(VSTPrice) : null;
+  const totalLockedBalanceUSD = useMemo(() => {
+    return VSTPrice && totalStakeVST
+      ? numberWithCommas(parseFloat((+VSTPrice * +totalStakeVST?.toDecimalStandardUnit(0, TokenVST?.decimals)).toFixed(3).slice(0, -1)))
+      : ''
+  }, [VSTPrice, totalStakeVST])
 
   return (
     <>
       <div className="w-1/2">
         <p className="leading-23px text-14px text-gray-normal">{compiled(i18n.total_staking, { token: 'VST' })}</p>
         <p className="leading-23px text-16px text-black-normal font-medium">{totalStakeVST?.toDecimalStandardUnit(2, TokenVST?.decimals) ?? '...'}</p>
-        <p className="leading-23px text-14px text-black-normal">~ ${totalPrice?.toDecimalStandardUnit(2, TokenVST?.decimals) ?? '...'}</p>
+        <p className="leading-23px text-14px text-black-normal">~ {totalLockedBalanceUSD ? `${totalLockedBalanceUSD}` : '-'}</p>
       </div>
 
       <div className="w-1/2 flex flex-col justify-center">

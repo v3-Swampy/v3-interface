@@ -25,6 +25,7 @@
     "dayjs": "^1.11.7",
     "decimal.js": "^10.4.3",
     "ethers": "^6.2.3",
+    "jsbi": "^3.1.4",
     "localstorage-enhance": "1.0.1",
     "lodash-es": "^4.17.21",
     "mersenne-twister": "^1.1.0",

@@ -26,7 +26,9 @@
       "@hooks/*": ["./src/hooks/*"],
       "@components/*": ["./src/components/*"],
       "@service/*": ["./src/service/*"],
-      "@contracts/*": ["./src/contracts/*"]
+      "@contracts/*": ["./src/contracts/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@uniswap-v2-sdk/*": ["./src/uniswap-v2-sdk/*"]
     }
   },
   "include": ["src"],

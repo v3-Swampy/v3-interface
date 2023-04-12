@@ -48,12 +48,6 @@ const vstTotalSupplyQuery = selector({
     }),
 });
 
-// TODO: chaozhou
-const vSTPriceQuery = selector({
-  key: `VSTPriceQuery-${import.meta.env.MODE}`,
-  get: () => '0x1',
-});
-
 const escrowTotalSupplyQuery = selector({
   key: `escrowTotalSupply-${import.meta.env.MODE}`,
   get: () =>
@@ -123,10 +117,6 @@ export const useTotalStakeVST = () => {
   return totalStakeVST ? Unit.fromMinUnit(totalStakeVST) : null;
 };
 
-export const useVSTPrice = () => {
-  const VSTPrice = useRecoilValue(vSTPriceQuery);
-  return VSTPrice ? Unit.fromMinUnit(VSTPrice) : null;
-};
 
 export const usePercentageOfCulatingtion = () => {
   const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
