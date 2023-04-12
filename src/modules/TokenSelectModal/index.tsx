@@ -41,7 +41,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
   const tokens = useTokens();
   const filterTokens = useMemo(() => {
     if (!filter) return tokens;
-    return tokens?.filter((token) => [token.name, token.symbol, token.address].some((str) => str.search(new RegExp(escapeRegExp(filter), 'i')) !== -1));
+    return tokens?.filter((token) => [token.name, token.symbol, token.address].some((str) => str?.search(new RegExp(escapeRegExp(filter), 'i')) !== -1));
   }, [filter, tokens]);
 
   const listRef = useRef<HTMLDivElement>();
