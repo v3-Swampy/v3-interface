@@ -5,6 +5,7 @@ import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, invertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
+import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 
 export enum PositionStatus {
   InRange,
@@ -133,7 +134,9 @@ export const PositionsForUISelector = selector({
     const positions = get(positionsQuery);
     if (!positions) return [];
     return positions.map((position) => {
-      const { token0, token1, priceLower, priceUpper } = position;
+      const { token0, token1, priceLower, priceUpper, fee } = position;
+      const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee})));
+
       const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
       const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
       if (

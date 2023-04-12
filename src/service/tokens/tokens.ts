@@ -28,11 +28,11 @@ export let TokenCFX: Token = {
   logoURI: '',
 };
 
-const setTokenVST = (tokens: Array<Token>) => {
+const setRegularToken = (tokens: Array<Token>) => {
   TokenVST = tokens?.find((token) => token.symbol === 'PPI')!; // TODO: chaozhou -- VST is not in the repository list now
   TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!; // TODO: chaozhou -- VST is not in the repository list now
 };
-setTokenVST(cachedTokens);
+setRegularToken(cachedTokens);
 
 const stableSymbols = ['USDT'];
 
@@ -68,7 +68,7 @@ const resetTokensMap = (tokens: Array<Token>) => {
     unwrapperTokenMap.set(WCFX.address.toLowerCase(), CFX);
   }
 
-  setTokenVST(tokens);
+  setRegularToken(tokens);
 };
 resetTokensMap(cachedTokens);
 
