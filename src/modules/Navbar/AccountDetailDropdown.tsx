@@ -58,7 +58,7 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
       </ToolTip>
 
       <a
-        className="mt-10px block relative flex items-center pl-50px text-12px text-gray-normal font-medium cursor-pointer"
+        className="mt-10px block relative flex items-center pl-50px text-12px text-gray-normal font-medium cursor-pointer no-underline"
         target="_blank"
         rel="noopener noreferrer"
         href={`${import.meta.env.VITE_ESpaceScanUrl}/address/${account}`}
@@ -142,7 +142,7 @@ const History: React.FC = () => {
         </Button>
       </div>
       <CustomScrollbar className="max-h-294px" onScroll={handleScroll}>
-        {history.length === 0 && <p className="text-center text-12px text-black-light font-medium">No transcation history</p>}
+        {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-medium">No transcation history</p>}
         <FixedSizeList width="100%" height={height} itemCount={history.length} itemSize={46} ref={listRef as any} style={{ overflow: undefined }}>
           {Record}
         </FixedSizeList>

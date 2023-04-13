@@ -3,6 +3,8 @@ import { atom, useRecoilValue } from 'recoil';
 import { getRecoil, setRecoil } from 'recoil-nexus';
 import LocalStorage from 'localstorage-enhance';
 import { isEqual } from 'lodash-es';
+import { Token as UniToken } from '@uniswap/sdk-core';
+import { targetChainId } from '@service/account';
 import waitAsyncResult from '@utils/waitAsyncResult';
 import { handleRecoilInit } from '@utils/recoilUtils';
 import Cache from '@utils/LRUCache';
@@ -150,3 +152,6 @@ export const deleteFromCommonTokens = (token: Token) => {
     console.error('Failed to get the latest token list: ', err);
   }
 })();
+
+
+export const convertTokenToUniToken = (token: Token) => new UniToken(+targetChainId, token.address, token.decimals, token.symbol, token.name);
