@@ -11,18 +11,20 @@ import { InsufficientInputAmountError, InsufficientReservesError } from '../erro
 export class Pair {
   public readonly liquidityToken: Token
   private readonly tokenAmounts: [CurrencyAmount<Token>, CurrencyAmount<Token>]
+  public fee?: FeeAmount;
 
-  public static getAddress(tokenA: Token, tokenB: Token): string {
-    return computePoolAddress({ tokenA, tokenB,fee:FeeAmount.MEDIUM })
+  public static getAddress(tokenA: Token, tokenB: Token,fee?: FeeAmount): string {
+    return computePoolAddress({ tokenA, tokenB,fee:fee })
   }
 
-  public constructor(currencyAmountA: CurrencyAmount<Token>, tokenAmountB: CurrencyAmount<Token>) {
+  public constructor(currencyAmountA: CurrencyAmount<Token>, tokenAmountB: CurrencyAmount<Token>,fee?: FeeAmount) {
     const tokenAmounts = currencyAmountA.currency.sortsBefore(tokenAmountB.currency) // does safety checks
       ? [currencyAmountA, tokenAmountB]
       : [tokenAmountB, currencyAmountA]
+    this.fee=fee;  
     this.liquidityToken = new Token(
       tokenAmounts[0].currency.chainId,
-      Pair.getAddress(tokenAmounts[0].currency, tokenAmounts[1].currency),
+      Pair.getAddress(tokenAmounts[0].currency, tokenAmounts[1].currency,fee),
       18,
       `vSwap-LP`,
       `vSwap LPs`
@@ -109,7 +111,7 @@ export class Pair {
     if (JSBI.equal(outputAmount.quotient, ZERO)) {
       throw new InsufficientInputAmountError()
     }
-    return [outputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
+    return [outputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount),this.fee)]
   }
 
   public getInputAmount(outputAmount: CurrencyAmount<Token>): [CurrencyAmount<Token>, Pair] {
@@ -130,7 +132,7 @@ export class Pair {
       outputAmount.currency.equals(this.token0) ? this.token1 : this.token0,
       JSBI.add(JSBI.divide(numerator, denominator), ONE)
     )
-    return [inputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
+    return [inputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount),this.fee)]
   }
 
   public getLiquidityMinted(
