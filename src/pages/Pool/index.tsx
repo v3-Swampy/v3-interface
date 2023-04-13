@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import Spin from '@components/Spin';
 import Status from '@modules/Status';
 import TokenPair from '@modules/TokenPair';
+import PriceRange from '@modules/PriceRange';
 import useI18n from '@hooks/useI18n';
 import { type PositionForUI, usePositionsForUI } from '@service/pool-manage';
 import { trimDecimalZeros } from '@utils/numberUtils';
@@ -39,21 +40,7 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
       <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
         <div className="inline-block">
           <TokenPair position={position} />
-          <div className="flex items-center h-16px mt-4px text-12px font-medium">
-            <span className="text-gray-normal">
-              Min:&nbsp;
-              <span className="text-black-normal">
-                {priceLowerStr} {leftToken?.symbol} per {rightToken?.symbol}
-              </span>
-            </span>
-            <DoubleArrowIcon className="mx-8px w-16px h-8px" />
-            <span className="text-gray-normal">
-              Max:&nbsp;
-              <span className="text-black-normal">
-                {priceUpperStr} {leftToken?.symbol} per {rightToken?.symbol}
-              </span>
-            </span>
-          </div>
+          <PriceRange position={position} />
         </div>
         <Status position={position} />
       </div>
@@ -64,7 +51,7 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
-  
+
   if (!positions?.length) {
     return (
       <>
