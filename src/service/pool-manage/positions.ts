@@ -1,6 +1,6 @@
 import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager, MulticallContract } from '@contracts/index';
+import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
@@ -69,11 +69,9 @@ const tokenIdsQuery = selector<Array<number> | undefined>({
 
     const tokenIdsArgs = account && positionBalance && positionBalance > 0 ? Array.from({ length: positionBalance }, (_, index) => [account, index]) : [];
 
-    const response = await MulticallContract.func.aggregate.staticCall(
+    const tokenIdResults = await fetchMulticall(
       tokenIdsArgs.map((args) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('tokenOfOwnerByIndex', args)])
     );
-
-    const tokenIdResults = response?.[1];
 
     if (Array.isArray(tokenIdResults))
       return tokenIdResults?.map((singleRes) => Number(NonfungiblePositionManager.func.interface.decodeFunctionResult('tokenOfOwnerByIndex', singleRes)?.[0]));
@@ -96,11 +94,9 @@ const positionsQuery = selector({
       tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
     );
 
-    const response = await MulticallContract.func.aggregate.staticCall(
+    const positionsResult = await fetchMulticall(
       tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
     );
-
-    const positionsResult = response?.[1];
 
     console.log('positions', positionsResult);
 
