@@ -86,14 +86,23 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
   } as const;
 };
 
+
+export const getPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
+  const poolKey = generatePoolKey({ tokenA, tokenB, fee });
+  const pool = getRecoil(poolState(poolKey));
+  if (pool) return pool;
+  const poolFetched = await fetchPool({ tokenA, tokenB, fee });
+  setRecoil(poolState(poolKey), pool);
+  return poolFetched;
+}
+
 /**
  * Force to get the latest info of a pool.
  * Usually used after a transaction is completed.
  */
 export const updatePool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
   const pool = await fetchPool({ tokenA, tokenB, fee });
-  const poolKey = `${tokenA?.address ?? 'tokenA'}:${tokenB?.address ?? 'tokenB'}:${fee ?? 'fee'}`;
-  setRecoil(poolState(poolKey), pool);
+  setRecoil(poolState(generatePoolKey({ tokenA, tokenB, fee })), pool);
 };
 
 // const TokenA = {

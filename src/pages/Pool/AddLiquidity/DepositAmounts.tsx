@@ -126,7 +126,7 @@ const DepositAmounts: React.FC<Props> = (props) => {
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
   const { isRangeValid, priceInit, setValue, getValues } = props;
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [tokenA?.address, pool, priceInit]);
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
 
