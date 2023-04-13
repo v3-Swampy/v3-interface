@@ -1,6 +1,6 @@
 import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
+import { NonfungiblePositionManager, NonfungiblePositionManagerContract, MulticallContractNew, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
@@ -56,18 +56,8 @@ const positionBalanceQuery = selector({
   get: async ({ get }) => {
     const account = get(accountState);
     if (!account) return undefined;
-    const response = await fetchChain<string>({
-      params: [
-        {
-          data: NonfungiblePositionManager.func.encodeFunctionData('balanceOf', [account]),
-          to: NonfungiblePositionManager.address,
-        },
-        'latest',
-      ],
-    });
-
-    const positionBalance = NonfungiblePositionManager.func.decodeFunctionResult('balanceOf', response)?.[0];
-    return positionBalance ? Number(positionBalance) : 0;
+    const response = await NonfungiblePositionManagerContract.balanceOf(account);
+    return response ? Number(response.toString()) : 0;
   },
 });
 
@@ -79,9 +69,13 @@ const tokenIdsQuery = selector<Array<number> | undefined>({
     if (!account || !positionBalance) return undefined;
 
     const tokenIdsArgs = account && positionBalance && positionBalance > 0 ? Array.from({ length: positionBalance }, (_, index) => [account, index]) : [];
-    const tokenIdResults = await fetchMulticall(
+
+    const response = await MulticallContractNew.aggregate.staticCall(
       tokenIdsArgs.map((args) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.encodeFunctionData('tokenOfOwnerByIndex', args)])
     );
+
+    const tokenIdResults = response?.[1];
+
     if (Array.isArray(tokenIdResults))
       return tokenIdResults?.map((singleRes) => Number(NonfungiblePositionManager.func.decodeFunctionResult('tokenOfOwnerByIndex', singleRes)?.[0]));
     return [];
@@ -93,43 +87,55 @@ const positionsQuery = selector({
   get: async ({ get }) => {
     const account = get(accountState);
     const tokenIds = get(tokenIdsQuery);
+    console.log('tokenIds', tokenIds, Array.isArray(tokenIds));
     if (!account || !tokenIds?.length) return undefined;
 
-    const positionsResult = await fetchMulticall(tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.encodeFunctionData('positions', [id])]));
+    console.log(
+      'test',
+      tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.encodeFunctionData('positions', [id])])
+    );
 
-    if (Array.isArray(positionsResult))
-      return positionsResult?.map((singleRes, index) => {
-        const decodeRes = NonfungiblePositionManager.func.decodeFunctionResult('positions', singleRes);
+    const response = await MulticallContractNew.aggregate.staticCall(
+      tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.encodeFunctionData('positions', [id])])
+    );
 
-        const position: Position = {
-          id: tokenIds[index],
-          nonce: Number(decodeRes?.[0]),
-          operator: String(decodeRes?.[1]),
-          token0: getTokenByAddress(decodeRes?.[2])!,
-          token1: getTokenByAddress(decodeRes?.[3])!,
-          fee: Number(decodeRes?.[4]),
-          tickLower: Number(decodeRes?.[5]),
-          tickUpper: Number(decodeRes?.[6]),
-          liquidity: String(decodeRes?.[7]),
-          feeGrowthInside0LastX128: String(decodeRes?.[8]),
-          feeGrowthInside1LastX128: String(decodeRes?.[9]),
-          tokensOwed0: String(decodeRes?.[10]),
-          tokensOwed1: String(decodeRes?.[11]),
-          priceLower: calcPriceFromTick({
-            tick: Number(decodeRes?.[5]),
-            tokenA: getTokenByAddress(decodeRes?.[2])!,
-            tokenB: getTokenByAddress(decodeRes?.[3])!,
-            fee: Number(decodeRes?.[4]),
-          }),
-          priceUpper: calcPriceFromTick({
-            tick: Number(decodeRes?.[6]),
-            tokenA: getTokenByAddress(decodeRes?.[2])!,
-            tokenB: getTokenByAddress(decodeRes?.[3])!,
-            fee: Number(decodeRes?.[4]),
-          }),
-        };
-        return position;
-      });
+    console.log('positions', response);
+
+    // const positionsResult = await fetchMulticall(tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.encodeFunctionData('positions', [id])]));
+
+    // if (Array.isArray(positionsResult))
+    //   return positionsResult?.map((singleRes, index) => {
+    //     const decodeRes = NonfungiblePositionManager.func.decodeFunctionResult('positions', singleRes);
+
+    //     const position: Position = {
+    //       id: tokenIds[index],
+    //       nonce: Number(decodeRes?.[0]),
+    //       operator: String(decodeRes?.[1]),
+    //       token0: getTokenByAddress(decodeRes?.[2])!,
+    //       token1: getTokenByAddress(decodeRes?.[3])!,
+    //       fee: Number(decodeRes?.[4]),
+    //       tickLower: Number(decodeRes?.[5]),
+    //       tickUpper: Number(decodeRes?.[6]),
+    //       liquidity: String(decodeRes?.[7]),
+    //       feeGrowthInside0LastX128: String(decodeRes?.[8]),
+    //       feeGrowthInside1LastX128: String(decodeRes?.[9]),
+    //       tokensOwed0: String(decodeRes?.[10]),
+    //       tokensOwed1: String(decodeRes?.[11]),
+    //       priceLower: calcPriceFromTick({
+    //         tick: Number(decodeRes?.[5]),
+    //         tokenA: getTokenByAddress(decodeRes?.[2])!,
+    //         tokenB: getTokenByAddress(decodeRes?.[3])!,
+    //         fee: Number(decodeRes?.[4]),
+    //       }),
+    //       priceUpper: calcPriceFromTick({
+    //         tick: Number(decodeRes?.[6]),
+    //         tokenA: getTokenByAddress(decodeRes?.[2])!,
+    //         tokenB: getTokenByAddress(decodeRes?.[3])!,
+    //         fee: Number(decodeRes?.[4]),
+    //       }),
+    //     };
+    //     return position;
+    //   });
     return [];
   },
 });

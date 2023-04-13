@@ -28,13 +28,21 @@ export const positionOwnerQuery = selectorFamily({
   },
 });
 
+export const isPositionOwnerSelector = selectorFamily({
+  key: `isPositionOwner-${import.meta.env.MODE}`,
+  get:
+    (tokenId: number) =>
+    ({ get }) => {
+      return get(accountState) === get(positionOwnerQuery(tokenId));
+    },
+});
+
 export const positionFeesQuery = selectorFamily({
   key: `positionFeesQuery-${import.meta.env.MODE}`,
   get:
     (tokenId: number) =>
     async ({ get }) => {
       const owner = get(positionOwnerQuery(tokenId));
-      console.log('owner', owner);
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
       if (NonfungiblePositionManagerContract && tokenIdHexString && owner) {
         return NonfungiblePositionManagerContract.collect
@@ -48,7 +56,7 @@ export const positionFeesQuery = selectorFamily({
             { from: owner } // need to simulate the call as the owner
           )
           .then((results: any) => {
-            return [results.amount0, results.amount1];
+            return [results[0]?.toString(), results[1]?.toString()];
           });
       }
       return [undefined, undefined];
@@ -60,3 +68,5 @@ export const useLiquidityDetail = (tokenId: number) => useRecoilValue(liquidityD
 export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerQuery(tokenId));
 
 export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesQuery(tokenId));
+
+export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(tokenId));

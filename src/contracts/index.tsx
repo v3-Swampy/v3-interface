@@ -21,7 +21,17 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
   } as const;
 };
 
-export const NonfungiblePositionManagerContract  = new Contract(isProduction ? '0x8ae50674593fff83a2967325fdaea6b34b456cc1' : '0x8ae50674593fff83a2967325fdaea6b34b456cc1', NonfungiblePositionManagerABI, Provider)
+export const NonfungiblePositionManagerContract = new Contract(
+  isProduction ? '0x8ae50674593fff83a2967325fdaea6b34b456cc1' : '0x8ae50674593fff83a2967325fdaea6b34b456cc1',
+  NonfungiblePositionManagerABI,
+  Provider
+);
+
+export const MulticallContractNew = new Contract(
+  isProduction ? '0x9f208d7226f05b4f43d0d36eb21d8545c3143685' : '0xd59149a01f910c3c448e41718134baeae55fa784',
+  MulticallABI,
+  Provider
+);
 
 export const NonfungiblePositionManager = createContract(
   isProduction ? '0x8ae50674593fff83a2967325fdaea6b34b456cc1' : '0x8ae50674593fff83a2967325fdaea6b34b456cc1',
@@ -56,4 +66,4 @@ export const VotingEscrowContract = createContract(isProduction ? '0xd0f24c0acb4
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);
 
-export const VSTTokenContract=createERC20Contract(TokenVST.address)
+export const VSTTokenContract = createERC20Contract(TokenVST.address);
