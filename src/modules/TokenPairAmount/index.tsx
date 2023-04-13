@@ -2,7 +2,7 @@ import React from 'react';
 import { useRecoilState } from 'recoil';
 import { useParams } from 'react-router-dom';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { PositionForUI, usePosition } from '@service/pool-manage';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { type Token, getUnwrapperTokenByAddress } from '@service/tokens';
 import { invertedState } from '@modules/SelectedPriceRange';
@@ -26,9 +26,9 @@ const TokenItem: React.FC<{ token: Token | null; amount: string; ratio: number |
 
 const TokenPairAmount: React.FC<{amount0: Unit, amount1: Unit, ratio?: number }> = ({amount0, amount1, ratio }) => {
   const { tokenId } = useParams();
-  const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
-  if (!detail) return <div>loading...</div>;
-  const { token1, liquidity, leftToken, rightToken} = detail;
+  const position: PositionForUI | undefined = usePosition(Number(tokenId));
+  if (!position) return <div>loading...</div>;
+  const { token1, liquidity, leftToken, rightToken} = position;
   // ui token pair revert button
   const [inverted] = useRecoilState(invertedState);
   // ui init display is inverted with token1/token0

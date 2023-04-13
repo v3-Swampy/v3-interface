@@ -120,8 +120,8 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
   );
 };
 
-const DepositAmounts: React.FC<Props & { detail: PositionForUI; title: string }> = ({ detail, title, ...props }) => {
-  const { leftToken: tokenA, rightToken: tokenB, fee } = detail;
+const DepositAmounts: React.FC<Props & { position: PositionForUI; title: string }> = ({ position, title, ...props }) => {
+  const { leftToken: tokenA, rightToken: tokenB, fee } = position;
   const i18n = useI18n(transitions);
   // const tokenA = useTokenA();
   // const tokenB = useTokenB();

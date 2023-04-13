@@ -13,7 +13,7 @@ export enum HistoryStatus {
 export interface HistoryRecord {
   txHash: string;
   status: HistoryStatus;
-  type: 'Swapped' | 'AddLiquidity';
+  type: 'Swapped' | 'AddLiquidity' | 'CollectFees';
   tokenA_Address: string;
   tokenA_Value: string;
   tokenB_Address?: string;

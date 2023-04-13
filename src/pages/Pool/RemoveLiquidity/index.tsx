@@ -5,7 +5,7 @@ import 'rc-slider/assets/index.css';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { PositionForUI, usePosition } from '@service/pool-manage';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/TokenPair';
 import Status from '@modules/Status';
@@ -28,9 +28,9 @@ const transitions = {
 const RemoveLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-  const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
+  const position: PositionForUI | undefined = usePosition(Number(tokenId));
 
-  if (!detail) return <div>loading...</div>;
+  if (!position) return <div>loading...</div>;
 
   return (
     <PageWrapper className="pt-56px">
@@ -44,8 +44,8 @@ const RemoveLiquidity: React.FC = () => {
         </div>
         <BorderBox className="w-full p-16px rounded-28px " variant="gradient-white">
           <div className="flex p-x-16px gap-22px">
-            <TokenPair position={detail} />
-            <Status position={detail} />
+            <TokenPair position={position} />
+            <Status position={position} />
           </div>
           <AmountSlider />
           <AmountDetail />

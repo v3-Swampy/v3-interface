@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n from '@hooks/useI18n';
 import Button from '@components/Button';
-import { type PositionForUI, useLiquidityDetail, usePositionFees, useIsPositionOwner } from '@service/pool-manage';
+import { type PositionForUI, usePosition, usePositionFees, useIsPositionOwner } from '@service/pool-manage';
 import { type Token } from '@service/tokens';
 import TokenPairAmount from '@modules/TokenPairAmount';
 
@@ -21,9 +21,9 @@ const transitions = {
 const UnclaimedFees: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-  const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
-  if (!detail) return <div>loading...</div>;
-  const { liquidity, leftToken, rightToken, token0, token1 } = detail;
+  const position: PositionForUI | undefined = usePosition(Number(tokenId));
+  if (!position) return <div>loading...</div>;
+  const { liquidity, leftToken, rightToken, token0, token1 } = position;
   const [fee0, fee1] = usePositionFees(Number(tokenId));
   const isOwner = useIsPositionOwner(Number(tokenId));
 

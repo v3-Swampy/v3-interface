@@ -24,16 +24,19 @@ const transitions = {
   en: {
     record_swapped: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     record_added_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liqudity to the pool',
+    collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
   },
   zh: {
     record_swapped: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     record_added_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liqudity to the pool',
+    collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
   },
 } as const;
 
 const HistoryTypeMap = {
   ['Swapped']: 'record_swapped',
   ['AddLiquidity']: 'record_added_liquidity',
+  ['CollectFees']: 'collect_fees',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
 
 const DetailContent: React.FC<{ account: string }> = ({ account }) => {
