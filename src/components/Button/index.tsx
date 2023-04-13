@@ -6,7 +6,7 @@ import './index.css';
 
 export interface Props extends ComponentProps<'button'> {
   variant?: 'contained' | 'text' | 'outlined';
-  color?: 'orange' | 'gradient' | 'orange-light';
+  color?: 'orange' | 'gradient' | 'orange-light' | 'gray';
   fullWidth?: boolean;
   loading?: boolean | 'start' | 'end';
   icon?: ReactNode;
@@ -59,7 +59,7 @@ const Button = forwardRef<HTMLButtonElement, PropsWithChildren<Props>>(
         )}
         {!children && icon && <span className="button__icon">{renderReactNode(icon)}</span>}
         {endIcon && <span className="button__icon">{renderReactNode(endIcon)}</span>}
-        {loading === true && <Spin className="button__loading" theme="light" />}
+        {loading === true && <Spin className="button__loading" />}
       </>
     );
   }

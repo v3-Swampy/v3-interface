@@ -8,6 +8,7 @@ import { FeeAmount, calcPriceFromTick } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { getTransactionDeadline } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
+import { addRecordToHistory } from '@service/history';
 
 const duration = dayjs.duration;
 const Q192 = new Decimal(2).toPower(192);
@@ -52,7 +53,12 @@ export const addLiquidity = async ({
 
     const tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
     const tickUpper = priceUpper === 'Infinity' ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
-    console.log(getMinTick(fee), getMaxTick(fee), calcPriceFromTick({ tick: getMinTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit(), calcPriceFromTick({ tick: getMaxTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit());
+    console.log(
+      getMinTick(fee),
+      getMaxTick(fee),
+      calcPriceFromTick({ tick: getMinTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit(),
+      calcPriceFromTick({ tick: getMaxTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit()
+    );
     const data1 = NonfungiblePositionManager.func.encodeFunctionData('mint', [
       {
         token0: token0.address,
@@ -77,6 +83,15 @@ export const addLiquidity = async ({
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
       data: NonfungiblePositionManager.func.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0, data1]]),
       to: NonfungiblePositionManager.address,
+    });
+
+    addRecordToHistory({
+      txHash,
+      type: 'AddLiquidity',
+      tokenA_Address: tokenA.address,
+      tokenA_Value: amountTokenA,
+      tokenB_Address: tokenB.address,
+      tokenB_Value: amountTokenB,
     });
 
     return txHash;
