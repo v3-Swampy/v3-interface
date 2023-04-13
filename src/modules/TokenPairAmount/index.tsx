@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRecoilState } from 'recoil';
 import { useParams } from 'react-router-dom';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { type Token, getUnwrapperTokenByAddress } from '@service/tokens';
@@ -23,12 +24,11 @@ const TokenItem: React.FC<{ token: Token | null; amount: string; ratio: number |
   );
 };
 
-const TokenPairAmount: React.FC<{ showRatio?: boolean }> = ({ showRatio = true }) => {
+const TokenPairAmount: React.FC<{amount0: Unit, amount1: Unit, ratio?: number }> = ({amount0, amount1, ratio }) => {
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   if (!detail) return <div>loading...</div>;
-  const { token1, liquidity, leftToken, rightToken, amount0, amount1, ratio} = detail;
-  console.log('amount0', amount0)
+  const { token1, liquidity, leftToken, rightToken} = detail;
   // ui token pair revert button
   const [inverted] = useRecoilState(invertedState);
   // ui init display is inverted with token1/token0
@@ -44,8 +44,8 @@ const TokenPairAmount: React.FC<{ showRatio?: boolean }> = ({ showRatio = true }
 
   return (
     <div className="flex flex-col gap-8px w-full">
-      <TokenItem token={tokenA} amount={amountAStr} ratio={typeof ratio == 'number' && !removed && showRatio ? (!amountInverted ? ratio : 100 - ratio) : undefined} />
-      <TokenItem token={tokenB} amount={amountBStr} ratio={typeof ratio == 'number' && !removed && showRatio ? (!amountInverted ? 100 - ratio : ratio) : undefined} />
+      <TokenItem token={tokenA} amount={amountAStr} ratio={typeof ratio == 'number' && !removed ? (!amountInverted ? ratio : 100 - ratio) : undefined} />
+      <TokenItem token={tokenB} amount={amountBStr} ratio={typeof ratio == 'number' && !removed ? (!amountInverted ? 100 - ratio : ratio) : undefined} />
     </div>
   );
 };

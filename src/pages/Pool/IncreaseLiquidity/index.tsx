@@ -3,7 +3,6 @@ import { Link, useParams } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import Settings from '@modules/Settings';
 import PairInfo from './PairInfo';
 import IncreaseAmounts from './IncreaseAmounts';
@@ -21,8 +20,6 @@ const transitions = {
 const IncreaseLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-  const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
-  if (!detail) return <div>loading...</div>;
 
   return (
     <PageWrapper className="pt-56px">

@@ -3,8 +3,7 @@ import { useParams } from 'react-router-dom';
 import useI18n from '@hooks/useI18n';
 import TokenPair from '@modules/TokenPair';
 import Status from '@modules/Status';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
-import { type Token } from '@service/tokens';
+import { type PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import TokenPairAmount from '@modules/TokenPairAmount';
 
 const transitions = {
@@ -23,7 +22,7 @@ const PairInfo: React.FC = () => {
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   if (!detail) return <div>loading...</div>;
-  const { fee } = detail;
+  const { fee, amount0, amount1 } = detail;
 
   return (
     <div>
@@ -32,7 +31,7 @@ const PairInfo: React.FC = () => {
         <Status position={detail} />
       </div>
       <div className="flex flex-col w-full mt-12px rounded-20px bg-orange-light-hover p-16px">
-        <TokenPairAmount showRatio={false} />
+        <TokenPairAmount amount0={amount0} amount1={amount1} />
         <div className="mt-18px pl-32px font-medium text-sm flex justify-between text-black-normal">
           <span>{i18n.feeTier}</span>
           <span>{fee / 10000}%</span>

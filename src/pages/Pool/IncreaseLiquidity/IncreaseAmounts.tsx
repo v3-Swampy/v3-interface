@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { type PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import DepositAmounts from '@modules/DepositAmounts';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 

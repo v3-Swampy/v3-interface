@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import Status from '@modules/Status';
 import TokenPair from '@modules/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { type PositionForUI, useLiquidityDetail } from '@service/pool-manage';
 import { invertedState } from '@modules/SelectedPriceRange';
 
 const transitions = {

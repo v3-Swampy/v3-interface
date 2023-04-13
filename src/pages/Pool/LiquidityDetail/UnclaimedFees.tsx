@@ -1,9 +1,11 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n from '@hooks/useI18n';
 import Button from '@components/Button';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { type PositionForUI, useLiquidityDetail, usePositionFees, usePositionOwner } from '@service/pool-manage';
 import { type Token } from '@service/tokens';
+import TokenPairAmount from '@modules/TokenPairAmount';
 
 const transitions = {
   en: {
@@ -36,7 +38,9 @@ const UnclaimedFees: React.FC = () => {
   const { tokenId } = useParams();
   const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
   if (!detail) return <div>loading...</div>;
-  const { liquidity, leftToken, rightToken } = detail;
+  const { liquidity, leftToken, rightToken, token0, token1, } = detail;
+  const [fee0, fee1] = usePositionFees(Number(tokenId))
+  const owner = usePositionOwner(Number(tokenId))
 
   return (
     <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
@@ -49,10 +53,7 @@ const UnclaimedFees: React.FC = () => {
           {i18n.collect_fees}
         </Button>
       </div>
-      <div className="flex flex-col gap-8px w-full">
-        <TokenItem token={leftToken} />
-        <TokenItem token={rightToken} />
-      </div>
+      <TokenPairAmount amount0={new Unit(fee0)} amount1={new Unit(fee1)} />
     </div>
   );
 };

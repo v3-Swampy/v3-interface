@@ -1,4 +1,4 @@
-import { ContractFactory, JsonRpcProvider, type InterfaceAbi } from 'ethers';
+import { ContractFactory, JsonRpcProvider, type InterfaceAbi, Contract } from 'ethers';
 import ERC20ABI from './abis/ERC20.json';
 import MulticallABI from './abis/Multicall.json';
 import NonfungiblePositionManagerABI from './abis/NonfungiblePositionManager.json';
@@ -19,6 +19,8 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
     address,
   } as const;
 };
+
+export const NonfungiblePositionManagerContract  = new Contract(isProduction ? '0x8ae50674593fff83a2967325fdaea6b34b456cc1' : '0x8ae50674593fff83a2967325fdaea6b34b456cc1', NonfungiblePositionManagerABI, Provider)
 
 export const NonfungiblePositionManager = createContract(
   isProduction ? '0x8ae50674593fff83a2967325fdaea6b34b456cc1' : '0x8ae50674593fff83a2967325fdaea6b34b456cc1',
