@@ -31,8 +31,8 @@ export let TokenCFX: Token = {
 };
 
 const setRegularToken = (tokens: Array<Token>) => {
-  TokenVST = tokens?.find((token) => token.symbol === 'PPI')!; // TODO: chaozhou -- VST is not in the repository list now
-  TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!; // TODO: chaozhou -- VST is not in the repository list now
+  TokenVST = tokens?.find((token) => token.symbol === 'VST')!; 
+  TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!;
 };
 setRegularToken(cachedTokens);
 

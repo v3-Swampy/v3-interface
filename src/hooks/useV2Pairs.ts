@@ -63,7 +63,8 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
       return [
         new Pair(
           CurrencyAmount.fromRawAmount(token0, Number(reserve0||0).toString()),
-          CurrencyAmount.fromRawAmount(token1, Number(reserve1||0).toString())
+          CurrencyAmount.fromRawAmount(token1, Number(reserve1||0).toString()),
+          fee
         ),
       ]
     })
@@ -71,7 +72,7 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
   
 }
 
-export function useV2Pair(tokenA?: Currency, tokenB?: Currency): [Pair | null] {
+export function useV2Pair(tokenA: Currency|undefined, tokenB: Currency|undefined,fee:FeeAmount): [Pair | null] {
   const inputs: [[Currency | undefined, Currency | undefined]] = useMemo(() => [[tokenA, tokenB]], [tokenA, tokenB])
-  return useV2Pairs(inputs)[0]
+  return useV2Pairs(inputs,fee)[0]
 }
