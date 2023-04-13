@@ -1,7 +1,7 @@
 import { fetchChain } from '@utils/fetch';
 
 export const isTransactionReceipt = async (transactionHash: string) => {
-  const txReceipt: { blockNumber: string; blockHash: string; transactionHash: string; from: string; to: string } = await fetchChain({
+  const txReceipt: { blockNumber: string; blockHash: string; transactionHash: string; from: string; to: string; status: string } = await fetchChain({
     method: 'eth_getTransactionReceipt',
     params: [transactionHash],
   });

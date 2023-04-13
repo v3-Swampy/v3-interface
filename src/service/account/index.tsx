@@ -81,9 +81,12 @@ export const connect = async (method: Methods) => {
   }
 };
 
-export const disconnect = async (method: Methods) => {
+export const disconnect = async () => {
   try {
-    await methodsMap[method].disconnect();
+    const currentMethod = getAccountMethod();
+    if (currentMethod) {
+      await methodsMap[currentMethod].disconnect();
+    }
     setRecoil(accountMethodFilter, null);
   } catch (_) {}
 };

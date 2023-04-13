@@ -5,11 +5,9 @@ import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import { ReactComponent as Logo } from '@assets/icons/logo.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
-import BorderBox from '@components/Box/BorderBox';
-import Address from '@modules/Address';
-import Avatar from '@components/Avatar';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
 import { routes } from '@router/index';
+import AccountDetailDropdown from './/AccountDetailDropdown';
 import './index.css';
 
 const Navbar: React.FC = () => {
@@ -37,12 +35,7 @@ const Navbar: React.FC = () => {
         </div>
 
         <AuthConnectButton className="flex-shrink-0 min-w-140px h-40px px-8px rounded-100px" color="gradient">
-          {account && (
-            <BorderBox variant="gradient-white" className="flex-shrink-0 min-w-140px h-40px px-8px rounded-100px inline-flex justify-center items-center cursor-pointer">
-              <Avatar account={account} size={24} className="mr-8px" />
-              <Address address={account} className="text-14px text-black-normal font-medium" useTooltip={false} />
-            </BorderBox>
-          )}
+          {account && <AccountDetailDropdown account={account} />}
         </AuthConnectButton>
       </nav>
     </header>

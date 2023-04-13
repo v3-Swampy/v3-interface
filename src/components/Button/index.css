@@ -96,6 +96,15 @@ button.button--text.is-disabled {
   @apply border-orange-normal text-orange-normal;
 }
 
+.button--outlined.button--gray {
+  @apply border-1px border-solid border-gray-normal text-gray-normal;
+}
+
+.button--outlined.button--gray:hover,
+.button--outlined.button--gray:focus-visible {
+  @apply border-gray-normal text-gray-normal;
+}
+
 .button__content {
   @apply inline-flex items-center h-full;
 }

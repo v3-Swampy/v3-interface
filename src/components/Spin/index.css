@@ -1,14 +1,39 @@
-
 .spin {
-  animation: spinAnimation 1.35s linear infinite;
-  transform-origin: center center;
+  width: 1em;
+  height: 1em;
+  animation: spin-rotation 2s linear infinite;
+  contain: strict;
 }
 
-@keyframes spinAnimation {
+.path {
+  stroke-width: 0.3em;
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 4;
+  stroke: currentColor;
+  animation: spin-dash 1.5s ease-in-out infinite;
+}
+
+@keyframes spin-rotation {
   0% {
-    transform: rotate(0);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
   }
   100% {
-    transform: rotate(-360deg);
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
   }
 }
