@@ -8,12 +8,12 @@ import { handleRecoilInit } from '@utils/recoilUtils';
 import Cache from '@utils/LRUCache';
 
 export interface Token {
-  chainId:number;
-  name?: string;
-  symbol?: string;
+  name: string;
+  symbol: string;
   decimals: number;
   address: string;
   logoURI?: string;
+  chainId?: number;
 }
 
 const tokensKey = `tokenState-${import.meta.env.MODE}`;
@@ -22,7 +22,7 @@ const cachedTokens = (LocalStorage.getItem(tokensKey, 'swap') as Array<Token>) ?
 
 export let TokenVST: Token = null!;
 export let TokenCFX: Token = {
-  chainId:71,
+  chainId: 71,
   name: 'Conflux',
   symbol: 'CFX',
   decimals: 18,
@@ -31,8 +31,8 @@ export let TokenCFX: Token = {
 };
 
 const setRegularToken = (tokens: Array<Token>) => {
-  TokenVST = tokens?.find((token) => token.symbol === 'PPI')!; // TODO: chaozhou -- VST is not in the repository list now
-  TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!; // TODO: chaozhou -- VST is not in the repository list now
+  TokenVST = tokens?.find((token) => token.symbol === 'VST')!; 
+  TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!;
 };
 setRegularToken(cachedTokens);
 
@@ -46,9 +46,9 @@ export const baseTokens = baseSymbols.map((symbol) => cachedTokens.find((token) 
 const wrapperTokenMap = new Map<string, Token>();
 const unwrapperTokenMap = new Map<string, Token>();
 const tokensMap = new Map<string, Token>();
-export const getTokenByAddress = (address?: string | null) => address ? (tokensMap.get(address.toLowerCase()) ?? null) : null;
-export const getWrapperTokenByAddress = (address?: string | null) => address ? (wrapperTokenMap.get(address.toLowerCase()) ?? null) : null;
-export const getUnwrapperTokenByAddress = (address?: string | null) => address ? (unwrapperTokenMap.get(address.toLowerCase()) ?? null) : null;
+export const getTokenByAddress = (address?: string | null) => (address ? tokensMap.get(address.toLowerCase()) ?? null : null);
+export const getWrapperTokenByAddress = (address?: string | null) => (address ? wrapperTokenMap.get(address.toLowerCase()) ?? null : null);
+export const getUnwrapperTokenByAddress = (address?: string | null) => (address ? unwrapperTokenMap.get(address.toLowerCase()) ?? null : null);
 const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
 const resetTokensMap = (tokens: Array<Token>) => {
   tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
@@ -95,8 +95,8 @@ export const tokensState = atom<Array<Token>>({
 export const useTokens = () => {
   const tokens = useRecoilValue(tokensState);
   const tokensWithoutWCFX = useMemo(() => tokens?.filter((token) => token.symbol !== 'WCFX'), [tokens]);
-  return tokensWithoutWCFX
-}
+  return tokensWithoutWCFX;
+};
 
 const CommonTokensCount = 5;
 const commonTokensCache = new Cache<Token>(CommonTokensCount - 1, 'swap-common-token');

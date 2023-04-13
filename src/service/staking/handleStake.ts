@@ -2,7 +2,7 @@ import { sendTransaction } from '@service/account';
 import { VotingEscrowContract } from '@contracts/index';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { showToast } from '@components/showPopup';
-import { toI18n, compiled } from '@hooks/useI18n';
+import { toI18n } from '@hooks/useI18n';
 
 const transitions = {
   en: {
@@ -14,14 +14,9 @@ const transitions = {
 } as const;
 
 export const handleStakingVST = async ({ methodName, methodParams }: { methodName: string; methodParams?: any[] }) => {
-  // const txHash = await sendTransaction({
-  //   data: VotingEscrowContract.func.encodeFunctionData(methodName, methodParams ?? []),
-  //   to: VotingEscrowContract.address,
-  // });
-
   const txHash = await sendTransaction({
-    value: '0x1',
-    to: '0xDeaA5029e4341e6357E9CF89ddBF7e16Ce3F0169',
+    data: VotingEscrowContract.func.encodeFunctionData(methodName, methodParams ?? []),
+    to: VotingEscrowContract.address,
   });
 
   return txHash;

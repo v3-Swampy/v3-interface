@@ -9,7 +9,7 @@ import Decimal from 'decimal.js';
 import Corner from './Corner';
 import showStakeLPModal, { ModalMode } from './StakeLPModal';
 
-const FAKE_DATA_ALL_FARMS = [
+const FAKE_DATA_ALL_FARMS: Array<FarmsItemProps> = [
   {
     poolAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c100',
     tokenA: {

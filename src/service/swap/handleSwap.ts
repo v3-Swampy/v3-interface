@@ -32,7 +32,7 @@ export const handleSwap = async ({ sourceTokenAmount, destinationTokenAmount }: 
   const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
   await receiptPromise;
 
-  showToast(compiled(i18n.success_tip, { sourceTokenAmount, destinationTokenAmount, sourceToken: sourceToken.symbol, destinationToken: destinationToken.symbol }), {
+  showToast(compiled(i18n.success_tip, { sourceTokenAmount, destinationTokenAmount, sourceToken: sourceToken.symbol!, destinationToken: destinationToken.symbol! }), {
     type: 'success',
   });
 };

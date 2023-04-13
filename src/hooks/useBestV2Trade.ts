@@ -3,15 +3,16 @@ import { useMemo } from 'react'
 import { Pair, Trade } from '@uniswap-v2-sdk/index'
 import { isTradeBetter } from '@utils/isTradeBetter'
 
+import {FeeAmount} from '@service/pairs&pool'
 import { BETTER_TRADE_LESS_HOPS_THRESHOLD } from '../constants/misc'
 import { useAllCurrencyCombinations } from './useAllCurrencyCombinations'
 import { useV2Pairs } from './useV2Pairs'
 
 const MAX_HOPS = 3
 
-function useAllCommonPairs(currencyA?: Currency, currencyB?: Currency): Pair[] {
+function useAllCommonPairs(currencyA: Currency|undefined, currencyB: Currency|undefined,fee?:FeeAmount): Pair[] {
   const allCurrencyCombinations = useAllCurrencyCombinations(currencyA, currencyB)
-  const allPairs = useV2Pairs(allCurrencyCombinations)
+  const allPairs = useV2Pairs(allCurrencyCombinations,fee)
   return useMemo(
     () =>
       Object.values(
@@ -33,9 +34,10 @@ function useAllCommonPairs(currencyA?: Currency, currencyB?: Currency): Pair[] {
  */
 export function useBestV2Trade(
   tradeType: TradeType.EXACT_INPUT | TradeType.EXACT_OUTPUT,
-  amountSpecified?: CurrencyAmount<Currency>,
-  otherCurrency?: Currency,
-  { maxHops = MAX_HOPS } = {}
+  amountSpecified: CurrencyAmount<Currency>|undefined,
+  otherCurrency: Currency,
+  { maxHops = MAX_HOPS } = {},
+  fee?:FeeAmount
 ): Trade<Currency, Currency, TradeType.EXACT_INPUT | TradeType.EXACT_OUTPUT> | null {
   const [currencyIn, currencyOut] = useMemo(
     () =>
@@ -44,7 +46,7 @@ export function useBestV2Trade(
         : [otherCurrency, amountSpecified?.currency],
     [tradeType, amountSpecified, otherCurrency]
   )
-  const allowedPairs = useAllCommonPairs(currencyIn, currencyOut)
+  const allowedPairs = useAllCommonPairs(currencyIn, currencyOut,fee)
   // return ({} as any)
   return useMemo(() => {
     if (amountSpecified && currencyIn && currencyOut && allowedPairs.length > 0) {

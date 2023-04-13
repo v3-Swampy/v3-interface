@@ -3,7 +3,7 @@ import RecoilNexus from 'recoil-nexus';
 import ReactDOM from 'react-dom/client';
 import dayjs from 'dayjs';
 import durationPlugin from 'dayjs/plugin/duration'
-import { completeDetect } from '@cfxjs/use-wallet-react/conflux';
+import { completeDetect } from '@cfxjs/use-wallet-react/ethereum';
 import { initializeRecoil } from '@utils/recoilUtils';
 import { ModalPopup, DrawerPopup, Toast } from '@components/showPopup';
 import { isMobile } from '@utils/is';

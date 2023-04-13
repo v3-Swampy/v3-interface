@@ -1,7 +1,7 @@
 import { getWrapperTokenByAddress } from './../tokens/tokens';
 export * from './allRelatedPools';
 export * from './singlePool';
-export {default as computePoolAddress} from './computePoolAddress';
+export { default as computePoolAddress } from './computePoolAddress';
 import { type Token } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
@@ -93,35 +93,30 @@ export const calcAmountFromPrice = ({
   upper: Unit | number | string;
   current: Unit | number | string;
 }) => {
-  const usedLiquidity = typeof liquidity !== 'object' ? new Unit(liquidity) : liquidity;
-  const usedLower = typeof lower !== 'object' ? new Unit(lower) : lower;
-  const usedUpper = typeof upper !== 'object' ? new Unit(upper) : upper;
-  const usedCurrent = typeof current !== 'object' ? new Unit(current) : current;
+  const usedLiquidity = new Unit(liquidity);
+  const usedLower = new Unit(lower);
+  const usedUpper = new Unit(upper);
+  const usedCurrent = new Unit(current);
   console.log('amount', usedLiquidity.toDecimalMinUnit(), usedLower.toDecimalMinUnit(), usedUpper.toDecimalMinUnit(), usedCurrent.toDecimalMinUnit());
   let amount0: Unit, amount1: Unit;
   if (usedCurrent.lessThan(usedLower)) {
     //只有amount0
-    amount0 = usedLiquidity
-      .mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)))
-      .div(Unit.sqrt(usedUpper).mul(Unit.sqrt(usedLower)));
+    amount0 = usedLiquidity.mul(usedUpper.sqrt().sub(Unit.sqrt(usedLower))).div(usedUpper.sqrt().mul(Unit.sqrt(usedLower)));
     amount1 = new Unit(0);
   } else if (usedCurrent.greaterThan(usedUpper)) {
     //只有amount1
     amount0 = new Unit(0);
-    amount1 = usedLiquidity.mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedLower)));
+    amount1 = usedLiquidity.mul(usedUpper.sqrt().sub(Unit.sqrt(usedLower)));
   } else {
     // in range
     // amount0 = liquidity * (sqrt(upper) - sqrt(current)) / (sqrt(upper) * sqrt(current))
     // amount1 = liquidity * (sqrt(current) - sqrt(lower))
     console.log('in range');
-    amount0 = usedLiquidity
-      .mul(Unit.sqrt(usedUpper).sub(Unit.sqrt(usedCurrent)))
-      .div(Unit.sqrt(usedUpper).mul(Unit.sqrt(usedCurrent)));
+    amount0 = usedLiquidity.mul(usedUpper.sqrt().sub(usedCurrent.sqrt())).div(usedUpper.sqrt().mul(usedCurrent.sqrt()));
     amount1 = usedLiquidity.mul(Unit.sqrt(usedCurrent).sub(Unit.sqrt(usedLower)));
   }
   return [amount0, amount1];
 };
-
 
 export const calcRatio = (lower: Unit, current: Unit | null | undefined, upper: Unit) => {
   try {
@@ -149,7 +144,7 @@ export const calcRatio = (lower: Unit, current: Unit | null | undefined, upper: 
   } catch {
     return undefined;
   }
-}
+};
 
 export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; searchTick: Unit | string | number }) => {
   const usedSearchTick = typeof searchTick !== 'object' ? new Unit(searchTick) : searchTick;
@@ -171,13 +166,10 @@ export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fe
 };
 
 export const invertPrice = (price: Unit | string | number) => {
-  const usedPrice = typeof price !== 'object' ? new Unit(price) : price;
+  const usedPrice = new Unit(price);
   const ZERO = new Unit(0);
-  const INFINITY = new Unit('Infinity');
-  const isPriceZero = usedPrice.equals(ZERO);
-  const isPriceInfinity = usedPrice.equals(INFINITY);
-  if (isPriceZero) return INFINITY;
-  if (isPriceInfinity) return ZERO;
+  if (usedPrice.equals(ZERO)) return new Unit(Infinity);
+  if (!usedPrice.isFinite()) return ZERO;
   return new Unit(1).div(usedPrice);
 };
 

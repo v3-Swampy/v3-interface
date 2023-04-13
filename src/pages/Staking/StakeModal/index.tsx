@@ -58,20 +58,26 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
     withForm(async (data) => {
       let methodName, methodParams;
       let unlockTime = Math.ceil(new Date().valueOf() / 1000) + currentStakeDuration;
-      let amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit();
+      let amount = '0x0';
+      let action=''
       switch (modalMode) {
         case ModalMode.CreateLock:
+          amount=Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit()
           methodName = 'createLock';
           methodParams = [amount, unlockTime];
+          action=`Stake <strong>${data['VST-stake-amount']}</strong> VST`
           break;
         case ModalMode.IncreaseUnlockTime:
           methodName = 'increaseUnlockTime';
-          unlockTime = currentUnlockTime && currentStakeDuration ? currentUnlockTime + currentStakeDuration : null;
+          unlockTime = currentUnlockTime && currentStakeDuration ? (+currentUnlockTime) + (+currentStakeDuration) : null;
           methodParams = [unlockTime];
+          action=`Extend UnLockTime`
           break;
         case ModalMode.IncreaseAmount:
+          amount=Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit()
           methodName = 'increaseAmount';
           methodParams = [account, amount];
+          action=`Increase <strong>${data['VST-stake-amount']}</strong> VST`
           break;
       }
       try {
@@ -79,8 +85,8 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
           methodName,
           methodParams,
         });
-        console.log(setNextInfo);
-        setNextInfo({ txHash, action: `Stake <strong>${data['VST-stake-amount']}</strong> VST` });
+
+        setNextInfo({ txHash, action: `${action}` });
       } catch (err) {
         console.error('Create stake VST transcation failed: ', err);
       }
@@ -111,10 +117,10 @@ const buttonProps = {
   className: 'mt-26px h-36px rounded-10px text-14px',
 } as const;
 
-const showStakeModal = (type: ModalMode) => {
+const showStakeModal = (type: ModalMode,currentUnlockTime?:number) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
-    ConfirmContent: (props: Props) => <StakeModal type={type} {...props} />,
+    ConfirmContent: (props: Props) => <StakeModal type={type} currentUnlockTime={currentUnlockTime} {...props} />,
     className: '!max-w-572px !min-h-466px',
   });
 };

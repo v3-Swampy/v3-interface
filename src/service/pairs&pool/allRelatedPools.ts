@@ -128,7 +128,7 @@ const pairTokens = (tokens: Array<Token>, biDirectional: boolean = false) => {
 
 (function () {
   handleTokensChange((tokens) => {
-    const baseCheckTradeTokens = tokens?.filter((token) => baseCheckTradeTokenSymbols.includes(token.symbol)) ?? [];
+    const baseCheckTradeTokens = tokens?.filter((token) => baseCheckTradeTokenSymbols.includes(token.symbol!)) ?? [];
     try {
       handleRecoilInit((set) => {
         set(baseCheckTradeTokensState, baseCheckTradeTokens);

@@ -45,7 +45,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
           step={new Unit(1).toDecimalStandardUnit(undefined, TokenVST.decimals)}
         />
 
-        <span className="text-14px text-black-normal font-medium">PPI</span>
+        <span className="text-14px text-black-normal font-medium">VST</span>
       </div>
 
       <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">

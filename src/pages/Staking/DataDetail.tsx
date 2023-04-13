@@ -38,7 +38,7 @@ const DataDetailContent: React.FC = () => {
       <div className="w-1/2">
         <p className="leading-23px text-14px text-gray-normal">{compiled(i18n.total_staking, { token: 'VST' })}</p>
         <p className="leading-23px text-16px text-black-normal font-medium">{totalStakeVST?.toDecimalStandardUnit(2, TokenVST?.decimals) ?? '...'}</p>
-        <p className="leading-23px text-14px text-black-normal">~ {totalLockedBalanceUSD ? `${totalLockedBalanceUSD}` : '-'}</p>
+        <p className="leading-23px text-14px text-black-normal">~ {totalLockedBalanceUSD ? `$${totalLockedBalanceUSD}` : '-'}</p>
       </div>
 
       <div className="w-1/2 flex flex-col justify-center">
