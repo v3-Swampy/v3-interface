@@ -10,7 +10,7 @@ import Dropdown from '@components/Dropdown';
 import ToolTip from '@components/Tooltip';
 import Spin from '@components/Spin';
 import Address from '@modules/Address';
-import { useHistory, HistoryStatus, clearHistory } from '@service/history';
+import { useHistory, HistoryStatus, clearHistory, type HistoryRecord } from '@service/history';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { disconnect } from '@service/account';
 import useI18n, { compiled } from '@hooks/useI18n';
@@ -22,12 +22,19 @@ import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 
 const transitions = {
   en: {
-    record_swapped: 'Swapped <strong>{tokenAValue} {tokenASymbol}</strong> for <strong>{tokenBValue} {tokenBSymbol}</strong>',
+    record_swapped: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
+    record_added_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liqudity to the pool',
   },
   zh: {
-    record_swapped: 'Swapped <strong>{tokenAValue} {tokenASymbol}</strong> for <strong>{tokenBValue} {tokenBSymbol}</strong>',
+    record_swapped: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
+    record_added_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liqudity to the pool',
   },
 } as const;
+
+const HistoryTypeMap = {
+  ['Swapped']: 'record_swapped',
+  ['AddLiquidity']: 'record_added_liquidity',
+} as Record<HistoryRecord['type'], keyof typeof transitions.en>;
 
 const DetailContent: React.FC<{ account: string }> = ({ account }) => {
   const [isCopied, copy] = useClipboard(account, { successDuration: 1000 });
@@ -86,7 +93,7 @@ const History: React.FC = () => {
           rel="noopener noreferrer"
           href={`${import.meta.env.VITE_ESpaceScanUrl}/tx/${record.txHash}`}
         >
-          <div className={'flex items-center h-36px px-8px pr-20px'}>
+          <div className={'flex items-center h-36px px-8px pr-28px'}>
             {tokenA && !tokenB && <img className="w-24px h-24px mr-8px flex-shrink-0 flex-grow-0" src={tokenA.logoURI} alt={`${tokenA.symbol} logo`} />}
             {tokenA && tokenB && (
               <>
@@ -97,7 +104,7 @@ const History: React.FC = () => {
             <span
               className="history-record text-12px text-gray-normal flex-shrink-1 flex-grow-1"
               dangerouslySetInnerHTML={{
-                __html: compiled(i18n.record_swapped, {
+                __html: compiled(i18n[HistoryTypeMap[record.type]], {
                   tokenAValue: trimDecimalZeros(record.tokenA_Value),
                   tokenASymbol: tokenA?.symbol ?? '',
                   tokenBValue: trimDecimalZeros(record.tokenB_Value ? Number(record.tokenB_Value).toFixed(4) : ''),

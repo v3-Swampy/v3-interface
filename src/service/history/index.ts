@@ -10,7 +10,7 @@ export enum HistoryStatus {
   Failed = 'Failed',
 }
 
-interface HistoryRecord {
+export interface HistoryRecord {
   txHash: string;
   status: HistoryStatus;
   type: 'Swapped' | 'AddLiquidity';
