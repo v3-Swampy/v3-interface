@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import Status from '@modules/Status';
 import TokenPair from '@modules/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { type PositionForUI, useLiquidityDetail, useIsPositionOwner } from '@service/pool-manage';
 import { invertedState } from '@modules/SelectedPriceRange';
 
 const transitions = {
@@ -26,6 +26,7 @@ const DetailHeader: React.FC = () => {
   const navigate = useNavigate();
   if (!detail) return <div>loading...</div>;
   const [inverted] = useRecoilState(invertedState);
+  const isOwner = useIsPositionOwner(Number(tokenId));
 
   return (
     <div className="flex width-full justify-between">
@@ -33,14 +34,16 @@ const DetailHeader: React.FC = () => {
         <TokenPair position={detail} inverted={inverted} />
         <Status position={detail} />
       </div>
-      <div className="flex justify-end gap-16px">
-        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="orange-light" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
-          {i18n.increase_liquidity}
-        </Button>
-        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
-          {i18n.remove_liquidity}
-        </Button>
-      </div>
+      {isOwner && (
+        <div className="flex justify-end gap-16px">
+          <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="orange-light" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
+            {i18n.increase_liquidity}
+          </Button>
+          <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
+            {i18n.remove_liquidity}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

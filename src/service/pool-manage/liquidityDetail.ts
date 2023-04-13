@@ -1,9 +1,7 @@
 import { selectorFamily, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager, NonfungiblePositionManagerContract, fetchMulticall } from '@contracts/index';
+import { NonfungiblePositionManager } from '@contracts/index';
 import { PositionsForUISelector } from './positions';
-import { fetchChain } from '@utils/fetch';
-import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { accountState } from '@service/account';
 import Decimal from 'decimal.js';
 
@@ -23,7 +21,7 @@ const liquidityDetailSelector = selectorFamily({
 export const positionOwnerQuery = selectorFamily({
   key: `positionOwnerQuery-${import.meta.env.MODE}`,
   get: (tokenId) => async () => {
-    const response = await NonfungiblePositionManagerContract.ownerOf(tokenId);
+    const response = await NonfungiblePositionManager.func.ownerOf(tokenId);
     return response;
   },
 });
@@ -33,7 +31,7 @@ export const isPositionOwnerSelector = selectorFamily({
   get:
     (tokenId: number) =>
     ({ get }) => {
-      return get(accountState) === get(positionOwnerQuery(tokenId));
+      return get(accountState)?.toLowerCase() === get(positionOwnerQuery(tokenId))?.toLowerCase();
     },
 });
 
@@ -44,8 +42,8 @@ export const positionFeesQuery = selectorFamily({
     async ({ get }) => {
       const owner = get(positionOwnerQuery(tokenId));
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
-      if (NonfungiblePositionManagerContract && tokenIdHexString && owner) {
-        return NonfungiblePositionManagerContract.collect
+      if (NonfungiblePositionManager && tokenIdHexString && owner) {
+        return NonfungiblePositionManager.func.collect
           .staticCall(
             {
               tokenId: tokenIdHexString,
@@ -56,7 +54,7 @@ export const positionFeesQuery = selectorFamily({
             { from: owner } // need to simulate the call as the owner
           )
           .then((results: any) => {
-            return [results[0]?.toString(), results[1]?.toString()];
+            return [results[0], results[1]];
           });
       }
       return [undefined, undefined];

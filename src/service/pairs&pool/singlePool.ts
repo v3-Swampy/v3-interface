@@ -33,11 +33,11 @@ export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB
   const poolAddress = computePoolAddress(params);
   const poolContract = createPoolContract(poolAddress);
   return await fetchMulticall([
-    [poolContract.address, poolContract.func.encodeFunctionData('slot0')],
-    [poolContract.address, poolContract.func.encodeFunctionData('liquidity')],
+    [poolContract.address, poolContract.func.interface.encodeFunctionData('slot0')],
+    [poolContract.address, poolContract.func.interface.encodeFunctionData('liquidity')],
   ]).then((res) => {
-    const slots = res?.[0] && res?.[0] !== '0x' ? poolContract.func.decodeFunctionResult('slot0', res[0]) : null;
-    const liquidityRes = res?.[1] && res?.[1] !== '0x' ? poolContract.func.decodeFunctionResult('liquidity', res[1]) : null;
+    const slots = res?.[0] && res?.[0] !== '0x' ? poolContract.func.interface.decodeFunctionResult('slot0', res[0]) : null;
+    const liquidityRes = res?.[1] && res?.[1] !== '0x' ? poolContract.func.interface.decodeFunctionResult('liquidity', res[1]) : null;
     const pool = new Pool({
       ...params,
       address: poolAddress,

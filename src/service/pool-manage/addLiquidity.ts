@@ -47,13 +47,13 @@ export const addLiquidity = async ({
       : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'Infinity' : (1 / +_priceLower).toFixed(5)];
 
     const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
-    const data0 = NonfungiblePositionManager.func.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
+    const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
     const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
 
     const tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
     const tickUpper = priceUpper === 'Infinity' ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
     console.log(getMinTick(fee), getMaxTick(fee), calcPriceFromTick({ tick: getMinTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit(), calcPriceFromTick({ tick: getMaxTick(fee), tokenA: token0, tokenB: token1 }).toDecimalMinUnit());
-    const data1 = NonfungiblePositionManager.func.encodeFunctionData('mint', [
+    const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('mint', [
       {
         token0: token0.address,
         token1: token1.address,
@@ -75,7 +75,7 @@ export const addLiquidity = async ({
 
     const txHash = await sendTransaction({
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
-      data: NonfungiblePositionManager.func.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0, data1]]),
+      data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0, data1]]),
       to: NonfungiblePositionManager.address,
     });
 
