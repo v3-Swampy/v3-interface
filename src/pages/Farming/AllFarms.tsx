@@ -39,7 +39,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 
   return (
     <div className="bg-orange-lightHover rounded-2xl mb-6 last:mb-0 flex justify-between py-4 px-8 relative">
-      <Corner timestatmp={Number(data.incentivePeriod[1])}></Corner>
+      <Corner timestatmp={Number(data.incentivePeriod.endTime)}></Corner>
       <div>
         <div className={`${className.title}`}>{i18n.poolName}</div>
         <div className={`${className.content} inline-flex justify-center items-center`}>
@@ -89,7 +89,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 };
 
 const AllFarms = () => {
-  const { loading, poolList } = usePoolList([0, 1, 2, 3]);
+  const { loading, poolList } = usePoolList();
 
   return (
     <div className="mt-6">
