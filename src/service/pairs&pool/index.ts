@@ -165,7 +165,8 @@ export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fe
   return calcPriceFromTick({ tick: closestValidTick, tokenA, tokenB });
 };
 
-export const invertPrice = (price: Unit | string | number) => {
+export const invertPrice = (price: Unit | string | number | undefined) => {
+  if (price === undefined || price === null) return new Unit(0);
   const usedPrice = new Unit(price);
   const ZERO = new Unit(0);
   if (usedPrice.equals(ZERO)) return new Unit(Infinity);

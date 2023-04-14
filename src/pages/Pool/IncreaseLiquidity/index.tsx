@@ -4,9 +4,10 @@ import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
 import Settings from '@modules/Settings';
+import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
+import { usePosition } from '@service/position';
 import PairInfo from './PairInfo';
 import IncreaseAmounts from './IncreaseAmounts';
-import SelectedPriceRange from '@modules/SelectedPriceRange';
 
 const transitions = {
   en: {
@@ -20,7 +21,8 @@ const transitions = {
 const IncreaseLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-
+  const position = usePosition(Number(tokenId));
+  
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
@@ -37,7 +39,7 @@ const IncreaseLiquidity: React.FC = () => {
             <IncreaseAmounts />
           </div>
           <div className="mt-8px flex-1">
-            <SelectedPriceRange />
+            <SelectedPriceRange position={position} tokenId={tokenId} />
           </div>
         </BorderBox>
       </div>

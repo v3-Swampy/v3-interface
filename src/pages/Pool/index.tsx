@@ -4,11 +4,11 @@ import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Spin from '@components/Spin';
-import Status from '@modules/Status';
-import TokenPair from '@modules/TokenPair';
-import PriceRange from '@modules/PriceRange';
+import PositionStatus from '@modules/Position/PositionStatus';
+import TokenPair from '@modules/Position/TokenPair';
+import PriceRange from '@modules/Position/PriceRange';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePositionsForUI } from '@service/pool-manage';
+import { type PositionForUI, usePositionsForUI } from '@service/position';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 
 const transitions = {
@@ -30,11 +30,11 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
   return (
     <Link to={String(position.id)} className="no-underline">
       <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
-        <div className="inline-block">
+        <div>
           <TokenPair position={position} />
           <PriceRange position={position} />
         </div>
-        <Status position={position} />
+        <PositionStatus position={position} />
       </div>
     </Link>
   );

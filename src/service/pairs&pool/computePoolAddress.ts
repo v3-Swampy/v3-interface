@@ -5,7 +5,7 @@ import { UniswapV3Factory } from '@contracts/index';
 import { type Token } from '@service/tokens';
 import { LRUCacheFunction } from '@utils/LRUCache';
 import { FeeAmount } from './';
-import { Token as UniToken } from '@uniswap/sdk-core'
+import { Token as UniToken } from '@uniswap/sdk-core';
 
 const POOL_INIT_CODE_HASH = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54';
 
@@ -30,5 +30,5 @@ function _computePoolAddress({ tokenA, tokenB, fee=FeeAmount.MEDIUM, initCodeHas
   );
 }
 
-const computePoolAddress = LRUCacheFunction(_computePoolAddress, 'computePoolAddress');
+const computePoolAddress = LRUCacheFunction(_computePoolAddress, `computePoolAddress-${UniswapV3Factory.address}`);
 export default computePoolAddress;

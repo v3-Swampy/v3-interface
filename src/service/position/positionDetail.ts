@@ -3,7 +3,7 @@ import { getRecoil } from 'recoil-nexus';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { sendTransaction } from '@service/account';
-import { PositionsForUISelector } from './positions';
+import { PositionForUI, PositionsForUISelector } from './positions';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { accountState } from '@service/account';
 import { addRecordToHistory } from '@service/history';
@@ -11,10 +11,10 @@ import Decimal from 'decimal.js';
 
 const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
 
-const positionSelector = selectorFamily({
+const positionSelector = selectorFamily<PositionForUI | undefined, number>({
   key: `PositionDetailForUI-${import.meta.env.MODE}`,
   get:
-    (tokenId) =>
+    (tokenId: number) =>
     ({ get }) => {
       const positions = get(PositionsForUISelector);
       if (!positions) return undefined;
@@ -24,9 +24,8 @@ const positionSelector = selectorFamily({
 
 export const positionOwnerQuery = selectorFamily({
   key: `positionOwnerQuery-${import.meta.env.MODE}`,
-  get: (tokenId) => async () => {
-    const response = await NonfungiblePositionManager.func.ownerOf(tokenId);
-    return response;
+  get: (tokenId: number) => async () => {
+    return (await NonfungiblePositionManager.func.ownerOf(tokenId)) as string;
   },
 });
 
@@ -47,7 +46,7 @@ export const positionFeesQuery = selectorFamily({
       const owner = get(positionOwnerQuery(tokenId));
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
       if (NonfungiblePositionManager && tokenIdHexString && owner) {
-        return NonfungiblePositionManager.func.collect
+        return await NonfungiblePositionManager.func.collect
           .staticCall(
             {
               tokenId: tokenIdHexString,
@@ -57,21 +56,21 @@ export const positionFeesQuery = selectorFamily({
             },
             { from: owner } // need to simulate the call as the owner
           )
-          .then((results: any) => {
-            return [results[0], results[1]];
+          .then((results) => {
+            return [Number(results[0]), Number(results[1])] as const;
           });
       }
-      return [undefined, undefined];
+      return [undefined, undefined] as const;
     },
 });
 
 export const collectFees = async (tokenId: number) => {
   try {
     const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
-    const owner = getPositionOwner(tokenId)
-    const position = getPosition(tokenId)
-    const [fee0, fee1] = getPositionFees(tokenId)
-    const {token0, token1} = position!;
+    const owner = getPositionOwner(tokenId);
+    const position = getPosition(tokenId);
+    const [fee0, fee1] = getPositionFees(tokenId);
+    const { token0, token1 } = position!;
     const data = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
       {
         tokenId: tokenIdHexString,
@@ -88,25 +87,25 @@ export const collectFees = async (tokenId: number) => {
       txHash,
       type: 'CollectFees',
       tokenA_Address: token0.address,
-      tokenA_Value: trimDecimalZeros((new Unit(fee0)?.toDecimalStandardUnit(5, token0.decimals))),
+      tokenA_Value: fee0 ? trimDecimalZeros(new Unit(fee0)?.toDecimalStandardUnit(5, token0.decimals)) : '',
       tokenB_Address: token1.address,
-      tokenB_Value: trimDecimalZeros((new Unit(fee1)?.toDecimalStandardUnit(5, token0.decimals))),
+      tokenB_Value: fee1 ? trimDecimalZeros(new Unit(fee1)?.toDecimalStandardUnit(5, token0.decimals)) : '',
     });
   } catch (err) {
     console.error('collectFees failed:', err);
   }
 };
 
-export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(tokenId));
+export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(+tokenId));
 
-export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerQuery(tokenId));
+export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerQuery(+tokenId));
 
-export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesQuery(tokenId));
+export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesQuery(+tokenId));
 
-export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(tokenId));
+export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(+tokenId));
 
-export const getPositionOwner = (tokenId: number) => getRecoil(positionOwnerQuery(tokenId));
+export const getPositionOwner = (tokenId: number) => getRecoil(positionOwnerQuery(+tokenId));
 
-export const getPosition = (tokenId: number) => getRecoil(positionSelector(tokenId));
+export const getPosition = (tokenId: number) => getRecoil(positionSelector(+tokenId));
 
-export const getPositionFees = (tokenId: number) => getRecoil(positionFeesQuery(tokenId));
+export const getPositionFees = (tokenId: number) => getRecoil(positionFeesQuery(+tokenId));

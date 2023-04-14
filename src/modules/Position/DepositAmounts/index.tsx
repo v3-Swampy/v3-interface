@@ -10,7 +10,7 @@ import { useAccount } from '@service/account';
 import { usePool } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { PositionForUI } from '@service/pool-manage';
+import { PositionForUI } from '@service/position';
 
 // import { useTokenA, useTokenB } from '././SelectPair';
 // import { useCurrentFee } from './SelectFeeTier';

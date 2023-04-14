@@ -3,12 +3,11 @@ import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import useInTranscation from '@hooks/useInTranscation';
 import { ReactComponent as LogoIcon } from '@assets/icons/logo_icon.svg';
-import { usePositionsForUI } from '@service/pool-manage';
+import { usePositionsForUI } from '@service/position';
 import Spin from '@components/Spin';
-import Status from '@modules/Status';
-import PriceRange from '@modules/PriceRange';
+import PositionStatus from '@modules/Position/PositionStatus';
+import PriceRange from '@modules/Position/PriceRange';
 import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
-import { Link } from 'react-router-dom';
 
 const transitions = {
   en: {
@@ -77,7 +76,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
                   <div>
                     <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
                     <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">${p.liquidity}</span>
-                    <Status position={p} />
+                    <PositionStatus position={p} />
                   </div>
                   <PriceRange position={p} />
                 </div>

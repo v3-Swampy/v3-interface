@@ -6,7 +6,7 @@ import AuthTokenButton from '@modules/AuthTokenButton';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { useTokenA, useTokenB } from './SelectPair';
 
-const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string }> = ({ amountTokenA, amountTokenB }) => {
+const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSubmitCreate: boolean; }> = ({ amountTokenA, amountTokenB, inSubmitCreate }) => {
   const tokenA = useTokenA()!;
   const tokenB = useTokenB()!;
 
@@ -14,7 +14,7 @@ const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string }> = (
     <AuthConnectButton {...buttonProps}>
       <AuthTokenButton {...buttonProps} tokenAddress={tokenA?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenA}>
         <AuthTokenButton {...buttonProps} tokenAddress={tokenB?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenB}>
-          <Button {...buttonProps}>Submit</Button>
+          <Button {...buttonProps} loading={inSubmitCreate}>Submit</Button>
         </AuthTokenButton>
       </AuthTokenButton>
     </AuthConnectButton>

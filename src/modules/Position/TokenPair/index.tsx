@@ -2,7 +2,7 @@
  * token pair including the token symbol / logo/ fee in liquidity page
  */
 import React from 'react';
-import { type PositionForUI } from '@service/pool-manage';
+import { type PositionForUI } from '@service/position';
 
 const TokenPair: React.FC<{ position: PartialOmit<PositionForUI, 'leftToken' | 'rightToken' | 'fee'>; inverted?: boolean; showFee?: boolean }> = ({
   position,

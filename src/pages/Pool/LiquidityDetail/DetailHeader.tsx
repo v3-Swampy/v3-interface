@@ -2,11 +2,11 @@ import React from 'react';
 import { useRecoilState } from 'recoil';
 import { useParams, useNavigate } from 'react-router-dom';
 import Button from '@components/Button';
-import Status from '@modules/Status';
-import TokenPair from '@modules/TokenPair';
+import Status from '@modules/Position/PositionStatus';
+import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePosition, useIsPositionOwner } from '@service/pool-manage';
-import { invertedState } from '@modules/SelectedPriceRange';
+import { type PositionForUI, usePosition, useIsPositionOwner } from '@service/position';
+import { useInvertedState } from '@modules/Position/invertedState';
 
 const transitions = {
   en: {
@@ -24,10 +24,10 @@ const DetailHeader: React.FC = () => {
   const { tokenId } = useParams();
   const position: PositionForUI | undefined = usePosition(Number(tokenId));
   const navigate = useNavigate();
-  if (!position) return <div>loading...</div>;
-  const [inverted] = useRecoilState(invertedState);
+  const [inverted] = useInvertedState(tokenId);
   const isOwner = useIsPositionOwner(Number(tokenId));
 
+  if (!position) return null;
   return (
     <div className="flex width-full justify-between">
       <div className="flex gap-22px">

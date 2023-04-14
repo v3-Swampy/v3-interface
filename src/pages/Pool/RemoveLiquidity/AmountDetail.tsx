@@ -1,7 +1,7 @@
 import React from 'react';
 import useI18n from '@hooks/useI18n';
 import { useParams } from 'react-router-dom';
-import { type PositionForUI, usePosition } from '@service/pool-manage';
+import { type PositionForUI, usePosition } from '@service/position';
 
 const transitions = {
   en: {

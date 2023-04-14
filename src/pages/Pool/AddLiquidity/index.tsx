@@ -10,7 +10,8 @@ import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
-import { addLiquidity } from '@service/pool-manage';
+import useInTranscation from '@hooks/useInTranscation';
+import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/position';
 import SelectPair, { useTokenA, useTokenB, swapTokenAB } from './SelectPair';
 import SelectFeeTier from './SelectFeeTier';
 import DepositAmounts from './DepositAmounts';
@@ -57,10 +58,11 @@ const AddLiquidity: React.FC = () => {
   const amountTokenB = watch('amount-tokenB', '');
   const priceInit = watch('price-init', '');
 
+  const { inTranscation: inSubmitCreate, execTranscation: handleClickSubmitCreatePosition } = useInTranscation(_handleClickSubmitCreatePosition);
   const onSubmit = useCallback(
     withForm(async (data) => {
       if (!tokenA || !tokenB) return;
-      addLiquidity({
+      handleClickSubmitCreatePosition({
         ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; fee: string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
         tokenA,
         tokenB,
@@ -148,7 +150,7 @@ const AddLiquidity: React.FC = () => {
             <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between">
               <SetPriceRange register={register} setValue={setValue} isRangeValid={isRangeValid} priceInit={priceInit} priceUpper={priceUpper} />
 
-              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} />
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} />
             </div>
           </BorderBox>
         </form>

@@ -7,7 +7,7 @@
 
 .path {
   stroke-width: 0.3em;
-  stroke-width: clamp(2px, 0.3em, 8px);
+  stroke-width: clamp(2px, 0.3em, 5px);
   stroke-dasharray: 1, 200;
   stroke-dashoffset: 4;
   stroke: currentColor;

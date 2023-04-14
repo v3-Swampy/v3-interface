@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useForm } from 'react-hook-form';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
@@ -11,7 +12,6 @@ import { handleStakingVST as _handleStakingVST } from '@service/staking';
 import AmountInput from './AmountInput';
 import DurationSelect, { defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
-import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import {useBoostFactor} from '@service/staking'
 
 
@@ -69,7 +69,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
           amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit();
           methodName = 'createLock';
           methodParams = [amount, unlockTime];
-          action = `Stake <strong>${data['VST-stake-amount']}</strong> VST`;
+          action = `Stake <b>${data['VST-stake-amount']}</b> VST`;
           break;
         case ModalMode.IncreaseUnlockTime:
           methodName = 'increaseUnlockTime';
@@ -81,7 +81,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
           amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit();
           methodName = 'increaseAmount';
           methodParams = [account, amount];
-          action = `Increase <strong>${data['VST-stake-amount']}</strong> VST`;
+          action = `Increase <b>${data['VST-stake-amount']}</b> VST`;
           break;
       }
       try {
@@ -124,7 +124,7 @@ const buttonProps = {
 const showStakeModal = (type: ModalMode, currentUnlockTime?: number) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
-    ConfirmContent: (props: Props) => <StakeModal type={type} currentUnlockTime={currentUnlockTime} {...props} />,
+    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeModal type={type} currentUnlockTime={currentUnlockTime} {...confirmModalInnerProps} />,
     className: '!max-w-572px !min-h-466px',
   });
 };

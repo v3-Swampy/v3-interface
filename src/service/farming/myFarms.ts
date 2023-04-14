@@ -1,7 +1,7 @@
 import { fetchMulticall, UniswapV3StakerFactory } from '@contracts/index';
 import { selector,  selectorFamily } from 'recoil';
 import { accountState } from '@service/account';
-import { getPosition } from '@service/pool-manage';
+import { getPosition } from '@service/position';
 import { getPastIncentivesOfPool } from './';
 import { keccak256 } from '@ethersproject/solidity';
 import { defaultAbiCoder } from '@ethersproject/abi';
