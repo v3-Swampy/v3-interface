@@ -84,8 +84,8 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
     fetchMulticall(
       poolContracts
         .map((poolContract) => [
-          [poolContract.address, poolContract.func.encodeFunctionData('slot0')],
-          [poolContract.address, poolContract.func.encodeFunctionData('liquidity')],
+          [poolContract.address, poolContract.func.interface.encodeFunctionData('slot0')],
+          [poolContract.address, poolContract.func.interface.encodeFunctionData('liquidity')],
         ])
         .flat()
     )

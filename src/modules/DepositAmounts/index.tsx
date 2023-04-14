@@ -120,15 +120,15 @@ const DepositAmount: React.FC<Props & { token: Token | null; pairToken: Token | 
   );
 };
 
-const DepositAmounts: React.FC<Props & { detail: PositionForUI; title: string }> = ({ detail, title, ...props }) => {
-  const { leftToken: tokenA, rightToken: tokenB, fee } = detail;
+const DepositAmounts: React.FC<Props & { position: PositionForUI; title: string }> = ({ position, title, ...props }) => {
+  const { leftToken: tokenA, rightToken: tokenB, fee } = position;
   const i18n = useI18n(transitions);
   // const tokenA = useTokenA();
   // const tokenB = useTokenB();
   // const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
   const { isRangeValid, priceInit, setValue, getValues } = props;
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [pool, priceInit]);
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [tokenA?.address, pool, priceInit]);
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
 

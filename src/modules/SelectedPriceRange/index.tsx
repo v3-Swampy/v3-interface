@@ -9,7 +9,7 @@ import cx from 'clsx';
 import { atom, useRecoilState } from 'recoil';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import useI18n, { compiled } from '@hooks/useI18n';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { PositionForUI, usePosition } from '@service/pool-manage';
 import { invertPrice, usePool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/detail_exchange.svg';
@@ -61,10 +61,10 @@ export const invertedState = atom({ key: 'inverted', default: false });
 const SelectedPriceRange: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-  const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
-  if (!detail) return <div>loading...</div>;
+  const position: PositionForUI | undefined = usePosition(Number(tokenId));
+  if (!position) return <div>loading...</div>;
 
-  const { token0, token1, fee, leftToken, rightToken, priceLowerForUI, priceUpperForUI } = detail;
+  const { token0, token1, fee, leftToken, rightToken, priceLowerForUI, priceUpperForUI } = position;
 
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
 

@@ -1,14 +1,13 @@
-import { type ComponentProps } from 'react';
+import { forwardRef, type ComponentProps } from 'react';
 import cx from 'clsx';
 import './index.css';
 
-const BorderBox: React.FC<ComponentProps<'div'> & { withInput?: boolean; variant: 'gradient-white' | 'gradient-orange-light-hover' | 'orange' | 'transparent' | 'none' }> = ({
-  children,
-  className,
-  variant = 'transparent',
-  withInput,
-  ...props
-}) => {
+interface Props extends ComponentProps<'div'> {
+  withInput?: boolean;
+  variant: 'gradient-white' | 'gradient-orange-light-hover' | 'orange' | 'transparent' | 'none';
+}
+
+const BorderBox = forwardRef<HTMLDivElement, Props>(({ children, className, variant = 'transparent', withInput, ...props }, ref) => {
   return (
     <div
       className={cx(
@@ -24,11 +23,12 @@ const BorderBox: React.FC<ComponentProps<'div'> & { withInput?: boolean; variant
         },
         className
       )}
+      ref={ref}
       {...props}
     >
       {children}
     </div>
   );
-};
+});
 
 export default BorderBox;

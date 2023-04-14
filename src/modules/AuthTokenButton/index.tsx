@@ -61,9 +61,9 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
         setStatus('checking-approve');
 
         const fetchRes = await fetchChain<string>({
-          params: [{ data: tokenContract.func.encodeFunctionData('allowance', [account, contractAddress]), to: tokenContract.address }, 'latest'],
+          params: [{ data: tokenContract.func.interface.encodeFunctionData('allowance', [account, contractAddress]), to: tokenContract.address }, 'latest'],
         });
-        const allowance = tokenContract.func.decodeFunctionResult('allowance', fetchRes)?.[0];
+        const allowance = tokenContract.func.interface.decodeFunctionResult('allowance', fetchRes)?.[0];
         const approveBalance = new Unit(String(allowance));
         if (approveBalance.greaterThanOrEqualTo(amountUnit)) {
           setStatus('approved');
@@ -88,7 +88,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       setStatus('approving');
       const txHash = await sendTransaction({
         to: token?.address,
-        data: tokenContract.func.encodeFunctionData('approve', [contractAddress, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff']),
+        data: tokenContract.func.interface.encodeFunctionData('approve', [contractAddress, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff']),
       });
 
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });

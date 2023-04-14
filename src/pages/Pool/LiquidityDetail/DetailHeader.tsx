@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import Status from '@modules/Status';
 import TokenPair from '@modules/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, useLiquidityDetail } from '@service/pool-manage';
+import { type PositionForUI, usePosition, useIsPositionOwner } from '@service/pool-manage';
 import { invertedState } from '@modules/SelectedPriceRange';
 
 const transitions = {
@@ -22,25 +22,28 @@ const transitions = {
 const DetailHeader: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-  const detail: PositionForUI | undefined = useLiquidityDetail(Number(tokenId));
+  const position: PositionForUI | undefined = usePosition(Number(tokenId));
   const navigate = useNavigate();
-  if (!detail) return <div>loading...</div>;
+  if (!position) return <div>loading...</div>;
   const [inverted] = useRecoilState(invertedState);
+  const isOwner = useIsPositionOwner(Number(tokenId));
 
   return (
     <div className="flex width-full justify-between">
       <div className="flex gap-22px">
-        <TokenPair position={detail} inverted={inverted} />
-        <Status position={detail} />
+        <TokenPair position={position} inverted={inverted} />
+        <Status position={position} />
       </div>
-      <div className="flex justify-end gap-16px">
-        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="orange-light" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
-          {i18n.increase_liquidity}
-        </Button>
-        <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
-          {i18n.remove_liquidity}
-        </Button>
-      </div>
+      {isOwner && (
+        <div className="flex justify-end gap-16px">
+          <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="orange-light" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
+            {i18n.increase_liquidity}
+          </Button>
+          <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
+            {i18n.remove_liquidity}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

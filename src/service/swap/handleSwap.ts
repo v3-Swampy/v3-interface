@@ -25,7 +25,7 @@ export const handleSwap = async ({ sourceTokenAmount, destinationTokenAmount }: 
   const hexDestinationTokenAmount = Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toHexMinUnit();
 
   const txHash = await sendTransaction({
-    data: UniswapV3Factory.func.encodeFunctionData('demo', [hexSourceTokenAmount, hexDestinationTokenAmount]),
+    data: UniswapV3Factory.func.interface.encodeFunctionData('demo', [hexSourceTokenAmount, hexDestinationTokenAmount]),
     to: UniswapV3Factory.address,
   });
 

@@ -38,8 +38,8 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
     tokenAContract=createERC20Contract(tokenA.address)
     const tokenBContract=createERC20Contract(tokenB.address)
     const callItem=[
-      [tokenA.address,tokenAContract.func.encodeFunctionData('balanceOf',[pairAddress])],
-      [tokenB.address,tokenBContract.func.encodeFunctionData('balanceOf',[pairAddress])]
+      [tokenA.address,tokenAContract.func.interface.encodeFunctionData('balanceOf',[pairAddress])],
+      [tokenB.address,tokenBContract.func.interface.encodeFunctionData('balanceOf',[pairAddress])]
     ]
     return callItem
   }).flat()
@@ -48,7 +48,7 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
   const [multicalResults,setMulticallResults]=useState<Array<any>>([]);
   useEffect(() => {
     fetchMulticall(callData).then((res) => res?.map((data) => {
-      return tokenAContract.func.decodeFunctionResult('balanceOf', data);
+      return tokenAContract.func.interface.decodeFunctionResult('balanceOf', data);
     })).then((res)=>{
       setMulticallResults(mergePairs(res||[]))
     })
@@ -69,7 +69,6 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
       ]
     })
   },[tokenArr])
-  
 }
 
 export function useV2Pair(tokenA: Currency|undefined, tokenB: Currency|undefined,fee:FeeAmount): [Pair | null] {

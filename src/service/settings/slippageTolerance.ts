@@ -1,7 +1,9 @@
 import { atom, useRecoilValue } from 'recoil';
 import { getRecoil, setRecoil } from 'recoil-nexus';
 import { persistAtomWithDefault } from '@utils/recoilUtils';
+import { routes } from '@router/index';
 
+const getSwapPagePath = () => `/${routes.find(route => route.name === 'Swap')?.path ?? 'swap'}`;
 /**
  * The swap and liquidity pages have different default Slippage Tolerance.
  * But when ever the Slippage Tolerance has been set manually, both pages will use the manual setting.
@@ -32,7 +34,7 @@ export const useSlippageTolerance = () => {
   const method = useRecoilValue(slippageToleranceMethod);
 
   if (method === 'auto') {
-    if (location.pathname?.startsWith('/swap')) {
+    if (location.pathname?.startsWith(getSwapPagePath())) {
       return { method, value: SwapDefaultSlippageTolerance * 100 };
     } else {
       return { method, value: AddLiquidityDefaultSlippageTolerance * 100 };
@@ -54,7 +56,7 @@ export const setSlippageTolerance = (value: number) => {
 export const getSlippageTolerance = () => {
   const method = getRecoil(slippageToleranceMethod);
   if (method === 'auto') {
-    if (location.pathname?.startsWith('/swap')) {
+    if (location.pathname?.startsWith(getSwapPagePath())) {
       return SwapDefaultSlippageTolerance;
     } else {
       return AddLiquidityDefaultSlippageTolerance;

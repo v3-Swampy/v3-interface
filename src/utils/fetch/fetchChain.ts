@@ -15,7 +15,6 @@ export function fetchChain<T extends any>(fetchParams: Omit<FetchParams, 'equalK
 export function fetchChain() {
   const param: FetchParams | (() => Promise<any>) = arguments[0];
   const equalKey: string = arguments[1];
-  
   let fetcher: Promise<any>;
   if (isFunction(param)) {
     fetcher = param();

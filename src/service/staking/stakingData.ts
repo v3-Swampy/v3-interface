@@ -8,115 +8,67 @@ import { useAccount } from '@service/account';
 //VST Contract
 const totalStakeVSTQuery = selector({
   key: `VSTTotalStateQuery-${import.meta.env.MODE}`,
-  get: () =>
-    fetchChain<string>({
-      params: [
-        {
-          data: VSTTokenContract.func.encodeFunctionData('balanceOf', [VotingEscrowContract?.address]),
-          to: VSTTokenContract.address,
-        },
-        'latest',
-      ],
-    }),
+  get: async () => {
+    const response = await VSTTokenContract.func.balanceOf(VotingEscrowContract?.address);
+    return new Unit(response).toDecimalMinUnit()
+  },
 });
 
 const vstDecimalsQuery = selector({
   key: `VSTDecimals-${import.meta.env.MODE}`,
-  get: () =>
-    fetchChain<any>({
-      params: [
-        {
-          data: VSTTokenContract.func.encodeFunctionData('decimals'),
-          to: VSTTokenContract.address,
-        },
-        'latest',
-      ],
-    }),
+  get: async () => {
+    const response = await VSTTokenContract.func.decimals();
+    return new Unit(response).toDecimalMinUnit()
+  },
 });
 
 const vstTotalSupplyQuery = selector({
   key: `VSTTotalSupply-${import.meta.env.MODE}`,
-  get: () =>
-    fetchChain<any>({
-      params: [
-        {
-          data: VSTTokenContract.func.encodeFunctionData('totalSupply'),
-          to: VSTTokenContract.address,
-        },
-        'latest',
-      ],
-    }),
+  get: async () => {
+    const response = await VSTTokenContract.func.totalSupply();
+    return new Unit(response).toDecimalMinUnit()
+  },
 });
 
 const escrowTotalSupplyQuery = selector({
   key: `escrowTotalSupply-${import.meta.env.MODE}`,
-  get: () =>
-    fetchChain<string>({
-      params: [
-        {
-          data: VotingEscrowContract.func.encodeFunctionData('totalSupply'),
-          to: VotingEscrowContract.address,
-        },
-        'latest',
-      ],
-    }),
+  get: async () => {
+    const response = await VotingEscrowContract.func.totalSupply();
+    return new Unit(response).toDecimalMinUnit()
+  },
 });
 
 // VotingEscrow Contract
 
 const escrowTotalMaxTimeQuery = selector({
   key: `escrowTotalMaxTime-${import.meta.env.MODE}`,
-  get: () =>
-    fetchChain<string>({
-      params: [
-        {
-          data: VotingEscrowContract.func.encodeFunctionData('maxTime'),
-          to: VotingEscrowContract.address,
-        },
-        'latest',
-      ],
-    }),
+  get: async () => {
+    const response = await VotingEscrowContract.func.maxTime();
+    return new Unit(response).toDecimalMinUnit()
+  },
 });
 
 const escrowDecimalsQuery = selector({
   key: `escrowDecimals-${import.meta.env.MODE}`,
-  get: () =>
-    fetchChain<string>({
-      params: [
-        {
-          data: VotingEscrowContract.func.encodeFunctionData('decimals'),
-          to: VotingEscrowContract.address,
-        },
-        'latest',
-      ],
-    }),
+  get: async () => {
+    const response = await VotingEscrowContract.func.decimals();
+    return new Unit(response).toDecimalMinUnit()
+  },
 });
 
 const escrowUserInfoQuery = selectorFamily({
   key: `escrowUserInfo-${import.meta.env.MODE}`,
-  get:
-    (account) =>
-    async ({}) => {
-      if (!account) return null;
-      const fetchRes = await fetchChain<string>({
-        params: [
-          {
-            data: VotingEscrowContract.func.encodeFunctionData('userInfo', [account]),
-            to: VotingEscrowContract.address,
-          },
-          'latest',
-        ],
-      });
-      const decodedRes = VotingEscrowContract.func.decodeFunctionResult('userInfo', fetchRes);
-      return decodedRes;
-    },
+  get: (account) => async () => {
+    if (!account) return null;
+    const response = await VotingEscrowContract.func.userInfo(account);
+    return response;
+  },
 });
 
 export const useTotalStakeVST = () => {
   const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
   return totalStakeVST ? new Unit(totalStakeVST) : null;
 };
-
 
 export const usePercentageOfCulatingtion = () => {
   const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
@@ -141,6 +93,6 @@ export const useUserInfo = () => {
   const account = useAccount();
   const userInfo = useRecoilValue(escrowUserInfoQuery(account));
   const vstDecimals = useRecoilValue(vstDecimalsQuery);
-  const lockedAmount = account ? new Unit(userInfo?.[0].toString()).toDecimalStandardUnit(0, vstDecimals) : 0;
+  const lockedAmount = account ? new Unit(userInfo?.[0].toString()).toDecimalStandardUnit(0, Number(vstDecimals)) : 0;
   return [lockedAmount, userInfo?.[1]?.toString()];
 };

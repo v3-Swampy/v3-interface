@@ -15,7 +15,7 @@ const transitions = {
 
 export const handleStakingVST = async ({ methodName, methodParams }: { methodName: string; methodParams?: any[] }) => {
   const txHash = await sendTransaction({
-    data: VotingEscrowContract.func.encodeFunctionData(methodName, methodParams ?? []),
+    data: VotingEscrowContract.func.interface.encodeFunctionData(methodName, methodParams ?? []),
     to: VotingEscrowContract.address,
   });
 
@@ -25,7 +25,7 @@ export const handleStakingVST = async ({ methodName, methodParams }: { methodNam
 export const handleUnStake = async () => {
   const i18n = toI18n(transitions);
   const txHash = await sendTransaction({
-    data: VotingEscrowContract.func.encodeFunctionData('withdraw'),
+    data: VotingEscrowContract.func.interface.encodeFunctionData('withdraw'),
     to: VotingEscrowContract.address,
   });
 
