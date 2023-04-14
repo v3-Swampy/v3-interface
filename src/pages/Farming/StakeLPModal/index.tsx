@@ -82,7 +82,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
             const isInRange = t < 4;
 
             return (
-              <div className="rounded-4 bg-orange-lightHover p-4 flex justify-between items-center mb-4" key={t}>
+              <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4" key={t}>
                 <div>
                   <div>
                     <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
