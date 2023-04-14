@@ -9,9 +9,7 @@ import TokenPair from '@modules/TokenPair';
 import PriceRange from '@modules/PriceRange';
 import useI18n from '@hooks/useI18n';
 import { type PositionForUI, usePositionsForUI } from '@service/pool-manage';
-import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
-import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
 
 const transitions = {
   en: {
@@ -29,14 +27,8 @@ const transitions = {
 } as const;
 
 const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
-  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, id } = position;
-
-  const priceLowerStr = trimDecimalZeros(priceLowerForUI.toDecimalMinUnit(5));
-  const _priceUpperStr = trimDecimalZeros(priceUpperForUI.toDecimalMinUnit(5));
-  const priceUpperStr = _priceUpperStr === 'Infinity' ? '∞' : _priceUpperStr;
-
   return (
-    <Link to={String(id)} className="no-underline">
+    <Link to={String(position.id)} className="no-underline">
       <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
         <div className="inline-block">
           <TokenPair position={position} />

@@ -97,7 +97,7 @@ export const calcAmountFromPrice = ({
   const usedLower = new Unit(lower);
   const usedUpper = new Unit(upper);
   const usedCurrent = new Unit(current);
-  console.log('amount', usedLiquidity.toDecimalMinUnit(), usedLower.toDecimalMinUnit(), usedUpper.toDecimalMinUnit(), usedCurrent.toDecimalMinUnit());
+  // console.log('amount', usedLiquidity.toDecimalMinUnit(), usedLower.toDecimalMinUnit(), usedUpper.toDecimalMinUnit(), usedCurrent.toDecimalMinUnit());
   let amount0: Unit, amount1: Unit;
   if (usedCurrent.lessThan(usedLower)) {
     //只有amount0
@@ -111,7 +111,7 @@ export const calcAmountFromPrice = ({
     // in range
     // amount0 = liquidity * (sqrt(upper) - sqrt(current)) / (sqrt(upper) * sqrt(current))
     // amount1 = liquidity * (sqrt(current) - sqrt(lower))
-    console.log('in range');
+    // console.log('in range');
     amount0 = usedLiquidity.mul(usedUpper.sqrt().sub(usedCurrent.sqrt())).div(usedUpper.sqrt().mul(usedCurrent.sqrt()));
     amount1 = usedLiquidity.mul(Unit.sqrt(usedCurrent).sub(Unit.sqrt(usedLower)));
   }
@@ -133,7 +133,7 @@ export const calcRatio = (lower: Unit, current: Unit | null | undefined, upper: 
     const b = Number.parseFloat(upper.toDecimalMinUnit(15));
     const c = Number.parseFloat(current.toDecimalMinUnit(15));
 
-    console.log('ratio', a, b, c);
+    // console.log('ratio', a, b, c);
 
     const ratio = Math.floor((1 / ((Math.sqrt(a * b) - Math.sqrt(b * c)) / (c - Math.sqrt(b * c)) + 1)) * 100);
 

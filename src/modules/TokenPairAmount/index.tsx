@@ -24,11 +24,11 @@ const TokenItem: React.FC<{ token: Token | null; amount: string; ratio: number |
   );
 };
 
-const TokenPairAmount: React.FC<{amount0: Unit, amount1: Unit, ratio?: number }> = ({amount0, amount1, ratio }) => {
+const TokenPairAmount: React.FC<{ amount0: Unit; amount1: Unit; ratio?: number }> = ({ amount0, amount1, ratio }) => {
   const { tokenId } = useParams();
   const position: PositionForUI | undefined = usePosition(Number(tokenId));
   if (!position) return <div>loading...</div>;
-  const { token1, liquidity, leftToken, rightToken} = position;
+  const { token1, liquidity, leftToken, rightToken } = position;
   // ui token pair revert button
   const [inverted] = useRecoilState(invertedState);
   // ui init display is inverted with token1/token0
