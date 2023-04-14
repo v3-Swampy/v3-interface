@@ -51,14 +51,14 @@ export const addLiquidity = async ({
       : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'Infinity' : (1 / +_priceLower).toFixed(5)];
 
     const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
-    const data0 = NonfungiblePositionManager.func.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
+    const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
     const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
 
     const _tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
     const _tickUpper = priceUpper === 'Infinity' ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
     const tickLower = typeof _tickLower === 'number' ? _tickLower : +findClosestValidTick({ fee, searchTick: _tickLower }).toDecimalMinUnit();
     const tickUpper = typeof _tickUpper === 'number' ? _tickUpper : +findClosestValidTick({ fee, searchTick: _tickUpper }).toDecimalMinUnit();
-    
+
     const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
       pool,
       token0,
@@ -72,7 +72,7 @@ export const addLiquidity = async ({
     });
     console.log(slippageTolerance, token0Amount, token1Amount)
     console.log(amount0Min, amount1Min)
-    
+
     const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('mint', [
       {
         token0: token0.address,

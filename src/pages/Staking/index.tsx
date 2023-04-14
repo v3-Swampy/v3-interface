@@ -65,7 +65,7 @@ const StakingPage: React.FC = () => {
   const displayedUnlockedTime = useMemo(() => {
     return unlockTime ? dayjs.unix(unlockTime).format('YYYY-MM-DD HH:mm:ss') : '-'
   }, [unlockTime])
-  
+
   const lockedBalanceUSD = useMemo(() => {
     return VSTPrice && lockedAmount
       ? numberWithCommas(parseFloat((+VSTPrice * +lockedAmount).toFixed(3).slice(0, -1)))

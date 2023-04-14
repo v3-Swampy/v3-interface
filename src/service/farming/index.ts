@@ -66,7 +66,7 @@ export const getPoolList = async (pids: number[]): Promise<PoolType[]> => {
     }
 
     // get poolinfo list of pids
-    const resOfMulticall: any = await fetchMulticall(pids.map((id) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.encodeFunctionData('poolInfo', [id])]));
+    const resOfMulticall: any = await fetchMulticall(pids.map((id) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('poolInfo', [id])]));
 
     let poolInfos = resOfMulticall
       ? pids.map((_, i) => {
