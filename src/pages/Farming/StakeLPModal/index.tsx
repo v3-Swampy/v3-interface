@@ -40,7 +40,7 @@ export enum ModalMode {
 
 type Props = ConfirmModalInnerProps & PoolType;
 
-const StakeModal: React.FC<Props> = ({ address, incentivePeriod: [startTime, endTime], pid, token0, token1 }) => {
+const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, token0, token1 }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const { inTranscation, execTranscation: handleStakeLP } = useInTranscation(_handleStakeLP);
