@@ -27,10 +27,10 @@ const AmountItem: React.FC<{ tokenSymbol: string; amount: string; logoURI: strin
     </div>
   );
 };
-const AmountDetail: React.FC<{ leftRemoveAmount: string; rightRemoveAmount: string }> = ({ leftRemoveAmount, rightRemoveAmount }) => {
-  const { tokenId } = useParams();
+const AmountDetail: React.FC<{ tokenId: string; leftRemoveAmount: string; rightRemoveAmount: string }> = ({ leftRemoveAmount, rightRemoveAmount, tokenId }) => {
   const position: PositionForUI | undefined = usePosition(Number(tokenId));
-  const { leftToken, rightToken } = position!;
+  const { leftToken, rightToken } = position || {};
+
   return (
     <div className="bg-orange-light-hover  rounded-20px px-16px py-18px mt-16px">
       <AmountItem tokenSymbol={leftToken?.symbol || ''} amount={leftRemoveAmount} logoURI={leftToken?.logoURI || ''} />

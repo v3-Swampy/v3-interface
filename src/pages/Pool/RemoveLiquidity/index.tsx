@@ -6,7 +6,7 @@ import 'rc-slider/assets/index.css';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, usePosition } from '@service/pool-manage';
+import { PositionForUI, usePosition, removeLiquidity } from '@service/pool-manage';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/TokenPair';
 import Status from '@modules/Status';
@@ -32,7 +32,7 @@ const getTotalAmounts = (position: PositionForUI | undefined) => {
   let leftTotalAmount = new Unit(0);
   let rightTotalAmount = new Unit(0);
   if (position) {
-    const { amount0, amount1, token0, token1, leftToken, rightToken } = position;
+    const { amount0, amount1, token0, token1, leftToken, rightToken } = position || {};
 
     if (amount0 && amount1 && leftToken && rightToken) {
       if (leftToken.address === token0.address || rightToken.address === token1.address) {
@@ -54,8 +54,8 @@ const RemoveLiquidity: React.FC = () => {
   const [rightRemoveAmount, setRightRemoveAmount] = useState<Unit>(new Unit(0));
 
   const position: PositionForUI | undefined = usePosition(Number(tokenId));
-
-  const { leftToken, rightToken, amount0, amount1 } = position!;
+  console.log('position', position);
+  const { leftToken, rightToken, amount0, amount1 } = position || {};
 
   const leftRemoveAmountForUI = useMemo(() => {
     return trimDecimalZeros(leftRemoveAmount.toDecimalStandardUnit(5, leftToken?.decimals));
@@ -67,7 +67,20 @@ const RemoveLiquidity: React.FC = () => {
 
   const onClickPreview = () => {
     position &&
-      showModal({ Content: <ConfirmRemove leftRemoveAmount={leftRemoveAmountForUI} rightRemoveAmount={rightRemoveAmountForUI} />, title: i18n.remove_liquidity });
+      tokenId &&
+      showModal({
+        Content: (
+          <ConfirmRemove
+            onConfirmRemove={() => {
+              removeLiquidity({ tokenId, removePercent, positionLiquidity: position?.liquidity });
+            }}
+            tokenId={tokenId}
+            leftRemoveAmount={leftRemoveAmountForUI}
+            rightRemoveAmount={rightRemoveAmountForUI}
+          />
+        ),
+        title: i18n.remove_liquidity,
+      });
   };
 
   useEffect(() => {
@@ -76,6 +89,7 @@ const RemoveLiquidity: React.FC = () => {
     setRightRemoveAmount(rightTotalAmount.mul(removePercent).div(100));
   }, [removePercent, setLeftRemoveAmount, getTotalAmounts, amount0, amount1]);
 
+  if (!tokenId || !position) return <div />;
 
   return (
     <PageWrapper className="pt-56px">
@@ -93,7 +107,7 @@ const RemoveLiquidity: React.FC = () => {
             <Status position={position!} />
           </div>
           <AmountSlider removePercent={removePercent} setRemovePercent={setRemovePercent} />
-          <AmountDetail leftRemoveAmount={leftRemoveAmountForUI} rightRemoveAmount={rightRemoveAmountForUI} />
+          <AmountDetail leftRemoveAmount={leftRemoveAmountForUI} rightRemoveAmount={rightRemoveAmountForUI} tokenId={tokenId} />
           <Button
             onClick={onClickPreview}
             disabled={!removePercent}

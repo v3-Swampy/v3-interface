@@ -1,8 +1,6 @@
-import React, { useMemo, Dispatch, SetStateAction } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import Slider from 'rc-slider';
-import { type PositionForUI, usePosition } from '@service/pool-manage';
 
 const transitions = {
   en: {
@@ -17,8 +15,6 @@ const transitions = {
 
 const AmountSlider: React.FC<{ removePercent: number; setRemovePercent: React.Dispatch<React.SetStateAction<number>> }> = ({ removePercent, setRemovePercent }) => {
   const i18n = useI18n(transitions);
-  const { tokenId } = useParams();
-  const position: PositionForUI | undefined = usePosition(Number(tokenId));
 
   const marks = useMemo(
     () =>

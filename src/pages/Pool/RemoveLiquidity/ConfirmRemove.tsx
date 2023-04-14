@@ -1,8 +1,6 @@
-import React, { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import React from 'react';
 import Button from '@components/Button';
 import AmountDetail from './AmountDetail';
-import { type PositionForUI, usePosition } from '@service/pool-manage';
 import AuthConnectButton from '@modules/AuthConnectButton';
 
 const buttonProps = {
@@ -10,17 +8,17 @@ const buttonProps = {
   fullWidth: true,
 } as const;
 
-const ConfirmRemove: React.FC<{ leftRemoveAmount: string; rightRemoveAmount: string }> = ({ leftRemoveAmount, rightRemoveAmount }) => {
-  const { tokenId } = useParams();
-  const position: PositionForUI | undefined = usePosition(Number(tokenId));
-
+const ConfirmRemove: React.FC<{ tokenId: string; leftRemoveAmount: string; rightRemoveAmount: string; onConfirmRemove: () => void }> = ({
+  leftRemoveAmount,
+  rightRemoveAmount,
+  onConfirmRemove,
+  tokenId,
+}) => {
   return (
     <div>
-      <AmountDetail leftRemoveAmount={leftRemoveAmount} rightRemoveAmount={rightRemoveAmount} />
+      <AmountDetail leftRemoveAmount={leftRemoveAmount} rightRemoveAmount={rightRemoveAmount} tokenId={tokenId} />
       <AuthConnectButton {...buttonProps}>
-        <Button onClick={() => console.log(123)} {...buttonProps}>
-          Submit
-        </Button>
+        <Button onClick={onConfirmRemove}>Submit</Button>
       </AuthConnectButton>
     </div>
   );
