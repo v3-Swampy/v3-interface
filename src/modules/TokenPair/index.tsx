@@ -4,7 +4,11 @@
 import React from 'react';
 import { type PositionForUI } from '@service/pool-manage';
 
-const TokenPair: React.FC<{ position: PositionForUI; inverted?: boolean; showFee?: boolean }> = ({ position, inverted = false, showFee = true }) => {
+const TokenPair: React.FC<{ position: PartialOmit<PositionForUI, 'leftToken' | 'rightToken' | 'fee'>; inverted?: boolean; showFee?: boolean }> = ({
+  position,
+  inverted = false,
+  showFee = true,
+}) => {
   const { leftToken, rightToken, fee } = position;
   const leftTokenForUI = !inverted ? leftToken : rightToken;
   const rightTokenForUI = !inverted ? rightToken : leftToken;

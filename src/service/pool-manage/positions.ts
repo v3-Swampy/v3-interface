@@ -5,6 +5,7 @@ import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
+import { computePoolAddress } from '@service/pairs&pool';
 
 export enum PositionStatus {
   InRange,
@@ -14,6 +15,7 @@ export enum PositionStatus {
 
 export interface Position {
   id: number;
+  address: string;
   nonce: number;
   operator: string;
   token0: Token;
@@ -104,13 +106,24 @@ const positionsQuery = selector({
       return positionsResult?.map((singleRes, index) => {
         const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
 
+        const token0 = getTokenByAddress(decodeRes?.[2])!;
+        const token1 = getTokenByAddress(decodeRes?.[3])!;
+        const fee = Number(decodeRes?.[4]);
+
+        const address = computePoolAddress({
+          tokenA: token0,
+          tokenB: token1,
+          fee: fee,
+        });
+
         const position: Position = {
           id: tokenIds[index],
+          address: address,
           nonce: Number(decodeRes?.[0]),
           operator: String(decodeRes?.[1]),
-          token0: getTokenByAddress(decodeRes?.[2])!,
-          token1: getTokenByAddress(decodeRes?.[3])!,
-          fee: Number(decodeRes?.[4]),
+          token0: token0,
+          token1: token1,
+          fee: fee,
           tickLower: Number(decodeRes?.[5]),
           tickUpper: Number(decodeRes?.[6]),
           liquidity: String(decodeRes?.[7]),
@@ -120,17 +133,18 @@ const positionsQuery = selector({
           tokensOwed1: String(decodeRes?.[11]),
           priceLower: calcPriceFromTick({
             tick: Number(decodeRes?.[5]),
-            tokenA: getTokenByAddress(decodeRes?.[2])!,
-            tokenB: getTokenByAddress(decodeRes?.[3])!,
-            fee: Number(decodeRes?.[4]),
+            tokenA: token0,
+            tokenB: token1,
+            fee: fee,
           }),
           priceUpper: calcPriceFromTick({
             tick: Number(decodeRes?.[6]),
-            tokenA: getTokenByAddress(decodeRes?.[2])!,
-            tokenB: getTokenByAddress(decodeRes?.[3])!,
-            fee: Number(decodeRes?.[4]),
+            tokenA: token0,
+            tokenB: token1,
+            fee: fee,
           }),
         };
+
         return position;
       });
     return [];

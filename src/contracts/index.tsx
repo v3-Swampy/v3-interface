@@ -19,7 +19,6 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
   return {
     func: _Contract,
     address,
-    contract: _Contract,
   } as const;
 };
 

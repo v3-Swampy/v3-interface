@@ -68,10 +68,10 @@ export const addLiquidity = async ({
       fee,
       tickLower,
       tickUpper,
-      slippageTolerance
+      slippageTolerance,
     });
-    console.log(slippageTolerance, token0Amount, token1Amount)
-    console.log(amount0Min, amount1Min)
+    // console.log(slippageTolerance, token0Amount, token1Amount)
+    // console.log(amount0Min, amount1Min)
 
     const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('mint', [
       {

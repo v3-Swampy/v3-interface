@@ -4,8 +4,9 @@ import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import ToolTip from '@components/Tooltip';
 import Corner from './Corner';
-import showStakeLPModal, { ModalMode } from './StakeLPModal';
+import showStakeLPModal from './StakeLPModal';
 import { usePoolList, type PoolType } from '@service/farming';
+import TokenPair from '@modules/TokenPair';
 
 const transitions = {
   en: {
@@ -36,23 +37,19 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
     content: 'color-black-normal text-14px font-500 not-italic leading-18px',
   };
 
-  const handleStakeLP = () => {
-    console.log('handleStakeLP: ', data.address);
-  };
-
   return (
     <div className="bg-orange-lightHover rounded-2xl mb-6 last:mb-0 flex justify-between py-4 px-8 relative">
       <Corner timestatmp={Number(data.incentivePeriod[1])}></Corner>
       <div>
         <div className={`${className.title}`}>{i18n.poolName}</div>
         <div className={`${className.content} inline-flex justify-center items-center`}>
-          <span className="mr-1">
-            <img className="w-6 h-6 rounded-full" src={data.token0.logoURI} alt={`${data.token0.symbol} icon`} />
-            <img className="w-6 h-6 -ml-8px rounded-full" src={data.token1.logoURI} alt={`${data.token1.symbol} icon`} />
-          </span>
-          <span>
-            {data.token0.symbol} / {data.token1.symbol}
-          </span>
+          <TokenPair
+            position={{
+              leftToken: data.token0,
+              rightToken: data.token1,
+              fee: data.fee,
+            }}
+          />
         </div>
       </div>
       <div>
@@ -82,7 +79,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
       <div className="flex items-center">
         <div
           className="flex items-center justify-center px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer"
-          onClick={() => showStakeLPModal(ModalMode.CreateLock)}
+          onClick={() => showStakeLPModal(data)}
         >
           {i18n.stakeLP}
         </div>
@@ -92,12 +89,12 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 };
 
 const AllFarms = () => {
-  const { loading, poolList } = usePoolList([0]);
+  const { loading, poolList } = usePoolList([0, 1, 2, 3]);
 
   return (
     <div className="mt-6">
-      {poolList.map((item) => (
-        <AllFarmsItem key={item.address} data={item} />
+      {poolList.map((p) => (
+        <AllFarmsItem key={p.address} data={p} />
       ))}
     </div>
   );
