@@ -101,7 +101,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
           liquidity: data?.[1]?.[0] ? data?.[1]?.[0].toString() : null,
           tickCurrent: data?.[0]?.[1] ? +(data?.[0]?.[1].toString()) : null,
         }));
- 
+
         if (!pools?.length) return;
         setValidPools(pools);
         // console.log(pools);

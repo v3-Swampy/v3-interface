@@ -28,7 +28,8 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount }) => {
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const isBothTokenSelected = sourceToken && destinationToken;
-  usePools(sourceToken, destinationToken);
+  const pools = usePools(sourceToken, destinationToken);
+  console.log('pools', pools)
 
   return (
     <AuthConnectButton {...buttonProps}>

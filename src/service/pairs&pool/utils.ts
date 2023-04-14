@@ -1,5 +1,4 @@
 import { UniswapV3Factory } from '@contracts/index';
-import { fetchChain } from '@utils/fetch';
 import { type Token } from '@service/tokens';
 import { FeeAmount } from '.';
 
