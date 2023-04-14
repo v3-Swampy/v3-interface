@@ -59,11 +59,11 @@ const DurationSelect: React.FC<Props> = ({ register, setValue, currentStakeDurat
 
   return (
     <>
-      <div className="mt-16px py-16px pl-24px pr-16px rounded-20px bg-orange-light-hover">
-        <p className="mb-8px text-14px text-black-normal font-medium">{i18n.stake_duration}</p>
-        <Input className="text-32px" disabled type="text" defaultValue={defaultDurationText} {...register('VST-stake-duration-text')} />
+      <p className="pl-8px mb-8px text-14px text-black-normal font-medium">{i18n.stake_duration}</p>
+      <div className="p-16px pb-20px rounded-20px bg-orange-light-hover">
+        <Input className="text-24px" disabled type="text" defaultValue={defaultDurationText} {...register('VST-stake-duration-text')} />
 
-        <div className="mt-8px flex items-center w-fit h-20px text-12px text-black-normal">{compiled(i18n.stake_until_time, { time: untilTime })}</div>
+        <div className="mt-4px flex items-center w-fit h-20px text-14px text-black-normal">{compiled(i18n.stake_until_time, { time: untilTime })}</div>
       </div>
 
       <div className="mt-16px flex flex-wrap gap-12px">
@@ -89,8 +89,8 @@ const Duration: React.FC<{
   return (
     <div
       className={cx(
-        'h-34px px-10px leading-34px rounded-100px border-1px border-solid border-orange-light hover:bg-orange-light-hover text-14px text-black-normal font-medium cursor-pointer transition-colors',
-        isCurrentSelect && 'bg-orange-light-hover pointer-events-none'
+        'h-32px px-10px leading-32px rounded-100px border-1px border-solid border-gray-light hover:bg-orange-light-hover text-14px text-gray-light hover:text-orange-normal font-medium cursor-pointer transition-colors',
+        isCurrentSelect && 'bg-orange-light-hover !text-orange-normal pointer-events-none'
       )}
       onClick={() => onClick(duration.asSeconds(), { value, unit })}
     >

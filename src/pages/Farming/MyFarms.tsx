@@ -103,7 +103,7 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
   const isEnded = dayjs().isAfter(dayjs.unix(Number(data.incentiveTime)));
 
   return (
-    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-light/30' : 'bg-orange-lightHover'}`}>
+    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-light/30' : 'bg-orange-light-hover'}`}>
       <Corner timestatmp={Number(data.incentiveTime)}></Corner>
       <div className="flex justify-between relative px-4">
         <div className="ml-20px">

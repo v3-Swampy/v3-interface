@@ -72,7 +72,7 @@ const StakeModal: React.FC<Props> = ({ address, incentivePeriod: [startTime, end
         <div className="max-h-454px min-h-318px overflow-y-auto">
           {fPositions.map((p) => {
             return (
-              <div className="rounded-4 bg-orange-lightHover p-4 flex justify-between items-center mb-4" key={p.id}>
+              <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4" key={p.id}>
                 <div>
                   <div>
                     <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
