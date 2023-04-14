@@ -44,6 +44,7 @@ const baseSymbols = ['WCFX', 'WBTC'];
 
 export const stableTokens = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
 export const baseTokens = baseSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
+export const VST = cachedTokens.find((token) => token.symbol === 'VST');
 
 const wrapperTokenMap = new Map<string, Token>();
 const unwrapperTokenMap = new Map<string, Token>();
@@ -58,6 +59,7 @@ const resetTokensMap = (tokens: Array<Token>) => {
 
   const WCFX = tokens.find((token) => token.symbol === 'WCFX');
   const CFX = tokens.find((token) => token.symbol === 'CFX');
+
   tokens?.forEach((token) => {
     tokensMap.set(token.address.toLowerCase(), token);
     if (token.symbol !== 'CFX') {

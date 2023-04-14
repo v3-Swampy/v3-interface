@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import useI18n, { toI18n } from '@hooks/useI18n';
+import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { TokenVST } from '@service/tokens';
 import AuthTokenButton from '@modules/AuthTokenButton';
@@ -17,10 +17,12 @@ const transitions = {
   en: {
     title: 'Stake VST',
     confirm: 'Confirm',
+    current_boosting: 'Your Current Boosting: <b>{boosting}</b>',
   },
   zh: {
     title: '质押 VST',
     confirm: '确认',
+    current_boosting: 'Your Current Boosting: <b>{boosting}</b>',
   },
 } as const;
 
@@ -59,25 +61,25 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
       let methodName, methodParams;
       let unlockTime = Math.ceil(new Date().valueOf() / 1000) + currentStakeDuration;
       let amount = '0x0';
-      let action=''
+      let action = '';
       switch (modalMode) {
         case ModalMode.CreateLock:
-          amount=Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit()
+          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit();
           methodName = 'createLock';
           methodParams = [amount, unlockTime];
-          action=`Stake <strong>${data['VST-stake-amount']}</strong> VST`
+          action = `Stake <strong>${data['VST-stake-amount']}</strong> VST`;
           break;
         case ModalMode.IncreaseUnlockTime:
           methodName = 'increaseUnlockTime';
-          unlockTime = currentUnlockTime && currentStakeDuration ? (+currentUnlockTime) + (+currentStakeDuration) : null;
+          unlockTime = currentUnlockTime && currentStakeDuration ? +currentUnlockTime + +currentStakeDuration : null;
           methodParams = [unlockTime];
-          action=`Extend UnLockTime`
+          action = `Extend UnLockTime`;
           break;
         case ModalMode.IncreaseAmount:
-          amount=Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit()
+          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit();
           methodName = 'increaseAmount';
           methodParams = [account, amount];
-          action=`Increase <strong>${data['VST-stake-amount']}</strong> VST`
+          action = `Increase <strong>${data['VST-stake-amount']}</strong> VST`;
           break;
       }
       try {
@@ -100,7 +102,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
       <form onSubmit={onSubmit}>
         {!disabledAmount && <AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />}
         {!disabledLocktime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} />}
-
+        <p className="pl-8px mt-16px w-full font-normal text-black-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: '2.03✖️' }) }} />
         <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
           <Button {...buttonProps} loading={inTranscation}>
             {i18n.confirm}
@@ -112,12 +114,12 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
 };
 
 const buttonProps = {
-  color: 'gradient',
+  color: 'orange',
   fullWidth: true,
-  className: 'mt-26px h-36px rounded-10px text-14px',
+  className: 'mt-24px h-48px rounded-100px text-16px font-bold',
 } as const;
 
-const showStakeModal = (type: ModalMode,currentUnlockTime?:number) => {
+const showStakeModal = (type: ModalMode, currentUnlockTime?: number) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (props: Props) => <StakeModal type={type} currentUnlockTime={currentUnlockTime} {...props} />,
