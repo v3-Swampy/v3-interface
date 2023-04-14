@@ -5,47 +5,8 @@ import _ from 'lodash-es';
 import dayjs from 'dayjs';
 import { getTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
-import { sendTransaction, Unit } from '@cfxjs/use-wallet-react/ethereum';
-
-// TODO need to be moved to farming config
-const FAKED_PERIODS = [
-  [1681447020, 1681490220],
-  [1681490220, 1681533420],
-  [1681533420, 1681576620],
-  [1681576620, 1681619820],
-  [1681619820, 1681663020],
-  [1681663020, 1681706220],
-  [1681706220, 1681749420],
-  [1681749420, 1681792620],
-  [1681792620, 1681835820],
-  [1681835820, 1681879020],
-  [1681879020, 1681922220],
-  [1681922220, 1681965420],
-  [1681965420, 1682008620],
-  [1682008620, 1682051820],
-  [1682051820, 1682095020],
-  [1682095020, 1682138220],
-  [1682138220, 1682181420],
-  [1682181420, 1682224620],
-  [1682224620, 1682267820],
-  [1682267820, 1682311020],
-  [1682311020, 1682354220],
-  [1682354220, 1682397420],
-  [1682397420, 1682440620],
-  [1682440620, 1682483820],
-  [1682483820, 1682527020],
-  [1682527020, 1682570220],
-  [1682570220, 1682613420],
-  [1682613420, 1682656620],
-  [1682656620, 1682699820],
-  [1682699820, 1682743020],
-  [1682743020, 1682786220],
-  [1682786220, 1682829420],
-  [1682829420, 1682872620],
-  [1682872620, 1682915820],
-  [1682915820, 1682959020],
-  [1682959020, 1683002220],
-] as [number, number][];
+import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { poolIds, incentiveHistory, Incentive } from './farmingList';
 
 const DEFAULT_TOKEN = {
   name: '',
@@ -62,14 +23,14 @@ export interface PoolType {
   token0: Token;
   token1: Token;
   fee: FeeAmount;
-  range: [number, number];
-  incentivePeriod: [number, number];
+  range: [string, string];
+  currentIncentivePeriod: Incentive;
   tvl: string;
 }
 
-const getCurrentPeriod = (now?: number): [number, number] | [] => {
+const getCurrentIncentivePeriod = (now?: number): Incentive => {
   const n = now ? +dayjs(now) : dayjs().unix();
-  const currentPeriod = FAKED_PERIODS.find((period) => n >= period[0] && n <= period[1]) || [];
+  const currentPeriod = incentiveHistory.find((period) => n >= period.startTime && n <= period.endTime) as Incentive;
   return currentPeriod;
 };
 
@@ -83,7 +44,7 @@ const getIncentiveKey = (address: string, startTime?: number, endTime?: number) 
       refundee: '0xad085e56f5673fd994453bbcdfe6828aa659cb0d',
     };
   } else {
-    const [startTime, endTime] = getCurrentPeriod();
+    const { startTime, endTime } = getCurrentIncentivePeriod();
 
     return {
       rewardToken: VSTTokenContract.address,
@@ -130,18 +91,20 @@ export const getPoolList = async (pids: number[]): Promise<PoolType[]> => {
             [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
             [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
             [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getPoolStat', [getIncentiveKey(pairContract.address)])],
+            [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('totalAllocPoint')],
           ];
         })
         .flat()
     );
 
     const pairInfos = resOfMulticall2
-      ? _.chunk(resOfMulticall2, 4).map((r, i) => {
+      ? _.chunk(resOfMulticall2, 5).map((r, i) => {
           return {
             token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
             token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
             fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
             totalSupply: UniswapV3StakerFactory.func.interface.decodeFunctionResult('getPoolStat', r[3])[0].toString(),
+            totalAllocPoint: UniswapV3StakerFactory.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
           };
         })
       : [];
@@ -151,14 +114,31 @@ export const getPoolList = async (pids: number[]): Promise<PoolType[]> => {
       const { totalSupply, ...pairInfo } = pairInfos[i];
       const { token0, token1 } = pairInfo;
 
+      const currentIncentivePeriod = getCurrentIncentivePeriod();
+
+      // TODO need to use real VST price
+      const FAKE_VST_PRICE = 1;
+
+      /**
+       * <reward rate per second> = incentive amount / (incentive endTime - incentive startTime)
+       * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
+       * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
+       */
+      const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
+      const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(pairInfo.totalAllocPoint).mul(FAKE_VST_PRICE).div(totalSupply).mul(31536000);
+      const APRLow = APRHigh.mul(0.33);
+
+      // TODO
+      const tvl = new Decimal(FAKE_VST_PRICE).mul(totalSupply).div(1e18).toFixed(2);
+
       return {
         ...p,
         ...pairInfo,
         token0: getTokenByAddress(token0) || DEFAULT_TOKEN,
         token1: getTokenByAddress(token1) || DEFAULT_TOKEN,
-        tvl: totalSupply, // TODO need to use totalSupply of VST to calculate to USD
-        range: [0, 0], // TODO need to get real range
-        incentivePeriod: getCurrentPeriod() as [number, number],
+        tvl,
+        range: [APRLow.toFixed(2), APRHigh.toFixed(2)],
+        currentIncentivePeriod: getCurrentIncentivePeriod() as Incentive,
       };
     });
   } catch (error) {
@@ -167,17 +147,17 @@ export const getPoolList = async (pids: number[]): Promise<PoolType[]> => {
   }
 };
 
-export const usePoolList = (pids: number[]) => {
+export const usePoolList = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [poolList, setPoolList] = useState<any[]>([]);
 
   useEffect(() => {
     setLoading(true);
-    getPoolList(pids).then((res) => {
+    getPoolList(poolIds).then((res) => {
       setPoolList(res);
       setLoading(false);
     });
-  }, [pids.toString()]);
+  }, [poolIds.toString()]);
 
   return {
     loading,

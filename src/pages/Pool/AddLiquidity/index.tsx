@@ -47,11 +47,7 @@ const AddLiquidity: React.FC = () => {
   /** null means range not input */
   const isRangeValid = useMemo(() => {
     try {
-      return priceLower && priceUpper
-        ? new Unit(priceUpper).greaterThan(new Unit(0))
-          ? new Unit(priceLower).lessThan(new Unit(priceUpper))
-          : true
-        : null;
+      return priceLower && priceUpper ? (new Unit(priceUpper).greaterThan(new Unit(0)) ? new Unit(priceLower).lessThan(new Unit(priceUpper)) : true) : null;
     } catch {
       return null;
     }
