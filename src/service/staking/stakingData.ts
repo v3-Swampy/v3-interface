@@ -108,12 +108,17 @@ export const useUserInfo = () => {
   const lockedAmount = account ? new Unit(userInfo?.[0].toString()).toDecimalStandardUnit(0, Number(vstDecimals)) : 0;
   return [lockedAmount, userInfo?.[1]?.toString()];
 };
+
+export const userBalanceOfveVst=()=>{
+  const account = useAccount();
+  const balanceOfVeVst=useRecoilValue(escrowBalanceOfQuery(account))
+  return balanceOfVeVst
+}
 /**
  * calculate the boosting factor
  */
 export const useBoostFactor=()=>{
-  const account = useAccount();
-  const balanceOfVeVst=useRecoilValue(escrowBalanceOfQuery(account))
+  const balanceOfVeVst=userBalanceOfveVst()
   let veVSTTotalSupply = useRecoilValue(escrowTotalSupplyQuery);
   //boosting factor = (67% * <amout of veVST> /<total supply of veVST> + 33%) / 33% 
   return Number(veVSTTotalSupply)!=0?(new Unit(0.67).mul(balanceOfVeVst).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1)):1
