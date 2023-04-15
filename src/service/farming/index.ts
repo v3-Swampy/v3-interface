@@ -28,11 +28,33 @@ export interface PoolType {
   tvl: string;
 }
 
-const getCurrentIncentivePeriod = (now?: number): Incentive => {
-  const n = now ? +dayjs(now) : dayjs().unix();
-  const currentPeriod = incentiveHistory.find((period) => n >= period.startTime && n <= period.endTime) as Incentive;
-  return currentPeriod;
+export const getCurrentIncentivePeriod = (now?: number): Incentive => {
+  return incentiveHistory[getCurrentIncentiveIndex(now)];
 };
+
+export const getCurrentIncentiveIndex = (now?: number): number => {
+  const n = now ? +dayjs(now) : dayjs().unix();
+  const index = incentiveHistory.findIndex((period) => n >= period.startTime && n <= period.endTime);
+  return index;
+};
+
+export const getPastHistory=(index?:number)=>{
+  const i=index?index:getCurrentIncentiveIndex()
+  const pastHistory=[]
+  for (let y = 0; y <=i; y++) {
+    pastHistory.push(incentiveHistory[y]);
+  }
+  return pastHistory
+}
+
+export const getPastIncentivesOfPool=(poolAddress?:string)=>{
+  if(!poolAddress) return []
+  const pastHistory=getPastHistory()
+  return pastHistory.map((incentiveItem)=>getIncentiveKey(poolAddress,incentiveItem.startTime,incentiveItem.endTime))
+}
+
+
+ 
 
 const getIncentiveKey = (address: string, startTime?: number, endTime?: number) => {
   if (startTime && endTime) {
