@@ -56,6 +56,7 @@ const escrowDecimalsQuery = selector({
   },
 });
 
+
 const escrowUserInfoQuery = selectorFamily({
   key: `escrowUserInfo-${import.meta.env.MODE}`,
   get: (account) => async () => {
@@ -64,6 +65,17 @@ const escrowUserInfoQuery = selectorFamily({
     return response;
   },
 });
+
+const escrowBalanceOfQuery = selectorFamily({
+  key: `escrowBalanceOf-${import.meta.env.MODE}`,
+  get: (account) => async () => {
+    if (!account) return '0';
+    const response = await VotingEscrowContract.func.balanceOf(account);
+    return new Unit(response).toDecimalMinUnit();
+  },
+});
+
+
 
 export const useTotalStakeVST = () => {
   const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
@@ -100,8 +112,9 @@ export const useUserInfo = () => {
  * calculate the boosting factor
  */
 export const useBoostFactor=()=>{
-  const [lockedVstAmount]=useUserInfo()
+  const account = useAccount();
+  const balanceOfVeVst=useRecoilValue(escrowBalanceOfQuery(account))
   let veVSTTotalSupply = useRecoilValue(escrowTotalSupplyQuery);
   //boosting factor = (67% * <amout of veVST> /<total supply of veVST> + 33%) / 33% 
-  return Number(veVSTTotalSupply)!=0?(new Unit(0.67).mul(lockedVstAmount).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1)):1
+  return Number(veVSTTotalSupply)!=0?(new Unit(0.67).mul(balanceOfVeVst).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1)):1
 }
