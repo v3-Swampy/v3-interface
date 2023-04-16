@@ -28,8 +28,8 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount }) => {
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const isBothTokenSelected = sourceToken && destinationToken;
-  usePools(sourceToken, destinationToken);
-
+  const pools = usePools(sourceToken, destinationToken);
+  
   return (
     <AuthConnectButton {...buttonProps}>
       <AuthTokenButton {...buttonProps} tokenAddress={sourceToken?.address} contractAddress={UniswapV3Factory.address} amount={sourceTokenAmount}>

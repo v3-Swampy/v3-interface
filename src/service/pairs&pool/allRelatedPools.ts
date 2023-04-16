@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { atom, useRecoilValue } from 'recoil';
-import { setRecoil } from 'recoil-nexus';
+import { setRecoil, getRecoil } from 'recoil-nexus';
 import { handleTokensChange, getWrapperTokenByAddress, type Token } from '@service/tokens';
 import { persistAtom, handleRecoilInit } from '@utils/recoilUtils';
 import { createPoolContract, fetchMulticall } from '@contracts/index';
 import { isEqual } from 'lodash-es';
 import { isOdd } from '@utils/is';
 import mergePairs  from '@utils/mergePairs';
+import { isPoolEqual } from './';
 import computePoolAddress from './computePoolAddress';
 import { FeeAmount, Pool } from './';
 
@@ -90,7 +91,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
         .flat()
     )
       .then((res) => res?.map((data, index) => {
-        return (data === '0x' ? null : poolContracts[Math.floor(index / 2)].func.decodeFunctionResult(isOdd(index) ? 'liquidity' : 'slot0', data));
+        return (data === '0x' ? null : poolContracts[Math.floor(index / 2)].func.interface.decodeFunctionResult(isOdd(index) ? 'liquidity' : 'slot0', data));
       }))
       .then((res) => mergePairs(res))
       .then((res) => {
@@ -101,7 +102,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
           liquidity: data?.[1]?.[0] ? data?.[1]?.[0].toString() : null,
           tickCurrent: data?.[0]?.[1] ? +(data?.[0]?.[1].toString()) : null,
         }));
- 
+
         if (!pools?.length) return;
         setValidPools(pools);
         // console.log(pools);
