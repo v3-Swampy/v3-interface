@@ -12,6 +12,8 @@ import AmountInput from './AmountInput';
 import DurationSelect, { defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import {useBoostFactor} from '@service/staking'
+
 
 const transitions = {
   en: {
@@ -47,7 +49,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
   const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
   const stakeAmount = watch('VST-stake-amount');
   const account = useAccount();
-
+  const boostingFactor=useBoostFactor()
   const { inTranscation, execTranscation: handleStakingVST } = useInTranscation(_handleStakingVST);
 
   const modalMode = useMemo(() => {
@@ -102,7 +104,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
       <form onSubmit={onSubmit}>
         {!disabledAmount && <AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />}
         {!disabledLocktime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} />}
-        <p className="pl-8px mt-16px w-full font-normal text-black-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: '2.03✖️' }) }} />
+        <p className="pl-8px mt-16px w-full font-normal text-black-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
         <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
           <Button {...buttonProps} loading={inTranscation}>
             {i18n.confirm}

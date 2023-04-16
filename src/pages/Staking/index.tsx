@@ -12,6 +12,7 @@ import { handleUnStake } from '@service/staking';
 import { useVSTPrice } from '@hooks/usePairPrice';
 import { numberWithCommas } from '@utils/numberUtils';
 import { ReactComponent as StakeCalculate } from '@assets/icons/stake_calculate.svg';
+import {useBoostFactor} from '@service/staking'
 
 const transitions = {
   en: {
@@ -55,7 +56,7 @@ const StakingPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const [lockedAmount, unlockTime] = useUserInfo();
   const VSTPrice = useVSTPrice();
-  console.info('VSTPrice', VSTPrice);
+  const boostingFactor=useBoostFactor()  
   const stakingStatus = useMemo(() => {
     if (!lockedAmount && !unlockTime) return PersonalStakingStatus.UNKNOWN;
     if (!+lockedAmount) return PersonalStakingStatus.UNLOCKED;
@@ -116,7 +117,7 @@ const StakingPage: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: '2.03✖️' }) }} />
+                <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
               </div>
             )}
             {stakingStatus === PersonalStakingStatus.TO_UNLOCK && (
@@ -137,7 +138,7 @@ const StakingPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: '2.03✖️' }) }} />
+                <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
               </div>
             )}
           </div>
