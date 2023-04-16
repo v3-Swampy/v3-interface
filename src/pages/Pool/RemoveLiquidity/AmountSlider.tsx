@@ -31,7 +31,7 @@ const AmountSlider: React.FC<{ removePercent: number; setRemovePercent: React.Di
 
   return (
     <div className="bg-orange-light-hover flex rounded-20px pt-16px pb-32px px-16px mt-12px">
-      <div className="font-medium text-sm leading-18px mr-48px">
+      <div className="font-medium text-sm mr-48px">
         <p className="mb-12px">{i18n.amount}</p>
         <p className="text-32px leading-40px">{removePercent}%</p>
       </div>

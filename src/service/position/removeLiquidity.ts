@@ -1,19 +1,33 @@
 import dayjs from 'dayjs';
+import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { getTransactionDeadline } from '@service/settings';
 import { getAccount, sendTransaction } from '@service/account';
+import { showToast } from '@components/showPopup';
+import { toI18n } from '@hooks/useI18n';
+
+const transitions = {
+  en: {
+    success_tip: 'Remove Successfully!',
+    error_tip: 'Unknown Error',
+  },
+  zh: {
+    success_tip: 'Remove Successfully!',
+    error_tip: 'Unknown Error',
+  },
+} as const;
 
 const duration = dayjs.duration;
 
 export const removeLiquidity = async ({ tokenId, positionLiquidity, removePercent }: { tokenId: string; positionLiquidity: string; removePercent: number }) => {
+  const i18n = toI18n(transitions);
   try {
     const account = getAccount();
     if (!account) return;
     const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
     const liquidity = new Unit(positionLiquidity).mul(removePercent).div(100).toDecimalMinUnit(0);
 
-    console.log('liquidity', liquidity);
     const params = {
       tokenId: new Unit(tokenId).toHexMinUnit(),
       liquidity: new Unit(liquidity).toHexMinUnit(),
@@ -27,9 +41,14 @@ export const removeLiquidity = async ({ tokenId, positionLiquidity, removePercen
       },
     ]);
     const txHash = await sendTransaction({ value: '0x0', to: NonfungiblePositionManager.address, data });
-    console.log('txHash', txHash);
-    return txHash;
-  } catch (err) {
-    console.error(err);
+    const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
+    await receiptPromise;
+    showToast(i18n.success_tip, {
+      type: 'success',
+    });
+  } catch (err: any) {
+    showToast(err?.message || i18n.success_tip, {
+      type: 'warning',
+    });
   }
 };
