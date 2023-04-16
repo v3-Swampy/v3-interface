@@ -20,7 +20,7 @@ const IncreaseAmounts: React.FC = () => {
   const { tokenId } = useParams();
   const position: PositionForUI | undefined = usePosition(Number(tokenId));
 
-  const { leftToken, rightToken, fee } = position ?? {};
+  const { leftToken, rightToken, fee, priceLower, priceUpper } = position ?? {};
 
   const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
 
@@ -33,6 +33,8 @@ const IncreaseAmounts: React.FC = () => {
       getValues={getValues}
       tokenA={leftToken}
       tokenB={rightToken}
+      priceLower={priceLower}
+      priceUpper={priceUpper}
       fee={fee}
     />
   );

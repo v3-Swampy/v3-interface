@@ -45,8 +45,8 @@ interface Props {
    */
   priceInit?: string;
   title?: string;
-  priceLower: string;
-  priceUpper: string;
+  priceLower: Unit | string | undefined;
+  priceUpper: Unit | string | undefined;
   tokenA: Token | null | undefined;
   tokenB: Token | null | undefined;
   fee: FeeAmount | undefined;
