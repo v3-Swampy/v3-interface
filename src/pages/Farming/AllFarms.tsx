@@ -48,7 +48,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
               leftToken: data.token0,
               rightToken: data.token1,
               fee: data.fee,
-            }}
+            } as any}
           />
         </div>
       </div>

@@ -3,15 +3,18 @@
  */
 import React from 'react';
 import { type PositionForUI } from '@service/position';
+import { type Token } from '@service/tokens';
 
-const TokenPair: React.FC<{ position: PartialOmit<PositionForUI, 'leftToken' | 'rightToken' | 'fee'>; inverted?: boolean; showFee?: boolean }> = ({
+const TokenPair: React.FC<{ position: PositionForUI; inverted?: boolean; showFee?: boolean; leftToken?: Token; rightToken?: Token }> = ({
   position,
+  leftToken,
+  rightToken,
   inverted = false,
   showFee = true,
 }) => {
-  const { leftToken, rightToken, fee } = position;
-  const leftTokenForUI = !inverted ? leftToken : rightToken;
-  const rightTokenForUI = !inverted ? rightToken : leftToken;
+  const { fee } = position;
+  const leftTokenForUI = leftToken ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
+  const rightTokenForUI = rightToken ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
 
   return (
     <div className="flex items-center">
