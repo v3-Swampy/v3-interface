@@ -4,6 +4,8 @@ import Spin from '@components/Spin';
 import Button from '@components/Button';
 import { isMobile } from '@utils/is';
 import { type Token } from '@service/tokens';
+import { addRecordToHistory, type HistoryRecord } from '@service/history';
+import { RecordAction } from '@modules/Navbar/AccountDetailDropdown/History';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed.svg';
@@ -24,20 +26,24 @@ interface CommonProps {
 }
 
 export interface ConfirmModalInnerProps {
-  setNextInfo: (info: { txHash: string; action: string }) => void;
+  setNextInfo: (info: { txHash: string; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => void;
 }
 
 const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({ initialStep = Step.Confirm, ConfirmContent, tokenNeededAdd }) => {
   const [step, setStep] = useState(() => initialStep);
   const [txHash, setTxHash] = useState('');
-  const [action, setAction] = useState('');
+  const [recordParams, setRecordParams] = useState<Omit<HistoryRecord, 'txHash' | 'status'> | null>(null);
 
-  const setNextInfo = useCallback(async ({ txHash, action }: { txHash: string; action?: string }) => {
+  const setNextInfo = useCallback(async ({ txHash, recordParams }: { txHash: string; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => {
     try {
       setTxHash(txHash);
       setStep(Step.WaitReceipt);
-      if (action) {
-        setAction(action);
+      if (recordParams) {
+        setRecordParams(recordParams);
+        addRecordToHistory({
+          txHash,
+          ...recordParams,
+        });
       }
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
       await receiptPromise;
@@ -53,13 +59,14 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
 
   if (step === Step.WaitReceipt) {
     return (
-      <div className="w-fit absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center">
         <Spin className="mb-72px mx-auto block text-88px text-orange-normal" />
         <p className="leading-28px text-center text-22px text-black-normal whitespace-nowrap">
           Waiting for confirmation
-          {action && <br />}
-          {action && <span dangerouslySetInnerHTML={{ __html: action }} />}
         </p>
+        {recordParams && <p className='px-36px leading-28px text-center text-22px text-black-normal'>
+          <RecordAction className="text-22px text-black-normal" txHash={txHash} {...recordParams} />
+          </p>}
         <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-medium">Confirm this transaction in your wallet</p>
       </div>
     );

@@ -20,20 +20,22 @@ const IncreaseAmounts: React.FC = () => {
   const { tokenId } = useParams();
   const position: PositionForUI | undefined = usePosition(Number(tokenId));
 
-  const { priceLower, priceUpper } = position ?? {};
+  const { leftToken, rightToken, fee } = position ?? {};
 
   const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
 
-  const isRangeValid = useMemo(() => {
-    try {
-      return priceLower && priceUpper ? (priceUpper.greaterThan(new Unit(0)) ? priceLower.lessThan(priceUpper) : true) : null;
-    } catch {
-      return null;
-    }
-  }, [priceLower, priceUpper]);
-
   if (!position) return null;
-  return <DepositAmounts title={i18n.addMoreLiquidity} register={register} setValue={setValue} getValues={getValues} isRangeValid={isRangeValid} position={position} />;
+  return (
+    <DepositAmounts
+      title={i18n.addMoreLiquidity}
+      register={register}
+      setValue={setValue}
+      getValues={getValues}
+      tokenA={leftToken}
+      tokenB={rightToken}
+      fee={fee}
+    />
+  );
 };
 
 export default IncreaseAmounts;

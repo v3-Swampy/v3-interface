@@ -13,8 +13,8 @@ import useI18n from '@hooks/useI18n';
 import useInTranscation from '@hooks/useInTranscation';
 import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/position';
 import SelectPair, { useTokenA, useTokenB, swapTokenAB } from './SelectPair';
-import SelectFeeTier from './SelectFeeTier';
-import DepositAmounts from './DepositAmounts';
+import DepositAmounts from '@modules/Position/DepositAmounts';
+import SelectFeeTier, { useCurrentFee } from './SelectFeeTier';
 import SetPriceRange from './SetPriceRange';
 import SubmitButton from './SubmitButton';
 import './index.css';
@@ -38,13 +38,14 @@ const AddLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
 
+  const currentFee = useCurrentFee();
   const tokenA = useTokenA();
   const tokenB = useTokenB();
   const token0 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB) : null;
   const token1 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenB : tokenA) : null;
 
-  const priceLower = watch('price-lower', '');
-  const priceUpper = watch('price-upper', '');
+  const priceLower = watch('price-lower', '') as string;
+  const priceUpper = watch('price-upper', '') as string;
   /** null means range not input */
   const isRangeValid = useMemo(() => {
     try {
@@ -54,9 +55,9 @@ const AddLiquidity: React.FC = () => {
     }
   }, [priceLower, priceUpper]);
 
-  const amountTokenA = watch('amount-tokenA', '');
-  const amountTokenB = watch('amount-tokenB', '');
-  const priceInit = watch('price-init', '');
+  const amountTokenA = watch('amount-tokenA', '') as string;
+  const amountTokenB = watch('amount-tokenB', '') as string;
+  const priceInit = watch('price-init', '') as string;
 
   const { inTranscation: inSubmitCreate, execTranscation: handleClickSubmitCreatePosition } = useInTranscation(_handleClickSubmitCreatePosition);
   const onSubmit = useCallback(
@@ -144,7 +145,18 @@ const AddLiquidity: React.FC = () => {
             <div className="w-310px flex-grow-1 flex-shrink-1">
               <SelectPair handleSwapToken={handleSwapToken} />
               <SelectFeeTier register={register} />
-              <DepositAmounts register={register} setValue={setValue} getValues={getValues} isRangeValid={isRangeValid} priceInit={priceInit} />
+              <DepositAmounts
+                register={register}
+                setValue={setValue}
+                getValues={getValues}
+                isRangeValid={isRangeValid}
+                priceInit={priceInit}
+                priceLower={priceLower}
+                priceUpper={priceUpper}
+                tokenA={tokenA}
+                tokenB={tokenB}
+                fee={currentFee}
+              />
             </div>
 
             <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between">

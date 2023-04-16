@@ -9,7 +9,6 @@ import { FeeAmount, getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { getTransactionDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
-import { addRecordToHistory } from '@service/history';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showAddLiquidityModal from '@pages/Pool/AddLiquidity/AddLiquidityModal';
 import { createPreviewPositionForUI } from './positions';
@@ -111,11 +110,12 @@ export const handleClickSubmitCreatePosition = async ({
     };
 
     const recordParams = {
+      type: 'Position_AddLiquidity',
       tokenA_Address: tokenA.address,
-      tokenA_Value: amountTokenA,
+      tokenA_Value: Unit.fromStandardUnit(token0Amount, token0.decimals).toDecimalStandardUnit(5),
       tokenB_Address: tokenB.address,
-      tokenB_Value: amountTokenB,
-    };
+      tokenB_Value: Unit.fromStandardUnit(token1Amount, token1.decimals).toDecimalStandardUnit(5),
+    } as const;
 
     showAddLiquidityModal({
       leftToken: _tokenA,
@@ -133,29 +133,7 @@ export const handleClickSubmitCreatePosition = async ({
   }
 };
 
-export const handleCreatePosition = async ({
-  transcationParams,
-  recordParams,
-}: {
-  transcationParams: {
-    to: string;
-    data: string;
-    value: string;
-  };
-  recordParams: {
-    tokenA_Address: string;
-    tokenA_Value: string;
-    tokenB_Address: string;
-    tokenB_Value: string;
-  };
-}) => {
+export const handleCreatePosition = async (transcationParams: { to: string; data: string; value: string }) => {
   const txHash = await sendTransaction(transcationParams);
-
-  addRecordToHistory({
-    txHash,
-    type: 'AddLiquidity',
-    ...recordParams,
-  });
-
   return txHash;
 };

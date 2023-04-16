@@ -85,7 +85,7 @@ export const collectFees = async (tokenId: number) => {
     });
     addRecordToHistory({
       txHash,
-      type: 'CollectFees',
+      type: 'Position_CollectFees',
       tokenA_Address: token0.address,
       tokenA_Value: fee0 ? trimDecimalZeros(new Unit(fee0)?.toDecimalStandardUnit(5, token0.decimals)) : '',
       tokenB_Address: token1.address,

@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import CustomScrollbar from 'custom-react-scrollbar';
 import TopLevelErrorBoundary from '@modules/TopLevelErrorBoundary';
 import Navbar, { FooterBar } from '@modules/Navbar';
@@ -30,26 +30,24 @@ export const routes = [
 
 const AppRouter: React.FC = () => {
   return (
-    <Router>
-      <TopLevelErrorBoundary>
-        <Routes>
-          <Route path="/" element={<RouteWrapper />}>
-            <Route path="swap" element={<SwapPage />} />
-            <Route path="pool">
-              <Route index element={<PoolPage />} />
-              <Route path="add_liquidity" element={<PoolAddLiquidityPage />} />
-              <Route path=":tokenId" element={<PoolLiquidityItemPage />} />
-              <Route path="increase_liquidity/:tokenId" element={<PoolIncreaseLiquidity />} />
-              <Route path="remove_liquidity/:tokenId" element={<PoolRemoveLiquidity />} />
-            </Route>
-            <Route path="farming" element={<FarmingPage />} />
-            <Route path="staking" element={<StakingPage />} />
-            <Route path="*" element={<Navigate to="swap" />} />
-            <Route path="/" element={<Navigate to="swap" />} />
+    <TopLevelErrorBoundary>
+      <Routes>
+        <Route path="/" element={<RouteWrapper />}>
+          <Route path="swap" element={<SwapPage />} />
+          <Route path="pool">
+            <Route index element={<PoolPage />} />
+            <Route path="add_liquidity" element={<PoolAddLiquidityPage />} />
+            <Route path=":tokenId" element={<PoolLiquidityItemPage />} />
+            <Route path="increase_liquidity/:tokenId" element={<PoolIncreaseLiquidity />} />
+            <Route path="remove_liquidity/:tokenId" element={<PoolRemoveLiquidity />} />
           </Route>
-        </Routes>
-      </TopLevelErrorBoundary>
-    </Router>
+          <Route path="farming" element={<FarmingPage />} />
+          <Route path="staking" element={<StakingPage />} />
+          <Route path="*" element={<Navigate to="swap" />} />
+          <Route path="/" element={<Navigate to="swap" />} />
+        </Route>
+      </Routes>
+    </TopLevelErrorBoundary>
   );
 };
 

@@ -37,6 +37,7 @@ interface Props {
     value: string;
   };
   recordParams: {
+    type: 'Position_AddLiquidity',
     tokenA_Address: string;
     tokenA_Value: string;
     tokenB_Address: string;
@@ -60,12 +61,9 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
   const { inTranscation, execTranscation: handleCreatePosition } = useInTranscation(_handleCreatePosition);
   const handleClickConfirm = useCallback(async () => {
     try {
-      const txHash = await handleCreatePosition({
-        transcationParams,
-        recordParams,
-      });
+      const txHash = await handleCreatePosition(transcationParams);
 
-      setNextInfo({ txHash, action: `add liquidity` });
+      setNextInfo({ txHash, recordParams });
     } catch (err) {
       console.error('Add liquidity transcation failed: ', err);
     }
