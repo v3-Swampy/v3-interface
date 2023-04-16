@@ -6,7 +6,7 @@ import 'rc-slider/assets/index.css';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, usePosition, removeLiquidity } from '@service/position';
+import { PositionForUI, usePosition, usePositionFees, removeLiquidity } from '@service/position';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
@@ -28,24 +28,20 @@ const transitions = {
   },
 } as const;
 
-const getTotalAmounts = (position: PositionForUI | undefined) => {
-  let leftTotalAmount = new Unit(0);
-  let rightTotalAmount = new Unit(0);
+const getInvertDirection = (position: PositionForUI | undefined) => {
   if (position) {
     const { amount0, amount1, token0, token1, leftToken, rightToken } = position || {};
-
     if (amount0 && amount1 && leftToken && rightToken) {
       if (leftToken.address === token0.address || rightToken.address === token1.address) {
-        leftTotalAmount = amount0;
-        rightTotalAmount = amount1;
+        return 'left';
       } else if (leftToken.address === token1.address || rightToken.address === token0.address) {
-        leftTotalAmount = amount1;
-        rightTotalAmount = amount0;
+        return 'right';
       }
     }
   }
-  return [leftTotalAmount, rightTotalAmount];
+  return '';
 };
+
 const RemoveLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
@@ -54,8 +50,32 @@ const RemoveLiquidity: React.FC = () => {
   const [rightRemoveAmount, setRightRemoveAmount] = useState<Unit>(new Unit(0));
 
   const position: PositionForUI | undefined = usePosition(Number(tokenId));
-  console.log('position', position);
+  const [fee0, fee1] = usePositionFees(Number(tokenId));
+
   const { leftToken, rightToken, amount0, amount1 } = position || {};
+  const invertDirection = useMemo(() => getInvertDirection(position), [position]);
+
+  const [leftTotalAmount, rightTotalAmount, leftEarnedFees, rightEarnedFees] = useMemo(() => {
+    let leftTotalAmount = new Unit(0);
+    let rightTotalAmount = new Unit(0);
+    let leftEarnedFees = new Unit(0);
+    let rightEarnedFees = new Unit(0);
+
+    if (amount0 && amount1) {
+      if (invertDirection === 'left') {
+        leftTotalAmount = amount0;
+        rightTotalAmount = amount1;
+        leftEarnedFees = new Unit(fee0 || 0);
+        rightEarnedFees = new Unit(fee1 || 0);
+      } else if (invertDirection === 'right') {
+        leftTotalAmount = amount1;
+        rightTotalAmount = amount0;
+        leftEarnedFees = new Unit(fee1 || 0);
+        rightEarnedFees = new Unit(fee0 || 0);
+      }
+    }
+    return [leftTotalAmount, rightTotalAmount, leftEarnedFees, rightEarnedFees];
+  }, [invertDirection, amount0, amount1, fee0, fee1]);
 
   const leftRemoveAmountForUI = useMemo(() => {
     return trimDecimalZeros(leftRemoveAmount.toDecimalStandardUnit(5, leftToken?.decimals));
@@ -65,18 +85,26 @@ const RemoveLiquidity: React.FC = () => {
     return trimDecimalZeros(rightRemoveAmount.toDecimalStandardUnit(5, rightToken?.decimals));
   }, [rightRemoveAmount, rightToken?.decimals]);
 
+  const leftEarnedFeesForUI = useMemo(() => {
+    return trimDecimalZeros(leftEarnedFees.toDecimalStandardUnit(5, leftToken?.decimals));
+  }, [leftEarnedFees, leftToken?.decimals]);
+
+  const rightEarnedFeesForUI = useMemo(() => {
+    return trimDecimalZeros(rightEarnedFees.toDecimalStandardUnit(5, rightToken?.decimals));
+  }, [rightEarnedFees, rightToken?.decimals]);
+
   const onClickPreview = () => {
     position &&
       tokenId &&
       showModal({
         Content: (
           <ConfirmRemove
-            onConfirmRemove={() => {
-              removeLiquidity({ tokenId, removePercent, positionLiquidity: position?.liquidity });
-            }}
+            onConfirmRemove={() => removeLiquidity({ tokenId, removePercent, positionLiquidity: position?.liquidity })}
             tokenId={tokenId}
             leftRemoveAmount={leftRemoveAmountForUI}
             rightRemoveAmount={rightRemoveAmountForUI}
+            leftEarnedFees={leftEarnedFeesForUI}
+            rightEarnedFees={rightEarnedFeesForUI}
           />
         ),
         title: i18n.remove_liquidity,
@@ -84,10 +112,12 @@ const RemoveLiquidity: React.FC = () => {
   };
 
   useEffect(() => {
-    const [leftTotalAmount, rightTotalAmount] = getTotalAmounts(position);
+    if (!leftTotalAmount || !rightTotalAmount) {
+      return;
+    }
     setLeftRemoveAmount(leftTotalAmount.mul(removePercent).div(100));
     setRightRemoveAmount(rightTotalAmount.mul(removePercent).div(100));
-  }, [removePercent, setLeftRemoveAmount, getTotalAmounts, amount0, amount1]);
+  }, [removePercent, setLeftRemoveAmount, leftTotalAmount, rightTotalAmount]);
 
   if (!tokenId || !position) return <div />;
 
@@ -107,7 +137,13 @@ const RemoveLiquidity: React.FC = () => {
             <Status position={position!} />
           </div>
           <AmountSlider removePercent={removePercent} setRemovePercent={setRemovePercent} />
-          <AmountDetail leftRemoveAmount={leftRemoveAmountForUI} rightRemoveAmount={rightRemoveAmountForUI} tokenId={tokenId} />
+          <AmountDetail
+            leftRemoveAmount={leftRemoveAmountForUI}
+            rightRemoveAmount={rightRemoveAmountForUI}
+            tokenId={tokenId}
+            leftEarnedFees={leftEarnedFeesForUI}
+            rightEarnedFees={rightEarnedFeesForUI}
+          />
           <Button
             onClick={onClickPreview}
             disabled={!removePercent}
