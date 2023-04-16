@@ -75,10 +75,10 @@ export const handleClickSubmitCreatePosition = async ({
     //   tickUpper,
     //   slippageTolerance,
     // });
-    const { amount0Min, amount1Min } = { amount0Min: 0, amount1Min: 0 };
+    // console.log(slippageTolerance, token0Amount, token1Amount);
+    // console.log(amount0Min, amount1Min);
 
-    console.log(slippageTolerance, token0Amount, token1Amount);
-    console.log(amount0Min, amount1Min);
+    const { amount0Min, amount1Min } = { amount0Min: 0, amount1Min: 0 };
 
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;

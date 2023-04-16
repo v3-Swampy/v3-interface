@@ -106,7 +106,7 @@ const SelectedPriceRange: React.FC<{
       <div className="flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal">
         <p className="font-medium">{i18n.current_price}</p>
         {leftTokenForUI && rightTokenForUI && (
-          <p className="text-24px leading-30px font-medium">{trimDecimalZeros(pool?.priceOf(fromPreview ? leftTokenForUI : !inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!) ?? '-'}</p>
+          <p className="text-24px leading-30px font-medium">{trimDecimalZeros(pool?.priceOf(fromPreview ? rightTokenForUI : !inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!) ?? '-'}</p>
         )}
         <p className="text-gray-normal text-12px leading-15px text-center font-normal">{`${leftTokenForUI?.symbol} ${i18n.per} ${rightTokenForUI?.symbol}`}</p>
       </div>
