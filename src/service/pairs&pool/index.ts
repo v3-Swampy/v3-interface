@@ -57,9 +57,10 @@ export class Pool implements PoolProps {
 }
 
 export const isPoolEqual = (poolA: Pool | null | undefined, poolB: Pool | null | undefined) => {
-  if ((poolA === undefined && poolB !== undefined) || (poolA !== undefined && poolB === undefined)) return false;
-  if (!(poolA && poolB)) return true;
-  return poolA.sqrtPriceX96 === poolB.sqrtPriceX96 && poolA.liquidity === poolB.liquidity && poolA.tickCurrent === poolB.tickCurrent;
+  if ((poolA && !poolB)  || (!poolA && poolB)) return false;
+  if ((poolA === null && poolB === undefined) || (poolA === undefined && poolB === null)) return false;
+  if (!poolA && !poolB) return true;
+  return poolA?.sqrtPriceX96 === poolB?.sqrtPriceX96 && poolA?.liquidity === poolB?.liquidity && poolA?.tickCurrent === poolB?.tickCurrent;
 };
 
 export const calcTickFromPrice = ({ price, tokenA, tokenB }: { price: Unit; tokenA: Token; tokenB: Token }) => {

@@ -66,7 +66,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
       let action = '';
       switch (modalMode) {
         case ModalMode.CreateLock:
-          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit();
+          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST.decimals).toHexMinUnit();
           methodName = 'createLock';
           methodParams = [amount, unlockTime];
           action = `Stake <b>${data['VST-stake-amount']}</b> VST`;
@@ -78,7 +78,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
           action = `Extend UnLockTime`;
           break;
         case ModalMode.IncreaseAmount:
-          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST!.decimals).toHexMinUnit();
+          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST.decimals).toHexMinUnit();
           methodName = 'increaseAmount';
           methodParams = [account, amount];
           action = `Increase <b>${data['VST-stake-amount']}</b> VST`;

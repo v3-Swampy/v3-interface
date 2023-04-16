@@ -15,11 +15,11 @@ import useInTranscation from '@hooks/useInTranscation';
 const transitions = {
   en: {
     title: 'Add Liquidity',
-    confirm: 'Confirm',
+    add: 'Add',
   },
   zh: {
     title: '添加流动性',
-    confirm: '确认',
+    add: '添加',
   },
 } as const;
 
@@ -75,13 +75,21 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
     <div className="mt-24px">
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
-          <TokenPair position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPair className='!text-18px' position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />
           <Status position={previewPosition} />
         </div>
-        <TokenPairAmount amount0={amount0} amount1={amount1} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
+
+        <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
+          <TokenPairAmount amount0={amount0} amount1={amount1} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
+          <p className='mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-medium'>
+            Fee Tier
+            <span>{previewPosition.fee / 10000}%</span>
+          </p>
+        </div>
+
         <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={rightToken} rightToken={leftToken} />
-        <Button color="gradient" fullWidth className="mt-26px h-36px rounded-10px text-14px" loading={inTranscation} onClick={handleClickConfirm}>
-          {i18n.confirm}
+        <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTranscation} onClick={handleClickConfirm}>
+          {i18n.add}
         </Button>
       </Suspense>
     </div>

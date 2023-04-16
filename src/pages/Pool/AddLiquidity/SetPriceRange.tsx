@@ -117,19 +117,19 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
   const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
-  const priceTokenB = useMemo(() => (pool === null ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenB!)), [tokenB?.address, pool, priceInit]);
+  const priceTokenA = useMemo(() => ((pool === null || !tokenA) ? (priceInit ? new Unit(priceInit) : null) : pool?.priceOf(tokenA)), [tokenA?.address, pool, priceInit]);
 
   useLayoutEffect(() => {
     if (getSwapLock()) return;
     setValue('price-init', '');
     if (pool?.token0Price) {
-      setValue('price-lower', pool?.priceOf(tokenB!)?.div(new Unit(2)).toDecimalMinUnit(5));
-      setValue('price-upper', pool?.priceOf(tokenB!)?.mul(new Unit(2)).toDecimalMinUnit(5));
+      setValue('price-lower', pool?.priceOf(tokenA!)?.div(new Unit(2)).toDecimalMinUnit(5));
+      setValue('price-upper', pool?.priceOf(tokenA!)?.mul(new Unit(2)).toDecimalMinUnit(5));
     } else {
       setValue('price-lower', '');
       setValue('price-upper', '');
     }
-  }, [pool, tokenB?.address, fee]);
+  }, [pool, tokenA?.address, fee]);
 
   const handlePriceInitChange = useCallback<React.FocusEventHandler<HTMLInputElement>>(
     (evt) => {
@@ -150,7 +150,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
       {pool !== null && (
         <p className={cx('text-center text-12px text-black-normal font-light transition-opacity', (!tokenA || !tokenB) && 'opacity-0')}>
-          {i18n.current_price}:&nbsp;&nbsp;<span className="font-medium">{priceTokenB?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
+          {i18n.current_price}:&nbsp;&nbsp;<span className="font-medium">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
           {`${tokenB?.symbol} ${i18n.per} ${tokenA?.symbol}`}
         </p>
       )}
@@ -180,8 +180,8 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
       )}
 
       <div className="mt-10px flex gap-16px">
-        <RangeInput type="lower" register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} price={priceTokenB} fee={fee} />
-        <RangeInput type="upper" register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} price={priceTokenB} fee={fee} priceUpper={priceUpper} />
+        <RangeInput type="lower" register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} />
+        <RangeInput type="upper" register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} priceUpper={priceUpper} />
       </div>
 
       {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}
@@ -189,7 +189,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
       <div
         className={cx(
           'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-medium text-black-normal cursor-pointer',
-          !priceTokenB && 'text-gray-normal pointer-events-none'
+          !priceTokenA && 'text-gray-normal pointer-events-none'
         )}
         onClick={setFullRange}
       >
