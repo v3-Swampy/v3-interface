@@ -48,6 +48,7 @@ export const useAllRoutes = (_tokenIn: Token | null, _tokenOut: Token | null) =>
   const tokenOut = useMemo(() => getWrapperTokenByAddress(_tokenOut?.address), [_tokenOut]);
 
   const pools = usePools(tokenIn, tokenOut);
+  console.log('allpools', pools)
 
   return useMemo(() => {
     if (!pools || !tokenIn || !tokenOut) return [];
@@ -92,6 +93,7 @@ export const encodeRouteToPath = (route: Route, exactOutput: boolean): string =>
 };
 
 export const getQuoteCallParameters = (route: Route, amount: string, tradeType: TradeType) => {
+  console.log('amount', amount)
   const singleHop = route.pools.length === 1;
   let callData: string;
   const tradeTypeFunctionName = getQuoteFunctionName(route, tradeType);
@@ -100,6 +102,7 @@ export const getQuoteCallParameters = (route: Route, amount: string, tradeType: 
     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, quoteParams);
   } else {
     const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT);
+    console.log('path', path)
     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, [path, amount]);
   }
   return {
@@ -139,9 +142,12 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
   );
   const [quoteResults, setQuoteResults] = useState<Array<any>>([]);
   useEffect(() => {
-    console.log('callData', callData.map((data) => [UniswapV3Quoter.address, data]));
+    console.log(
+      'callData',
+      callData.map((data) => [UniswapV3Quoter.address, data])
+    );
     fetchMulticall(callData.map((data) => [UniswapV3Quoter.address, data])).then((res) => {
-      console.log('res', res)
+      console.log('res', res);
       const decodeData = res?.map((data, i) => {
         const tradeTypeFunctionName = getQuoteFunctionName(routes[i], tradeType);
         const result = data && data !== '0x' ? UniswapV3Quoter.func.interface.decodeFunctionResult(tradeTypeFunctionName, data) : {};
@@ -150,11 +156,11 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
       setQuoteResults(decodeData || []);
     });
   }, [callData.length]);
-
+  console.log('quoteResults', quoteResults)
   const tokensAreTheSame = useMemo(() => tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut), [tokenIn?.address, tokenOut?.address]);
   return useMemo(() => {
     const tokensAreTheSame = tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut);
-    if (!amount || !tokenIn || !tokenOut || quoteResults.some(({ valid }) => !valid) || tokensAreTheSame)
+    if (!amount || !tokenIn || !tokenOut || tokensAreTheSame)
       return {
         state: TradeState.NO_ROUTE_FOUND,
         trade: undefined,
@@ -167,14 +173,15 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
           amountIn: Unit | null;
           amountOut: Unit | null;
         },
-        { result },
+        result,
         i
       ) => {
+        console.log('result', result)
         if (!result) return currentBest;
 
         // overwrite the current best if it's not defined or if this route is better
         if (tradeType === TradeType.EXACT_INPUT) {
-          const amountOut = new Unit(result.amountOut.toString());
+          const amountOut = new Unit(result.toString());
           if (currentBest.amountOut === null || currentBest.amountOut.lessThan(amountOut)) {
             return {
               bestRoute: routes[i],
@@ -183,7 +190,7 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
             };
           }
         } else {
-          const amountIn = new Unit(result.amountIn.toString());
+          const amountIn = new Unit(result.toString());
           if (currentBest.amountIn === null || currentBest.amountIn.greaterThan(amountIn)) {
             return {
               bestRoute: routes[i],
@@ -218,7 +225,7 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
         tradeType,
       },
     };
-  }, [amount, tokensAreTheSame, tokenIn?.address, tokenOut?.address, tradeType]);
+  }, [amount, tokensAreTheSame, tokenIn?.address, tokenOut?.address, tradeType, quoteResults.length]);
 };
 
 export const useTokenPrice = (tokenAddress: string) => {

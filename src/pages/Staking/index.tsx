@@ -57,8 +57,8 @@ enum PersonalStakingStatus {
 const StakingPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const [lockedAmount, unlockTime] = useUserInfo();
-  const VSTPrice = useClientBestTrade(TradeType.EXACT_INPUT, '1', TokenCFX, TokenUSDT);
-  console.log('cfxPrice', VSTPrice);
+  const VSTPrice = useTokenPrice(TokenCFX.address);
+  console.log('b', VSTPrice);
   const boostingFactor=useBoostFactor()
   const stakingStatus = useMemo(() => {
     if (!lockedAmount && !unlockTime) return PersonalStakingStatus.UNKNOWN;

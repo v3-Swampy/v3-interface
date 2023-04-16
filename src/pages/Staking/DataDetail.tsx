@@ -3,7 +3,7 @@ import BorderBox from '@components/Box/BorderBox';
 import Spin from '@components/Spin';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useTotalStakeVST, usePercentageOfCulatingtion, useAverageStakeDuration } from '@service/staking';
-import { TokenVST } from '@service/tokens';
+import { TokenVST, TokenCFX } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
 import { useTokenPrice } from '@service/pairs&pool';
 import { numberWithCommas } from '@utils/numberUtils';
@@ -24,8 +24,8 @@ const transitions = {
 const DataDetailContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const totalStakeVST = useTotalStakeVST();
-  const VSTPrice = 0.6//useTokenPrice(TokenVST.address);
-  // console.log('VSTPrice', VSTPrice);
+  const VSTPrice = useTokenPrice(TokenCFX.address);
+  console.log('a', VSTPrice);
   const percentageOfCulatingtion = usePercentageOfCulatingtion();
   const averageStakeDuration = useAverageStakeDuration();
 
