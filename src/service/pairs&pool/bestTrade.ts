@@ -1,11 +1,11 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { selectorFamily, useRecoilValue } from 'recoil';
 import { getRecoil } from 'recoil-nexus';
 import { pack } from '@ethersproject/solidity';
 import { type Token, isTokenEqual, getWrapperTokenByAddress, TokenUSDT } from '@service/tokens';
 import { fetchChain } from '@utils/fetch';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { UniswapV3Quoter } from '@contracts/index';
+import { UniswapV3Quoter, fetchMulticall } from '@contracts/index';
 import { isPoolEqual } from '.';
 import { type Pool, usePools } from '.';
 
@@ -94,13 +94,12 @@ export const encodeRouteToPath = (route: Route, exactOutput: boolean): string =>
 export const getQuoteCallParameters = (route: Route, amount: string, tradeType: TradeType) => {
   const singleHop = route.pools.length === 1;
   let callData: string;
+  const tradeTypeFunctionName = getQuoteFunctionName(route, tradeType);
   if (singleHop) {
     const quoteParams = [route.tokenIn.address, route.tokenOut.address, route.pools[0].fee, amount, new Unit(0).toHexMinUnit()];
-    const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInputSingle' : 'quoteExactOutputSingle';
     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, quoteParams);
   } else {
     const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT);
-    const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInput' : 'quoteExactOutput';
     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, [path, amount]);
   }
   return {
@@ -109,26 +108,16 @@ export const getQuoteCallParameters = (route: Route, amount: string, tradeType: 
   };
 };
 
-const quoteSelector = selectorFamily({
-  key: `quoteSelector-${import.meta.env.MODE}`,
-  get: (callDataStr: string) => async () => {
-    console.log('call', callDataStr)
-    if (callDataStr === '') return [];
-    const response = await fetchChain({
-      params: [
-        {
-          data: callDataStr.split(','),
-          to: UniswapV3Quoter.address,
-        },
-        'latest',
-      ],
-    });
-    console.log('response', response)
-    return response
-  },
-});
-
-export const useQuote = (callDataStr: string) => useRecoilValue(quoteSelector(callDataStr));
+export const getQuoteFunctionName = (route: Route, tradeType: TradeType) => {
+  const singleHop = route.pools.length === 1;
+  let tradeTypeFunctionName;
+  if (singleHop) {
+    tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInputSingle' : 'quoteExactOutputSingle';
+  } else {
+    tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInput' : 'quoteExactOutput';
+  }
+  return tradeTypeFunctionName;
+};
 
 export enum TradeState {
   LOADING,
@@ -142,16 +131,25 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
   const amountDecimals = tradeType === TradeType.EXACT_INPUT ? tokenIn?.decimals : tokenOut?.decimals;
   const amountBig = Unit.fromStandardUnit(amount, amountDecimals);
   const hexAmount = amountBig.toHexMinUnit();
-  console.log(amountDecimals, amountBig, hexAmount)
-  console.log(tokenIn, tokenOut);
   const routes = useAllRoutes(tokenIn, tokenOut);
   console.log('routes', routes);
   const callData = useMemo(
     () => (hexAmount ? routes.map((route) => getQuoteCallParameters(route, hexAmount, tradeType).callData) : []),
     [hexAmount, tokenIn?.address, tokenOut?.address, tradeType, routes.length]
   );
-  console.log('callData', callData);
-  const quoteResults: [] = useQuote(callData.length === 0 ? '' : callData.join(','));
+  const [quoteResults, setQuoteResults] = useState<Array<any>>([]);
+  useEffect(() => {
+    console.log('callData', callData.map((data) => [UniswapV3Quoter.address, data]));
+    fetchMulticall(callData.map((data) => [UniswapV3Quoter.address, data])).then((res) => {
+      console.log('res', res)
+      const decodeData = res?.map((data, i) => {
+        const tradeTypeFunctionName = getQuoteFunctionName(routes[i], tradeType);
+        const result = data && data !== '0x' ? UniswapV3Quoter.func.interface.decodeFunctionResult(tradeTypeFunctionName, data) : {};
+        return result;
+      });
+      setQuoteResults(decodeData || []);
+    });
+  }, [callData.length]);
 
   const tokensAreTheSame = useMemo(() => tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut), [tokenIn?.address, tokenOut?.address]);
   return useMemo(() => {
