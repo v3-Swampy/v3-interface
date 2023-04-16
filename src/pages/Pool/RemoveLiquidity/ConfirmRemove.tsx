@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '@components/Button';
 import AmountDetail from './AmountDetail';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import { hidePopup } from '@components/showPopup';
 
 const buttonProps = {
   className: 'mt-16px h-40px rounded-100px',
@@ -34,6 +35,7 @@ const ConfirmRemove: React.FC<{
           onClick={async () => {
             setLoading(true);
             await onConfirmRemove();
+            hidePopup();
             setLoading(false);
           }}
           type="button"

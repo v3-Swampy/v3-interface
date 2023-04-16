@@ -42,6 +42,21 @@ const getInvertDirection = (position: PositionForUI | undefined) => {
   return '';
 };
 
+const useFormatAmountForUI = (amount: Unit, decimal: number | undefined) => {
+  return useMemo(() => {
+    if (decimal !== undefined) {
+      const _amount = amount.toDecimalStandardUnit(decimal, decimal);
+      if (new Unit(_amount).lessThan(0.00001) && new Unit(_amount).greaterThan(0)) {
+        return '< 0.00001';
+      }
+
+      return trimDecimalZeros(_amount);
+    }
+
+    return '0';
+  }, [amount, decimal]);
+};
+
 const RemoveLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
@@ -77,21 +92,13 @@ const RemoveLiquidity: React.FC = () => {
     return [leftTotalAmount, rightTotalAmount, leftEarnedFees, rightEarnedFees];
   }, [invertDirection, amount0, amount1, fee0, fee1]);
 
-  const leftRemoveAmountForUI = useMemo(() => {
-    return trimDecimalZeros(leftRemoveAmount.toDecimalStandardUnit(5, leftToken?.decimals));
-  }, [leftRemoveAmount, leftToken?.decimals]);
+  const leftRemoveAmountForUI = useFormatAmountForUI(leftRemoveAmount, leftToken?.decimals);
 
-  const rightRemoveAmountForUI = useMemo(() => {
-    return trimDecimalZeros(rightRemoveAmount.toDecimalStandardUnit(5, rightToken?.decimals));
-  }, [rightRemoveAmount, rightToken?.decimals]);
+  const rightRemoveAmountForUI = useFormatAmountForUI(rightRemoveAmount, rightToken?.decimals);
 
-  const leftEarnedFeesForUI = useMemo(() => {
-    return trimDecimalZeros(leftEarnedFees.toDecimalStandardUnit(5, leftToken?.decimals));
-  }, [leftEarnedFees, leftToken?.decimals]);
+  const leftEarnedFeesForUI = useFormatAmountForUI(leftEarnedFees, leftToken?.decimals);
 
-  const rightEarnedFeesForUI = useMemo(() => {
-    return trimDecimalZeros(rightEarnedFees.toDecimalStandardUnit(5, rightToken?.decimals));
-  }, [rightEarnedFees, rightToken?.decimals]);
+  const rightEarnedFeesForUI = useFormatAmountForUI(rightEarnedFees, rightToken?.decimals);
 
   const onClickPreview = () => {
     position &&
