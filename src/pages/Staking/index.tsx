@@ -9,7 +9,9 @@ import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
 import { handleUnStake } from '@service/staking';
-import { useVSTPrice } from '@hooks/usePairPrice';
+import { TokenVST, TokenCFX, TokenETH, TokenUSDT } from '@service/tokens';
+// import { useVSTPrice } from '@hooks/usePairPrice';
+import { useTokenPrice, useClientBestTrade, TradeType } from '@service/pairs&pool';
 import { numberWithCommas } from '@utils/numberUtils';
 import { ReactComponent as StakeCalculate } from '@assets/icons/stake_calculate.svg';
 import {useBoostFactor} from '@service/staking'
@@ -55,8 +57,9 @@ enum PersonalStakingStatus {
 const StakingPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const [lockedAmount, unlockTime] = useUserInfo();
-  const VSTPrice = useVSTPrice();
-  const boostingFactor=useBoostFactor()  
+  const VSTPrice = useClientBestTrade(TradeType.EXACT_INPUT, '1', TokenCFX, TokenUSDT);
+  console.log('cfxPrice', VSTPrice);
+  const boostingFactor=useBoostFactor()
   const stakingStatus = useMemo(() => {
     if (!lockedAmount && !unlockTime) return PersonalStakingStatus.UNKNOWN;
     if (!+lockedAmount) return PersonalStakingStatus.UNLOCKED;

@@ -1,7 +1,6 @@
 import { selector, useRecoilValue, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { VSTTokenContract, VotingEscrowContract } from '@contracts/index';
-import { fetchChain } from '@utils/fetch';
 import { useAccount } from '@service/account';
 // import { TokenVST } from '@service/tokens';
 

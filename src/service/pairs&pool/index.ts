@@ -1,8 +1,9 @@
 import { getWrapperTokenByAddress } from './../tokens/tokens';
 export * from './allRelatedPools';
 export * from './singlePool';
+export * from './bestTrade';
 export { default as computePoolAddress } from './computePoolAddress';
-import { type Token } from '@service/tokens';
+import { type Token, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
 
@@ -54,12 +55,18 @@ export class Pool implements PoolProps {
     if (wrapperTokenByAddress.address === this.token1.address) return this.token1Price;
     return null;
   };
+
+  public involvesToken = (token: Token) => {
+    return isTokenEqual(this.token0, token) || isTokenEqual(this.token1, token);
+  };
 }
 
+
 export const isPoolEqual = (poolA: Pool | null | undefined, poolB: Pool | null | undefined) => {
-  if ((poolA === undefined && poolB !== undefined) || (poolA !== undefined && poolB === undefined)) return false;
-  if (!(poolA && poolB)) return true;
-  return poolA.sqrtPriceX96 === poolB.sqrtPriceX96 && poolA.liquidity === poolB.liquidity && poolA.tickCurrent === poolB.tickCurrent;
+  if ((poolA && !poolB)  || (!poolA && poolB)) return false;
+  if ((poolA === null && poolB === undefined) || (poolA === undefined && poolB === null)) return false;
+  if (!poolA && !poolB) return true;
+  return poolA?.sqrtPriceX96 === poolB?.sqrtPriceX96 && poolA?.liquidity === poolB?.liquidity && poolA?.tickCurrent === poolB?.tickCurrent;
 };
 
 export const calcTickFromPrice = ({ price, tokenA, tokenB }: { price: Unit; tokenA: Token; tokenB: Token }) => {

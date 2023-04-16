@@ -23,6 +23,8 @@ const tokensKey = `tokenState-${import.meta.env.MODE}`;
 const cachedTokens = (LocalStorage.getItem(tokensKey, 'swap') as Array<Token>) ?? [];
 
 export let TokenVST: Token = null!;
+export let TokenUSDT: Token = null!;
+export let TokenETH: Token = null!;
 export let TokenCFX: Token = {
   chainId: 71,
   name: 'Conflux',
@@ -33,8 +35,10 @@ export let TokenCFX: Token = {
 };
 
 const setRegularToken = (tokens: Array<Token>) => {
-  TokenVST = tokens?.find((token) => token.symbol === 'VST')!; 
+  TokenVST = tokens?.find((token) => token.symbol === 'VST')!;
   TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!;
+  TokenUSDT = tokens?.find((token) => token.symbol === 'USDT')!;
+  TokenETH = tokens?.find((token) => token.symbol === 'ETH')!;
 };
 setRegularToken(cachedTokens);
 
@@ -155,5 +159,10 @@ export const deleteFromCommonTokens = (token: Token) => {
   }
 })();
 
-
 export const convertTokenToUniToken = (token: Token) => new UniToken(+targetChainId, token.address, token.decimals, token.symbol, token.name);
+
+export const isTokenEqual = (tokenA: Token | null, tokenB: Token | null) => {
+  if (!tokenA && !tokenB) return true;
+  if (!tokenA || !tokenB) return false;
+  return getUnwrapperTokenByAddress(tokenA.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB.address)?.address?.toLocaleLowerCase();
+};

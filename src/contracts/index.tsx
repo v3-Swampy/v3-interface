@@ -31,7 +31,7 @@ export const MulticallContract = createContract(isProduction ? '0x9f208d7226f05b
 
 export const UniswapV3Factory = createContract(isProduction ? '0x8f6858da6116cca95602d633aecc1f434f38bdb1' : '0x8f6858da6116cca95602d633aecc1f434f38bdb1', UniswapV3FactoryABI);
 
-export const UniswapV3Quoter = createContract(isProduction ? '0xb8a18af48927b1e14ad36e4772fc461451ae0ac7' : '0xb8a18af48927b1e14ad36e4772fc461451ae0ac7', UniswapV3QuoterABI);
+export const UniswapV3Quoter = createContract(isProduction ? '0x8094e129c8a5c9e8a4bf4fadc360f405175efa3f' : '0x8094e129c8a5c9e8a4bf4fadc360f405175efa3f', UniswapV3QuoterABI);
 
 export const UniswapV3SwapRouter = createContract(isProduction ? '0x80b9429fbf2da772644a15215e75e5dd69e01dfe' : '0x80b9429fbf2da772644a15215e75e5dd69e01dfe', SwapRouterABI);
 
