@@ -8,6 +8,8 @@ import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
 import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
+import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
+import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
 
 const transitions = {
   en: {
@@ -52,6 +54,10 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
     return 'font-500 font-not-italic text-14px leading-18px color-orange-normal underline mt-4 text-center cursor-pointer';
   }, []);
 
+  const classNameButton = useMemo(() => {
+    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
+  }, []);
+
   if (fPositions.length === 0) {
     return (
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
@@ -70,6 +76,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
       <div className="mt-24px">
         <div className="max-h-454px min-h-318px overflow-y-auto">
           {fPositions.map((p) => {
+            console.log(p);
             return (
               <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4" key={p.id}>
                 <div>
@@ -80,20 +87,28 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
                   </div>
                   <PriceRange position={p} />
                 </div>
-                <a
-                  onClick={() =>
-                    handleStakeLP({
-                      tokenId: p.id,
-                      address,
-                      startTime,
-                      endTime,
-                      pid: pid,
-                    })
-                  }
-                  className="inline-flex shrink-0 items-center justify-center px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer"
+                <AuthTokenButtonOf721
+                  className={classNameButton}
+                  tokenAddress={NonfungiblePositionManager.address}
+                  contractAddress={UniswapV3StakerFactory.address}
+                  tokenId={p.id.toString()}
                 >
-                  {i18n.stakeLP}
-                </a>
+                  {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
+                  <div
+                    onClick={() =>
+                      handleStakeLP({
+                        tokenId: p.id,
+                        address,
+                        startTime,
+                        endTime,
+                        pid: pid,
+                      })
+                    }
+                    className={classNameButton}
+                  >
+                    {i18n.stakeLP}
+                  </div>
+                </AuthTokenButtonOf721>
               </div>
             );
           })}

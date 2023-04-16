@@ -181,12 +181,12 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
   const priceLowerOf = (token: Token) => {
     if (token?.address === token0.address) return priceLower;
     else return invertPrice(priceLower);
-  }
+  };
 
   const priceUpperOf = (token: Token) => {
     if (token?.address === token0.address) return priceUpper;
     else return invertPrice(priceUpper);
-  }
+  };
 
   if (
     // if token0 is a dollar-stable asset, set it as the quote token

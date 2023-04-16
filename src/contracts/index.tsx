@@ -1,5 +1,6 @@
 import { ContractFactory, JsonRpcProvider, type InterfaceAbi, Contract } from 'ethers';
 import ERC20ABI from './abis/ERC20.json';
+import ERC721ABI from './abis/ERC721.json';
 import MulticallABI from './abis/Multicall.json';
 import NonfungiblePositionManagerABI from './abis/NonfungiblePositionManager.json';
 import SwapRouterABI from './abis/SwapRouter.json';
@@ -47,6 +48,7 @@ export const VotingEscrowContract = createContract(isProduction ? '0xfe13d132bcf
 export const createPairContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PairABI);
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);
+export const createERC721Contract = (tokenAddress: string) => createContract(tokenAddress, ERC721ABI);
 
 export const VSTTokenContract = createERC20Contract(TokenVST.address);
 
