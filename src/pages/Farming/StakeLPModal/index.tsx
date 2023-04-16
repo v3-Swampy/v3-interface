@@ -1,4 +1,4 @@
-import React, { useMemo, Suspense } from 'react';
+import React, { useMemo, Suspense, useCallback } from 'react';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import useInTranscation from '@hooks/useInTranscation';
@@ -10,7 +10,8 @@ import PriceRange from '@modules/Position/PriceRange';
 import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { hidePopup } from '@components/showPopup';
 
 const transitions = {
   en: {
@@ -45,6 +46,7 @@ type Props = ConfirmModalInnerProps & PoolType;
 const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, token0, token1 }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
+  const navigate = useNavigate();
   const { inTranscation, execTranscation: handleStakeLP } = useInTranscation(_handleStakeLP);
 
   const fPositions = useMemo(() => {
@@ -59,20 +61,28 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
     return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
   }, []);
 
+  const handleNavigate = useCallback(() => {
+    hidePopup();
+
+    setTimeout(() => {
+      navigate(`/pool/add_liquidity`);
+    }, 50);
+  }, [navigate, token0, token1]);
+
   if (fPositions.length === 0) {
     return (
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
         <LogoIcon className="-mt-8"></LogoIcon>
         <div className="text-22px leading-28px font-400 font-not-italic mt-8">{i18n.null}</div>
         {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
-        <Link className={classNameLink} to={`/pool/add_liquidity`}>
+        <div className={classNameLink} onClick={handleNavigate}>
           <span>
             {compiled(i18n.provide, {
               token0: token0.symbol,
               token1: token1.symbol,
             })}
           </span>
-        </Link>
+        </div>
       </div>
     );
   } else {
@@ -119,12 +129,12 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
         </div>
         <div className="text-center">
           {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
-          <Link className={classNameLink} to={`/pool/add_liquidity`}>
+          <div className={classNameLink} onClick={handleNavigate}>
             {compiled(i18n.more, {
               token0: token0.symbol,
               token1: token1.symbol,
             })}
-          </Link>
+          </div>
         </div>
       </div>
     );
