@@ -10,6 +10,7 @@ import PriceRange from '@modules/Position/PriceRange';
 import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
+import { Link } from 'react-router-dom';
 
 const transitions = {
   en: {
@@ -63,12 +64,15 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
         <LogoIcon className="-mt-8"></LogoIcon>
         <div className="text-22px leading-28px font-400 font-not-italic mt-8">{i18n.null}</div>
-        <a className={classNameLink}>
-          {compiled(i18n.provide, {
-            token0: token0.symbol,
-            token1: token1.symbol,
-          })}
-        </a>
+        {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
+        <Link className={classNameLink} to={`/pool/add_liquidity`}>
+          <span>
+            {compiled(i18n.provide, {
+              token0: token0.symbol,
+              token1: token1.symbol,
+            })}
+          </span>
+        </Link>
       </div>
     );
   } else {
@@ -114,12 +118,13 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
           })}
         </div>
         <div className="text-center">
-          <a className={classNameLink}>
+          {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
+          <Link className={classNameLink} to={`/pool/add_liquidity`}>
             {compiled(i18n.more, {
               token0: token0.symbol,
               token1: token1.symbol,
             })}
-          </a>
+          </Link>
         </div>
       </div>
     );
