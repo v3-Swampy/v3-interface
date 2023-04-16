@@ -1,24 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '@components/Button';
 import AmountDetail from './AmountDetail';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import { hidePopup } from '@components/showPopup';
 
 const buttonProps = {
   className: 'mt-16px h-40px rounded-100px',
   fullWidth: true,
 } as const;
 
-const ConfirmRemove: React.FC<{ tokenId: string; leftRemoveAmount: string; rightRemoveAmount: string; onConfirmRemove: () => void }> = ({
-  leftRemoveAmount,
-  rightRemoveAmount,
-  onConfirmRemove,
-  tokenId,
-}) => {
+const ConfirmRemove: React.FC<{
+  tokenId: string;
+  leftRemoveAmount: string;
+  rightRemoveAmount: string;
+  leftEarnedFees: string;
+  rightEarnedFees: string;
+  onConfirmRemove: () => void;
+}> = ({ leftRemoveAmount, rightRemoveAmount, onConfirmRemove, tokenId, leftEarnedFees, rightEarnedFees }) => {
+  const [loading, setLoading] = useState(false);
+
   return (
     <div>
-      <AmountDetail leftRemoveAmount={leftRemoveAmount} rightRemoveAmount={rightRemoveAmount} tokenId={tokenId} />
+      <AmountDetail
+        amountWidthStyle="w-120px"
+        leftRemoveAmount={leftRemoveAmount}
+        rightRemoveAmount={rightRemoveAmount}
+        tokenId={tokenId}
+        leftEarnedFees={leftEarnedFees}
+        rightEarnedFees={rightEarnedFees}
+      />
       <AuthConnectButton {...buttonProps}>
-        <Button onClick={onConfirmRemove}>Submit</Button>
+        <Button
+          loading={loading}
+          onClick={async () => {
+            setLoading(true);
+            await onConfirmRemove();
+            hidePopup();
+            setLoading(false);
+          }}
+          type="button"
+          color="orange"
+          fullWidth
+          className="h-48px rounded-100px mt-16px"
+        >
+          Submit
+        </Button>
       </AuthConnectButton>
     </div>
   );

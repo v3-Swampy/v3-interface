@@ -1,10 +1,10 @@
 import React from 'react';
-import { type PositionForUI } from '@service/pool-manage';
+import { type PositionForUI } from '@service/position';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
 
-const PriceRange: React.FC<{ position: PositionForUI }> = ({ position }) => {
-  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, id } = position;
+const PriceRange: React.FC<{ position: PositionForUI; }> = ({ position }) => {
+  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI } = position;
 
   const priceLowerStr = trimDecimalZeros(priceLowerForUI.toDecimalMinUnit(5));
   const _priceUpperStr = trimDecimalZeros(priceUpperForUI.toDecimalMinUnit(5));

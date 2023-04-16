@@ -2,15 +2,15 @@ import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
-import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice } from '@service/pairs&pool';
+import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, getPool, Pool } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { computePoolAddress } from '@service/pairs&pool';
 
 export enum PositionStatus {
-  InRange,
-  OutOfRange,
-  Closed,
+  InRange = 'InRange',
+  OutOfRange = 'OutOfRange',
+  Closed = 'Closed',
 }
 
 export interface Position {
@@ -37,19 +37,22 @@ export interface Position {
   /** The uncollected amount of token1 owed to the position as of the last computation. */
   tokensOwed1: string;
 }
+
 export interface PositionForUI extends Position {
   leftToken: Token | null;
   rightToken: Token | null;
   // priceLower for ui
   priceLowerForUI: Unit;
+  priceLowerOf: (token: Token) => Unit;
   // priceUpper for ui
   priceUpperForUI: Unit;
+  priceUpperOf: (token: Token) => Unit;
   // token0 amount in position
-  amount0: Unit;
+  amount0?: Unit;
   // token1 amount in position
-  amount1: Unit;
+  amount1?: Unit;
   // position token0 ratio
-  ratio: number | undefined;
+  ratio?: number;
 }
 
 const positionBalanceQuery = selector({
@@ -81,26 +84,18 @@ const tokenIdsQuery = selector<Array<number> | undefined>({
   },
 });
 
-const positionsQuery = selector({
+const positionsQuery = selector<Array<Position>>({
   key: `PositionListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const account = get(accountState);
     const _tokenIds = get(tokenIdsQuery);
 
-    if (!account || !_tokenIds?.length) return undefined;
+    if (!account || !_tokenIds?.length) return [];
     const tokenIds = [..._tokenIds];
-    console.log('tokenIds', tokenIds, Array.isArray(tokenIds));
-
-    console.log(
-      'test',
-      tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
-    );
 
     const positionsResult = await fetchMulticall(
       tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
     );
-
-    console.log('positions', positionsResult);
 
     if (Array.isArray(positionsResult))
       return positionsResult?.map((singleRes, index) => {
@@ -151,51 +146,15 @@ const positionsQuery = selector({
   },
 });
 
-export const PositionsForUISelector = selector({
+export const PositionsForUISelector = selector<Array<PositionForUI>>({
   key: `PositionListForUI-${import.meta.env.MODE}`,
   get: ({ get }) => {
     const positions = get(positionsQuery);
     if (!positions) return [];
     return positions.map((position) => {
-      const { token0, token1, priceLower, priceUpper, fee, tickLower, tickUpper, liquidity } = position;
+      const { token0, token1, fee } = position;
       const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
-
-      const lower = new Unit(1.0001).pow(new Unit(tickLower));
-      const upper = new Unit(1.0001).pow(new Unit(tickUpper));
-      const [amount0, amount1] = pool?.token0Price ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : [];
-      const ratio = lower && pool && upper ? calcRatio(lower, pool.token0Price, upper) : undefined;
-
-      const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
-      const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
-      if (
-        // if token0 is a dollar-stable asset, set it as the quote token
-        stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
-        // if token1 is an ETH-/BTC-stable asset, set it as the base token
-        baseTokens.some((baseToken) => baseToken?.address === token1.address) ||
-        // if both prices are below 1, invert
-        priceUpper.lessThan(new Unit(1))
-      ) {
-        return {
-          ...position,
-          amount0,
-          amount1,
-          ratio,
-          rightToken: unwrapToken1,
-          leftToken: unwrapToken0,
-          priceLowerForUI: invertPrice(priceUpper),
-          priceUpperForUI: invertPrice(priceLower),
-        };
-      }
-      return {
-        ...position,
-        amount0,
-        amount1,
-        ratio,
-        rightToken: unwrapToken0,
-        leftToken: unwrapToken1,
-        priceLowerForUI: priceLower,
-        priceUpperForUI: priceUpper,
-      };
+      return enhancePositionForUI(position, pool);
     });
   },
 });
@@ -207,3 +166,64 @@ export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 export const usePositions = () => useRecoilValue(positionsQuery);
 
 export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
+
+const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
+  const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
+  const lower = new Unit(1.0001).pow(new Unit(tickLower));
+  const upper = new Unit(1.0001).pow(new Unit(tickUpper));
+
+  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : [undefined, undefined];
+  const ratio = lower && pool && upper ? calcRatio(lower, pool.token0Price, upper) : undefined;
+
+  const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
+  const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
+
+  const priceLowerOf = (token: Token) => {
+    if (token?.address === token0.address) return priceLower;
+    else return invertPrice(priceLower);
+  };
+
+  const priceUpperOf = (token: Token) => {
+    if (token?.address === token0.address) return priceUpper;
+    else return invertPrice(priceUpper);
+  };
+
+  if (
+    // if token0 is a dollar-stable asset, set it as the quote token
+    stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
+    // if token1 is an ETH-/BTC-stable asset, set it as the base token
+    baseTokens.some((baseToken) => baseToken?.address === token1.address) ||
+    // if both prices are below 1, invert
+    priceUpper.lessThan(new Unit(1))
+  ) {
+    return {
+      ...position,
+      amount0,
+      amount1,
+      ratio,
+      rightToken: unwrapToken1,
+      leftToken: unwrapToken0,
+      priceLowerForUI: invertPrice(priceUpper),
+      priceUpperForUI: invertPrice(priceLower),
+      priceLowerOf,
+      priceUpperOf,
+    };
+  }
+  return {
+    ...position,
+    amount0,
+    amount1,
+    ratio,
+    rightToken: unwrapToken0,
+    leftToken: unwrapToken1,
+    priceLowerForUI: priceLower,
+    priceUpperForUI: priceUpper,
+    priceLowerOf,
+    priceUpperOf,
+  };
+};
+
+export const createPreviewPositionForUI = (
+  position: Pick<Position, 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
+  pool: Pool | null | undefined
+) => enhancePositionForUI(position as Position, pool);

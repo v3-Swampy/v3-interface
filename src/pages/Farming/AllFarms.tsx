@@ -6,7 +6,7 @@ import ToolTip from '@components/Tooltip';
 import Corner from './Corner';
 import showStakeLPModal from './StakeLPModal';
 import { usePoolList, type PoolType } from '@service/farming';
-import TokenPair from '@modules/TokenPair';
+import TokenPair from '@modules/Position/TokenPair';
 
 const transitions = {
   en: {
@@ -48,7 +48,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
               leftToken: data.token0,
               rightToken: data.token1,
               fee: data.fee,
-            }}
+            } as any}
           />
         </div>
       </div>

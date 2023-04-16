@@ -14,7 +14,7 @@ export const poolState = atomFamily<Pool | null | undefined, string>({
   default: undefined,
 });
 
-export const generatePoolKey = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB: Token | null; fee: FeeAmount | null }) => {
+export const generatePoolKey = ({ tokenA, tokenB, fee }: { tokenA: Token | null | undefined; tokenB: Token | null | undefined; fee: FeeAmount | null | undefined }) => {
   if (!tokenA || !tokenB || !fee) return 'nullPool';
   const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
   return `${token0.address}:${token1.address}:${fee}`;
@@ -56,7 +56,7 @@ const poolTracker = new Map<string, boolean>();
  * The poolInfo will be updated every 5 seconds when the user is active, and every 20 seconds when the user is inactive.
  * return null is not exist.
  */
-export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB: Token | null; fee: FeeAmount | null }) => {
+export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null | undefined; tokenB: Token | null | undefined; fee: FeeAmount | null | undefined }) => {
   const userActiveStatus = useUserActiveStatus();
   const poolKey = generatePoolKey({ tokenA, tokenB, fee });
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
@@ -86,7 +86,6 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null; tokenB:
   } as const;
 };
 
-
 export const getPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
   const poolKey = generatePoolKey({ tokenA, tokenB, fee });
   const pool = getRecoil(poolState(poolKey));
@@ -94,7 +93,7 @@ export const getPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: 
   const poolFetched = await fetchPool({ tokenA, tokenB, fee });
   setRecoil(poolState(poolKey), pool);
   return poolFetched;
-}
+};
 
 /**
  * Force to get the latest info of a pool.
@@ -104,23 +103,3 @@ export const updatePool = async ({ tokenA, tokenB, fee }: { tokenA: Token; token
   const pool = await fetchPool({ tokenA, tokenB, fee });
   setRecoil(poolState(generatePoolKey({ tokenA, tokenB, fee })), pool);
 };
-
-// const TokenA = {
-//   address: '0x2ed3dddae5b2f321af0806181fbfa6d049be47d8',
-//   name: 'Wrapper CFX',
-//   symbol: 'WCFX',
-//   decimals: 18,
-//   logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aacwnngzd52ztm8m32j9c3hekyn8njcgsrjg4p7yzea.png',
-// };
-
-// const TokenB = {
-//   "address": "0x7d682e65efc5c13bf4e394b8f376c48e6bae0355",
-//   "name": "Tether USD",
-//   "symbol": "USDT",
-//   "decimals": 18,
-//   "logoURI": "https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aad9kt4c7csz7xusdgscstf1vbr33azv132611febg1.png"
-// }
-
-// const fee = 3000;
-
-// fetchPool({ tokenA: TokenA, tokenB: TokenB, fee });

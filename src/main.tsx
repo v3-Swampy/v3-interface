@@ -1,8 +1,9 @@
 import { RecoilRoot } from 'recoil';
 import RecoilNexus from 'recoil-nexus';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import dayjs from 'dayjs';
-import durationPlugin from 'dayjs/plugin/duration'
+import durationPlugin from 'dayjs/plugin/duration';
 import { completeDetect } from '@cfxjs/use-wallet-react/ethereum';
 import { initializeRecoil } from '@utils/recoilUtils';
 import { ModalPopup, DrawerPopup, Toast } from '@components/showPopup';
@@ -24,10 +25,12 @@ completeDetect().then(() => {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <RecoilRoot initializeState={initializeRecoil}>
       <RecoilNexus />
-      <ModalPopup.Provider />
-      <DrawerPopup.Provider />
-      <Toast.Provider />
-      <Router />
+      <BrowserRouter>
+        <ModalPopup.Provider />
+        <DrawerPopup.Provider />
+        <Toast.Provider />
+        <Router />
+      </BrowserRouter>
     </RecoilRoot>
   );
 });

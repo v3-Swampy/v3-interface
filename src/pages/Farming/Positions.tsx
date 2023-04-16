@@ -1,12 +1,8 @@
 import React from 'react';
 import useI18n from '@hooks/useI18n';
-import { type Token } from '@service/tokens';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import ToolTip from '@components/Tooltip';
-
-1681093820;
 
 const FAKE_POSITIONS = [
   {

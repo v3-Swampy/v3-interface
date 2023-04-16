@@ -13,7 +13,7 @@ const transitions = {
   },
 } as const;
 
-export const handleStakingVST = async ({ methodName, methodParams }: { methodName: string; methodParams?: any[] }) => {
+export const handleStakingVST = async ({ methodName, methodParams }: { methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount'; methodParams?: any[] }) => {
   const txHash = await sendTransaction({
     data: VotingEscrowContract.func.interface.encodeFunctionData(methodName, methodParams ?? []),
     to: VotingEscrowContract.address,

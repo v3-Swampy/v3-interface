@@ -9,6 +9,9 @@ import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
 import { useBalance } from '@service/balance';
 import { getTokenByAddress } from '@service/tokens';
+
+import AuthTokenButtonOf721 from './AuthTokenButtonOf721';
+
 const Zero = new Unit(0);
 
 export type Status = 'checking-approve' | 'need-approve' | 'approving' | 'approved';
@@ -45,7 +48,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
   const i18n = useI18n(transitions);
 
   const account = useAccount();
-  
+
   const token = useMemo(() => getTokenByAddress(tokenAddress), [tokenAddress]);
   const tokenContract = useMemo(() => (token?.address ? createERC20Contract(token.address) : undefined), [token?.address]);
   const amountUnit = useMemo(() => (amount && token?.decimals ? Unit.fromStandardUnit(amount, token.decimals) : null), [amount, token?.decimals]);
@@ -76,7 +79,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       }
     };
   }, [token?.address, contractAddress, amount, account]);
-  
+
   const checkApprove = useCallback(
     debounce(() => checkApproveFunc.current?.(), 666),
     []
@@ -139,3 +142,5 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
 };
 
 export default AuthTokenButton;
+
+export { AuthTokenButtonOf721 };

@@ -1,12 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
+import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
+import { usePosition } from '@service/position';
 import useI18n from '@hooks/useI18n';
 import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';
-import SelectedPriceRange from '@modules/SelectedPriceRange';
 
 const transitions = {
   en: {
@@ -19,6 +20,8 @@ const transitions = {
 
 const LiquidityDetail: React.FC = () => {
   const i18n = useI18n(transitions);
+  const { tokenId } = useParams();
+  const position = usePosition(Number(tokenId));
 
   return (
     <PageWrapper className="pt-56px">
@@ -41,7 +44,7 @@ const LiquidityDetail: React.FC = () => {
               <UnclaimedFees />
             </div>
           </div>
-          <SelectedPriceRange />
+          <SelectedPriceRange position={position} tokenId={tokenId}/>
         </BorderBox>
       </div>
     </PageWrapper>

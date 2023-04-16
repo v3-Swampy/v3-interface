@@ -161,8 +161,9 @@ export const deleteFromCommonTokens = (token: Token) => {
 
 export const convertTokenToUniToken = (token: Token) => new UniToken(+targetChainId, token.address, token.decimals, token.symbol, token.name);
 
-export const isTokenEqual = (tokenA: Token | null, tokenB: Token | null) => {
+export const isTokenEqual = (tokenA: Token | null | undefined, tokenB: Token | null | undefined) => {
+  if ((tokenA && !tokenB)  || (!tokenA && tokenB)) return false;
+  if ((tokenA === null && tokenB === undefined) || (tokenA === undefined && tokenB === null)) return false;
   if (!tokenA && !tokenB) return true;
-  if (!tokenA || !tokenB) return false;
-  return getUnwrapperTokenByAddress(tokenA.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB.address)?.address?.toLocaleLowerCase();
+  return getUnwrapperTokenByAddress(tokenA?.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB?.address)?.address?.toLocaleLowerCase();
 };

@@ -1,6 +1,7 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { type ComponentProps } from 'react';
+import cx from 'clsx';
 import useI18n from '@hooks/useI18n';
-import { PositionStatus, type PositionForUI } from '@service/pool-manage';
+import { PositionStatus, type PositionForUI } from '@service/position';
 import { usePool } from '@service/pairs&pool';
 import { ReactComponent as SuccessIcon } from '@assets/icons/pool_success.svg';
 import { ReactComponent as WarningIcon } from '@assets/icons/pool_warning.svg';
@@ -37,7 +38,11 @@ const PositionStatusMap = {
   },
 } as const;
 
-const Status: React.FC<{ position: PositionForUI }> = ({ position }) => {
+interface Props extends ComponentProps<'div'> {
+  position: PositionForUI;
+}
+
+const PositionStatusFC: React.FC<Props> = ({ position, className, style, ...props }) => {
   const i18n = useI18n(transitions);
 
   const { token0, token1, fee, liquidity, tickLower, tickUpper } = position;
@@ -48,17 +53,15 @@ const Status: React.FC<{ position: PositionForUI }> = ({ position }) => {
 
   const status =
     liquidity === '0' ? PositionStatus.Closed : !tickCurrent ? undefined : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
+    console.log(liquidity, status, tickCurrent, tickUpper, tickLower)
 
+  if (typeof status !== 'string') return null;
   return (
-    <>
-      {typeof status === 'number' && (
-        <div className="inline-flex items-center text-12px font-medium" style={{ color: PositionStatusMap[status].color }}>
-          {i18n[PositionStatusMap[status].text]}
-          {PositionStatusMap[status].Icon}
-        </div>
-      )}
-    </>
+    <div className={cx('inline-flex items-center text-12px font-medium', className)} style={{ color: PositionStatusMap[status].color, ...style }} {...props}>
+      {i18n[PositionStatusMap[status].text]}
+      {PositionStatusMap[status].Icon}
+    </div>
   );
 };
 
-export default Status;
+export default PositionStatusFC;
