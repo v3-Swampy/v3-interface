@@ -1,5 +1,5 @@
-import React, { useState, useCallback, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, type ReactNode, useEffect } from 'react';
+import { useNavigate, type NavigateFunction, type To, type NavigateOptions } from 'react-router-dom';
 import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import Spin from '@components/Spin';
 import Button from '@components/Button';
@@ -10,6 +10,7 @@ import { RecordAction } from '@modules/Navbar/AccountDetailDropdown/History';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed.svg';
+import { useRefreshData, RefreshTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
 
 export enum Step {
   Confirm = 0,
@@ -24,17 +25,23 @@ interface CommonProps {
   initialStep?: Step;
   tokenNeededAdd?: Token;
   ConfirmContent?: any;
-  successRedirectRouterPath?: string;
+  onSuccess?: (navigate: NavigateFunction) => void;
 }
 
 export interface ConfirmModalInnerProps {
   setNextInfo: (info: { txHash: string; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => void;
 }
 
-const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({ initialStep = Step.Confirm, ConfirmContent, tokenNeededAdd, successRedirectRouterPath }) => {
+const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({
+  initialStep = Step.Confirm,
+  ConfirmContent,
+  tokenNeededAdd,
+  onSuccess,
+}) => {
   const [step, setStep] = useState(() => initialStep);
   const [txHash, setTxHash] = useState('');
   const [recordParams, setRecordParams] = useState<Omit<HistoryRecord, 'txHash' | 'status'> | null>(null);
+  const refreshFuncs = useRefreshData();
 
   const setNextInfo = useCallback(async ({ txHash, recordParams }: { txHash: string; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => {
     try {
@@ -49,11 +56,29 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
       }
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
       await receiptPromise;
+      if (recordParams && RefreshTypeMap[recordParams?.type]) {
+        const refreshFunc = refreshFuncs[RefreshTypeMap[recordParams.type]];
+        await refreshFunc?.();
+      }
+
       setStep(Step.Success);
     } catch (_) {
       setStep(Step.Failed);
     }
   }, []);
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (step === Step.Success && onSuccess) {
+      onSuccess?.((...params) => {
+        navigate(params?.[0] as any, params?.[1] as any);
+        setTimeout(() => {
+          history.replaceState(null, '', '');
+          history.pushState(null, '', '#modal');
+        }, 16);
+      });
+    }
+  }, [step]);
 
   if (step === Step.Confirm) {
     return <ConfirmContent setNextInfo={setNextInfo} />;

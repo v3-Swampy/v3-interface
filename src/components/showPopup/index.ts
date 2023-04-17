@@ -1,12 +1,19 @@
 export * from './Drawer';
 export * from './Modal';
 export * from './Toast';
+import { hideAllModal } from './Modal';
+import { hideAllDrawer } from './Drawer';
 
 let currentPopup: string | number | null = null;
 
 export const hidePopup = () => {
   setTimeout(() => {
     const url = new URL(location.href);
+    if (url.hash?.indexOf?.('#modal') === -1) {
+      hideAllModal();
+      hideAllDrawer();
+      return;
+    }
     url.hash = '';
     const newUrl = url.toString();
 

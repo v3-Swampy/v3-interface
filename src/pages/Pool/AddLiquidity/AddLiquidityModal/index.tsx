@@ -101,6 +101,7 @@ const showAddLiquidityModal = (props: Props) => {
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <AddLiquidityModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
+    onSuccess: (navigate) => navigate('/pool'),
   });
 };
 

@@ -1,4 +1,4 @@
-import { selector, useRecoilValue } from 'recoil';
+import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
@@ -164,6 +164,7 @@ export const usePositionBalance = () => useRecoilValue(positionBalanceQuery);
 export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
 export const usePositions = () => useRecoilValue(positionsQuery);
+export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQuery);
 
 export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
 

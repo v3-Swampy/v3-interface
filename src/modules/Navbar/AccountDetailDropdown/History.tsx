@@ -11,6 +11,7 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
+import { useRefreshPositions } from '@service/position';
 
 const transitions = {
   en: {
@@ -39,6 +40,24 @@ const HistoryTypeMap = {
   ['Stake_IncreaseUnlockTime']: 'statke_increase_unlock_time',
   ['Stake_IncreaseAmount']: 'stake_increase_amount',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
+
+
+export const useRefreshData = () => {
+  const refreshPositions = useRefreshPositions();
+
+  return {
+    refreshPositions
+  } as const;
+}
+
+export const RefreshTypeMap = {
+  ['Swap']: 'refreshPositions',
+  ['Position_AddLiquidity']: 'refreshPositions',
+  ['Position_CollectFees']: 'refreshPositions',
+  ['Stake_CreateLock']: 'refreshPositions',
+  ['Stake_IncreaseUnlockTime']: 'refreshPositions',
+  ['Stake_IncreaseAmount']: 'refreshPositions',
+} as Record<HistoryRecord['type'], keyof ReturnType<typeof useRefreshData>>;
 
 export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string; }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);

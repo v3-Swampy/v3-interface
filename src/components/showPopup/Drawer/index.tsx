@@ -50,4 +50,4 @@ export const showDrawer = (props: { Content: React.ReactNode; title: string; sub
 };
 
 export const hideDrawer = () => DrawerPopup.hide();
-export const hideAllDawer = () => DrawerPopup.hide();
+export const hideAllDrawer = () => DrawerPopup.hide();

@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import durationPlugin from 'dayjs/plugin/duration';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { uniqueId } from 'lodash-es';
 import Decimal from 'decimal.js';
@@ -13,19 +14,22 @@ import { setInvertedState } from '@modules/Position/invertedState';
 import showAddLiquidityModal from '@pages/Pool/AddLiquidity/AddLiquidityModal';
 import { createPreviewPositionForUI } from './positions';
 
+dayjs.extend(durationPlugin);
 const duration = dayjs.duration;
+
 const Q192 = new Decimal(2).toPower(192);
+const Q96 = new Decimal(2).toPower(96);
 const Zero = new Unit(0);
 
 export const handleClickSubmitCreatePosition = async ({
   fee: _fee,
-  'amount-tokenA': amountTokenA,
-  'amount-tokenB': amountTokenB,
+  'amount-tokenA': _amountTokenA,
+  'amount-tokenB': _amountTokenB,
   'price-lower': _priceLower,
   'price-upper': _priceUpper,
   tokenA: _tokenA,
   tokenB: _tokenB,
-  priceInit
+  priceInit,
 }: {
   fee: string;
   'amount-tokenA': string;
@@ -48,14 +52,19 @@ export const handleClickSubmitCreatePosition = async ({
 
     const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
     const [token0, token1] = notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
-    const [token0Amount, token1Amount] = notNeedSwap ? [amountTokenA, amountTokenB] : [amountTokenB, amountTokenA];
+    const amountTokenA = !!_amountTokenA ? _amountTokenA : '0';
+    const amountTokenB = !!_amountTokenB ? _amountTokenB : '0';
+    const [_token0Amount, _token1Amount] = notNeedSwap ? [amountTokenA, amountTokenB] : [amountTokenB, amountTokenA];
+    const token0Amount = !!_token0Amount ? _token0Amount : '0';
+    const token1Amount = !!_token1Amount ? _token1Amount : '0';
+
     const isPriceLowerZero = new Unit(_priceLower).equals(Zero);
     const isPriceUpperInfinity = _priceUpper === 'Infinity';
     const [priceLower, priceUpper] = notNeedSwap
       ? [_priceLower, _priceUpper]
       : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'Infinity' : (1 / +_priceLower).toFixed(5)];
 
-    const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
+    const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q96)).toFixed(0);
     const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
 
     const _tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
