@@ -54,6 +54,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
       }
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
       await receiptPromise;
+      
       setStep(Step.Success);
     } catch (_) {
       setStep(Step.Failed);
