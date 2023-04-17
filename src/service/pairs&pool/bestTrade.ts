@@ -6,6 +6,7 @@ import { type Token, isTokenEqual, getWrapperTokenByAddress, TokenUSDT } from '@
 import { fetchChain } from '@utils/fetch';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { UniswapV3Quoter, fetchMulticall } from '@contracts/index';
+import { TradeType } from '@service/swap';
 import { isPoolEqual } from '.';
 import { type Pool, usePools } from '.';
 
@@ -56,11 +57,6 @@ export const useAllRoutes = (_tokenIn: Token | null, _tokenOut: Token | null) =>
     return routes;
   }, [tokenIn?.address, tokenOut?.address, pools?.length]);
 };
-
-export enum TradeType {
-  EXACT_INPUT = 0,
-  EXACT_OUTPUT = 1,
-}
 
 export const encodeRouteToPath = (route: Route, exactOutput: boolean): string => {
   const firstInputToken: Token = route.tokenIn;
