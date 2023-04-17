@@ -47,7 +47,7 @@ const SettingsContent: React.FC = () => {
 
   const { method: slippageToleranceMethod, value: slippageToleranceValue } = useSlippageTolerance();
   const onSlippageToleranceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
-    setSlippageTolerance(+value);
+    setSlippageTolerance(value ? +value : null);
   }, []);
 
   const [transactionDeadline, setTransactionDeadline] = useTransactionDeadline();
@@ -66,7 +66,12 @@ const SettingsContent: React.FC = () => {
         </ToolTip>
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
-        <div className="flex-shrink-1 flex items-center w-full h-full pl-16px pr-12px rounded-100px border-1px border-solid border-orange-light">
+        <div
+          className={cx(
+            'flex-shrink-1 flex items-center w-full h-full pl-16px pr-12px rounded-100px border-1px border-solid focus-within:border-orange-light transition-colors',
+            slippageToleranceMethod === 'manual' ? 'border-orange-light' : 'border-gray-normal'
+          )}
+        >
           <Input
             className="h-40px text-14px text-black-light"
             id="input--slippage_tolerance"

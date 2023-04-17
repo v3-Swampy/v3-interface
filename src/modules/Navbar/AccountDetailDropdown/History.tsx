@@ -18,7 +18,7 @@ const transitions = {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liqudity to the pool',
     position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
-    stake_create_lock: 'Stake <b>>{tokenAValue} {tokenASymbol}</b>',
+    stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
     statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase stake amount <b>>{tokenAValue} {tokenASymbol}</b>',
     remove_liquidity: 'Remove liquidity',
