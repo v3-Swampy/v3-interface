@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, type ComponentProps } from 'react';
 import { debounce } from 'lodash-es';
-import { sendTransaction, Unit } from '@cfxjs/use-wallet-react/ethereum';
-import useI18n, { compiled } from '@hooks/useI18n';
+import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import useI18n from '@hooks/useI18n';
 import { createERC721Contract } from '@contracts/index'; // 更改为导入 ERC721 合约
 import Button from '@components/Button';
-import { fetchChain } from '@utils/fetch';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
 import { fetchMulticall } from '@contracts/index';
@@ -48,21 +47,14 @@ const AuthTokenButtonOf721: React.FC<Props> = ({ children, tokenAddress, contrac
         setStatus('checking-approval');
 
         const resOfMulticall: any = await fetchMulticall([
-          [tokenContract.address, tokenContract.func.interface.encodeFunctionData('ownerOf', [tokenId])],
           [tokenContract.address, tokenContract.func.interface.encodeFunctionData('getApproved', [tokenId])],
           [tokenContract.address, tokenContract.func.interface.encodeFunctionData('isApprovedForAll', [account, contractAddress])],
         ]);
 
-        const [owner, approvedAddress, isApprovedForAll] = [
-          tokenContract.func.interface.decodeFunctionResult('ownerOf', resOfMulticall[0]).toString(),
-          tokenContract.func.interface.decodeFunctionResult('getApproved', resOfMulticall[1]).toString(),
-          tokenContract.func.interface.decodeFunctionResult('isApprovedForAll', resOfMulticall[2]).toString(),
+        const [approvedAddress, isApprovedForAll] = [
+          tokenContract.func.interface.decodeFunctionResult('getApproved', resOfMulticall[0]).toString(),
+          tokenContract.func.interface.decodeFunctionResult('isApprovedForAll', resOfMulticall[1]).toString(),
         ];
-
-        // console.log('tokenContract: ', tokenContract.address);
-        // console.log('tokenId: ', tokenId);
-        // console.log(`owner of ${tokenId}: `, owner);
-        // console.log(`${tokenContract.address} isApprovedForAll for ${contractAddress}: `, isApprovedForAll);
 
         if (isApprovedForAll || approvedAddress.toLowerCase() === contractAddress.toLowerCase()) {
           setStatus('approved');

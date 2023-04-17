@@ -38,23 +38,20 @@ export const getCurrentIncentiveIndex = (now?: number): number => {
   return index;
 };
 
-export const getPastHistory=(index?:number)=>{
-  const i=index?index:getCurrentIncentiveIndex()
-  const pastHistory=[]
-  for (let y = 0; y <=i; y++) {
+export const getPastHistory = (index?: number) => {
+  const i = index ? index : getCurrentIncentiveIndex();
+  const pastHistory = [];
+  for (let y = 0; y <= i; y++) {
     pastHistory.push(incentiveHistory[y]);
   }
-  return pastHistory
-}
+  return pastHistory;
+};
 
-export const getPastIncentivesOfPool=(poolAddress?:string)=>{
-  if(!poolAddress) return []
-  const pastHistory=getPastHistory()
-  return pastHistory.map((incentiveItem)=>getIncentiveKey(poolAddress,incentiveItem.startTime,incentiveItem.endTime))
-}
-
-
- 
+export const getPastIncentivesOfPool = (poolAddress?: string) => {
+  if (!poolAddress) return [];
+  const pastHistory = getPastHistory();
+  return pastHistory.map((incentiveItem) => getIncentiveKey(poolAddress, incentiveItem.startTime, incentiveItem.endTime));
+};
 
 const getIncentiveKey = (address: string, startTime?: number, endTime?: number) => {
   if (startTime && endTime) {
@@ -197,7 +194,7 @@ export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid 
   };
 
   const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData('depositToken', [tokenId]);
-  const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('stakeToken', [key, address, pid]);
+  const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('stakeToken', [key, tokenId, pid]);
 
   const txHash = await sendTransaction({
     to: UniswapV3StakerFactory.address,
