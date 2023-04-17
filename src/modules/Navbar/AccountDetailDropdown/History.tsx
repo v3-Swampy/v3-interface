@@ -59,6 +59,7 @@ export const RefreshTypeMap = {
   ['Stake_CreateLock']: 'refreshPositions',
   ['Stake_IncreaseUnlockTime']: 'refreshPositions',
   ['Stake_IncreaseAmount']: 'refreshPositions',
+  ['Position_RemoveLiquidity']: 'refreshPositions',
 } as Record<HistoryRecord['type'], keyof ReturnType<typeof useRefreshData>>;
 
 export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
