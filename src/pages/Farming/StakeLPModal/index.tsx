@@ -3,7 +3,7 @@ import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import useInTranscation from '@hooks/useInTranscation';
 import { ReactComponent as LogoIcon } from '@assets/icons/logo_icon.svg';
-import { usePositionsForUI } from '@service/position';
+import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
@@ -12,6 +12,7 @@ import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
 import { Link, useNavigate } from 'react-router-dom';
 import { hidePopup } from '@components/showPopup';
+import Button from '@components/Button';
 
 const transitions = {
   en: {
@@ -43,11 +44,55 @@ export enum ModalMode {
 
 type Props = ConfirmModalInnerProps & PoolType;
 
+const Position = ({ data, address, startTime, endTime, pid }: { data: PositionForUI; startTime: number; endTime: number } & Pick<PoolType, 'address' | 'pid'>) => {
+  const i18n = useI18n(transitions);
+  const { inTranscation, execTranscation: handleStakeLP } = useInTranscation(_handleStakeLP, true);
+
+  const classNameButton = useMemo(() => {
+    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
+  }, []);
+
+  return (
+    <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4" key={data.id}>
+      <div>
+        <div>
+          <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
+          <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">${data.liquidity}</span>
+          <PositionStatus position={data} />
+        </div>
+        <PriceRange position={data} />
+      </div>
+      <AuthTokenButtonOf721
+        className={classNameButton}
+        tokenAddress={NonfungiblePositionManager.address}
+        contractAddress={UniswapV3StakerFactory.address}
+        tokenId={data.id.toString()}
+      >
+        {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
+        <Button
+          loading={inTranscation}
+          onClick={() =>
+            handleStakeLP({
+              tokenId: data.id,
+              address,
+              startTime,
+              endTime,
+              pid: pid,
+            })
+          }
+          className={classNameButton}
+        >
+          {i18n.stakeLP}
+        </Button>
+      </AuthTokenButtonOf721>
+    </div>
+  );
+};
+
 const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, token0, token1 }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const navigate = useNavigate();
-  const { inTranscation, execTranscation: handleStakeLP } = useInTranscation(_handleStakeLP);
 
   const fPositions = useMemo(() => {
     return positions.filter((p) => p.address === address);
@@ -55,10 +100,6 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
 
   const classNameLink = useMemo(() => {
     return 'font-500 font-not-italic text-14px leading-18px color-orange-normal underline mt-4 text-center cursor-pointer';
-  }, []);
-
-  const classNameButton = useMemo(() => {
-    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
   }, []);
 
   const handleNavigate = useCallback(() => {
@@ -90,40 +131,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
       <div className="mt-24px">
         <div className="max-h-454px min-h-318px overflow-y-auto">
           {fPositions.map((p) => {
-            return (
-              <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4" key={p.id}>
-                <div>
-                  <div>
-                    <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
-                    <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">${p.liquidity}</span>
-                    <PositionStatus position={p} />
-                  </div>
-                  <PriceRange position={p} />
-                </div>
-                <AuthTokenButtonOf721
-                  className={classNameButton}
-                  tokenAddress={NonfungiblePositionManager.address}
-                  contractAddress={UniswapV3StakerFactory.address}
-                  tokenId={p.id.toString()}
-                >
-                  {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
-                  <div
-                    onClick={() =>
-                      handleStakeLP({
-                        tokenId: p.id,
-                        address,
-                        startTime,
-                        endTime,
-                        pid: pid,
-                      })
-                    }
-                    className={classNameButton}
-                  >
-                    {i18n.stakeLP}
-                  </div>
-                </AuthTokenButtonOf721>
-              </div>
-            );
+            return <Position data={p} address={address} startTime={startTime} endTime={endTime} pid={pid}></Position>;
           })}
         </div>
         <div className="text-center">
