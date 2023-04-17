@@ -29,6 +29,7 @@ const transitions = {
     stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
     statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase stake <b>{tokenAValue} {tokenASymbol}</b>',
+    remove_liquidity: '6666',
   },
 } as const;
 
@@ -39,16 +40,16 @@ const HistoryTypeMap = {
   ['Stake_CreateLock']: 'stake_create_lock',
   ['Stake_IncreaseUnlockTime']: 'statke_increase_unlock_time',
   ['Stake_IncreaseAmount']: 'stake_increase_amount',
+  ['Position_RemoveLiquidity']: 'remove_liquidity',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
-
 
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
 
   return {
-    refreshPositions
+    refreshPositions,
   } as const;
-}
+};
 
 export const RefreshTypeMap = {
   ['Swap']: 'refreshPositions',
@@ -59,14 +60,14 @@ export const RefreshTypeMap = {
   ['Stake_IncreaseAmount']: 'refreshPositions',
 } as Record<HistoryRecord['type'], keyof ReturnType<typeof useRefreshData>>;
 
-export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string; }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
+export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);
   const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
   const tokenB = getUnwrapperTokenByAddress(tokenB_Address);
 
   return (
     <span
-      className={cx("history-record flex-shrink-1 flex-grow-1", className)}
+      className={cx('history-record flex-shrink-1 flex-grow-1', className)}
       dangerouslySetInnerHTML={{
         __html: compiled(i18n[HistoryTypeMap[type]], {
           tokenAValue: trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : ''),
@@ -111,7 +112,7 @@ const History: React.FC = () => {
                 <img className="w-16px h-16px mr-8px mt-4px flex-shrink-0 flex-grow-0" src={tokenB.logoURI} alt={`${tokenB.symbol} logo`} />
               </>
             )}
-            <RecordAction className='text-12px text-gray-normal ' {...record} />
+            <RecordAction className="text-12px text-gray-normal " {...record} />
 
             {record.status === HistoryStatus.Success && <SuccessIcon className="absolute right-12px -translate-y-2px w-14px h-10px flex-shrink-0 flex-grow-0 text-red-200" />}
             {record.status === HistoryStatus.Failed && <FailedIcon className="absolute right-12px -translate-y-2px w-12px h-12px flex-shrink-0 flex-grow-0 text-red-200" />}

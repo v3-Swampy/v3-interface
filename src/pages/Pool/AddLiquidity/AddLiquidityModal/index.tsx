@@ -38,7 +38,7 @@ interface Props {
     value: string;
   };
   recordParams: {
-    type: 'Position_AddLiquidity',
+    type: 'Position_AddLiquidity';
     tokenA_Address: string;
     tokenA_Value: string;
     tokenB_Address: string;
@@ -75,13 +75,13 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
     <div className="mt-24px">
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
-          <TokenPair className='!text-18px' position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPair className="!text-18px" position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />
           <Status position={previewPosition} />
         </div>
 
         <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
           <TokenPairAmount amount0={amount0} amount1={amount1} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
-          <p className='mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-medium'>
+          <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-medium">
             Fee Tier
             <span>{previewPosition.fee / 10000}%</span>
           </p>
