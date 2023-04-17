@@ -25,6 +25,7 @@ export const handleClickSubmitCreatePosition = async ({
   'price-upper': _priceUpper,
   tokenA: _tokenA,
   tokenB: _tokenB,
+  priceInit
 }: {
   fee: string;
   'amount-tokenA': string;
@@ -33,6 +34,7 @@ export const handleClickSubmitCreatePosition = async ({
   'price-upper': string;
   tokenA: Token;
   tokenB: Token;
+  priceInit?: string;
 }) => {
   try {
     const account = getAccount();
@@ -121,8 +123,9 @@ export const handleClickSubmitCreatePosition = async ({
       leftToken: _tokenA,
       rightToken: _tokenB,
       inverted,
-      amount0: token0AmountUnit,
-      amount1: token1AmountUnit,
+      amount0: Unit.fromStandardUnit(amountTokenA, _tokenA.decimals),
+      amount1: Unit.fromStandardUnit(amountTokenB, _tokenB.decimals),
+      priceInit,
       previewUniqueId,
       previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower: new Unit(priceLower), priceUpper: new Unit(priceUpper) }, pool),
       transcationParams,
