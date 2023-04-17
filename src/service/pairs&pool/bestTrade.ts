@@ -228,11 +228,13 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
   }, [amount, tokensAreTheSame, tokenIn?.address, tokenOut?.address, tradeType, quoteResults.length]);
 };
 
-export const useTokenPrice = (tokenAddress: string) => {
+export const useTokenPrice = (tokenAddress: string | undefined) => {
+  if(!tokenAddress)  return undefined;
   const token = getWrapperTokenByAddress(tokenAddress);
   const result: any = useClientBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
   if (result.state === TradeState.VALID) {
-    return new Unit(result.trade.amountOut).toDecimalStandardUnit(TokenUSDT.decimals);
+    console.log(new Unit(result.trade.amountIn).toDecimalStandardUnit(token?.decimals), new Unit(result.trade.amountOut).toDecimalStandardUnit(TokenUSDT?.decimals))
+    return new Unit(result.trade.amountOut).toDecimalStandardUnit(undefined, TokenUSDT.decimals);
   }
   return undefined;
 };

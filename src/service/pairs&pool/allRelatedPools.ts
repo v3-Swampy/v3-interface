@@ -96,23 +96,20 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
       )
       .then((res) => mergePairs(res))
       .then((res) => {
-        const pools: Array<Pool> = res
-          ?.map(
-            (data, index) =>
-              new Pool({
-                ...allTokenPairsWithAllFees[index],
-                address: poolAddresses[index],
-                sqrtPriceX96: data?.[0]?.[0] ? data?.[0]?.[0].toString() : null,
-                liquidity: data?.[1]?.[0] ? data?.[1]?.[0].toString() : null,
-                tickCurrent: data?.[0]?.[1] ? +data?.[0]?.[1].toString() : null,
-              })
-          )
-          .filter((pool) => pool.liquidity && pool.sqrtPriceX96);
+        const pools: Array<Pool> = res?.map(
+          (data, index) =>
+            new Pool({
+              ...allTokenPairsWithAllFees[index],
+              address: poolAddresses[index],
+              sqrtPriceX96: data?.[0]?.[0] ? data?.[0]?.[0].toString() : null,
+              liquidity: data?.[1]?.[0] ? data?.[1]?.[0].toString() : null,
+              tickCurrent: data?.[0]?.[1] ? +data?.[0]?.[1].toString() : null,
+            })
+        );
 
         if (!pools?.length) return;
-        setValidPools(pools);
         // console.log(pools);
-        // setValidPools(pools.filter(pool => pool.sqrtPriceX96 && pool.liquidity && pool.sqrtPriceX96 !== '0' && pool.liquidity !== '0'));
+        setValidPools(pools.filter((pool) => pool.sqrtPriceX96 && pool.liquidity && pool.sqrtPriceX96 !== '0' && pool.liquidity !== '0'));
       });
   }, [allTokenPairsWithAllFees]);
   console.log(validPools);

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
@@ -8,13 +9,14 @@ import DataDetail from './DataDetail';
 import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { handleUnStake } from '@service/staking';
-import { TokenVST, TokenCFX, TokenETH, TokenUSDT } from '@service/tokens';
+import { TokenVST, TokenUSDT } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
-import { useTokenPrice, useClientBestTrade, TradeType } from '@service/pairs&pool';
+import { useTokenPrice } from '@service/pairs&pool';
 import { numberWithCommas } from '@utils/numberUtils';
 import { ReactComponent as StakeCalculate } from '@assets/icons/stake_calculate.svg';
-import {useBoostFactor} from '@service/staking'
+import { useBoostFactor } from '@service/staking';
 
 const transitions = {
   en: {
@@ -48,7 +50,6 @@ const transitions = {
 } as const;
 
 enum PersonalStakingStatus {
-  UNKNOWN,
   UNLOCKED,
   LOCKED,
   TO_UNLOCK,
@@ -57,13 +58,11 @@ enum PersonalStakingStatus {
 const StakingPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const [lockedAmount, unlockTime] = useUserInfo();
-  const VSTPrice = useTokenPrice(TokenCFX.address);
-  console.log('b', VSTPrice);
-  const boostingFactor=useBoostFactor()
+  const VSTPrice = useTokenPrice(TokenVST.address);
+  const boostingFactor = useBoostFactor();
   const stakingStatus = useMemo(() => {
-    if (!lockedAmount && !unlockTime) return PersonalStakingStatus.UNKNOWN;
-    if (!+lockedAmount) return PersonalStakingStatus.UNLOCKED;
-    if (+unlockTime <= new Date().valueOf() / 1000) return PersonalStakingStatus.TO_UNLOCK;
+    if (!lockedAmount || !unlockTime || lockedAmount === '0') return PersonalStakingStatus.UNLOCKED;
+    if (unlockTime <= new Date().valueOf() / 1000) return PersonalStakingStatus.TO_UNLOCK;
     return PersonalStakingStatus.LOCKED;
   }, [lockedAmount, unlockTime]);
 
@@ -72,7 +71,7 @@ const StakingPage: React.FC = () => {
   }, [unlockTime]);
 
   const lockedBalanceUSD = useMemo(() => {
-    return VSTPrice && lockedAmount ? numberWithCommas(parseFloat((+VSTPrice * +lockedAmount).toFixed(3).slice(0, -1))) : '-';
+    return VSTPrice && lockedAmount ? numberWithCommas(new Unit(lockedAmount).mul(VSTPrice).toDecimalStandardUnit(3, TokenVST.decimals)) : '-'
   }, [VSTPrice, lockedAmount]);
 
   return (
@@ -86,13 +85,13 @@ const StakingPage: React.FC = () => {
 
           <div className="flex flex-1 flex-col items-center p-16px rounded-16px bg-orange-light-hover">
             {/* Initial status: Create Lock, thus the user has not staked any token or the staked token has already unlocked */}
-            {(stakingStatus === PersonalStakingStatus.UNKNOWN || stakingStatus === PersonalStakingStatus.UNLOCKED) && (
+            {(stakingStatus === PersonalStakingStatus.UNLOCKED) && (
               <div className="flex flex-col items-center w-full">
                 <StakeCalculate className="w-74px h-74px mt-64px mb-32px" />
-                <p className="leading-18px text-14px font-medium text-black-normal mb-50px max-w-315px text-center">{compiled(i18n.stake_tip, { token: 'VST' })}</p>
+                <p className="leading-18px text-14px font-medium text-black-normal mb-50px max-w-315px text-center">{compiled(i18n.stake_tip, { token: TokenVST.symbol })}</p>
                 <AuthConnectButton {...bigButtonProps}>
                   <Button {...bigButtonProps} onClick={() => showStakeModal(ModalMode.CreateLock)}>
-                    {compiled(i18n.stake_button, { token: 'VST' })}
+                    {compiled(i18n.stake_button, { token: TokenVST.symbol })}
                   </Button>
                 </AuthConnectButton>
               </div>
@@ -101,7 +100,7 @@ const StakingPage: React.FC = () => {
               <div className="flex flex-col w-full">
                 <div className="flex w-full flex-1 gap-16px items-stretch text-14px leading-18px text-black-normal">
                   <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between">
-                    <p className="font-medium mb-16px">{compiled(i18n.my_staked, { token: 'VST' })}</p>
+                    <p className="font-medium mb-16px">{compiled(i18n.my_staked, { token: TokenVST.symbol })}</p>
                     <p className="font-bold text-18px leading-24px">{lockedAmount ?? '...'}</p>
                     <p className="text-black-light font-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                     <p className="mt-70px">
@@ -127,7 +126,7 @@ const StakingPage: React.FC = () => {
               <div className="flex flex-col w-full">
                 <div className="flex w-full flex-1 gap-16px items-stretch text-14px leading-18px">
                   <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-start">
-                    <p className="text-black-normal font-medium mb-16px">{compiled(i18n.my_staked, { token: 'VST' })}</p>
+                    <p className="text-black-normal font-medium mb-16px">{compiled(i18n.my_staked, { token: TokenVST.symbol })}</p>
                     <p className="text-black-normal font-bold text-18px leading-24px mb-4px">{lockedAmount ?? '...'}</p>
                     <p className="text-black-light">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                   </div>

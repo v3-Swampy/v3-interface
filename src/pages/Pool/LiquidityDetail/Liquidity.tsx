@@ -1,7 +1,8 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePosition } from '@service/position';
+import { usePosition } from '@service/position';
+import { useTokenPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
 
 const transitions = {
@@ -17,7 +18,11 @@ const Liquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
-  const { liquidity, amount0, amount1, ratio } = position ?? {};
+  const { amount0, amount1, ratio, token0, token1, liquidity } = position ?? {};
+
+  const token0Price = useTokenPrice(token0?.address);
+  const token1Price = useTokenPrice(token1?.address)
+  // const liquidity = amount0?.mul(token0Price)
 
   // price 0 and price1 need the best routing api, xxx USDC/token is the token price
   // const liquidity = amount0 * price0 + amount1 * price1;
