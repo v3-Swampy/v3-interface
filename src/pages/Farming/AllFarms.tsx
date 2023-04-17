@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
@@ -7,6 +7,7 @@ import Corner from './Corner';
 import showStakeLPModal from './StakeLPModal';
 import { usePoolList, type PoolType } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
+import AuthConnectButton from '@modules/AuthConnectButton';
 
 const transitions = {
   en: {
@@ -32,10 +33,14 @@ const transitions = {
 const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
   const i18n = useI18n(transitions);
 
-  const className = {
-    title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
-    content: 'color-black-normal text-14px font-500 not-italic leading-18px',
-  };
+  const className = useMemo(
+    () => ({
+      title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
+      content: 'color-black-normal text-14px font-500 not-italic leading-18px',
+      authConnectButton: 'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer',
+    }),
+    []
+  );
 
   return (
     <div className="bg-orange-light-hover rounded-2xl mb-6 last:mb-0 flex justify-between py-4 px-8 relative">
@@ -44,11 +49,13 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
         <div className={`${className.title}`}>{i18n.poolName}</div>
         <div className={`${className.content} inline-flex justify-center items-center`}>
           <TokenPair
-            position={{
-              leftToken: data.token0,
-              rightToken: data.token1,
-              fee: data.fee,
-            } as any}
+            position={
+              {
+                leftToken: data.token0,
+                rightToken: data.token1,
+                fee: data.fee,
+              } as any
+            }
           />
         </div>
       </div>
@@ -77,12 +84,11 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
         </div>
       </div>
       <div className="flex items-center">
-        <div
-          className="flex items-center justify-center px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer"
-          onClick={() => showStakeLPModal(data)}
-        >
-          {i18n.stakeLP}
-        </div>
+        <AuthConnectButton className={className.authConnectButton}>
+          <div className={className.authConnectButton} onClick={() => showStakeLPModal(data)}>
+            {i18n.stakeLP}
+          </div>
+        </AuthConnectButton>
       </div>
     </div>
   );
