@@ -1,19 +1,17 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { showModal } from '@components/showPopup';
 import 'rc-slider/assets/index.css';
 
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
 import { useTokenPrice } from '@service/pairs&pool';
-import { PositionForUI, usePosition, usePositionFees, removeLiquidity } from '@service/position';
+import { PositionForUI, usePosition, usePositionFees, handleSubmitRemoveLiquidity } from '@service/position';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
 import AmountSlider from './AmountSlider';
 import AmountDetail from './AmountDetail';
-import ConfirmRemove from './ConfirmRemove';
 import Button from '@components/Button';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { trimDecimalZeros } from '@utils/numberUtils';
@@ -111,18 +109,14 @@ const RemoveLiquidity: React.FC = () => {
   const onClickPreview = () => {
     position &&
       tokenId &&
-      showModal({
-        Content: (
-          <ConfirmRemove
-            onConfirmRemove={() => removeLiquidity({ tokenId, removePercent, positionLiquidity: position?.liquidity })}
-            tokenId={tokenId}
-            leftRemoveAmount={leftRemoveAmountForUI}
-            rightRemoveAmount={rightRemoveAmountForUI}
-            leftEarnedFees={leftEarnedFeesForUI}
-            rightEarnedFees={rightEarnedFeesForUI}
-          />
-        ),
-        title: i18n.remove_liquidity,
+      handleSubmitRemoveLiquidity({
+        tokenId,
+        removePercent,
+        positionLiquidity: position?.liquidity,
+        leftRemoveAmount: leftRemoveAmountForUI,
+        rightRemoveAmount: rightRemoveAmountForUI,
+        leftEarnedFees: leftEarnedFeesForUI,
+        rightEarnedFees: rightEarnedFeesForUI,
       });
   };
 
