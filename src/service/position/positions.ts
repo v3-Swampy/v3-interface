@@ -1,4 +1,4 @@
-import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
+import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
@@ -84,6 +84,58 @@ const tokenIdsQuery = selector<Array<number> | undefined>({
   },
 });
 
+const decodePosition = (tokenId: number, decodeRes: Array<any>) => {
+  const token0 = getTokenByAddress(decodeRes?.[2])!;
+  const token1 = getTokenByAddress(decodeRes?.[3])!;
+  const fee = Number(decodeRes?.[4]);
+
+  const address = computePoolAddress({
+    tokenA: token0,
+    tokenB: token1,
+    fee: fee,
+  });
+
+  const position: Position = {
+    id: tokenId,
+    address: address,
+    nonce: Number(decodeRes?.[0]),
+    operator: String(decodeRes?.[1]),
+    token0: token0,
+    token1: token1,
+    fee: fee,
+    tickLower: Number(decodeRes?.[5]),
+    tickUpper: Number(decodeRes?.[6]),
+    liquidity: String(decodeRes?.[7]),
+    feeGrowthInside0LastX128: String(decodeRes?.[8]),
+    feeGrowthInside1LastX128: String(decodeRes?.[9]),
+    tokensOwed0: String(decodeRes?.[10]),
+    tokensOwed1: String(decodeRes?.[11]),
+    priceLower: calcPriceFromTick({
+      tick: Number(decodeRes?.[5]),
+      tokenA: token0,
+      tokenB: token1,
+      fee: fee,
+    }),
+    priceUpper: calcPriceFromTick({
+      tick: Number(decodeRes?.[6]),
+      tokenA: token0,
+      tokenB: token1,
+      fee: fee,
+    }),
+  };
+  return position;
+};
+
+const positionQueryByTokenId = selectorFamily({
+  key: `positionQueryByTokenId-${import.meta.env.MODE}`,
+  get: (tokenId: number) => async () => {
+    const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
+    const position: Position = decodePosition(tokenId, decodeRes);
+    console.log('positionQueryByTokenId', position);
+    return position;
+  },
+});
+
 const positionsQuery = selector<Array<Position>>({
   key: `PositionListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
@@ -100,45 +152,7 @@ const positionsQuery = selector<Array<Position>>({
     if (Array.isArray(positionsResult))
       return positionsResult?.map((singleRes, index) => {
         const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-
-        const token0 = getTokenByAddress(decodeRes?.[2])!;
-        const token1 = getTokenByAddress(decodeRes?.[3])!;
-        const fee = Number(decodeRes?.[4]);
-
-        const address = computePoolAddress({
-          tokenA: token0,
-          tokenB: token1,
-          fee: fee,
-        });
-
-        const position: Position = {
-          id: tokenIds[index],
-          address: address,
-          nonce: Number(decodeRes?.[0]),
-          operator: String(decodeRes?.[1]),
-          token0: token0,
-          token1: token1,
-          fee: fee,
-          tickLower: Number(decodeRes?.[5]),
-          tickUpper: Number(decodeRes?.[6]),
-          liquidity: String(decodeRes?.[7]),
-          feeGrowthInside0LastX128: String(decodeRes?.[8]),
-          feeGrowthInside1LastX128: String(decodeRes?.[9]),
-          tokensOwed0: String(decodeRes?.[10]),
-          tokensOwed1: String(decodeRes?.[11]),
-          priceLower: calcPriceFromTick({
-            tick: Number(decodeRes?.[5]),
-            tokenA: token0,
-            tokenB: token1,
-            fee: fee,
-          }),
-          priceUpper: calcPriceFromTick({
-            tick: Number(decodeRes?.[6]),
-            tokenA: token0,
-            tokenB: token1,
-            fee: fee,
-          }),
-        };
+        const position: Position = decodePosition(tokenIds[index], decodeRes);
 
         return position;
       });
@@ -165,6 +179,8 @@ export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
 export const usePositions = () => useRecoilValue(positionsQuery);
 export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQuery);
+
+export const usePositionByTokenId = (tokenId: number) => useRecoilValue(positionQueryByTokenId(+tokenId));
 
 export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
 

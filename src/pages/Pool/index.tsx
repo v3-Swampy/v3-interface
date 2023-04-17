@@ -8,7 +8,7 @@ import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import PriceRange from '@modules/Position/PriceRange';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePositionsForUI } from '@service/position';
+import { type PositionForUI, usePositionsForUI, usePositionByTokenId } from '@service/position';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 
 const transitions = {
@@ -43,6 +43,7 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
+  const position = usePositionByTokenId(1)
 
   if (!positions?.length) {
     return (
