@@ -117,8 +117,8 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
   const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit && Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [tokenA?.address, pool, priceInit]);
-
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [tokenA?.address, pool, priceInit]);
+  console.log(priceTokenA)
   useLayoutEffect(() => {
     if (getSwapLock()) return;
     setValue('price-init', '');

@@ -153,7 +153,7 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
   const priceTokenA = useMemo(
-    () => (pool === null ? (priceInit && Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
+    () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
     [tokenA?.address, pool, priceInit]
   );
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
