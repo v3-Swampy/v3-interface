@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import { fetchChain } from '@utils/fetch';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
+import { fetchMulticall } from '@contracts/index';
 
 export type Status = 'checking-approval' | 'need-approval' | 'approving' | 'approved';
 
@@ -46,12 +47,24 @@ const AuthTokenButtonOf721: React.FC<Props> = ({ children, tokenAddress, contrac
       try {
         setStatus('checking-approval');
 
-        const fetchRes = await fetchChain<string>({
-          params: [{ data: tokenContract.func.interface.encodeFunctionData('getApproved', [tokenId]), to: tokenContract.address }, 'latest'],
-        });
-        const approvedAddress = tokenContract.func.interface.decodeFunctionResult('getApproved', fetchRes)?.[0];
+        const resOfMulticall: any = await fetchMulticall([
+          [tokenContract.address, tokenContract.func.interface.encodeFunctionData('ownerOf', [tokenId])],
+          [tokenContract.address, tokenContract.func.interface.encodeFunctionData('getApproved', [tokenId])],
+          [tokenContract.address, tokenContract.func.interface.encodeFunctionData('isApprovedForAll', [account, contractAddress])],
+        ]);
 
-        if (approvedAddress.toLowerCase() === contractAddress.toLowerCase()) {
+        const [owner, approvedAddress, isApprovedForAll] = [
+          tokenContract.func.interface.decodeFunctionResult('ownerOf', resOfMulticall[0]).toString(),
+          tokenContract.func.interface.decodeFunctionResult('getApproved', resOfMulticall[1]).toString(),
+          tokenContract.func.interface.decodeFunctionResult('isApprovedForAll', resOfMulticall[2]).toString(),
+        ];
+
+        // console.log('tokenContract: ', tokenContract.address);
+        // console.log('tokenId: ', tokenId);
+        // console.log(`owner of ${tokenId}: `, owner);
+        // console.log(`${tokenContract.address} isApprovedForAll for ${contractAddress}: `, isApprovedForAll);
+
+        if (isApprovedForAll || approvedAddress.toLowerCase() === contractAddress.toLowerCase()) {
           setStatus('approved');
         } else {
           setStatus('need-approval');
@@ -72,9 +85,10 @@ const AuthTokenButtonOf721: React.FC<Props> = ({ children, tokenAddress, contrac
     if (!tokenContract || !tokenAddress) return;
     try {
       setStatus('approving');
+
       const txHash = await sendTransaction({
         to: tokenAddress,
-        data: tokenContract.func.interface.encodeFunctionData('approve', [contractAddress, tokenId]),
+        data: tokenContract.func.interface.encodeFunctionData('setApprovalForAll', [contractAddress, true]),
       });
 
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
