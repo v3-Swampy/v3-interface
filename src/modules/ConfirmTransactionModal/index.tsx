@@ -87,7 +87,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   if (step === Step.WaitReceipt) {
     return (
       <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center">
-        <Spin className="mb-72px mx-auto block text-88px text-orange-normal" />
+        <Spin className="mb-72px mx-auto block text-88px text-black-normal" />
         <p className="leading-28px text-center text-22px text-black-normal whitespace-nowrap">Waiting for confirmation</p>
         {recordParams && (
           <p className="px-36px leading-28px text-center text-22px text-black-normal">
