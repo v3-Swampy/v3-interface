@@ -21,6 +21,7 @@ const transitions = {
     stake_create_lock: 'Stake <b>>{tokenAValue} {tokenASymbol}</b>',
     statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase stake amount <b>>{tokenAValue} {tokenASymbol}</b>',
+    remove_liquidity: 'Remove liquidity',
   },
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
@@ -29,7 +30,7 @@ const transitions = {
     stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
     statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase stake <b>{tokenAValue} {tokenASymbol}</b>',
-    remove_liquidity: '6666',
+    remove_liquidity: 'Remove liquidity',
   },
 } as const;
 
