@@ -8,6 +8,7 @@ import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
+import {useStakedTokenIds,useWhichIncentiveTokenIdIn} from '@service/farming/myFarms'
 
 const FAKE_DATA_MY_FARMS = [
   {
@@ -90,7 +91,10 @@ interface FarmsItemProps {
 const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
   const i18n = useI18n(transitions);
   const [isShow, setIsShow] = React.useState<boolean>(false);
-
+  const stakedTokenIds=useStakedTokenIds()
+  console.info('stakedTokenIds',stakedTokenIds)
+  const which=useWhichIncentiveTokenIdIn(30)
+  console.info('which',which)
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',

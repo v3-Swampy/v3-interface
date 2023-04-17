@@ -8,6 +8,9 @@ import { FeeAmount } from '@service/pairs&pool';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
 import { useTokenPrice } from '@service/pairs&pool';
+import { defaultAbiCoder } from '@ethersproject/abi';
+import { keccak256 } from '@ethersproject/solidity';
+
 
 const DEFAULT_TOKEN = {
   name: '',
@@ -200,4 +203,8 @@ export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid 
     to: UniswapV3StakerFactory.address,
     data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
   });
+};
+
+export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {
+  return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])])
 };

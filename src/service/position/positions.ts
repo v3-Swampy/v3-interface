@@ -126,7 +126,7 @@ const decodePosition = (tokenId: number, decodeRes: Array<any>) => {
   return position;
 };
 
-const positionQueryByTokenId = selectorFamily({
+export const positionQueryByTokenId = selectorFamily({
   key: `positionQueryByTokenId-${import.meta.env.MODE}`,
   get: (tokenId: number) => async () => {
     const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
