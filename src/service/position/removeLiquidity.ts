@@ -1,54 +1,62 @@
 import dayjs from 'dayjs';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { getTransactionDeadline } from '@service/settings';
 import { getAccount, sendTransaction } from '@service/account';
-import { showToast } from '@components/showPopup';
-import { toI18n } from '@hooks/useI18n';
-
-const transitions = {
-  en: {
-    success_tip: 'Remove Successfully!',
-    error_tip: 'Unknown Error',
-  },
-  zh: {
-    success_tip: 'Remove Successfully!',
-    error_tip: 'Unknown Error',
-  },
-} as const;
+import showRemoveLiquidityModal from '@pages/Pool/RemoveLiquidity/RemoveLiquidityModal';
 
 const duration = dayjs.duration;
 
-export const removeLiquidity = async ({ tokenId, positionLiquidity, removePercent }: { tokenId: string; positionLiquidity: string; removePercent: number }) => {
-  const i18n = toI18n(transitions);
-  try {
-    const account = getAccount();
-    if (!account) return;
-    const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
-    const liquidity = new Unit(positionLiquidity).mul(removePercent).div(100).toDecimalMinUnit(0);
+export const handleSubmitRemoveLiquidity = async ({
+  tokenId,
+  positionLiquidity,
+  removePercent,
+  leftRemoveAmount,
+  rightRemoveAmount,
+  leftEarnedFees,
+  rightEarnedFees,
+}: {
+  tokenId: string;
+  positionLiquidity: string;
+  removePercent: number;
+  leftRemoveAmount: string;
+  rightRemoveAmount: string;
+  leftEarnedFees: string;
+  rightEarnedFees: string;
+}) => {
+  const account = getAccount();
+  if (!account) return '';
+  const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
+  const liquidity = new Unit(positionLiquidity).mul(removePercent).div(100).toDecimalMinUnit(0);
 
-    const params = {
-      tokenId: new Unit(tokenId).toHexMinUnit(),
-      liquidity: new Unit(liquidity).toHexMinUnit(),
-      amount0Min: 0,
-      amount1Min: 0,
-      deadline,
-    };
-    const data = NonfungiblePositionManager.func.interface.encodeFunctionData('decreaseLiquidity', [
-      {
-        ...params,
-      },
-    ]);
-    const txHash = await sendTransaction({ value: '0x0', to: NonfungiblePositionManager.address, data });
-    const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
-    await receiptPromise;
-    showToast(i18n.success_tip, {
-      type: 'success',
-    });
-  } catch (err: any) {
-    showToast(err?.message || i18n.success_tip, {
-      type: 'warning',
-    });
-  }
+  const params = {
+    tokenId: new Unit(tokenId).toHexMinUnit(),
+    liquidity: new Unit(liquidity).toHexMinUnit(),
+    amount0Min: 0,
+    amount1Min: 0,
+    deadline,
+  };
+  const data = NonfungiblePositionManager.func.interface.encodeFunctionData('decreaseLiquidity', [
+    {
+      ...params,
+    },
+  ]);
+
+  const transcationParams = { value: '0x0', to: NonfungiblePositionManager.address, data };
+
+  const recordParams = {
+    type: 'Position_RemoveLiquidity',
+  } as const;
+
+  showRemoveLiquidityModal({
+    transcationParams,
+    recordParams,
+    tokenId,
+    leftRemoveAmount,
+    rightRemoveAmount,
+    leftEarnedFees,
+    rightEarnedFees,
+  });
 };
+
+export const handleSendTransaction = async (transcationParams: { to: string; data: string; value: string }) => await sendTransaction(transcationParams);
