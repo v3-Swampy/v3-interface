@@ -60,8 +60,9 @@ const DepositAmount: React.FC<
     price: Unit | null | undefined;
     isValidToInput: boolean;
     isOutOfRange: boolean;
+    isPairTokenOutOfRange: boolean;
   }
-> = ({ type, token, pairToken, price, isRangeValid = true, isOutOfRange, register, setValue }) => {
+> = ({ type, token, pairToken, price, isRangeValid = true, isOutOfRange, isPairTokenOutOfRange, register, setValue }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
@@ -73,7 +74,7 @@ const DepositAmount: React.FC<
     (newAmount: string) => {
       if (!price) return;
       const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
-      if (!newAmount) {
+      if (!newAmount || isPairTokenOutOfRange) {
         setValue(pairKey, '');
         return;
       }
@@ -81,7 +82,7 @@ const DepositAmount: React.FC<
       const pairTokenExpectedAmount = currentInputAmount?.mul(price);
       setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     },
-    [type, price, pairToken]
+    [type, price, pairToken, isPairTokenOutOfRange]
   );
 
   return (
@@ -152,7 +153,7 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
   const priceTokenA = useMemo(
-    () => (pool === null ? (priceInit && Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
+    () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
     [tokenA?.address, pool, priceInit]
   );
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
@@ -172,6 +173,17 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
     setValue('amount-tokenB', trimDecimalZeros(tokenBExpectedAmount.toDecimalMinUnit(tokenB?.decimals)));
   }, [token0PriceFixed5]);
 
+
+  useLayoutEffect(() => {
+    if (isPriceLowerGreaterThanCurrentPrice) {
+      setValue('amount-tokenB', '');
+    }
+
+    if (isPriceUpperLessThanCurrentPrice) {
+      setValue('amount-tokenA', '');
+    }
+  }, [isPriceUpperLessThanCurrentPrice, isPriceLowerGreaterThanCurrentPrice])
+
   if (!tokenA || !tokenB || !fee) return null;
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
@@ -182,7 +194,8 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
         type="tokenA"
         price={priceTokenA}
         isValidToInput={isValidToInput}
-        isOutOfRange={isRangeValid === true && isPriceUpperLessThanCurrentPrice}
+        isOutOfRange={isPriceUpperLessThanCurrentPrice}
+        isPairTokenOutOfRange={isPriceLowerGreaterThanCurrentPrice}
         setValue={setValue}
         register={register}
         isRangeValid={isRangeValid}
@@ -193,7 +206,8 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
         type="tokenB"
         price={priceTokenB}
         isValidToInput={isValidToInput}
-        isOutOfRange={isRangeValid === true && isPriceLowerGreaterThanCurrentPrice}
+        isOutOfRange={isPriceLowerGreaterThanCurrentPrice}
+        isPairTokenOutOfRange={isPriceUpperLessThanCurrentPrice}
         setValue={setValue}
         register={register}
         isRangeValid={isRangeValid}

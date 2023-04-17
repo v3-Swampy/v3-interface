@@ -75,7 +75,7 @@ const RangeInput: React.FC<
       <div className="mb-6px flex justify-between w-full">
         <p className="leading-18px text-14px text-black-normal font-medium">{type === 'lower' ? i18n.min_price : i18n.max_price}</p>
 
-        {!!tokenA && !!tokenB && <span className="leading-20px text-12px text-gray-normal">{`${tokenA.symbol} ${i18n.per} ${tokenB.symbol}`}</span>}
+        {!!tokenA && !!tokenB && <span className="leading-20px text-12px text-gray-normal">{`${tokenB.symbol} ${i18n.per} ${tokenA.symbol}`}</span>}
       </div>
 
       <div className="add-liquidity-price-input relative flex items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light">
@@ -117,7 +117,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
 
   const fee = useCurrentFee();
   const { state, pool } = usePool({ tokenA, tokenB, fee });
-  const priceTokenA = useMemo(() => (pool === null ? (priceInit && Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [tokenA?.address, pool, priceInit]);
+  const priceTokenA = useMemo(() => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)), [tokenA?.address, pool, priceInit]);
 
   useLayoutEffect(() => {
     if (getSwapLock()) return;

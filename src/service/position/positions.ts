@@ -1,9 +1,9 @@
-import { selector, useRecoilValue } from 'recoil';
+import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, getPool, Pool } from '@service/pairs&pool';
-import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
+import { getTokenByAddress, getWrapperTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { computePoolAddress } from '@service/pairs&pool';
 
@@ -164,6 +164,7 @@ export const usePositionBalance = () => useRecoilValue(positionBalanceQuery);
 export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
 export const usePositions = () => useRecoilValue(positionsQuery);
+export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQuery);
 
 export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
 
@@ -179,12 +180,12 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
   const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
 
   const priceLowerOf = (token: Token) => {
-    if (token?.address === token0.address) return priceLower;
+    if (token?.address === token0.address || token?.address === unwrapToken0?.address) return priceLower;
     else return invertPrice(priceLower);
   };
 
   const priceUpperOf = (token: Token) => {
-    if (token?.address === token0.address) return priceUpper;
+    if (token?.address === token0.address || token?.address === unwrapToken0?.address) return priceUpper;
     else return invertPrice(priceUpper);
   };
 

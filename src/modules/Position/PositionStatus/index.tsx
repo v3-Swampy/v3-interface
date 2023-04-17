@@ -53,7 +53,6 @@ const PositionStatusFC: React.FC<Props> = ({ position, className, style, ...prop
 
   const status =
     liquidity === '0' ? PositionStatus.Closed : !tickCurrent ? undefined : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
-    console.log(liquidity, status, tickCurrent, tickUpper, tickLower)
 
   if (typeof status !== 'string') return null;
   return (

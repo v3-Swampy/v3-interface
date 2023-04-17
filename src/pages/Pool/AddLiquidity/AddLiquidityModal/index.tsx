@@ -29,6 +29,7 @@ interface Props {
   inverted: boolean;
   amount0: Unit;
   amount1: Unit;
+  priceInit?: string;
   previewPosition: PositionForUI;
   previewUniqueId: string;
   transcationParams: {
@@ -50,6 +51,7 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
   inverted,
   amount0,
   amount1,
+  priceInit,
   previewUniqueId,
   previewPosition,
   leftToken,
@@ -85,7 +87,7 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
           </p>
         </div>
 
-        <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={rightToken} rightToken={leftToken} />
+        <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={rightToken} rightToken={leftToken} priceInit={priceInit}/>
         <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTranscation} onClick={handleClickConfirm}>
           {i18n.add}
         </Button>
@@ -99,6 +101,7 @@ const showAddLiquidityModal = (props: Props) => {
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <AddLiquidityModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
+    onSuccess: (navigate) => navigate('/pool'),
   });
 };
 

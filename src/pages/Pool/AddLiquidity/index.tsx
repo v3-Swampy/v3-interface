@@ -67,9 +67,10 @@ const AddLiquidity: React.FC = () => {
         ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; fee: string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
         tokenA,
         tokenB,
+        priceInit
       });
     }),
-    [tokenA, tokenB]
+    [tokenA, tokenB, priceInit]
   );
 
   const handleSwapToken = useCallback(() => {
@@ -104,7 +105,6 @@ const AddLiquidity: React.FC = () => {
           setValue('price-lower', '0');
         }
       }
-
       setValue('amount-tokenB', amountTokenA);
       setTimeout(() => {
         setValue('amount-tokenA', amountTokenB);

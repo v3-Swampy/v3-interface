@@ -9,7 +9,7 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { type PositionForUI } from '@service/position';
 import { invertPrice, usePool } from '@service/pairs&pool';
-import { type Token } from '@service/tokens';
+import { type Token, getWrapperTokenByAddress } from '@service/tokens';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/detail_exchange.svg';
 import { useInvertedState } from '../invertedState';
 
@@ -66,17 +66,19 @@ const SelectedPriceRange: React.FC<{
   showInvertButton?: boolean;
   leftToken?: Token;
   rightToken?: Token;
-}> = ({ position, tokenId, showInvertButton = true, leftToken, rightToken }) => {
+  priceInit?: string;
+}> = ({ position, tokenId, showInvertButton = true, leftToken, rightToken, priceInit }) => {
   const i18n = useI18n(transitions);
 
-  const { token0, token1, fee, priceLowerForUI, priceUpperForUI } = position ?? {};
+  const { token0, token1, fee, priceLower, priceUpper } = position ?? {};
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
 
   const fromPreview = !!leftToken && !!rightToken;
-  const [_inverted, setInverted] = useInvertedState(tokenId);
-  const inverted = fromPreview ? leftToken.address === token1?.address : _inverted;
+  const [inverted, setInverted] = useInvertedState(tokenId);
   const leftTokenForUI = fromPreview ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
   const rightTokenForUI = fromPreview ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
+  const isLeftTokenEqualToken0 = getWrapperTokenByAddress(leftTokenForUI?.address)?.address === token0?.address;
+
   if (!position) return null;
   return (
     <div className="flex flex-col text-black-normal text-14px leading-18px">
@@ -97,16 +99,20 @@ const SelectedPriceRange: React.FC<{
         )}
       </div>
       <div className="flex items-stretch mb-16px">
-        <PriceItem type={PriceType.Min} price={!inverted ? priceLowerForUI : invertPrice(priceUpperForUI)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+        <PriceItem type={PriceType.Min} price={!isLeftTokenEqualToken0 ? priceLower : invertPrice(priceUpper)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
         <div className="flex items-center">
           <ExchangeIcon className="w-24px h-24px text-gray-normal mx-8px" />
         </div>
-        <PriceItem type={PriceType.Max} price={!inverted ? priceUpperForUI : invertPrice(priceLowerForUI)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+        <PriceItem type={PriceType.Max} price={!isLeftTokenEqualToken0 ? priceUpper : invertPrice(priceLower)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
       </div>
       <div className="flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal">
         <p className="font-medium">{i18n.current_price}</p>
         {leftTokenForUI && rightTokenForUI && (
-          <p className="text-24px leading-30px font-medium">{trimDecimalZeros(pool?.priceOf(fromPreview ? leftTokenForUI : !inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!) ?? '-'}</p>
+          <p className="text-24px leading-30px font-medium">
+            {trimDecimalZeros(
+              fromPreview && !!priceInit ? priceInit : pool?.priceOf(fromPreview ? rightTokenForUI : !inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!
+            ) ?? '-'}
+          </p>
         )}
         <p className="text-gray-normal text-12px leading-15px text-center font-normal">{`${leftTokenForUI?.symbol} ${i18n.per} ${rightTokenForUI?.symbol}`}</p>
       </div>

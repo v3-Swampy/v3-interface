@@ -90,7 +90,6 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
       <div className="mt-24px">
         <div className="max-h-454px min-h-318px overflow-y-auto">
           {fPositions.map((p) => {
-            console.log(p);
             return (
               <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4" key={p.id}>
                 <div>
