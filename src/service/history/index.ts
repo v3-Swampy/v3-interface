@@ -3,6 +3,7 @@ import { atom, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { persistAtomWithDefault } from '@utils/recoilUtils';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { useRefreshData, RefreshTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
 
 export enum HistoryStatus {
   Pending = 'Pending',
@@ -13,7 +14,15 @@ export enum HistoryStatus {
 export interface HistoryRecord {
   txHash: string;
   status: HistoryStatus;
-  type: 'Swap' | 'Position_AddLiquidity' | 'Position_CollectFees' | 'Stake_CreateLock' | 'Stake_IncreaseUnlockTime' | 'Stake_IncreaseAmount' | 'Position_RemoveLiquidity';
+  type:
+    | 'Swap'
+    | 'Position_AddLiquidity'
+    | 'Position_CollectFees'
+    | 'Stake_CreateLock'
+    | 'Stake_IncreaseUnlockTime'
+    | 'Stake_IncreaseAmount'
+    | 'Position_RemoveLiquidity'
+    | 'AllFarms_StakedLP';
   tokenA_Address?: string;
   tokenA_Value?: string;
   tokenB_Address?: string;
@@ -29,6 +38,7 @@ let inHistoryTracking = false;
 const recordTracker = new Map<string, boolean>();
 export const useHistory = () => {
   const [history, setHistory] = useRecoilState(historyState);
+  const refreshFuncs = useRefreshData();
 
   useEffect(() => {
     if (inHistoryTracking) return;
@@ -42,6 +52,18 @@ export const useHistory = () => {
         receiptPromise.then((receipt) => {
           setHistory((pre) => pre.map((r) => (r.txHash === record.txHash ? { ...r, status: receipt.status === '0x1' ? HistoryStatus.Success : HistoryStatus.Failed } : r)));
           recordTracker.delete(record.txHash);
+
+          // refresh the corresponding data
+          const refreshFuncsKeyShouldRun = RefreshTypeMap[record?.type];
+          const refreshFuncsShouldRun: VoidFunction[] = [];
+          if (typeof refreshFuncsKeyShouldRun === 'string') {
+            refreshFuncsShouldRun.push(refreshFuncs[refreshFuncsKeyShouldRun]);
+          } else {
+            refreshFuncsKeyShouldRun.forEach((key) => {
+              refreshFuncsShouldRun.push(refreshFuncs[key]);
+            });
+          }
+          refreshFuncsShouldRun.forEach((func) => func());
         });
       });
 

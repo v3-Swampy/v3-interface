@@ -10,7 +10,6 @@ import { RecordAction } from '@modules/Navbar/AccountDetailDropdown/History';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed.svg';
-import { useRefreshData, RefreshTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
 
 export enum Step {
   Confirm = 0,
@@ -41,7 +40,6 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   const [step, setStep] = useState(() => initialStep);
   const [txHash, setTxHash] = useState('');
   const [recordParams, setRecordParams] = useState<Omit<HistoryRecord, 'txHash' | 'status'> | null>(null);
-  const refreshFuncs = useRefreshData();
 
   const setNextInfo = useCallback(async ({ txHash, recordParams }: { txHash: string; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => {
     try {
@@ -56,11 +54,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
       }
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
       await receiptPromise;
-      if (recordParams && RefreshTypeMap[recordParams?.type]) {
-        const refreshFunc = refreshFuncs[RefreshTypeMap[recordParams.type]];
-        await refreshFunc?.();
-      }
-
+      
       setStep(Step.Success);
     } catch (_) {
       setStep(Step.Failed);
@@ -87,7 +81,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   if (step === Step.WaitReceipt) {
     return (
       <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center">
-        <Spin className="mb-72px mx-auto block text-88px text-orange-normal" />
+        <Spin className="mb-72px mx-auto block text-88px text-black-normal" />
         <p className="leading-28px text-center text-22px text-black-normal whitespace-nowrap">Waiting for confirmation</p>
         {recordParams && (
           <p className="px-36px leading-28px text-center text-22px text-black-normal">

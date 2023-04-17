@@ -1,12 +1,24 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import Button from '@components/Button';
-import { getWrapperTokenByAddress } from '@service/tokens';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import AuthTokenButton from '@modules/AuthTokenButton';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { useTokenA, useTokenB } from './SelectPair';
+import useI18n from '@hooks/useI18n';
+
+const transitions = {
+  en: {
+    preview: 'Preview',
+    confirm: 'Confirm',
+  },
+  zh: {
+    preview: '预览',
+    confirm: '确认',
+  },
+} as const;
 
 const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSubmitCreate: boolean; }> = ({ amountTokenA, amountTokenB, inSubmitCreate }) => {
+  const i18n = useI18n(transitions);
   const tokenA = useTokenA()!;
   const tokenB = useTokenB()!;
 
@@ -14,7 +26,7 @@ const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSub
     <AuthConnectButton {...buttonProps}>
       <AuthTokenButton {...buttonProps} tokenAddress={tokenA?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenA}>
         <AuthTokenButton {...buttonProps} tokenAddress={tokenB?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenB}>
-          <Button {...buttonProps} loading={inSubmitCreate}>Submit</Button>
+          <Button {...buttonProps} loading={inSubmitCreate}>{i18n.preview}</Button>
         </AuthTokenButton>
       </AuthTokenButton>
     </AuthConnectButton>

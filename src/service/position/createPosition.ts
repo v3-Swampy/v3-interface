@@ -6,7 +6,7 @@ import Decimal from 'decimal.js';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { FeeAmount, getPool } from '@service/pairs&pool';
+import { FeeAmount, getPool, type Pool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { getTransactionDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
@@ -46,7 +46,6 @@ export const handleClickSubmitCreatePosition = async ({
     const fee = Number(_fee) as FeeAmount;
     const slippageTolerance = getSlippageTolerance();
     const pool = await getPool({ tokenA: _tokenA, tokenB: _tokenB, fee });
-
     const tokenA = getWrapperTokenByAddress(_tokenA.address)!;
     const tokenB = getWrapperTokenByAddress(_tokenB.address)!;
 
@@ -76,7 +75,10 @@ export const handleClickSubmitCreatePosition = async ({
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
     // const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
-    //   pool,
+    //   pool: pool ?? {
+    //     tickCurrent: +findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: new Unit(priceInit!), tokenA, tokenB }) })?.toDecimalMinUnit(),
+    //     sqrtPriceX96,
+    //   } as Pool,
     //   token0,
     //   token1,
     //   token0Amount,
@@ -105,8 +107,8 @@ export const handleClickSubmitCreatePosition = async ({
         tickUpper,
         amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
         amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
-        amount0Min: 0, //Unit.fromStandardUnit(amount0Min, token0.decimals).toHexMinUnit(),
-        amount1Min: 0, //Unit.fromStandardUnit(amount1Min, token1.decimals).toHexMinUnit(),
+        amount0Min: Unit.fromStandardUnit(amount0Min, token0.decimals).toHexMinUnit(),
+        amount1Min: Unit.fromStandardUnit(amount1Min, token1.decimals).toHexMinUnit(),
         recipient: account,
         deadline,
       },

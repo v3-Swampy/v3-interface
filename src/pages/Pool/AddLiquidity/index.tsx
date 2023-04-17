@@ -67,7 +67,7 @@ const AddLiquidity: React.FC = () => {
         ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; fee: string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
         tokenA,
         tokenB,
-        priceInit
+        priceInit,
       });
     }),
     [tokenA, tokenB, priceInit]
@@ -119,8 +119,8 @@ const AddLiquidity: React.FC = () => {
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
         <div className="relative flex items-center pl-16px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
-          <span className="i-material-symbols:keyboard-arrow-left absolute -left-10px translate-y-1px text-24px text-gray-normal" />
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline text-orange-normal">
+            <span className="i-material-symbols:keyboard-arrow-left absolute -left-10px translate-y-1px text-24px text-gray-normal" />
             {i18n.add_liquidity}
           </Link>
 
@@ -128,11 +128,23 @@ const AddLiquidity: React.FC = () => {
             {i18n.clear_all}
           </Button>
           {token0 && token1 && (
-            <div className="ml-4px mr-8px h-28px leading-28px rounded-4px bg-orange-light text-14px font-medium">
-              <span className={cx('px-10px cursor-pointer', tokenA === token0 ? 'text-orange-normal pointer-events-none' : 'text-gray-normal')} onClick={handleSwapToken}>
+            <div className="ml-4px mr-8px flex items-center h-28px px-2px rounded-4px bg-orange-light text-14px font-medium">
+              <span
+                className={cx(
+                  'inline-block px-10px h-24px leading-24px cursor-pointer rounded-4px',
+                  tokenA === token0 ? 'text-orange-normal bg-orange-light-hover pointer-events-none' : 'text-gray-normal'
+                )}
+                onClick={handleSwapToken}
+              >
                 {token0.symbol}
               </span>
-              <span className={cx('px-10px cursor-pointer', tokenA === token1 ? 'text-orange-normal pointer-events-none' : 'text-gray-normal')} onClick={handleSwapToken}>
+              <span
+                className={cx(
+                  'inline-block px-10px h-24px leading-24px cursor-pointer rounded-4px',
+                  tokenA === token1 ? 'text-orange-normal bg-orange-light-hover pointer-events-none' : 'text-gray-normal'
+                )}
+                onClick={handleSwapToken}
+              >
                 {token1.symbol}
               </span>
             </div>

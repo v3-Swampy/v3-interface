@@ -22,6 +22,7 @@ const transitions = {
     statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase stake amount <b>>{tokenAValue} {tokenASymbol}</b>',
     remove_liquidity: 'Remove liquidity',
+    stake_lp_of_all_farms: 'Stake LP',
   },
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
@@ -31,6 +32,7 @@ const transitions = {
     statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase stake <b>{tokenAValue} {tokenASymbol}</b>',
     remove_liquidity: 'Remove liquidity',
+    stake_lp_of_all_farms: 'Stake LP',
   },
 } as const;
 
@@ -42,8 +44,13 @@ const HistoryTypeMap = {
   ['Stake_IncreaseUnlockTime']: 'statke_increase_unlock_time',
   ['Stake_IncreaseAmount']: 'stake_increase_amount',
   ['Position_RemoveLiquidity']: 'remove_liquidity',
+  ['AllFarms_StakedLP']: 'stake_lp_of_all_farms',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
 
+/**
+ * This will be called automatically by history service
+ * Just fill in the refresh func corresponding to the transcation type here.
+ */
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
 
@@ -52,6 +59,8 @@ export const useRefreshData = () => {
   } as const;
 };
 
+type RefreshKey = keyof ReturnType<typeof useRefreshData>;
+
 export const RefreshTypeMap = {
   ['Swap']: 'refreshPositions',
   ['Position_AddLiquidity']: 'refreshPositions',
@@ -59,7 +68,10 @@ export const RefreshTypeMap = {
   ['Stake_CreateLock']: 'refreshPositions',
   ['Stake_IncreaseUnlockTime']: 'refreshPositions',
   ['Stake_IncreaseAmount']: 'refreshPositions',
-} as Record<HistoryRecord['type'], keyof ReturnType<typeof useRefreshData>>;
+  ['AllFarms_StakedLP']: 'refreshPositions',
+  ['Position_RemoveLiquidity']: 'refreshPositions',
+  // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
+} as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 
 export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);
