@@ -57,7 +57,7 @@ export const positionFeesQuery = selectorFamily({
             { from: owner } // need to simulate the call as the owner
           )
           .then((results) => {
-            return [Number(results[0]), Number(results[1])] as const;
+            return [new Unit(results[0]), new Unit(results[1])] as const;
           });
       }
       return [undefined, undefined] as const;
@@ -87,9 +87,9 @@ export const collectFees = async (tokenId: number) => {
       txHash,
       type: 'Position_CollectFees',
       tokenA_Address: token0.address,
-      tokenA_Value: fee0 ? trimDecimalZeros(new Unit(fee0)?.toDecimalStandardUnit(5, token0.decimals)) : '',
+      tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
       tokenB_Address: token1.address,
-      tokenB_Value: fee1 ? trimDecimalZeros(new Unit(fee1)?.toDecimalStandardUnit(5, token0.decimals)) : '',
+      tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
     });
   } catch (err) {
     console.error('collectFees failed:', err);

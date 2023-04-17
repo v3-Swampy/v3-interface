@@ -6,6 +6,7 @@ import 'rc-slider/assets/index.css';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
+import { useTokenPrice } from '@service/pairs&pool';
 import { PositionForUI, usePosition, usePositionFees, removeLiquidity } from '@service/position';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/Position/TokenPair';
@@ -64,10 +65,17 @@ const RemoveLiquidity: React.FC = () => {
   const [leftRemoveAmount, setLeftRemoveAmount] = useState<Unit>(new Unit(0));
   const [rightRemoveAmount, setRightRemoveAmount] = useState<Unit>(new Unit(0));
 
-  const position: PositionForUI | undefined = usePosition(Number(tokenId));
-  const [fee0, fee1] = usePositionFees(Number(tokenId));
+  const position = usePosition(Number(tokenId));
 
-  const { leftToken, rightToken, amount0, amount1 } = position || {};
+  const { leftToken, rightToken, amount0, amount1, token0, token1 } = position || {};
+
+  const [fee0, fee1] = usePositionFees(Number(tokenId));
+  const token0Price = useTokenPrice(token0?.address);
+  const token1Price = useTokenPrice(token1?.address)
+  const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : ''
+  const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : ''
+  const fee = token0Fee && token1Fee ? trimDecimalZeros(new Unit(token0Fee).add(token1Fee).toDecimalMinUnit(5)) : '-'
+
   const invertDirection = useMemo(() => getInvertDirection(position), [position]);
 
   const [leftTotalAmount, rightTotalAmount, leftEarnedFees, rightEarnedFees] = useMemo(() => {

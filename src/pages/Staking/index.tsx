@@ -61,7 +61,7 @@ const StakingPage: React.FC = () => {
   const VSTPrice = useTokenPrice(TokenVST.address);
   const boostingFactor = useBoostFactor();
   const stakingStatus = useMemo(() => {
-    if (!lockedAmount || !unlockTime || lockedAmount === '0') return PersonalStakingStatus.UNLOCKED;
+    if (unlockTime === 0 || lockedAmount === '0') return PersonalStakingStatus.UNLOCKED;
     if (unlockTime <= new Date().valueOf() / 1000) return PersonalStakingStatus.TO_UNLOCK;
     return PersonalStakingStatus.LOCKED;
   }, [lockedAmount, unlockTime]);

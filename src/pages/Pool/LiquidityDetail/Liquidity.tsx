@@ -1,4 +1,6 @@
 import React from 'react';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { useParams } from 'react-router-dom';
 import useI18n from '@hooks/useI18n';
 import { usePosition } from '@service/position';
@@ -18,11 +20,14 @@ const Liquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
-  const { amount0, amount1, ratio, token0, token1, liquidity } = position ?? {};
+  const { amount0, amount1, ratio, token0, token1 } = position ?? {};
 
   const token0Price = useTokenPrice(token0?.address);
   const token1Price = useTokenPrice(token1?.address)
-  // const liquidity = amount0?.mul(token0Price)
+  console.log(token0Price, token1Price)
+  const token0Liquidity = token0Price && amount0 ? amount0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : ''
+  const token1Liquidity = token1Price && amount1 ? amount1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : ''
+  const liquidity = token0Liquidity && token1Liquidity ? trimDecimalZeros(new Unit(token0Liquidity).add(token1Liquidity).toDecimalMinUnit(5)) : '-'
 
   // price 0 and price1 need the best routing api, xxx USDC/token is the token price
   // const liquidity = amount0 * price0 + amount1 * price1;
