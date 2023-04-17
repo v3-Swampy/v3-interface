@@ -74,24 +74,24 @@ export const handleClickSubmitCreatePosition = async ({
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
-    const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
-      pool: pool ?? {
-        tickCurrent: +findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: new Unit(priceInit!), tokenA, tokenB }) })?.toDecimalMinUnit(),
-        sqrtPriceX96,
-      } as Pool,
-      token0,
-      token1,
-      token0Amount,
-      token1Amount,
-      fee,
-      tickLower,
-      tickUpper,
-      slippageTolerance,
-    });
-    console.log(slippageTolerance, token0Amount, token1Amount);
-    console.log(amount0Min, amount1Min);
+    // const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
+    //   pool: pool ?? {
+    //     tickCurrent: +findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: new Unit(priceInit!), tokenA, tokenB }) })?.toDecimalMinUnit(),
+    //     sqrtPriceX96,
+    //   } as Pool,
+    //   token0,
+    //   token1,
+    //   token0Amount,
+    //   token1Amount,
+    //   fee,
+    //   tickLower,
+    //   tickUpper,
+    //   slippageTolerance,
+    // });
+    // console.log(slippageTolerance, token0Amount, token1Amount);
+    // console.log(amount0Min, amount1Min);
 
-    // const { amount0Min, amount1Min } = { amount0Min: 0, amount1Min: 0 };
+    const { amount0Min, amount1Min } = { amount0Min: 0, amount1Min: 0 };
 
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;

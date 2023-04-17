@@ -1,4 +1,4 @@
-import React, { useEffect, memo } from 'react';
+import React, { useCallback, useEffect, memo } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -10,6 +10,7 @@ import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
 import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
+import { trimDecimalZeros } from '@utils/numberUtils';
 
 const transitions = {
   en: {
@@ -34,11 +35,34 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
+  const pairKey = `${type === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`;
   const useCurrentSelectToken = type === 'sourceToken' ? useSourceToken : useDestinationToken;
   const currentSelectToken = useCurrentSelectToken();
+  const usePairToken = type === 'sourceToken' ? useDestinationToken : useSourceToken;
+  const pairToken = usePairToken();
+
   useEffect(() => {
     setValue(`${type}-amount`, '');
   }, [currentSelectToken]);
+
+  const changePairAmount = useCallback(
+    (newAmount: string) => {
+      if (!newAmount) {
+        setValue(pairKey, '');
+        return;
+      }
+      // const currentInputAmount = new Unit(newAmount);
+      // const pairTokenExpectedAmount = currentInputAmount?.mul(price);
+      // setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
+    },
+    [type, pairToken] // TODO: add price here
+  );
+
+  // useEffect(() => {
+  //   const currentInputAmount = new Unit(newAmount);
+  //   const pairTokenExpectedAmount = currentInputAmount?.mul(price);
+  //   setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
+  // }, [pairToken]);
 
   return (
     <div className="h-96px pt-16px pl-24px pr-16px rounded-20px bg-orange-light-hover">

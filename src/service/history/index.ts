@@ -3,6 +3,7 @@ import { atom, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { persistAtomWithDefault } from '@utils/recoilUtils';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { useRefreshData, RefreshTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
 
 export enum HistoryStatus {
   Pending = 'Pending',
@@ -29,6 +30,7 @@ let inHistoryTracking = false;
 const recordTracker = new Map<string, boolean>();
 export const useHistory = () => {
   const [history, setHistory] = useRecoilState(historyState);
+  const refreshFuncs = useRefreshData();
 
   useEffect(() => {
     if (inHistoryTracking) return;
@@ -42,6 +44,19 @@ export const useHistory = () => {
         receiptPromise.then((receipt) => {
           setHistory((pre) => pre.map((r) => (r.txHash === record.txHash ? { ...r, status: receipt.status === '0x1' ? HistoryStatus.Success : HistoryStatus.Failed } : r)));
           recordTracker.delete(record.txHash);
+
+          // refresh the corresponding data
+          const refreshFuncsKeyShouldRun = RefreshTypeMap[record?.type];
+          const refreshFuncsShouldRun: VoidFunction[] = [];
+          if (typeof refreshFuncsKeyShouldRun === 'string') {
+            refreshFuncsShouldRun.push(refreshFuncs[refreshFuncsKeyShouldRun]);
+          } else {
+            refreshFuncsKeyShouldRun.forEach((key) => {
+              refreshFuncsShouldRun.push(refreshFuncs[key]);
+            });
+          }
+          refreshFuncsShouldRun.forEach((func) => func());
+    
         });
       });
 
