@@ -1,4 +1,5 @@
 import React, { useState, useCallback, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import Spin from '@components/Spin';
 import Button from '@components/Button';
@@ -23,13 +24,14 @@ interface CommonProps {
   initialStep?: Step;
   tokenNeededAdd?: Token;
   ConfirmContent?: any;
+  successRedirectRouterPath?: string;
 }
 
 export interface ConfirmModalInnerProps {
   setNextInfo: (info: { txHash: string; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => void;
 }
 
-const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({ initialStep = Step.Confirm, ConfirmContent, tokenNeededAdd }) => {
+const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({ initialStep = Step.Confirm, ConfirmContent, tokenNeededAdd, successRedirectRouterPath }) => {
   const [step, setStep] = useState(() => initialStep);
   const [txHash, setTxHash] = useState('');
   const [recordParams, setRecordParams] = useState<Omit<HistoryRecord, 'txHash' | 'status'> | null>(null);
@@ -61,12 +63,12 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
     return (
       <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center">
         <Spin className="mb-72px mx-auto block text-88px text-orange-normal" />
-        <p className="leading-28px text-center text-22px text-black-normal whitespace-nowrap">
-          Waiting for confirmation
-        </p>
-        {recordParams && <p className='px-36px leading-28px text-center text-22px text-black-normal'>
-          <RecordAction className="text-22px text-black-normal" txHash={txHash} {...recordParams} />
-          </p>}
+        <p className="leading-28px text-center text-22px text-black-normal whitespace-nowrap">Waiting for confirmation</p>
+        {recordParams && (
+          <p className="px-36px leading-28px text-center text-22px text-black-normal">
+            <RecordAction className="text-22px text-black-normal" txHash={txHash} {...recordParams} />
+          </p>
+        )}
         <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-medium">Confirm this transaction in your wallet</p>
       </div>
     );
@@ -116,15 +118,16 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   return null;
 };
 
-const showConfirmTransactionModal = ({ className, title, subTitle, ...props }: CommonProps & { title: string; subTitle?: string }) => {
+const showConfirmTransactionModal = ({ className, title, subTitle, onClose, ...props }: CommonProps & { title: string; subTitle?: string; onClose?: VoidFunction }) => {
   if (isMobile) {
     showDrawer({
       Content: <ConfirmTransactionModal {...props} />,
       title,
       subTitle,
+      onClose,
     });
   } else {
-    showModal({ Content: <ConfirmTransactionModal {...props} />, className: className, title, subTitle });
+    showModal({ Content: <ConfirmTransactionModal {...props} />, className: className, title, subTitle, onClose });
   }
 };
 

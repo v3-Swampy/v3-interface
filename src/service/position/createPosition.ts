@@ -114,17 +114,17 @@ export const handleClickSubmitCreatePosition = async ({
     const recordParams = {
       type: 'Position_AddLiquidity',
       tokenA_Address: tokenA.address,
-      tokenA_Value: Unit.fromStandardUnit(token0Amount, token0.decimals).toDecimalStandardUnit(5),
+      tokenA_Value: Unit.fromStandardUnit(amountTokenA, tokenA.decimals).toDecimalStandardUnit(5),
       tokenB_Address: tokenB.address,
-      tokenB_Value: Unit.fromStandardUnit(token1Amount, token1.decimals).toDecimalStandardUnit(5),
+      tokenB_Value: Unit.fromStandardUnit(amountTokenB, tokenB.decimals).toDecimalStandardUnit(5),
     } as const;
 
     showAddLiquidityModal({
       leftToken: _tokenA,
       rightToken: _tokenB,
       inverted,
-      amount0: Unit.fromStandardUnit(amountTokenA, _tokenA.decimals),
-      amount1: Unit.fromStandardUnit(amountTokenB, _tokenB.decimals),
+      amount0: token0AmountUnit,
+      amount1: token1AmountUnit,
       priceInit,
       previewUniqueId,
       previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower: new Unit(priceLower), priceUpper: new Unit(priceUpper) }, pool),
