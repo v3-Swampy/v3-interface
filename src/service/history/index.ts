@@ -14,7 +14,15 @@ export enum HistoryStatus {
 export interface HistoryRecord {
   txHash: string;
   status: HistoryStatus;
-  type: 'Swap' | 'Position_AddLiquidity' | 'Position_CollectFees' | 'Stake_CreateLock' | 'Stake_IncreaseUnlockTime' | 'Stake_IncreaseAmount' | 'Position_RemoveLiquidity';
+  type:
+    | 'Swap'
+    | 'Position_AddLiquidity'
+    | 'Position_CollectFees'
+    | 'Stake_CreateLock'
+    | 'Stake_IncreaseUnlockTime'
+    | 'Stake_IncreaseAmount'
+    | 'Position_RemoveLiquidity'
+    | 'AllFarms_StakedLP';
   tokenA_Address?: string;
   tokenA_Value?: string;
   tokenB_Address?: string;
@@ -56,7 +64,6 @@ export const useHistory = () => {
             });
           }
           refreshFuncsShouldRun.forEach((func) => func());
-    
         });
       });
 

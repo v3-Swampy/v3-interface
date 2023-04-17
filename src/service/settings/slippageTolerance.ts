@@ -17,7 +17,7 @@ const slippageToleranceMethod = atom<'auto' | 'manual'>({
   effects: [persistAtomWithDefault('auto')],
 });
 
-const slippageToleranceState = atom<number>({
+const slippageToleranceState = atom<number | null>({
   key: `slippageToleranceState-${import.meta.env.MODE}`,
   effects: [persistAtomWithDefault(AddLiquidityDefaultSlippageTolerance)],
 });
@@ -33,7 +33,7 @@ export const useSlippageTolerance = () => {
   const value = useRecoilValue(slippageToleranceState);
   const method = useRecoilValue(slippageToleranceMethod);
 
-  if (method === 'auto') {
+  if (method === 'auto' || value === null) {
     if (location.pathname?.startsWith(getSwapPagePath())) {
       return { method, value: SwapDefaultSlippageTolerance * 100 };
     } else {
@@ -44,9 +44,10 @@ export const useSlippageTolerance = () => {
   }
 };
 
-export const setSlippageTolerance = (value: number) => {
-  setRecoil(slippageToleranceState, (+value) / 100);
-  setRecoil(slippageToleranceMethod, 'manual');
+export const setSlippageTolerance = (value: number | null) => {
+  console.log(value !== null ? ((+value) / 100) : null)
+  setRecoil(slippageToleranceState, value !== null ? ((+value) / 100) : null);
+  setRecoil(slippageToleranceMethod, value === null ? 'auto' : 'manual');
 };
 
 /**

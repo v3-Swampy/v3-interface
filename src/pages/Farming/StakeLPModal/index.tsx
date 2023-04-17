@@ -13,6 +13,7 @@ import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/i
 import { Link, useNavigate } from 'react-router-dom';
 import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
+import { addRecordToHistory } from '@service/history';
 
 const transitions = {
   en: {
@@ -71,15 +72,24 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
         {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
         <Button
           loading={inTranscation}
-          onClick={() =>
-            handleStakeLP({
+          onClick={async () => {
+            const txHash = await handleStakeLP({
               tokenId: data.id,
               address,
               startTime,
               endTime,
               pid: pid,
-            })
-          }
+            });
+
+            addRecordToHistory({
+              txHash,
+              type: 'AllFarms_StakedLP',
+              // tokenA_Address: token0.address,
+              // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+              // tokenB_Address: token1.address,
+              // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+            });
+          }}
           className={classNameButton}
         >
           {i18n.stakeLP}
