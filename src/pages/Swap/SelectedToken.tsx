@@ -45,9 +45,9 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
     setValue(`${type}-amount`, '');
   }, [currentSelectToken]);
 
-  const changePairAmount = useCallback(
-    (newAmount: string) => {
-      if (!newAmount) {
+  const changePairAmount = useCallback<React.FocusEventHandler<HTMLInputElement>>(
+    (evt) => {
+      if (!evt.target.value || !pairToken) {
         setValue(pairKey, '');
         return;
       }
@@ -78,6 +78,7 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
           })}
           min={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           step={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
+          onBlur={changePairAmount}
         />
 
         <BorderBox
