@@ -65,35 +65,33 @@ export const positionFeesQuery = selectorFamily({
 });
 
 export const handleCollectFees = async (tokenId: number) => {
-  try {
-    const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
-    const owner = getPositionOwner(tokenId);
-    const position = getPosition(tokenId);
-    const [fee0, fee1] = getPositionFees(tokenId);
-    const { token0, token1 } = position!;
-    const data = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
-      {
-        tokenId: tokenIdHexString,
-        recipient: owner, // some tokens might fail if transferred to address(0)
-        amount0Max: MAX_UINT128.toHexMinUnit(),
-        amount1Max: MAX_UINT128.toHexMinUnit(),
-      },
-    ]);
-    const txHash = await sendTransaction({
-      data,
-      to: NonfungiblePositionManager.address,
-    });
-    addRecordToHistory({
-      txHash,
-      type: 'Position_CollectFees',
-      tokenA_Address: token0.address,
-      tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
-      tokenB_Address: token1.address,
-      tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
-    });
-  } catch (err) {
-    console.error('collectFees failed:', err);
-  }
+  const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
+  const owner = getPositionOwner(tokenId);
+  const position = getPosition(tokenId);
+  const [fee0, fee1] = getPositionFees(tokenId);
+  console.log('fee', fee0, fee1);
+  const { token0, token1 } = position!;
+  const data = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
+    {
+      tokenId: tokenIdHexString,
+      recipient: owner, // some tokens might fail if transferred to address(0)
+      amount0Max: MAX_UINT128.toHexMinUnit(),
+      amount1Max: MAX_UINT128.toHexMinUnit(),
+    },
+  ]);
+  const txHash = await sendTransaction({
+    data,
+    to: NonfungiblePositionManager.address,
+  });
+  addRecordToHistory({
+    txHash,
+    type: 'Position_CollectFees',
+    tokenA_Address: token0.address,
+    tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+    tokenB_Address: token1.address,
+    tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+  });
+  return txHash;
 };
 
 export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(+tokenId));

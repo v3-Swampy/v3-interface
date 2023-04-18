@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import useInTransaction from '@hooks/useInTransaction';
 import { type PositionForUI } from '@service/position';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
-import { handleCollectFees } from '@service/position';
+import { handleCollectFees as _handleCollectFees } from '@service/position';
 
 const transitions = {
   en: {
@@ -32,19 +32,42 @@ type Props = ConfirmModalInnerProps & CommonProps;
 
 const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, tokenId }) => {
   const i18n = useI18n(transitions);
-  const { inTransaction, execTransaction: handleStakingVST } = useInTransaction(handleCollectFees);
+  const { inTransaction, execTransaction: handleCollectFees } = useInTransaction(_handleCollectFees);
+  const { token0, token1 } = position || {};
+
+  const onSubmit = useCallback(async () => {
+    try {
+      if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0 === new Unit(0) && fee1 === new Unit(0))) return;
+      const txHash = await handleCollectFees(tokenId);
+
+      setNextInfo({
+        txHash,
+        recordParams: {
+          type: 'Position_CollectFees',
+          tokenA_Address: token0.address,
+          tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+          tokenB_Address: token1.address,
+          tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+        },
+      });
+    } catch (err) {
+      console.error('Collect fees failed: ', err);
+    }
+  }, []);
 
   return (
     <div className="mt-24px">
-      <div className="flex p-16px bg-orange-light-hover rounded-20px mb-16px">
-        <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} tokenId={tokenId} />
-      </div>
-      <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
-      <AuthConnectButton {...buttonProps}>
-        <Button {...buttonProps} loading={inTransaction}>
-          {i18n.collect}
-        </Button>
-      </AuthConnectButton>
+      <form onSubmit={onSubmit}>
+        <div className="flex p-16px bg-orange-light-hover rounded-20px mb-16px">
+          <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} tokenId={tokenId} />
+        </div>
+        <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
+        <AuthConnectButton {...buttonProps}>
+          <Button {...buttonProps} loading={inTransaction} onClick={onSubmit}>
+            {i18n.collect}
+          </Button>
+        </AuthConnectButton>
+      </form>
     </div>
   );
 };

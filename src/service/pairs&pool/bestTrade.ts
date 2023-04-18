@@ -173,7 +173,6 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
         result,
         i
       ) => {
-        console.log('result', result);
         if (!result) return currentBest;
 
         // overwrite the current best if it's not defined or if this route is better
@@ -212,6 +211,7 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
         trade: undefined,
       };
     }
+    console.log('bestRoute', bestRoute);
 
     return {
       state: TradeState.VALID,
