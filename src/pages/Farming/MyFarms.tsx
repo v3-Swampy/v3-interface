@@ -1,4 +1,4 @@
-import React,{useMemo} from 'react';
+import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
 import { numFormat } from '@utils/numberUtils';
@@ -9,7 +9,10 @@ import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
 import {useMyFarmingList} from '@service/farming/myFarms'
+import {getCurrentIncentivePeriod} from '@service/farming'
 import TokenPair from '@modules/Position/TokenPair';
+import { PoolType } from '@service/farming';
+import { usePool } from '@service/pairs&pool';
 
 const transitions = {
   en: {
@@ -28,23 +31,24 @@ const transitions = {
   },
 } as const;
 
-interface FarmsItemProps {
-  address:string;
-  poolAddress: string;
-  token0: Token;
-  token1: Token;
-  APR: number;
-  multipier: string;
-  staked: string;
-  claimable: string;
-  incentiveTime: string;
-  hasPaused?: boolean;
-  fee?:string;
-}
-
-const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
+const MyFarmsItem: React.FC<{
+  data: PoolType & {
+    APR: string;
+    multipier: string;
+    staked: string;
+    claimable: string;
+  };
+}> = ({ data }) => {
   const i18n = useI18n(transitions);
+
+  usePool({
+    tokenA: data.token0,
+    tokenB: data.token1,
+    fee: data.fee,
+  });
+
   const [isShow, setIsShow] = React.useState<boolean>(false);
+  const currentIncentive=getCurrentIncentivePeriod()
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
@@ -54,25 +58,25 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
     setIsShow(!isShow);
   };
 
-  const isEnded = dayjs().isAfter(dayjs.unix(Number(data.incentiveTime)));
+  const isEnded = dayjs().isAfter(dayjs.unix(Number(currentIncentive.endTime)));
 
   return (
     <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-light/30' : 'bg-orange-light-hover'}`}>
-      <Corner timestatmp={Number(data.incentiveTime)}></Corner>
+      <Corner timestatmp={Number(currentIncentive.endTime)}></Corner>
       <div className="flex justify-between relative px-4">
         <div className="ml-20px">
           <div className={`${className.title}`}>{i18n.poolName}</div>
           <div className={`${className.content} inline-flex justify-center items-center`}>
-          <TokenPair
-            position={
-              {
-                leftToken: data.token0,
-                rightToken: data.token1,
-                fee: data.fee,
-              } as any
-            }
-          />
-        </div>
+            <TokenPair
+              position={
+                {
+                  leftToken: data.token0,
+                  rightToken: data.token1,
+                  fee: data.fee,
+                } as any
+              }
+            />
+          </div>
         </div>
         <div>
           <div className={`${className.title}`}>{i18n.APR}</div>
@@ -104,7 +108,7 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
 };
 
 const MyFarms = () => {
-  const myFarmingList=useMyFarmingList()
+  const myFarmingList = useMyFarmingList();
   return (
     <div className="mt-6">
       {myFarmingList.map((item) => (

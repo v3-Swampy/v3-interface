@@ -133,6 +133,7 @@ export const useMyFarmingList = () => {
     const stakedPools = poolList.filter((p) => stakedPoolAddresses.indexOf(p.address) != -1);
     return stakedPools;
   }, [poolList, stakedPostions]);
+
   return myFarmingList;
 };
 
