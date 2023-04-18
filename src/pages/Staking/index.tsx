@@ -10,13 +10,12 @@ import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { handleUnStake } from '@service/staking';
+import { handleUnStake, useBoostFactor } from '@service/staking';
 import { TokenVST, TokenUSDT } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
 import { useTokenPrice } from '@service/pairs&pool';
 import { numberWithCommas } from '@utils/numberUtils';
 import { ReactComponent as StakeCalculate } from '@assets/icons/stake_calculate.svg';
-import { useBoostFactor } from '@service/staking';
 
 const transitions = {
   en: {

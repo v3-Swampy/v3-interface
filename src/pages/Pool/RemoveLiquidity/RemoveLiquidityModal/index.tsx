@@ -4,7 +4,7 @@ import AmountDetail from '../AmountDetail';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { toI18n } from '@hooks/useI18n';
-import useInTranscation from '@hooks/useInTranscation';
+import useInTransaction from '@hooks/useInTransaction';
 import { handleSendTransaction } from '@service/position';
 
 const buttonProps = {
@@ -29,7 +29,7 @@ interface Props {
   rightRemoveAmount: string;
   leftEarnedFees: string;
   rightEarnedFees: string;
-  transcationParams: {
+  transactionParams: {
     to: string;
     data: string;
     value: string;
@@ -40,7 +40,7 @@ interface Props {
 }
 const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
   setNextInfo,
-  transcationParams,
+  transactionParams,
   leftRemoveAmount,
   rightRemoveAmount,
   tokenId,
@@ -48,10 +48,10 @@ const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
   rightEarnedFees,
   recordParams,
 }) => {
-  const { execTranscation: handleRemoveLiquidity } = useInTranscation(handleSendTransaction);
+  const { execTransaction: handleRemoveLiquidity } = useInTransaction(handleSendTransaction);
   const handleClickConfirm = useCallback(async () => {
     try {
-      const txHash = await handleRemoveLiquidity(transcationParams);
+      const txHash = await handleRemoveLiquidity(transactionParams);
       txHash && setNextInfo({ txHash, recordParams });
     } catch (err) {
       console.error('remove liquidity failed: ', err);

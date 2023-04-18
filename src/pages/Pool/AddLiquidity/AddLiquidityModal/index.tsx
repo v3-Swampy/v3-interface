@@ -10,7 +10,7 @@ import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { type PositionForUI } from '@service/position';
 import { type Token } from '@service/tokens';
 import { handleCreatePosition as _handleCreatePosition } from '@service/position';
-import useInTranscation from '@hooks/useInTranscation';
+import useInTransaction from '@hooks/useInTransaction';
 
 const transitions = {
   en: {
@@ -32,7 +32,7 @@ interface Props {
   priceInit?: string;
   previewPosition: PositionForUI;
   previewUniqueId: string;
-  transcationParams: {
+  transactionParams: {
     to: string;
     data: string;
     value: string;
@@ -56,18 +56,18 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
   previewPosition,
   leftToken,
   rightToken,
-  transcationParams,
+  transactionParams,
   recordParams,
 }) => {
   const i18n = useI18n(transitions);
-  const { inTranscation, execTranscation: handleCreatePosition } = useInTranscation(_handleCreatePosition);
+  const { inTransaction, execTransaction: handleCreatePosition } = useInTransaction(_handleCreatePosition);
   const handleClickConfirm = useCallback(async () => {
     try {
-      const txHash = await handleCreatePosition(transcationParams);
+      const txHash = await handleCreatePosition(transactionParams);
 
       setNextInfo({ txHash, recordParams });
     } catch (err) {
-      console.error('Add liquidity transcation failed: ', err);
+      console.error('Add liquidity transaction failed: ', err);
     }
   }, []);
 
@@ -88,7 +88,7 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
 
         <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={rightToken} rightToken={leftToken} priceInit={priceInit}/>
-        <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTranscation} onClick={handleClickConfirm}>
+        <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
           {i18n.add}
         </Button>
       </Suspense>

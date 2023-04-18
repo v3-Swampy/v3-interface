@@ -10,7 +10,7 @@ import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
-import useInTranscation from '@hooks/useInTranscation';
+import useInTransaction from '@hooks/useInTransaction';
 import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/position';
 import SelectPair, { useTokenA, useTokenB, swapTokenAB } from './SelectPair';
 import DepositAmounts from '@modules/Position/DepositAmounts';
@@ -59,7 +59,7 @@ const AddLiquidity: React.FC = () => {
   const amountTokenB = watch('amount-tokenB', '') as string;
   const priceInit = watch('price-init', '') as string;
 
-  const { inTranscation: inSubmitCreate, execTranscation: handleClickSubmitCreatePosition } = useInTranscation(_handleClickSubmitCreatePosition);
+  const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitCreatePosition } = useInTransaction(_handleClickSubmitCreatePosition);
   const onSubmit = useCallback(
     withForm(async (data) => {
       if (!tokenA || !tokenB) return;

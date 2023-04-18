@@ -7,12 +7,11 @@ import { TokenVST } from '@service/tokens';
 import AuthTokenButton from '@modules/AuthTokenButton';
 import Button from '@components/Button';
 import { VotingEscrowContract } from '@contracts/index';
-import useInTranscation from '@hooks/useInTranscation';
-import { handleStakingVST as _handleStakingVST } from '@service/staking';
+import useInTransaction from '@hooks/useInTransaction';
+import { handleStakingVST as _handleStakingVST, useBoostFactor } from '@service/staking';
 import AmountInput from './AmountInput';
 import DurationSelect, { defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
-import { useBoostFactor } from '@service/staking';
 
 const transitions = {
   en: {
@@ -49,7 +48,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
   const stakeAmount = watch('VST-stake-amount');
   const account = useAccount();
   const boostingFactor = useBoostFactor();
-  const { inTranscation, execTranscation: handleStakingVST } = useInTranscation(_handleStakingVST);
+  const { inTransaction, execTransaction: handleStakingVST } = useInTransaction(_handleStakingVST);
 
   const modalMode = useMemo(() => {
     if (!disabledAmount && !disabledLocktime) return ModalMode.CreateLock;
@@ -94,7 +93,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
           },
         });
       } catch (err) {
-        console.error('Create stake VST transcation failed: ', err);
+        console.error('Create stake VST transaction failed: ', err);
       }
     }),
     []
@@ -111,7 +110,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
           dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }}
         />
         <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
-          <Button {...buttonProps} loading={inTranscation}>
+          <Button {...buttonProps} loading={inTransaction}>
             {i18n.confirm}
           </Button>
         </AuthTokenButton>

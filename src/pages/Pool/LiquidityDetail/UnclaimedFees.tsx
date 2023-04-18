@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import { usePosition, usePositionFees, useIsPositionOwner } from '@service/position';
 import { useTokenPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
+import showCollectFeesModal from './CollectFeesModal';
 
 const transitions = {
   en: {
@@ -26,10 +27,10 @@ const UnclaimedFees: React.FC = () => {
   const { token0, token1 } = position ?? {};
   const [fee0, fee1] = usePositionFees(Number(tokenId));
   const token0Price = useTokenPrice(token0?.address);
-  const token1Price = useTokenPrice(token1?.address)
-  const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : ''
-  const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : ''
-  const fee = token0Fee && token1Fee ? trimDecimalZeros(new Unit(token0Fee).add(token1Fee).toDecimalMinUnit(5)) : '-'
+  const token1Price = useTokenPrice(token1?.address);
+  const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '';
+  const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '';
+  const fee = token0Fee && token1Fee ? trimDecimalZeros(new Unit(token0Fee).add(token1Fee).toDecimalMinUnit(5)) : '-';
   const isOwner = useIsPositionOwner(Number(tokenId));
 
   if (!position) null;
@@ -41,7 +42,11 @@ const UnclaimedFees: React.FC = () => {
           <span className="text-32px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">${fee}</span>
         </div>
         {isOwner && (
-          <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient">
+          <Button
+            className="px-24px h-40px rounded-100px text-14px font-medium"
+            color="gradient"
+            onClick={() => showCollectFeesModal({ position, fee0, fee1, tokenId: Number(tokenId) })}
+          >
             {i18n.collect_fees}
           </Button>
         )}
