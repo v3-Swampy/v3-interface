@@ -3,8 +3,10 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import {useStakedPositionsByPool} from '@service/farming/myFarms'
+import {useStakedPositionsByPool,useWhichIncentiveTokenIdIn} from '@service/farming/myFarms'
 import {PositionForUI,usePositionStatus,PositionStatus} from '@service/position'
+import {getCurrentIncentivePeriod} from '@service/farming'
+
 
 const FAKE_POSITIONS = [
   {
@@ -72,6 +74,8 @@ const className = {
 const PostionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
   const i18n = useI18n(transitions);
   const isEnded = false;
+  const whichIncentive=useWhichIncentiveTokenIdIn(position.id)
+  console.info('whichIncentive',whichIncentive)
   const status=usePositionStatus(position)
   const isPaused=useMemo(()=>{
     return status==PositionStatus.OutOfRange
@@ -114,6 +118,7 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
   const positions=useStakedPositionsByPool(poolAddress)
   // TODO: fetch real data
   const data = positions as any;
+  const currentIncentive=getCurrentIncentivePeriod()
   const isEnded = false;
   // const isEnded = true;
 
@@ -125,7 +130,7 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-normal' : 'color-orange-normal bg-orange-normal/10'}`}>
           <span className="i-mdi:clock"></span>
-          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: xxx</span>
+          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(currentIncentive.endTime*1000).toLocaleString()}</span>
         </span>
       </div>
       <div>
