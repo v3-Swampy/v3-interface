@@ -53,7 +53,7 @@ const AuthTokenButtonOf721: React.FC<Props> = ({ children, tokenAddress, contrac
 
         const [approvedAddress, isApprovedForAll] = [
           tokenContract.func.interface.decodeFunctionResult('getApproved', resOfMulticall[0]).toString(),
-          tokenContract.func.interface.decodeFunctionResult('isApprovedForAll', resOfMulticall[1]).toString(),
+          tokenContract.func.interface.decodeFunctionResult('isApprovedForAll', resOfMulticall[1])[0],
         ];
 
         if (isApprovedForAll || approvedAddress.toLowerCase() === contractAddress.toLowerCase()) {
