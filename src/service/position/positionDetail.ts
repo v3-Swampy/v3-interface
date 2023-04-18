@@ -64,7 +64,7 @@ export const positionFeesQuery = selectorFamily({
     },
 });
 
-export const collectFees = async (tokenId: number) => {
+export const handleCollectFees = async (tokenId: number) => {
   try {
     const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
     const owner = getPositionOwner(tokenId);

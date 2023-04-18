@@ -49,7 +49,7 @@ const HistoryTypeMap = {
 
 /**
  * This will be called automatically by history service
- * Just fill in the refresh func corresponding to the transcation type here.
+ * Just fill in the refresh func corresponding to the transaction type here.
  */
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
@@ -153,7 +153,7 @@ const History: React.FC = () => {
         </Button>
       </div>
       <CustomScrollbar className="max-h-294px" onScroll={handleScroll}>
-        {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-medium">No transcation history</p>}
+        {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-medium">No transaction history</p>}
         <FixedSizeList width="100%" height={height} itemCount={history.length} itemSize={46} ref={listRef as any} style={{ overflow: undefined }}>
           {Record}
         </FixedSizeList>

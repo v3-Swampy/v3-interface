@@ -51,7 +51,7 @@ const SettingsContent: React.FC = () => {
   }, []);
 
   const [transactionDeadline, setTransactionDeadline] = useTransactionDeadline();
-  const onTranscationDeadlineChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
+  const onTransactionDeadlineChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
     setTransactionDeadline(+value);
   }, []);
 
@@ -108,7 +108,7 @@ const SettingsContent: React.FC = () => {
             className="h-40px text-14px text-black-light"
             type="number"
             value={transactionDeadline}
-            onChange={onTranscationDeadlineChange}
+            onChange={onTransactionDeadlineChange}
             step={1}
             id="input--transaction_deadline"
           />

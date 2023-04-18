@@ -1,7 +1,7 @@
 import React, { useMemo, Suspense, useCallback } from 'react';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
-import useInTranscation from '@hooks/useInTranscation';
+import useInTransaction from '@hooks/useInTransaction';
 import { ReactComponent as LogoIcon } from '@assets/icons/logo_icon.svg';
 import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
@@ -47,7 +47,7 @@ type Props = ConfirmModalInnerProps & PoolType;
 
 const Position = ({ data, address, startTime, endTime, pid }: { data: PositionForUI; startTime: number; endTime: number } & Pick<PoolType, 'address' | 'pid'>) => {
   const i18n = useI18n(transitions);
-  const { inTranscation, execTranscation: handleStakeLP } = useInTranscation(_handleStakeLP, true);
+  const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
   const classNameButton = useMemo(() => {
     return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
@@ -71,7 +71,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
       >
         {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
         <Button
-          loading={inTranscation}
+          loading={inTransaction}
           onClick={async () => {
             const txHash = await handleStakeLP({
               tokenId: data.id,

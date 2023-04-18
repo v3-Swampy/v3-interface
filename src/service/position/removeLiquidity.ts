@@ -42,14 +42,14 @@ export const handleSubmitRemoveLiquidity = async ({
     },
   ]);
 
-  const transcationParams = { value: '0x0', to: NonfungiblePositionManager.address, data };
+  const transactionParams = { value: '0x0', to: NonfungiblePositionManager.address, data };
 
   const recordParams = {
     type: 'Position_RemoveLiquidity',
   } as const;
 
   showRemoveLiquidityModal({
-    transcationParams,
+    transactionParams,
     recordParams,
     tokenId,
     leftRemoveAmount,
@@ -59,4 +59,4 @@ export const handleSubmitRemoveLiquidity = async ({
   });
 };
 
-export const handleSendTransaction = async (transcationParams: { to: string; data: string; value: string }) => await sendTransaction(transcationParams);
+export const handleSendTransaction = async (transactionParams: { to: string; data: string; value: string }) => await sendTransaction(transactionParams);

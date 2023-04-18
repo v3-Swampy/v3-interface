@@ -117,7 +117,7 @@ export const handleClickSubmitCreatePosition = async ({
 
     const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
 
-    const transcationParams = {
+    const transactionParams = {
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
       data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
       to: NonfungiblePositionManager.address,
@@ -140,7 +140,7 @@ export const handleClickSubmitCreatePosition = async ({
       priceInit,
       previewUniqueId,
       previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower: new Unit(priceLower), priceUpper: new Unit(priceUpper) }, pool),
-      transcationParams,
+      transactionParams,
       recordParams,
     });
   } catch (err) {
@@ -148,7 +148,7 @@ export const handleClickSubmitCreatePosition = async ({
   }
 };
 
-export const handleCreatePosition = async (transcationParams: { to: string; data: string; value: string }) => {
-  const txHash = await sendTransaction(transcationParams);
+export const handleCreatePosition = async (transactionParams: { to: string; data: string; value: string }) => {
+  const txHash = await sendTransaction(transactionParams);
   return txHash;
 };

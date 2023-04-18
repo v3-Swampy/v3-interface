@@ -1,3 +1,3 @@
 export * from './slippageTolerance';
-export * from './transcationDeadline';
+export * from './transactionDeadline';
 export * from './calcAmountMinWithSlippageTolerance';
