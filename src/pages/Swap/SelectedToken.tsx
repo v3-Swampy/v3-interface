@@ -45,7 +45,7 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue, sourceTokenA
   const pairToken = usePairToken();
   const sourceToken = useSourceToken()
   const destinationToken =  useDestinationToken()
-  console.log(sourceToken, destinationToken)
+  console.log('aaa', pairKey, type)
 
 
   useEffect(() => {
@@ -54,13 +54,14 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue, sourceTokenA
 
   const isTokenIn = type === 'sourceToken';
   const amount = isTokenIn ? sourceTokenAmount : destinationTokenAmount;
+  console.log('test', amount)
   const result = useClientBestTrade(isTokenIn ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT, amount, sourceToken, destinationToken)
 
   const changePairAmount = useCallback<React.FocusEventHandler<HTMLInputElement>>(
     (evt) => {
       const amount = evt.target.value;
       if(!amount) return;
-      console.log('amount', amount)
+      console.log('amountInput', amount)
       console.log('result', result)
       let price = '0';
       if (result.state === TradeState.VALID && result.trade) {
