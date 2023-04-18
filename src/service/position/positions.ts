@@ -5,7 +5,8 @@ import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, getPool, Pool } from '@service/pairs&pool';
 import { getTokenByAddress, getWrapperTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
-import { computePoolAddress } from '@service/pairs&pool';
+import { computePoolAddress, usePool } from '@service/pairs&pool';
+import { useMemo } from 'react';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -131,38 +132,39 @@ export const positionQueryByTokenId = selectorFamily({
   get: (tokenId: number) => async () => {
     const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
     const position: Position = decodePosition(tokenId, decodeRes);
-    console.log('positionQueryByTokenId', position);
     return position;
   },
 });
 
 export const positionsQueryByTokenIds = selectorFamily({
   key: `positionsQueryByTokenIds-${import.meta.env.MODE}`,
-  get: (tokenIdParams: Array<number>) => async ({get}) => {
-    const account = get(accountState);
-    if (!account || !tokenIdParams?.length) return [];
-    const tokenIds = [...tokenIdParams];
+  get:
+    (tokenIdParams: Array<number>) =>
+    async ({ get }) => {
+      const account = get(accountState);
+      if (!account || !tokenIdParams?.length) return [];
+      const tokenIds = [...tokenIdParams];
 
-    const positionsResult = await fetchMulticall(
-      tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
-    );
+      const positionsResult = await fetchMulticall(
+        tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+      );
 
-    if (Array.isArray(positionsResult))
-      return positionsResult?.map((singleRes, index) => {
-        const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-        const position: Position = decodePosition(tokenIds[index], decodeRes);
+      if (Array.isArray(positionsResult))
+        return positionsResult?.map((singleRes, index) => {
+          const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+          const position: Position = decodePosition(tokenIds[index], decodeRes);
 
-        return position;
-      });
-    return [];
-  },
+          return position;
+        });
+      return [];
+    },
 });
 
 const positionsQuery = selector<Array<Position>>({
   key: `PositionListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const tokenIds = get(tokenIdsQuery);
-    return get(positionsQueryByTokenIds(tokenIds))
+    return get(positionsQueryByTokenIds(tokenIds));
   },
 });
 
@@ -250,3 +252,19 @@ export const createPreviewPositionForUI = (
   position: Pick<Position, 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
+
+export const usePositionStatus = (position: PositionForUI) => {
+  const { token0, token1, fee, liquidity, tickLower, tickUpper } = position;
+
+  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
+  const tickCurrent = pool?.tickCurrent;
+  return useMemo(() => {
+    return liquidity === '0'
+      ? PositionStatus.Closed
+      : !tickCurrent
+      ? undefined
+      : tickCurrent < tickLower || tickCurrent > tickUpper
+      ? PositionStatus.OutOfRange
+      : PositionStatus.InRange;
+  }, [position]);
+};
