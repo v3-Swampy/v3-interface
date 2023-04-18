@@ -3,34 +3,9 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import {useStakedPositionsByPool,useWhichIncentiveTokenIdIn} from '@service/farming/myFarms'
-import {PositionForUI,usePositionStatus,PositionStatus} from '@service/position'
-import {getCurrentIncentivePeriod} from '@service/farming'
-
-
-const FAKE_POSITIONS = [
-  {
-    pid: 100,
-    isPaused: false,
-    liquidity: '100000',
-    claimable: '100000',
-    incentiveTime: '1681975298',
-  },
-  {
-    pid: 200,
-    isPaused: true,
-    liquidity: '90000',
-    claimable: '90000',
-    incentiveTime: '1681024898',
-  },
-  {
-    pid: 300,
-    isPaused: false,
-    liquidity: '8000',
-    claimable: '8000',
-    incentiveTime: '1680852098',
-  },
-];
+import { useStakedPositionsByPool, useWhichIncentiveTokenIdIn } from '@service/farming/myFarms';
+import { PositionForUI, usePositionStatus, PositionStatus } from '@service/position';
+import { getCurrentIncentivePeriod } from '@service/farming';
 
 const transitions = {
   en: {
@@ -53,14 +28,6 @@ const transitions = {
   },
 } as const;
 
-interface PositionProps {
-  pid: number;
-  isPaused: boolean;
-  liquidity: string;
-  claimable: string;
-  incentiveTime: string;
-}
-
 const className = {
   title: 'color-gray-normal text-xs font-500 not-italic leading-15px mb-2',
   content: 'color-black-normal text-12px font-500 not-italic leading-15px',
@@ -71,15 +38,23 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
-const PostionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
+const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; token1Price?: string }> = ({ position, token0Price, token1Price }) => {
   const i18n = useI18n(transitions);
   const isEnded = false;
-  const whichIncentive=useWhichIncentiveTokenIdIn(position.id)
-  console.info('whichIncentive',whichIncentive)
-  const status=usePositionStatus(position)
-  const isPaused=useMemo(()=>{
-    return status==PositionStatus.OutOfRange
-  },[status])
+  const whichIncentive = useWhichIncentiveTokenIdIn(position.id);
+  console.info('whichIncentive', whichIncentive);
+  const status = usePositionStatus(position);
+  const isPaused = useMemo(() => {
+    return status == PositionStatus.OutOfRange;
+  }, [status]);
+
+  let liquidity = useMemo(() => {
+    if (token0Price && token1Price && position.amount0 && position.amount1) {
+      return position.amount0.mul(token0Price).add(position.amount1.mul(token1Price)).toDecimalStandardUnit(5);
+    }
+
+    return '0';
+  }, [token0Price, token1Price, position.amount0, position.amount1]);
 
   return (
     <div key={position.id} className="flex items-center justify-between mt-4">
@@ -90,7 +65,7 @@ const PostionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
-        <div className={`${className.content} flex items-center`}>${numFormat(position.liquidity)}</div>
+        <div className={`${className.content} flex items-center`}>${numFormat(liquidity)}</div>
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.claimable}</div>
@@ -110,15 +85,12 @@ const PostionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
       </div>
     </div>
   );
-}
+};
 
-
-const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
+const Postions: React.FC<{ poolAddress: string; token0Price?: string; token1Price?: string }> = ({ poolAddress, token0Price, token1Price }) => {
   const i18n = useI18n(transitions);
-  const positions=useStakedPositionsByPool(poolAddress)
-  // TODO: fetch real data
-  const data = positions as any;
-  const currentIncentive=getCurrentIncentivePeriod()
+  const positions = useStakedPositionsByPool(poolAddress);
+  const currentIncentive = getCurrentIncentivePeriod();
   const isEnded = false;
 
   return (
@@ -129,12 +101,12 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-normal' : 'color-orange-normal bg-orange-normal/10'}`}>
           <span className="i-mdi:clock"></span>
-          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(currentIncentive.endTime*1000).toLocaleString()}</span>
+          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(currentIncentive.endTime * 1000).toLocaleString()}</span>
         </span>
       </div>
       <div>
-        {data.map((p : any) => (
-          <PostionItem position={p} />
+        {positions.map((p: any) => (
+          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} />
         ))}
       </div>
     </div>

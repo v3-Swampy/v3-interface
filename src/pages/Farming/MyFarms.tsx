@@ -13,6 +13,7 @@ import {getCurrentIncentivePeriod} from '@service/farming'
 import TokenPair from '@modules/Position/TokenPair';
 import { PoolType } from '@service/farming';
 import { usePool } from '@service/pairs&pool';
+import { useTokenPrice } from '@service/pairs&pool';
 
 const transitions = {
   en: {
@@ -46,6 +47,9 @@ const MyFarmsItem: React.FC<{
     tokenB: data.token1,
     fee: data.fee,
   });
+
+  const token0Price = useTokenPrice(data.token0.address);
+  const token1Price = useTokenPrice(data.token1.address);
 
   const [isShow, setIsShow] = React.useState<boolean>(false);
   const currentIncentive=getCurrentIncentivePeriod()
@@ -102,7 +106,7 @@ const MyFarmsItem: React.FC<{
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions poolAddress={data.address}></Positions>}
+      {isShow && <Positions poolAddress={data.address} token0Price={token0Price} token1Price={token1Price}></Positions>}
     </div>
   );
 };

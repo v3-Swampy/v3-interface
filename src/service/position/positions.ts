@@ -151,12 +151,18 @@ export const positionsQueryByTokenIds = selectorFamily({
       );
 
       if (Array.isArray(positionsResult))
-        return positionsResult?.map((singleRes, index) => {
-          const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-          const position: Position = decodePosition(tokenIds[index], decodeRes);
+        return positionsResult
+          ?.map((singleRes, index) => {
+            const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+            const position: Position = decodePosition(tokenIds[index], decodeRes);
 
-          return position;
-        });
+            return position;
+          })
+          .map((position) => {
+            const { token0, token1, fee } = position;
+            const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
+            return enhancePositionForUI(position, pool);
+          });
       return [];
     },
 });

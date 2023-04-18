@@ -14,6 +14,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
 import { addRecordToHistory } from '@service/history';
+import { useTokenPrice } from '@service/pairs&pool';
 
 const transitions = {
   en: {
@@ -49,6 +50,16 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
+  const token0Price = useTokenPrice(data.token0.address);
+  const token1Price = useTokenPrice(data.token1.address);
+
+  let liquidity = useMemo(() => {
+    if (token0Price && token1Price && data.amount0 && data.amount1) {
+      return data.amount0.mul(token0Price).add(data.amount1.mul(token1Price)).toDecimalStandardUnit(5);
+    }
+    return '0';
+  }, [token0Price, token1Price, data.amount0, data.amount1]);
+
   const classNameButton = useMemo(() => {
     return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
   }, []);
@@ -58,7 +69,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
       <div>
         <div>
           <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
-          <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">${data.liquidity}</span>
+          <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">${liquidity}</span>
           <PositionStatus position={data} />
         </div>
         <PriceRange position={data} />
