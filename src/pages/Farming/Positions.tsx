@@ -71,7 +71,7 @@ const className = {
 const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
   const i18n = useI18n(transitions);
   const positions=useStakedPositionsByPool(poolAddress)
-  // TODO, fetch real data
+  // TODO: fetch real data
   const data = positions as any;
   const isEnded = false;
   // const isEnded = true;
@@ -88,7 +88,7 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
         </span>
       </div>
       <div>
-        {data.map((d) => {
+        {data.map((d : any) => {
           return (
             <div key={d.pid} className="flex items-center justify-between mt-4">
               <div className={`${className.buttonBase} ${d.isPaused ? className.buttonPaused : className.buttonFarming} ml-15px`}>

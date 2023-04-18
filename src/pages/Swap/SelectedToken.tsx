@@ -51,7 +51,7 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
         setValue(pairKey, '');
         return;
       }
-      // const currentInputAmount = new Unit(newAmount);
+      // const currentInputAmount = new Unit(evt.target.value);
       // const pairTokenExpectedAmount = currentInputAmount?.mul(price);
       // setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     },
