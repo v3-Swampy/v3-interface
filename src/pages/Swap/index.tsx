@@ -23,6 +23,7 @@ const SwapPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
   const sourceTokenAmount = watch('sourceToken-amount', '');
+  const destinationTokenAmount = watch('destinationToken-amount', '');
 
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -45,13 +46,13 @@ const SwapPage: React.FC = () => {
         </div>
 
         <form onSubmit={onSubmit}>
-          <SelectedToken type="sourceToken" register={register} setValue={setValue} />
+          <SelectedToken type="sourceToken" register={register} setValue={setValue} sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount}/>
           <div className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer" onClick={exchangeTokenDirection}>
             <div className="w-40px h-40px flex justify-center items-center rounded-full bg-orange-light">
               <ExchangeIcon className="w-26px h-26px" />
             </div>
           </div>
-          <SelectedToken type="destinationToken" register={register} setValue={setValue} />
+          <SelectedToken type="destinationToken" register={register} setValue={setValue} sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount}/>
 
           <SwapDetail />
 

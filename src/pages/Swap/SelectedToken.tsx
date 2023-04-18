@@ -30,9 +30,11 @@ interface Props {
   type: 'sourceToken' | 'destinationToken';
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
+  sourceTokenAmount: string;
+  destinationTokenAmount: string;
 }
 
-const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
+const SelectedToken: React.FC<Props> = ({ type, register, setValue, sourceTokenAmount, destinationTokenAmount }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
@@ -50,12 +52,14 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
     setValue(`${type}-amount`, '');
   }, [currentSelectToken]);
 
+  const isTokenIn = type === 'sourceToken';
+  const amount = isTokenIn ? sourceTokenAmount : destinationTokenAmount;
+  const result = useClientBestTrade(isTokenIn ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT, amount, sourceToken, destinationToken)
+
   const changePairAmount = useCallback<React.FocusEventHandler<HTMLInputElement>>(
     (evt) => {
       const amount = evt.target.value;
       console.log('amount', amount)
-      const isTokenIn = type === 'sourceToken'
-      const result = useClientBestTrade(isTokenIn ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT, amount, sourceToken, destinationToken)
       console.log('result', result)
       if (result.state === TradeState.VALID) {
         console.log('trade', result.trade)
@@ -64,7 +68,7 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
       // const pairTokenExpectedAmount = currentInputAmount?.mul(price);
       // setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     },
-    [type, pairToken] // TODO: add price here
+    [type, pairToken, result] // TODO: add price here
   );
 
   // useEffect(() => {
