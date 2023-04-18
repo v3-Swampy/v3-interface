@@ -9,7 +9,8 @@ import Balance from '@modules/Balance';
 import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
-import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
+import { useSourceToken, useDestinationToken, setToken, TradeType } from '@service/swap';
+import { useClientBestTrade, TradeState } from '@service/pairs&pool';
 import { trimDecimalZeros } from '@utils/numberUtils';
 
 const transitions = {
@@ -40,6 +41,10 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
   const currentSelectToken = useCurrentSelectToken();
   const usePairToken = type === 'sourceToken' ? useDestinationToken : useSourceToken;
   const pairToken = usePairToken();
+  const sourceToken = useSourceToken()
+  const destinationToken =  useDestinationToken()
+  console.log(sourceToken, destinationToken)
+
 
   useEffect(() => {
     setValue(`${type}-amount`, '');
@@ -47,9 +52,13 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue }) => {
 
   const changePairAmount = useCallback<React.FocusEventHandler<HTMLInputElement>>(
     (evt) => {
-      if (!evt.target.value || !pairToken) {
-        setValue(pairKey, '');
-        return;
+      const amount = evt.target.value;
+      console.log('amount', amount)
+      const isTokenIn = type === 'sourceToken'
+      const result = useClientBestTrade(isTokenIn ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT, amount, sourceToken, destinationToken)
+      console.log('result', result)
+      if (result.state === TradeState.VALID) {
+        console.log('trade', result.trade)
       }
       // const currentInputAmount = new Unit(newAmount);
       // const pairTokenExpectedAmount = currentInputAmount?.mul(price);

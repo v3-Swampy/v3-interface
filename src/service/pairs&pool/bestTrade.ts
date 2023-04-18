@@ -45,8 +45,10 @@ export const computeAllRoutes = (tokenIn: Token, tokenOut: Token, pools: Pool[],
 };
 
 export const useAllRoutes = (_tokenIn: Token | null, _tokenOut: Token | null) => {
-  const tokenIn = useMemo(() => getWrapperTokenByAddress(_tokenIn?.address), [_tokenIn]);
-  const tokenOut = useMemo(() => getWrapperTokenByAddress(_tokenOut?.address), [_tokenOut]);
+  console.log('a', _tokenIn, _tokenOut)
+  const tokenIn = useMemo(() => getWrapperTokenByAddress(_tokenIn?.address), [_tokenIn?.address]);
+  const tokenOut = useMemo(() => getWrapperTokenByAddress(_tokenOut?.address), [_tokenOut?.address]);
+  console.log('b', tokenIn, tokenOut)
 
   const pools = usePools(tokenIn, tokenOut);
   console.log('allpools', pools)
@@ -128,7 +130,7 @@ export enum TradeState {
 
 export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
   const amountDecimals = tradeType === TradeType.EXACT_INPUT ? tokenIn?.decimals : tokenOut?.decimals;
-  const amountBig = Unit.fromStandardUnit(amount, amountDecimals);
+  const amountBig = Unit.fromStandardUnit(amount ?? '0', amountDecimals);
   const hexAmount = amountBig.toHexMinUnit();
   const routes = useAllRoutes(tokenIn, tokenOut);
   console.log('routes', routes);
