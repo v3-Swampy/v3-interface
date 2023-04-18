@@ -3,6 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
+import {useStakedPositionsByPool} from '@service/farming/myFarms'
 
 const FAKE_POSITIONS = [
   {
@@ -69,9 +70,9 @@ const className = {
 
 const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
   const i18n = useI18n(transitions);
-
+  const positions=useStakedPositionsByPool(poolAddress)
   // TODO, fetch real data
-  const data: PositionProps[] = FAKE_POSITIONS;
+  const data = positions as any;
   const isEnded = false;
   // const isEnded = true;
 

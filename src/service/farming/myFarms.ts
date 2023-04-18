@@ -1,12 +1,14 @@
+import { useMemo } from 'react';
 import { fetchMulticall, UniswapV3StakerFactory } from '@contracts/index';
 import { selector, selectorFamily, useRecoilValue } from 'recoil';
 import { accountState } from '@service/account';
-import { getPastIncentivesOfPool,computeIncentiveKey } from './';
+import { getPastIncentivesOfPool, computeIncentiveKey } from './';
 import { IncentiveKey } from '@uniswap/v3-sdk';
 import { VSTTokenContract } from '@contracts/index';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
-import { getPosition, positionQueryByTokenId } from '@service/position';
+import { Position, positionQueryByTokenId, positionsQueryByTokenIds } from '@service/position';
+import { usePoolList } from '@service/farming/index';
 
 /**
  * Get the staked token id of user
@@ -16,7 +18,7 @@ const stakedTokenIdsState = selector({
   get: async ({ get }) => {
     const stakedTokenIds = [];
     const account = get(accountState);
-    if (!account) return undefined;
+    if (!account) return [];
     const response = await UniswapV3StakerFactory.func.tokenIdsLength(account);
     const tokenIdsLength = Number(response.toString());
     if (tokenIdsLength == 0) return [];
@@ -32,7 +34,7 @@ const stakedTokenIdsState = selector({
 });
 
 /**
- * get which incentive the tokenId in
+ * Get which incentive the tokenId in
  */
 const whichIncentiveTokenIdInState = selectorFamily({
   key: `whichIncentive-${import.meta.env.MODE}`,
@@ -57,6 +59,14 @@ const whichIncentiveTokenIdInState = selectorFamily({
       }
       return res;
     },
+});
+
+const stakedPositionsQuery = selector<Array<Position>>({
+  key: `StakedPositionsQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const stakedTokenIds = get(stakedTokenIdsState);
+    return get(positionsQueryByTokenIds(stakedTokenIds));
+  },
 });
 
 export const useStakedTokenIds = () => {
@@ -111,3 +121,23 @@ export const handleClaimAndReStake = async ({
 export const getwhichIncentiveTokenIdIn = (tokenId: number) => getRecoil(whichIncentiveTokenIdInState(+tokenId));
 
 export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(whichIncentiveTokenIdInState(+tokenId));
+
+export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
+
+export const useMyFarmingList = () => {
+  const { poolList } = usePoolList();
+  const stakedPostions = useStakedPositions();
+  const myFarmingList = useMemo(() => {
+    const stakedPoolAddresses: Array<string> = [];
+    stakedPostions.forEach((stakedPostion) => stakedPoolAddresses.push(stakedPostion.address));
+    const stakedPools = poolList.filter((p) => stakedPoolAddresses.indexOf(p.address) != -1);
+    return stakedPools;
+  }, [poolList, stakedPostions]);
+  return myFarmingList;
+};
+
+export const useStakedPositionsByPool = (poolAddress: string) => {
+  const stakedPostions = useStakedPositions();
+  const positions = useMemo(() => stakedPostions.filter((position) => position.address == poolAddress), [stakedPostions]);
+  return positions;
+};
