@@ -53,6 +53,7 @@ export interface PositionForUI extends Position {
   amount1?: Unit;
   // position token0 ratio
   ratio?: number;
+  pool?: Pool | null | undefined;
 }
 
 const positionBalanceQuery = selector({
@@ -138,31 +139,33 @@ export const positionQueryByTokenId = selectorFamily({
 
 export const positionsQueryByTokenIds = selectorFamily({
   key: `positionsQueryByTokenIds-${import.meta.env.MODE}`,
-  get: (tokenIdParams: Array<number>) => async ({get}) => {
-    const account = get(accountState);
-    if (!account || !tokenIdParams?.length) return [];
-    const tokenIds = [...tokenIdParams];
+  get:
+    (tokenIdParams: Array<number>) =>
+    async ({ get }) => {
+      const account = get(accountState);
+      if (!account || !tokenIdParams?.length) return [];
+      const tokenIds = [...tokenIdParams];
 
-    const positionsResult = await fetchMulticall(
-      tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
-    );
+      const positionsResult = await fetchMulticall(
+        tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+      );
 
-    if (Array.isArray(positionsResult))
-      return positionsResult?.map((singleRes, index) => {
-        const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-        const position: Position = decodePosition(tokenIds[index], decodeRes);
+      if (Array.isArray(positionsResult))
+        return positionsResult?.map((singleRes, index) => {
+          const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+          const position: Position = decodePosition(tokenIds[index], decodeRes);
 
-        return position;
-      });
-    return [];
-  },
+          return position;
+        });
+      return [];
+    },
 });
 
 const positionsQuery = selector<Array<Position>>({
   key: `PositionListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const tokenIds = get(tokenIdsQuery);
-    return get(positionsQueryByTokenIds(tokenIds))
+    return get(positionsQueryByTokenIds(tokenIds));
   },
 });
 
@@ -230,6 +233,7 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
       priceUpperForUI: invertPrice(priceLower),
       priceLowerOf,
       priceUpperOf,
+      pool,
     };
   }
   return {
@@ -243,6 +247,7 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
     priceUpperForUI: priceUpper,
     priceLowerOf,
     priceUpperOf,
+    pool,
   };
 };
 

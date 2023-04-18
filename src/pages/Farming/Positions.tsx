@@ -3,31 +3,8 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import {useStakedPositionsByPool} from '@service/farming/myFarms'
-
-const FAKE_POSITIONS = [
-  {
-    pid: 100,
-    isPaused: false,
-    liquidity: '100000',
-    claimable: '100000',
-    incentiveTime: '1681975298',
-  },
-  {
-    pid: 200,
-    isPaused: true,
-    liquidity: '90000',
-    claimable: '90000',
-    incentiveTime: '1681024898',
-  },
-  {
-    pid: 300,
-    isPaused: false,
-    liquidity: '8000',
-    claimable: '8000',
-    incentiveTime: '1680852098',
-  },
-];
+import { useStakedPositionsByPool } from '@service/farming/myFarms';
+import { type Position } from '@service/position';
 
 const transitions = {
   en: {
@@ -70,17 +47,14 @@ const className = {
 
 const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
   const i18n = useI18n(transitions);
-  const positions=useStakedPositionsByPool(poolAddress)
-  // TODO: fetch real data
-  const data = positions as any;
+  const positions = useStakedPositionsByPool(poolAddress);
   const isEnded = false;
-  // const isEnded = true;
 
   return (
     <div className="rounded-4 bg-white-normal p-6 mt-6">
       <div className="flex items-center">
         <span className="text-14px font-500 font-not-italic leading-18px color-gray-normal">
-          {i18n.myPosition} ({data.length})
+          {i18n.myPosition} ({positions.length})
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-normal' : 'color-orange-normal bg-orange-normal/10'}`}>
           <span className="i-mdi:clock"></span>
@@ -88,7 +62,10 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
         </span>
       </div>
       <div>
-        {data.map((d : any) => {
+        {positions.map((d: any) => {
+          // const liquidity = d.amount0.mul(d.pool.token0Price).add(d.amount1.mul(d.pool.token1Price)).toDecimalStandardUnit(5);
+          // console.log('liquidity: ', liquidity);
+
           return (
             <div key={d.pid} className="flex items-center justify-between mt-4">
               <div className={`${className.buttonBase} ${d.isPaused ? className.buttonPaused : className.buttonFarming} ml-15px`}>
