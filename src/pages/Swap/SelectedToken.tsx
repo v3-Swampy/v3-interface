@@ -59,14 +59,17 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue, sourceTokenA
   const changePairAmount = useCallback<React.FocusEventHandler<HTMLInputElement>>(
     (evt) => {
       const amount = evt.target.value;
+      if(!amount) return;
       console.log('amount', amount)
       console.log('result', result)
-      if (result.state === TradeState.VALID) {
+      let price = '0';
+      if (result.state === TradeState.VALID && result.trade) {
         console.log('trade', result.trade)
+        price = new Unit(isTokenIn ? result.trade.amountOut : result.trade.amountIn).toDecimalStandardUnit(undefined, isTokenIn ? destinationToken?.decimals : sourceToken?.decimals);
       }
-      // const currentInputAmount = new Unit(newAmount);
-      // const pairTokenExpectedAmount = currentInputAmount?.mul(price);
-      // setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
+      const currentInputAmount = new Unit(amount);
+      const pairTokenExpectedAmount = currentInputAmount?.mul(price);
+      setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(5)));
     },
     [type, pairToken, result] // TODO: add price here
   );
