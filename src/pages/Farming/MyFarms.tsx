@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useMemo} from 'react';
 import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
 import { numFormat } from '@utils/numberUtils';
@@ -8,55 +8,8 @@ import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-
-const FAKE_DATA_MY_FARMS = [
-  {
-    poolAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c100',
-    tokenA: {
-      name: 'USDT',
-      symbol: 'USDT',
-      decimals: 18,
-      logoURI: 'https://assets.coingecko.com/coins/images/325/large/Tether-logo.png?1598003707',
-      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-    },
-    tokenB: {
-      name: 'BTC',
-      symbol: 'BTC',
-      decimals: 18,
-      logoURI: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579',
-      address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-    },
-    APR: 300,
-    multipier: '2.5',
-    staked: '200000',
-    claimable: '200000',
-    incentiveTime: '1681975298',
-    hasPaused: true,
-  },
-  {
-    poolAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c200',
-    tokenA: {
-      name: 'ETH',
-      symbol: 'ETH',
-      decimals: 18,
-      logoURI: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png?1595348880',
-      address: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
-    },
-    tokenB: {
-      name: 'CFX',
-      symbol: 'CFX',
-      decimals: 18,
-      logoURI: 'https://scan-icons.oss-cn-hongkong.aliyuncs.com/mainnet/net1030%3Aaavtjgz9s8jf8yg9hghwcjkwwbp167ay5ynubph265.png',
-      address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c510',
-    },
-    APR: 500,
-    multipier: '4.5',
-    staked: '800000',
-    claimable: '800000',
-    incentiveTime: '1681024898',
-    hasPaused: false,
-  },
-];
+import {useMyFarmingList} from '@service/farming/myFarms'
+import TokenPair from '@modules/Position/TokenPair';
 
 const transitions = {
   en: {
@@ -76,21 +29,22 @@ const transitions = {
 } as const;
 
 interface FarmsItemProps {
+  address:string;
   poolAddress: string;
-  tokenA: Token;
-  tokenB: Token;
+  token0: Token;
+  token1: Token;
   APR: number;
   multipier: string;
   staked: string;
   claimable: string;
   incentiveTime: string;
   hasPaused?: boolean;
+  fee?:string;
 }
 
 const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
   const i18n = useI18n(transitions);
   const [isShow, setIsShow] = React.useState<boolean>(false);
-
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
@@ -108,16 +62,17 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
       <div className="flex justify-between relative px-4">
         <div className="ml-20px">
           <div className={`${className.title}`}>{i18n.poolName}</div>
-          <div className={`${className.content} inline-flex justify-center items-center relative`}>
-            {data.hasPaused && <span className="inline-block bg-orange-dot w-6px h-6px rounded-full absolute -left-14px"></span>}
-            <span className="mr-1">
-              <img className="w-6 h-6 rounded-full" src={data.tokenA.logoURI} alt={`${data.tokenA.symbol} icon`} />
-              <img className="w-6 h-6 -ml-8px rounded-full" src={data.tokenB.logoURI} alt={`${data.tokenB.symbol} icon`} />
-            </span>
-            <span>
-              {data.tokenA.name} / {data.tokenB.name}
-            </span>
-          </div>
+          <div className={`${className.content} inline-flex justify-center items-center`}>
+          <TokenPair
+            position={
+              {
+                leftToken: data.token0,
+                rightToken: data.token1,
+                fee: data.fee,
+              } as any
+            }
+          />
+        </div>
         </div>
         <div>
           <div className={`${className.title}`}>{i18n.APR}</div>
@@ -143,16 +98,17 @@ const MyFarmsItem: React.FC<{ data: FarmsItemProps }> = ({ data }) => {
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions poolAddress={data.poolAddress}></Positions>}
+      {isShow && <Positions poolAddress={data.address}></Positions>}
     </div>
   );
 };
 
 const MyFarms = () => {
+  const myFarmingList=useMyFarmingList()
   return (
     <div className="mt-6">
-      {FAKE_DATA_MY_FARMS.map((item) => (
-        <MyFarmsItem key={item.poolAddress} data={item} />
+      {myFarmingList.map((item) => (
+        <MyFarmsItem key={item.address} data={item} />
       ))}
     </div>
   );

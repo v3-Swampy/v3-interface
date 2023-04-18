@@ -1,4 +1,4 @@
-import { ContractFactory, JsonRpcProvider, type InterfaceAbi, Contract } from 'ethers';
+import { Contract, JsonRpcProvider, type InterfaceAbi } from 'ethers';
 import ERC20ABI from './abis/ERC20.json';
 import ERC721ABI from './abis/ERC721.json';
 import MulticallABI from './abis/Multicall.json';

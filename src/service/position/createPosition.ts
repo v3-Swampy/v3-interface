@@ -18,7 +18,6 @@ dayjs.extend(durationPlugin);
 const duration = dayjs.duration;
 
 const Q192 = new Decimal(2).toPower(192);
-const Q96 = new Decimal(2).toPower(96);
 const Zero = new Unit(0);
 
 export const handleClickSubmitCreatePosition = async ({
@@ -63,7 +62,9 @@ export const handleClickSubmitCreatePosition = async ({
       ? [_priceLower, _priceUpper]
       : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'Infinity' : (1 / +_priceLower).toFixed(5)];
 
-    const sqrtPriceX96 = Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q96)).toFixed(0);
+    const sqrtPriceX96 = priceInit
+      ? Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0)
+      : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
     const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
 
     const _tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });

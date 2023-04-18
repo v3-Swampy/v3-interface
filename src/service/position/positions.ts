@@ -65,12 +65,12 @@ const positionBalanceQuery = selector({
   },
 });
 
-const tokenIdsQuery = selector<Array<number> | undefined>({
+const tokenIdsQuery = selector<Array<number> | []>({
   key: `tokenIdsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const account = get(accountState);
     const positionBalance = get(positionBalanceQuery);
-    if (!account || !positionBalance) return undefined;
+    if (!account || !positionBalance) return [];
 
     const tokenIdsArgs = account && positionBalance && positionBalance > 0 ? Array.from({ length: positionBalance }, (_, index) => [account, index]) : [];
 
@@ -126,7 +126,7 @@ const decodePosition = (tokenId: number, decodeRes: Array<any>) => {
   return position;
 };
 
-const positionQueryByTokenId = selectorFamily({
+export const positionQueryByTokenId = selectorFamily({
   key: `positionQueryByTokenId-${import.meta.env.MODE}`,
   get: (tokenId: number) => async () => {
     const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
@@ -136,14 +136,12 @@ const positionQueryByTokenId = selectorFamily({
   },
 });
 
-const positionsQuery = selector<Array<Position>>({
-  key: `PositionListQuery-${import.meta.env.MODE}`,
-  get: async ({ get }) => {
+export const positionsQueryByTokenIds = selectorFamily({
+  key: `positionsQueryByTokenIds-${import.meta.env.MODE}`,
+  get: (tokenIdParams: Array<number>) => async ({get}) => {
     const account = get(accountState);
-    const _tokenIds = get(tokenIdsQuery);
-
-    if (!account || !_tokenIds?.length) return [];
-    const tokenIds = [..._tokenIds];
+    if (!account || !tokenIdParams?.length) return [];
+    const tokenIds = [...tokenIdParams];
 
     const positionsResult = await fetchMulticall(
       tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
@@ -157,6 +155,14 @@ const positionsQuery = selector<Array<Position>>({
         return position;
       });
     return [];
+  },
+});
+
+const positionsQuery = selector<Array<Position>>({
+  key: `PositionListQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const tokenIds = get(tokenIdsQuery);
+    return get(positionsQueryByTokenIds(tokenIds))
   },
 });
 

@@ -3,6 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
+import {useStakedPositionsByPool} from '@service/farming/myFarms'
 
 const FAKE_POSITIONS = [
   {
@@ -69,9 +70,9 @@ const className = {
 
 const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
   const i18n = useI18n(transitions);
-
-  // TODO, fetch real data
-  const data: PositionProps[] = FAKE_POSITIONS;
+  const positions=useStakedPositionsByPool(poolAddress)
+  // TODO: fetch real data
+  const data = positions as any;
   const isEnded = false;
   // const isEnded = true;
 
@@ -87,7 +88,7 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
         </span>
       </div>
       <div>
-        {data.map((d) => {
+        {data.map((d : any) => {
           return (
             <div key={d.pid} className="flex items-center justify-between mt-4">
               <div className={`${className.buttonBase} ${d.isPaused ? className.buttonPaused : className.buttonFarming} ml-15px`}>
