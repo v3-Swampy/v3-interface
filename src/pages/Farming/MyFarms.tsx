@@ -8,7 +8,8 @@ import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-import { useMyFarmingList } from '@service/farming/myFarms';
+import {useMyFarmingList} from '@service/farming/myFarms'
+import {getCurrentIncentivePeriod} from '@service/farming'
 import TokenPair from '@modules/Position/TokenPair';
 import { PoolType } from '@service/farming';
 import { usePool } from '@service/pairs&pool';
@@ -47,6 +48,7 @@ const MyFarmsItem: React.FC<{
   });
 
   const [isShow, setIsShow] = React.useState<boolean>(false);
+  const currentIncentive=getCurrentIncentivePeriod()
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
@@ -56,11 +58,11 @@ const MyFarmsItem: React.FC<{
     setIsShow(!isShow);
   };
 
-  const isEnded = dayjs().isAfter(dayjs.unix(Number(data.currentIncentivePeriod.endTime)));
+  const isEnded = dayjs().isAfter(dayjs.unix(Number(currentIncentive.endTime)));
 
   return (
     <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-light/30' : 'bg-orange-light-hover'}`}>
-      <Corner timestatmp={Number(data.currentIncentivePeriod.endTime)}></Corner>
+      <Corner timestatmp={Number(currentIncentive.endTime)}></Corner>
       <div className="flex justify-between relative px-4">
         <div className="ml-20px">
           <div className={`${className.title}`}>{i18n.poolName}</div>

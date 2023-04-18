@@ -1,10 +1,36 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { useStakedPositionsByPool } from '@service/farming/myFarms';
-import { type Position } from '@service/position';
+import {useStakedPositionsByPool,useWhichIncentiveTokenIdIn} from '@service/farming/myFarms'
+import {PositionForUI,usePositionStatus,PositionStatus} from '@service/position'
+import {getCurrentIncentivePeriod} from '@service/farming'
+
+
+const FAKE_POSITIONS = [
+  {
+    pid: 100,
+    isPaused: false,
+    liquidity: '100000',
+    claimable: '100000',
+    incentiveTime: '1681975298',
+  },
+  {
+    pid: 200,
+    isPaused: true,
+    liquidity: '90000',
+    claimable: '90000',
+    incentiveTime: '1681024898',
+  },
+  {
+    pid: 300,
+    isPaused: false,
+    liquidity: '8000',
+    claimable: '8000',
+    incentiveTime: '1680852098',
+  },
+];
 
 const transitions = {
   en: {
@@ -45,9 +71,54 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
+const PostionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
+  const i18n = useI18n(transitions);
+  const isEnded = false;
+  const whichIncentive=useWhichIncentiveTokenIdIn(position.id)
+  console.info('whichIncentive',whichIncentive)
+  const status=usePositionStatus(position)
+  const isPaused=useMemo(()=>{
+    return status==PositionStatus.OutOfRange
+  },[status])
+
+  return (
+    <div key={position.id} className="flex items-center justify-between mt-4">
+      <div className={`${className.buttonBase} ${isPaused ? className.buttonPaused : className.buttonFarming} ml-15px`}>
+        <span className={`inline-block ${isPaused ? 'bg-orange-dot' : 'bg-green-normal'} w-6px h-6px rounded-full absolute -left-14px`}></span>
+        {isPaused ? <CoffeeCupIcon className="w-6 h-6 mr-1"></CoffeeCupIcon> : <HammerIcon className="w-6 h-6 mr-1"></HammerIcon>}
+        {isPaused ? i18n.paused : i18n.farming}
+      </div>
+      <div className="">
+        <div className={`${className.title}`}>{i18n.liquidity}</div>
+        <div className={`${className.content} flex items-center`}>${numFormat(position.liquidity)}</div>
+      </div>
+      <div className="">
+        <div className={`${className.title}`}>{i18n.claimable}</div>
+        <div className={`${className.content} flex items-center`}>${numFormat(position?.liquidity)} VST</div>
+      </div>
+      <div className="flex items-center">
+        {isEnded ? (
+          <div className={`${className.buttonBase} ${className.buttonPausedSolid}`}>
+            {i18n.claim} & {i18n.unstake}
+          </div>
+        ) : (
+          <>
+            <div className={`${className.buttonBase} mr-15px color-green-normal border border-solid border-green-normal`}>{i18n.claim}</div>
+            <div className={`${className.buttonBase} ${className.buttonPausedSolid}`}>{i18n.unstake}</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
   const i18n = useI18n(transitions);
-  const positions = useStakedPositionsByPool(poolAddress);
+  const positions=useStakedPositionsByPool(poolAddress)
+  // TODO: fetch real data
+  const data = positions as any;
+  const currentIncentive=getCurrentIncentivePeriod()
   const isEnded = false;
 
   return (
@@ -58,44 +129,13 @@ const Postions: React.FC<{ poolAddress: string }> = ({ poolAddress }) => {
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-normal' : 'color-orange-normal bg-orange-normal/10'}`}>
           <span className="i-mdi:clock"></span>
-          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: xxx</span>
+          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(currentIncentive.endTime*1000).toLocaleString()}</span>
         </span>
       </div>
       <div>
-        {positions.map((d: any) => {
-          // const liquidity = d.amount0.mul(d.pool.token0Price).add(d.amount1.mul(d.pool.token1Price)).toDecimalStandardUnit(5);
-          // console.log('liquidity: ', liquidity);
-
-          return (
-            <div key={d.pid} className="flex items-center justify-between mt-4">
-              <div className={`${className.buttonBase} ${d.isPaused ? className.buttonPaused : className.buttonFarming} ml-15px`}>
-                <span className={`inline-block ${d.isPaused ? 'bg-orange-dot' : 'bg-green-normal'} w-6px h-6px rounded-full absolute -left-14px`}></span>
-                {d.isPaused ? <CoffeeCupIcon className="w-6 h-6 mr-1"></CoffeeCupIcon> : <HammerIcon className="w-6 h-6 mr-1"></HammerIcon>}
-                {d.isPaused ? i18n.paused : i18n.farming}
-              </div>
-              <div className="">
-                <div className={`${className.title}`}>{i18n.liquidity}</div>
-                <div className={`${className.content} flex items-center`}>${numFormat(d.liquidity)}</div>
-              </div>
-              <div className="">
-                <div className={`${className.title}`}>{i18n.claimable}</div>
-                <div className={`${className.content} flex items-center`}>${numFormat(d.claimable)} VST</div>
-              </div>
-              <div className="flex items-center">
-                {isEnded ? (
-                  <div className={`${className.buttonBase} ${className.buttonPausedSolid}`}>
-                    {i18n.claim} & {i18n.unstake}
-                  </div>
-                ) : (
-                  <>
-                    <div className={`${className.buttonBase} mr-15px color-green-normal border border-solid border-green-normal`}>{i18n.claim}</div>
-                    <div className={`${className.buttonBase} ${className.buttonPausedSolid}`}>{i18n.unstake}</div>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {data.map((p : any) => (
+          <PostionItem position={p} />
+        ))}
       </div>
     </div>
   );
