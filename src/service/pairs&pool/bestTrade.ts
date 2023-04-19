@@ -209,7 +209,6 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
         trade: undefined,
       };
     }
-    console.log('bestRoute', bestRoute);
 
     return {
       state: TradeState.VALID,

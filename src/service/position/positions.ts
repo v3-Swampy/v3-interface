@@ -7,7 +7,6 @@ import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPri
 import { getTokenByAddress, getWrapperTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { computePoolAddress, usePool } from '@service/pairs&pool';
-import { useMemo } from 'react';
 
 export enum PositionStatus {
   InRange = 'InRange',

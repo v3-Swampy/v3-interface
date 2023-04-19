@@ -42,14 +42,14 @@ const stakedTokenIdsState = selector({
 /**
  * Get which incentive the tokenId in
  */
-const whichIncentiveTokenIdInState = selectorFamily<{ index: number; incentive: IncentiveKey; incentiveId: string }, number>({
+const whichIncentiveTokenIdInState = selectorFamily({
   key: `whichIncentive-${import.meta.env.MODE}`,
   get:
     (tokenId: number) =>
     async ({ get }) => {
       const position = get(positionQueryByTokenId(tokenId));
       const incentives = getPastIncentivesOfPool(position?.address);
-      let res = {};
+      let res: { index: number; incentive: IncentiveKey; incentiveId: string }= null!; // TODO: Not sure if null is possible
       for (let index = 0; index < incentives.length; index++) {
         const incentive = incentives[index];
         const incentiveId = computeIncentiveKey(incentive);
@@ -59,7 +59,7 @@ const whichIncentiveTokenIdInState = selectorFamily<{ index: number; incentive: 
             index,
             incentive,
             incentiveId,
-          };
+          } as const;
           break;
         }
       }

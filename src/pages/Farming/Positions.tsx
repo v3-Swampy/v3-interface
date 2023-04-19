@@ -3,11 +3,10 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { useStakedPositionsByPool, useWhichIncentiveTokenIdIn,useIsPositionActive,handleClaimUnStake,handleClaimAndReStake } from '@service/farming/myFarms';
+import { useStakedPositionsByPool, useWhichIncentiveTokenIdIn, useIsPositionActive, handleClaimUnStake, handleClaimAndReStake } from '@service/farming/myFarms';
 import { PositionForUI, usePositionStatus, PositionStatus } from '@service/position';
-import { getCurrentIncentiveKey,getCurrentIncentivePeriod } from '@service/farming';
+import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount } from '@service/account';
-
 
 const transitions = {
   en: {
@@ -40,12 +39,12 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
-const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; token1Price?: string,pid:number }> = ({ position, token0Price, token1Price,pid }) => {
+const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; token1Price?: string; pid: number }> = ({ position, token0Price, token1Price, pid }) => {
   const i18n = useI18n(transitions);
-  const account=useAccount()
+  const account = useAccount();
   const whichIncentive = useWhichIncentiveTokenIdIn(position.id);
-  const currentIncentiveKey=getCurrentIncentiveKey(position.address)
-  const isPositionActive=useIsPositionActive(position.id);
+  const currentIncentiveKey = getCurrentIncentiveKey(position.address);
+  const isPositionActive = useIsPositionActive(position.id);
   const status = usePositionStatus(position);
   const isPaused = useMemo(() => {
     return status == PositionStatus.OutOfRange;
@@ -76,13 +75,26 @@ const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; tok
       </div>
       <div className="flex items-center">
         {!isPositionActive ? (
-          <div className={`${className.buttonBase} ${className.buttonPausedSolid}`} onClick={()=>handleClaimUnStake(isPositionActive,whichIncentive?.incentive,position.id,pid,account||'')}>
+          <div
+            className={`${className.buttonBase} ${className.buttonPausedSolid}`}
+            onClick={() => handleClaimUnStake(isPositionActive, whichIncentive?.incentive, position.id, pid, account || '')}
+          >
             {i18n.claim} & {i18n.unstake}
           </div>
         ) : (
           <>
-            <div className={`${className.buttonBase} mr-15px color-green-normal border border-solid border-green-normal`} onClick={()=>handleClaimAndReStake(isPositionActive,whichIncentive?.incentive,currentIncentiveKey,position.id,pid,account||'')}>{i18n.claim}</div>
-            <div className={`${className.buttonBase} ${className.buttonPausedSolid}`} onClick={()=>handleClaimUnStake(isPositionActive,currentIncentiveKey,position.id,pid,account||'')}>{i18n.unstake}</div>
+            <div
+              className={`${className.buttonBase} mr-15px color-green-normal border border-solid border-green-normal`}
+              onClick={() => handleClaimAndReStake(isPositionActive, whichIncentive?.incentive, currentIncentiveKey, position.id, pid, account || '')}
+            >
+              {i18n.claim}
+            </div>
+            <div
+              className={`${className.buttonBase} ${className.buttonPausedSolid}`}
+              onClick={() => handleClaimUnStake(isPositionActive, currentIncentiveKey, position.id, pid, account || '')}
+            >
+              {i18n.unstake}
+            </div>
           </>
         )}
       </div>
@@ -90,7 +102,7 @@ const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; tok
   );
 };
 
-const Positions: React.FC<{ poolAddress: string; token0Price?: string; token1Price?: string,pid:number }> = ({ poolAddress, token0Price, token1Price,pid }) => {
+const Positions: React.FC<{ poolAddress: string; token0Price?: string; token1Price?: string; pid: number }> = ({ poolAddress, token0Price, token1Price, pid }) => {
   const i18n = useI18n(transitions);
   const positions = useStakedPositionsByPool(poolAddress);
   const currentIncentive = getCurrentIncentivePeriod();
@@ -109,7 +121,7 @@ const Positions: React.FC<{ poolAddress: string; token0Price?: string; token1Pri
       </div>
       <div>
         {positions.map((p: any) => (
-          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} key={p.id} pid={pid}/>
+          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} key={p.id} pid={pid} />
         ))}
       </div>
     </div>
