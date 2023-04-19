@@ -4,7 +4,7 @@ import { UniswapV3Factory } from '@contracts/index';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { showToast } from '@components/showPopup';
 import { toI18n, compiled } from '@hooks/useI18n';
-import { type useClientBestTrade } from '@service/pairs&pool';
+import { type useBestTrade } from '@service/pairs&pool';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
 
 const transitions = {
@@ -19,11 +19,11 @@ const transitions = {
 export const handleSwap = async ({
   sourceTokenAmount,
   destinationTokenAmount,
-  bestTrade
+  bestTrade,
 }: {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
-  bestTrade: ReturnType<typeof useClientBestTrade>;
+  bestTrade: ReturnType<typeof useBestTrade>;
 }) => {
   const i18n = toI18n(transitions);
   const sourceToken = getSourceToken();
@@ -32,7 +32,7 @@ export const handleSwap = async ({
 
   const hexSourceTokenAmount = Unit.fromStandardUnit(sourceTokenAmount, sourceToken.decimals).toHexMinUnit();
   const hexDestinationTokenAmount = Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toHexMinUnit();
-  console.log(bestTrade)
+
   const txHash = await sendTransaction({
     data: UniswapV3Factory.func.interface.encodeFunctionData('demo', [hexSourceTokenAmount, hexDestinationTokenAmount]),
     to: UniswapV3Factory.address,

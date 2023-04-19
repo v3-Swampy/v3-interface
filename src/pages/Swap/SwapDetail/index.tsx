@@ -1,10 +1,12 @@
-import React, { memo, useState, useCallback } from 'react';
+import React, { memo, useState, useCallback, useMemo } from 'react';
 import cx from 'clsx';
 import ToolTip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
+import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
-import { type useClientBestTrade } from '@service/pairs&pool';
+import { isTokenEqual } from '@service/tokens';
+import { TradeState, useTokenPriceUnit, type useBestTrade } from '@service/pairs&pool';
 import AutoRouter from './AutoRouter';
 
 const transitions = {
@@ -17,7 +19,7 @@ const transitions = {
     minimum_received: 'Minimum received after slippage',
     minimum_received_tooltip: 'The minimum amount you are guaranteed to receive. If the price slips any further,your transaction will revert.',
     network_fee: 'Network Fee',
-    network_fee_tooltip: 'The fee paid to miners who process your transaction. This must be paid in ETH.',
+    network_fee_tooltip: 'The fee paid to miners who process your transaction. This must be paid in CFX.',
   },
   zh: {
     expected_output: '预期获得',
@@ -32,14 +34,14 @@ const transitions = {
 } as const;
 
 interface Props {
-  bestTrade: ReturnType<typeof useClientBestTrade>;
+  bestTrade: ReturnType<typeof useBestTrade>;
 }
 
 const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
   const i18n = useI18n(transitions);
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
-  const isBothTokenSelected = sourceToken && destinationToken
+  const isBothTokenSelected = sourceToken && destinationToken;
 
   const [diretion, setDirection] = useState<'SourceToDestination' | 'DestinationToSource'>('SourceToDestination');
   const handleClickAccordionTitle = useCallback<React.MouseEventHandler<HTMLParagraphElement>>((evt) => {
@@ -49,6 +51,10 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
 
   const fromToken = diretion === 'SourceToDestination' ? sourceToken : destinationToken;
   const toToken = diretion === 'SourceToDestination' ? destinationToken : sourceToken;
+  const toTokenPrice = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
+  const destinationTokenUSDPrice = useTokenPriceUnit(destinationToken?.address);
+  const toTokenPriceOfUSDT = useMemo(() => toTokenPrice && destinationTokenUSDPrice && toTokenPrice.mul(destinationTokenUSDPrice), [toTokenPrice, destinationTokenUSDPrice]);
+  const networkFee = useMemo(() => destinationTokenUSDPrice && bestTrade.trade?.networkFeeByAmount.mul(destinationTokenUSDPrice), [bestTrade]);
 
   if (!isBothTokenSelected) return null;
   return (
@@ -57,32 +63,57 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
+      disabled={bestTrade.state !== TradeState.VALID}
     >
-      {(expand) => (
-        <>
-          <p className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
-            {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`233 ${toToken?.symbol}`}
-            <ToolTip>
+      {(expand) =>
+        bestTrade.state !== TradeState.VALID ? (
+          <>
+            {bestTrade.state === TradeState.INVALID && (
+              <p className="ml-24px flex items-center leading-18px text-14px text-gray-normal font-medium">
+                Enter the target amount in any input box to get the best price automatically
+              </p>
+            )}
+            {bestTrade.state === TradeState.LOADING && (
+              <p className="ml-24px flex items-center leading-18px text-14px text-black-normal font-medium">
+                <Spin className="mr-10px" />
+                Fetching best price...
+              </p>
+            )}
+            {bestTrade.state === TradeState.ERROR && (
+              <p className="ml-24px flex items-center leading-18px text-14px text-error-normal font-medium cursor-pointer underline">
+                Fetching best price Failed, please wait a moment and try again.
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
+              {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
+              {toTokenPriceOfUSDT && <>&nbsp;&nbsp;({`${toTokenPriceOfUSDT.toDecimalMinUnit(5)}$`})</>}
+              <ToolTip>
+                <span
+                  className={cx(
+                    'i-fa6-solid:circle-info ml-6px mb-2px text-13px text-gray-normal font-medium transition-opacity duration-125',
+                    expand && 'opacity-0 pointer-events-none'
+                  )}
+                />
+              </ToolTip>
+            </p>
+            {networkFee && (
               <span
                 className={cx(
-                  'i-fa6-solid:circle-info ml-6px mb-2px text-13px text-gray-normal font-medium transition-opacity duration-125',
+                  'absolute top-1/2 right-38px -translate-y-[calc(50%-2.5px)] inline-flex items-center text-14px text-gray-normal transition-opacity duration-125',
                   expand && 'opacity-0 pointer-events-none'
                 )}
-              />
-            </ToolTip>
-          </p>
-          <span
-            className={cx(
-              'absolute top-1/2 right-38px -translate-y-[calc(50%-2.5px)] inline-flex items-center text-14px text-gray-normal transition-opacity duration-125',
-              expand && 'opacity-0 pointer-events-none'
+              >
+                <span className="i-ic:outline-local-gas-station text-16px mr-2px" />${networkFee?.toDecimalStandardUnit(5)}
+              </span>
             )}
-          >
-            <span className="i-ic:outline-local-gas-station text-16px mr-2px" />
-            $11.80
-          </span>
-          <span className="accordion-arrow i-ic:sharp-keyboard-arrow-down absolute right-16px top-1/2 -translate-y-[calc(50%-2.5px)] text-16px font-medium" />
-        </>
-      )}
+
+            <span className="accordion-arrow i-ic:sharp-keyboard-arrow-down absolute right-16px top-1/2 -translate-y-[calc(50%-2.5px)] text-16px font-medium" />
+          </>
+        )
+      }
 
       <p className="flex justify-between items-center leading-18px text-14px font-medium">
         <ToolTip text={i18n.expected_output_tooltip}>
@@ -91,7 +122,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </ToolTip>
-        <span className="text-black-normal">233 {sourceToken?.symbol}</span>
+        <span className="text-black-normal">
+          {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
+        </span>
       </p>
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px font-medium">
@@ -111,7 +144,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </ToolTip>
-        <span>233 {sourceToken?.symbol}</span>
+        <span>
+          {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
+        </span>
       </p>
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
@@ -121,12 +156,12 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </ToolTip>
-        <span>~$4.84</span>
+        <span>${networkFee?.toDecimalStandardUnit(5)}</span>
       </p>
 
       <div className="my-16px h-2px bg-#FFF5E7" />
 
-      <AutoRouter />
+      <AutoRouter bestTrade={bestTrade}/>
     </Accordion>
   );
 };

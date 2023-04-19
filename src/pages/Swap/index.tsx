@@ -6,8 +6,8 @@ import BorderBox from '@components/Box/BorderBox';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken, getSourceToken, getDestinationToken } from '@service/swap';
-import { useClientBestTrade, TradeState } from '@service/pairs&pool';
-import { TradeType } from '@service/swap';
+import { useBestTrade, TradeState } from '@service/pairs&pool';
+import { TradeType } from '@service/pairs&pool/bestTrade';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
@@ -33,13 +33,20 @@ const SwapPage: React.FC = () => {
   const [inputedType, setInputedType] = useState<'sourceToken' | 'destinationToken' | null>(null);
   const inputedAmount = inputedType === null ? '' : inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
-  const bestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+  const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
   useEffect(() => {
-    if (inputedType && bestTrade.state === TradeState.VALID && bestTrade.trade) {
-      setValue(`${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`, inputedAmount ?
-        (bestTrade.trade.tradeType === TradeType.EXACT_INPUT ?
-          bestTrade.trade.amountOut?.toDecimalStandardUnit() : bestTrade.trade.amountIn?.toDecimalStandardUnit())
-        : '');
+    if (inputedType && bestTrade.state === TradeState.VALID && bestTrade?.trade) {
+      const sourceToken = getSourceToken();
+      const destinationToken = getDestinationToken();
+      setValue(
+        `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
+        inputedAmount
+          ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
+              undefined,
+              (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
+            )
+          : ''
+      );
     }
   }, [bestTrade]);
 
@@ -84,11 +91,14 @@ const SwapPage: React.FC = () => {
 
         <form onSubmit={onSubmit}>
           <SelectedToken type="sourceToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
-          <div className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer" onClick={() => {
-            exchangeTokenDirection();
-            setValue('sourceToken-amount', '');
-            setValue('destinationToken-amount', '');
-          }}>
+          <div
+            className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer"
+            onClick={() => {
+              exchangeTokenDirection();
+              setValue('sourceToken-amount', '');
+              setValue('destinationToken-amount', '');
+            }}
+          >
             <div className="w-40px h-40px flex justify-center items-center rounded-full bg-orange-light">
               <ExchangeIcon className="w-26px h-26px" />
             </div>

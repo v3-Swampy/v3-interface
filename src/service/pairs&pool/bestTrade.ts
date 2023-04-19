@@ -1,12 +1,17 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { uniqueId } from 'lodash-es';
 import { pack } from '@ethersproject/solidity';
 import { type Token, isTokenEqual, getWrapperTokenByAddress, TokenUSDT } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { UniswapV3Quoter, fetchMulticall } from '@contracts/index';
-import { TradeType } from '@service/swap';
+import { UniswapV3Quoter } from '@contracts/index';
 import { isPoolEqual } from '.';
 import { type Pool, usePools } from '.';
 import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool';
+
+export enum TradeType {
+  EXACT_INPUT = 'exactIn',
+  EXACT_OUTPUT = 'exactOut',
+}
 
 interface RouteProps {
   tokenIn: Token;
@@ -23,6 +28,27 @@ export class Route implements RouteProps {
     this.tokenOut = tokenOut;
     this.pools = pools;
   }
+}
+
+export enum TradeState {
+  INVALID = 'INVALID',
+  LOADING = 'LOADING',
+  NO_ROUTE_FOUND = 'NO_ROUTE_FOUND',
+  VALID = 'VALID',
+  ERROR = 'ERROR',
+}
+
+export interface BestTrade {
+  state: TradeState;
+  trade?: {
+    route: Route;
+    amountIn: Unit;
+    amountOut: Unit;
+    priceIn: Unit;
+    priceOut: Unit;
+    networkFeeByAmount: Unit;
+    tradeType: TradeType;
+  };
 }
 
 export const computeAllRoutes = (tokenIn: Token, tokenOut: Token, pools: Pool[], currentPath: Pool[] = [], allPaths: Route[] = [], startTokenIn: Token = tokenIn, maxHop = 2) => {
@@ -113,134 +139,19 @@ export const getQuoteFunctionName = (route: Route, tradeType: TradeType) => {
   }
   return tradeTypeFunctionName;
 };
+;
 
-export enum TradeState {
-  LOADING = 'LOADING',
-  INVALID = 'INVALID',
-  NO_ROUTE_FOUND = 'NO_ROUTE_FOUND',
-  VALID = 'VALID',
-  SYNCING = 'SYNCING',
-}
-
-export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
-  console.log(tradeType, amount, tokenIn, tokenOut);
-  const amountDecimals = tradeType === TradeType.EXACT_INPUT ? tokenIn?.decimals : tokenOut?.decimals;
-  const amountBig = Unit.fromStandardUnit(amount || '0', amountDecimals);
-  const hexAmount = amountBig.toHexMinUnit();
-
-  const routes = useAllRoutes(tokenIn, tokenOut);
-  console.log('routes', routes);
-
-  const callData = useMemo(() => {
-    if (!hexAmount || tradeType === null) return undefined;
-    return routes?.map((route) => getQuoteCallParameters(route, hexAmount, tradeType).callData);
-  }, [tradeType, hexAmount, tradeType, routes]);
-  const [quoteResults, setQuoteResults] = useState<Array<any> | undefined>(undefined);
-
-  useEffect(() => {
-    if (callData === undefined || routes === undefined) {
-      setQuoteResults(undefined);
-      return;
-    } else if (callData?.length === 0) {
-      setQuoteResults([]);
-      return;
-    }
-
-    fetchMulticall(callData.map((data) => [UniswapV3Quoter.address, data]))
-      .then((res) => {
-        const decodeData = res?.map((data, i) => {
-          const tradeTypeFunctionName = getQuoteFunctionName(routes[i], tradeType!);
-          const result = data && data !== '0x' ? UniswapV3Quoter.func.interface.decodeFunctionResult(tradeTypeFunctionName, data) : {};
-          return result;
-        });
-        setQuoteResults(decodeData);
-      })
-      .catch(() => {
-        setQuoteResults([]);
-      });
-  }, [callData]);
-
-  return useMemo(() => {
-    const tokensAreTheSame = tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut);
-    if (!amount || !tokenIn || !tokenOut || tokensAreTheSame || !quoteResults?.length || !routes) {
-      return {
-        state: !amount || !tokenIn || !tokenOut || tokensAreTheSame ? TradeState.NO_ROUTE_FOUND : quoteResults === undefined ? TradeState.LOADING : TradeState.INVALID,
-        trade: undefined,
-      };
-    }
-
-    const { bestRoute, amountIn, amountOut } = quoteResults.reduce(
-      (
-        currentBest: {
-          bestRoute: Route | null;
-          amountIn: Unit | null;
-          amountOut: Unit | null;
-        },
-        result,
-        i
-      ) => {
-        if (!result) return currentBest;
-
-        if (tradeType === TradeType.EXACT_INPUT) {
-          const amountOut = new Unit(result.toString());
-          if (currentBest.amountOut === null || currentBest.amountOut.lessThan(amountOut)) {
-            return {
-              bestRoute: routes[i],
-              amountIn: amountBig,
-              amountOut,
-            };
-          }
-        } else {
-          const amountIn = new Unit(result.toString());
-          if (currentBest.amountIn === null || currentBest.amountIn.greaterThan(amountIn)) {
-            return {
-              bestRoute: routes[i],
-              amountIn,
-              amountOut: amountBig,
-            };
-          }
-        }
-
-        return currentBest;
-      },
-      {
-        bestRoute: null,
-        amountIn: null,
-        amountOut: null,
-      }
-    );
-
-    if (!bestRoute || !amountIn || !amountOut) {
-      return {
-        state: TradeState.NO_ROUTE_FOUND,
-        trade: undefined,
-      };
-    }
-
-    // console.log('bestRoute', bestRoute, amountIn.toDecimalStandardUnit(tokenIn.decimals), amountOut.toDecimalStandardUnit(tokenOut.decimals))
-
-    return {
-      state: TradeState.VALID,
-      trade: {
-        route: bestRoute,
-        amountIn,
-        amountOut,
-        tradeType,
-      },
-    };
-  }, [amount, tokenIn?.address, tokenOut?.address, tradeType, quoteResults]);
-};
-
+/** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined) => {
+  const token = getWrapperTokenByAddress(tokenAddress);
+  const result = useServerBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
   if (!tokenAddress) return undefined;
   if (tokenAddress == TokenUSDT.address) return '1';
-  const token = getWrapperTokenByAddress(tokenAddress);
-  const result: any = useClientBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
+  if (result.state === TradeState.LOADING) return undefined;
   if (result.state === TradeState.VALID) {
-    console.log(new Unit(result.trade.amountIn).toDecimalStandardUnit(token?.decimals), new Unit(result.trade.amountOut).toDecimalStandardUnit(TokenUSDT?.decimals));
-    return new Unit(result.trade.amountOut).toDecimalStandardUnit(undefined, TokenUSDT.decimals);
+    return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
   }
-  return undefined;
+  return null;
 };
 
 export enum RouterPreference {
@@ -271,3 +182,76 @@ export const getClientSmartOrderRouter = async (args: GetQuoteArgs) => {
   const router = getRouter();
   return await getClientSideQuote(args, router, CLIENT_PARAMS);
 };
+/** undefined means loading */
+export const useTokenPriceUnit = (tokenAddress: string | undefined) => {
+  const token = getWrapperTokenByAddress(tokenAddress);
+  const result = useServerBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
+  if (!tokenAddress) return undefined;
+  if (tokenAddress == TokenUSDT.address) return new Unit(1);
+  if (result.state === TradeState.LOADING) return undefined;
+  if (result.state === TradeState.VALID) {
+    return result.trade!.amountOut;
+  }
+  return null;
+};
+
+export const useServerBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
+  const uniqueIdFetchId = useRef<string>('init');
+
+  useEffect(() => {
+    const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
+    const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
+    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null) {
+      setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
+      return;
+    }
+
+    uniqueIdFetchId.current = uniqueId('useServerBestTrade');
+    const currentUniqueId = uniqueIdFetchId.current;
+    const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
+
+    setBestTrade({ state: TradeState.LOADING });
+    fetch(
+      `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
+        tokenInWrappered.chainId
+      }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType}`
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        if (currentUniqueId !== uniqueIdFetchId.current) {
+          return;
+        }
+        if (res?.errorCode) {
+          setBestTrade({
+            state: TradeState.ERROR,
+          });
+        } else {
+          const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
+          
+          const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0)
+          const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0) : amountUnit;
+          
+          const priceIn = amountInGasAdjusted.div(amountOutGasAdjusted);
+          const priceOut = amountOutGasAdjusted.div(amountInGasAdjusted);
+
+          setBestTrade({
+            state: TradeState.VALID,
+            trade: {
+              amountIn: amountInGasAdjusted,
+              amountOut: amountOutGasAdjusted,
+              priceIn,
+              priceOut,
+              route: res.route,
+              tradeType,
+              networkFeeByAmount: amountOut.sub(amountOutGasAdjusted),
+            },
+          });
+        }
+      });
+  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
+
+  return bestTrade;
+};
+
+export const useBestTrade = useServerBestTrade;

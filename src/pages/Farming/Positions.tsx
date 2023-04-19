@@ -41,14 +41,20 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
-const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string; token1Price?: string; pid: number,isActive:boolean }> = ({ position, token0Price, token1Price, pid,isActive }) => {
+const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean }> = ({
+  position,
+  token0Price,
+  token1Price,
+  pid,
+  isActive,
+}) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
   const currentIncentiveKey = getCurrentIncentiveKey(position.address);
   const isPositionActive = useIsPositionActive(position.id);
   const status = usePositionStatus(position);
   const isPaused = useMemo(() => {
-    return isActive?(status == PositionStatus.OutOfRange):true;
+    return isActive ? status == PositionStatus.OutOfRange : true;
   }, [status]);
 
   let liquidity = useMemo(() => {
@@ -130,7 +136,13 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string; t
   );
 };
 
-const Positions: React.FC<{positionList:Array<FarmingPosition>; token0Price?: string; token1Price?: string; pid: number,isActive:boolean }> = ({ positionList, token0Price, token1Price, pid,isActive }) => {
+const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean }> = ({
+  positionList,
+  token0Price,
+  token1Price,
+  pid,
+  isActive,
+}) => {
   const i18n = useI18n(transitions);
   const currentIncentive = getCurrentIncentivePeriod();
   const isEnded = false;
