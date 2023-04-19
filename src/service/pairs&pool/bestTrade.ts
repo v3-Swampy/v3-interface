@@ -6,6 +6,7 @@ import { UniswapV3Quoter, fetchMulticall } from '@contracts/index';
 import { TradeType } from '@service/swap';
 import { isPoolEqual } from '.';
 import { type Pool, usePools } from '.';
+import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool';
 
 interface RouteProps {
   tokenIn: Token;
@@ -240,4 +241,33 @@ export const useTokenPrice = (tokenAddress: string | undefined) => {
     return new Unit(result.trade.amountOut).toDecimalStandardUnit(undefined, TokenUSDT.decimals);
   }
   return undefined;
+};
+
+export enum RouterPreference {
+  API = 'api',
+  CLIENT = 'client',
+  PRICE = 'price',
+}
+
+interface GetQuoteArgs {
+  tokenInAddress: string;
+  tokenInChainId: number;
+  tokenInDecimals: number;
+  tokenInSymbol?: string;
+  tokenOutAddress: string;
+  tokenOutChainId: number;
+  tokenOutDecimals: number;
+  tokenOutSymbol?: string;
+  amount: string;
+  routerPreference: RouterPreference;
+  type: 'exactIn' | 'exactOut';
+}
+
+const CLIENT_PARAMS = {
+  protocols: [Protocol.V3],
+};
+
+export const getClientSmartOrderRouter = async (args: GetQuoteArgs) => {
+  const router = getRouter();
+  return await getClientSideQuote(args, router, CLIENT_PARAMS);
 };

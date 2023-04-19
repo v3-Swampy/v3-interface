@@ -5,6 +5,7 @@ import { RPC_PROVIDER } from '@utils/providers';
 // eslint-disable-next-line no-restricted-imports
 import { AlphaRouter, AlphaRouterConfig, ChainId, routeAmountsToString, SwapRoute} from 'v-swap-smart-order-router'
 import JSBI from 'jsbi'
+import { targetChainId } from '@service/account';
 
 type TokenInRoute = Pick<Token, 'address' | 'chainId' | 'symbol' | 'decimals'>
 
@@ -48,8 +49,8 @@ export enum Protocol {
   MIXED = "MIXED"
 }
 
-export function getRouter(chainId: ChainId): AlphaRouter {
-  const router = new AlphaRouter({ chainId, provider: RPC_PROVIDER });
+export function getRouter(): AlphaRouter {
+  const router = new AlphaRouter({ chainId: Number(targetChainId), provider: RPC_PROVIDER });
   return router;
 }
 
