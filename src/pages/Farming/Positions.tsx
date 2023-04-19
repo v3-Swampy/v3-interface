@@ -7,6 +7,8 @@ import { useStakedPositionsByPool, useWhichIncentiveTokenIdIn, useIsPositionActi
 import { PositionForUI, usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount } from '@service/account';
+import AuthConnectButton from '@modules/AuthConnectButton';
+import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
 
 const transitions = {
   en: {
@@ -75,21 +77,50 @@ const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; tok
       </div>
       <div className="flex items-center">
         {!isPositionActive ? (
-          // <div className={`${className.buttonBase} ${className.buttonPausedSolid}`} onClick={()=>handleClaimUnStake(isPositionActive,whichIncentive?.incentive,position.id,pid,account||'')}>
-          <div className={`${className.buttonBase} ${className.buttonPausedSolid}`} onClick={()=>handleClaimAndReStake(isPositionActive,whichIncentive?.incentive,currentIncentiveKey,position.id,pid,account||'')}>  
+          <AuthConnectButton className={`${className.buttonBase} ${className.buttonPausedSolid}`}>
+            <div
+              className={`${className.buttonBase} ${className.buttonPausedSolid}`}
+              onClick={() =>
+                showClaimAndUnstakeModal({
+                  isPositionActive,
+                  incentive: whichIncentive?.incentive,
+                  id: position.id,
+                  pid,
+                  currentIncentiveKey,
+                })
+              }
+            >
               {i18n.claim} & {i18n.unstake}
-          </div>
+            </div>
+          </AuthConnectButton>
         ) : (
           <>
             <div
               className={`${className.buttonBase} mr-15px color-green-normal border border-solid border-green-normal`}
-              onClick={() => handleClaimAndReStake(isPositionActive, whichIncentive?.incentive, currentIncentiveKey, position.id, pid, account || '')}
+              onClick={() =>
+                handleClaimAndReStake({
+                  isActive: isPositionActive,
+                  keyThatTokenIdIn: whichIncentive?.incentive,
+                  currentIncentiveKey: currentIncentiveKey,
+                  tokenId: position.id,
+                  pid,
+                  accountAddress: account as string,
+                })
+              }
             >
               {i18n.claim}
             </div>
             <div
               className={`${className.buttonBase} ${className.buttonPausedSolid}`}
-              onClick={() => handleClaimUnStake(isPositionActive, currentIncentiveKey, position.id, pid, account || '')}
+              onClick={() =>
+                handleClaimUnStake({
+                  isActive: isPositionActive,
+                  key: currentIncentiveKey,
+                  tokenId: position.id,
+                  pid,
+                  accountAddress: account as string,
+                })
+              }
             >
               {i18n.unstake}
             </div>

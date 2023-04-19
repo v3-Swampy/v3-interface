@@ -7,8 +7,8 @@ import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-import {useMyFarmingList,useStakedPositionsByPool} from '@service/farming/myFarms'
-import {getCurrentIncentivePeriod} from '@service/farming'
+import { useMyFarmingList, useStakedPositionsByPool } from '@service/farming/myFarms';
+import { getCurrentIncentivePeriod } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { PoolType } from '@service/farming';
 import { usePool } from '@service/pairs&pool';
@@ -38,10 +38,10 @@ const MyFarmsItem: React.FC<{
     multipier: string;
     staked: string;
     claimable: string;
-    pid:number;
+    pid: number;
   };
-  isActive:boolean
-}> = ({ data,isActive }) => {
+  isActive: boolean;
+}> = ({ data, isActive }) => {
   const i18n = useI18n(transitions);
 
   usePool({
@@ -54,8 +54,8 @@ const MyFarmsItem: React.FC<{
   const token1Price = useTokenPrice(data.token1.address);
 
   const [isShow, setIsShow] = React.useState<boolean>(false);
-  const positionList=useStakedPositionsByPool(data.address,isActive)
-  const currentIncentive=getCurrentIncentivePeriod()
+  const positionList = useStakedPositionsByPool(data.address, isActive);
+  const currentIncentive = getCurrentIncentivePeriod();
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
@@ -66,12 +66,10 @@ const MyFarmsItem: React.FC<{
   };
 
   const isEnded = dayjs().isAfter(dayjs.unix(Number(currentIncentive.endTime)));
-  if(Array.isArray(positionList)&&positionList.length==0) return  null
-  const endTime=useMemo(()=>{
-    return isActive?currentIncentive.endTime:(Math.floor(Date.now()/1000)-24*60*60)
-  },[
-    isActive,currentIncentive
-  ])
+  if (Array.isArray(positionList) && positionList.length == 0) return null;
+  const endTime = useMemo(() => {
+    return isActive ? currentIncentive.endTime : Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+  }, [isActive, currentIncentive]);
   return (
     <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-light/30' : 'bg-orange-light-hover'}`}>
       <Corner timestatmp={endTime}></Corner>
@@ -120,9 +118,9 @@ const MyFarmsItem: React.FC<{
 };
 
 const MyFarms = () => {
-  const account=useAccount()
+  const account = useAccount();
   const myFarmingList = useMyFarmingList();
-  if(!account) return <></>
+  if (!account) return <></>;
   return (
     <div className="mt-6">
       {myFarmingList.map((item) => (

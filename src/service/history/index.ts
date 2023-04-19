@@ -22,7 +22,9 @@ export interface HistoryRecord {
     | 'Stake_IncreaseUnlockTime'
     | 'Stake_IncreaseAmount'
     | 'Position_RemoveLiquidity'
-    | 'AllFarms_StakedLP';
+    | 'AllFarms_StakedLP'
+    | 'MyFarms_ClaimAndUnstake'
+    | 'MyFarms_ClaimAndStake';
   tokenA_Address?: string;
   tokenA_Value?: string;
   tokenB_Address?: string;

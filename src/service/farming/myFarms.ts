@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { UniswapV3StakerFactory } from '@contracts/index';
-import { selector, selectorFamily, useRecoilValue } from 'recoil';
+import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey } from './';
 import { VSTTokenContract } from '@contracts/index';
@@ -53,7 +53,7 @@ const whichIncentiveTokenIdInState = selectorFamily({
     async ({ get }) => {
       const position = get(positionQueryByTokenId(tokenId));
       const incentives = getPastIncentivesOfPool(position?.address);
-      let res: { index: number; incentive: IncentiveKey; incentiveId: string }= null!; // TODO: Not sure if null is possible
+      let res: { index: number; incentive: IncentiveKey; incentiveId: string } = null!; // TODO: Not sure if null is possible
       for (let index = 0; index < incentives.length; index++) {
         const incentive = incentives[index];
         const incentiveId = computeIncentiveKey(incentive);
@@ -103,13 +103,24 @@ export const useStakedTokenIds = () => {
  *  unstake for active incentives
  *  claim&UnStake for ended incentives
  */
-export const handleClaimUnStake = async (isActive: boolean, key: IncentiveKey, tokenId: number, pid: number, accountAddress: string) => {
-  if (!accountAddress) return;
+export const handleClaimUnStake = async ({
+  isActive,
+  key,
+  tokenId,
+  pid,
+  accountAddress,
+}: {
+  isActive: boolean;
+  key: IncentiveKey;
+  tokenId: number;
+  pid: number;
+  accountAddress: string;
+}) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
   const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
   const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
   const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
-  const txHash = await sendTransaction({
+  return await sendTransaction({
     to: UniswapV3StakerFactory.address,
     data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
   });
@@ -124,19 +135,26 @@ export const handleClaimUnStake = async (isActive: boolean, key: IncentiveKey, t
  *   claim&UnStake&ReStake for ended incentives
  *   claim                 for active incentives
  */
-export const handleClaimAndReStake = async (
-  isActive: boolean,
-  keyThatTokenIdIn: IncentiveKey,
-  currentIncentiveKey: IncentiveKey,
-  tokenId: number,
-  pid: number,
-  accountAddress: string
-) => {
+export const handleClaimAndReStake = async ({
+  isActive,
+  keyThatTokenIdIn,
+  currentIncentiveKey,
+  tokenId,
+  pid,
+  accountAddress,
+}: {
+  isActive: boolean;
+  keyThatTokenIdIn: IncentiveKey;
+  currentIncentiveKey: IncentiveKey;
+  tokenId: number;
+  pid: number;
+  accountAddress: string;
+}) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
   const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
   const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
   const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
-  const txHash = await sendTransaction({
+  return await sendTransaction({
     to: UniswapV3StakerFactory.address,
     data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
   });
@@ -147,6 +165,7 @@ export const getwhichIncentiveTokenIdIn = (tokenId: number) => getRecoil(whichIn
 export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(whichIncentiveTokenIdInState(+tokenId));
 
 export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
+export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedPositionsQuery);
 
 export const useMyFarmingList = () => {
   const { poolList } = usePoolList();

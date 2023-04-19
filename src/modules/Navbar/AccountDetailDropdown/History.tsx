@@ -12,6 +12,7 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
+import { useRefreshStakedPositions } from '@service/farming/myFarms';
 
 const transitions = {
   en: {
@@ -23,6 +24,8 @@ const transitions = {
     stake_increase_amount: 'Increase stake amount <b>>{tokenAValue} {tokenASymbol}</b>',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
+    claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
+    claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
   },
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
@@ -33,6 +36,8 @@ const transitions = {
     stake_increase_amount: 'Increase stake <b>{tokenAValue} {tokenASymbol}</b>',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
+    claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
+    claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
   },
 } as const;
 
@@ -45,6 +50,8 @@ const HistoryTypeMap = {
   ['Stake_IncreaseAmount']: 'stake_increase_amount',
   ['Position_RemoveLiquidity']: 'remove_liquidity',
   ['AllFarms_StakedLP']: 'stake_lp_of_all_farms',
+  ['MyFarms_ClaimAndUnstake']: 'claim_and_unstake_lp_of_my_farms',
+  ['MyFarms_ClaimAndStake']: 'claim_and_stake_lp_of_my_farms',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
 
 /**
@@ -53,9 +60,11 @@ const HistoryTypeMap = {
  */
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
+  const refreshStakedPositions = useRefreshStakedPositions();
 
   return {
     refreshPositions,
+    refreshStakedPositions,
   } as const;
 };
 
@@ -70,6 +79,8 @@ export const RefreshTypeMap = {
   ['Stake_IncreaseAmount']: 'refreshPositions',
   ['AllFarms_StakedLP']: 'refreshPositions',
   ['Position_RemoveLiquidity']: 'refreshPositions',
+  ['MyFarms_ClaimAndUnstake']: 'refreshStakedPositions',
+  ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 
