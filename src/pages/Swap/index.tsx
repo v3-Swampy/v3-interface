@@ -36,7 +36,10 @@ const SwapPage: React.FC = () => {
   const bestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
   useEffect(() => {
     if (inputedType && bestTrade.state === TradeState.VALID && bestTrade.trade) {
-      setValue(`${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`, inputedAmount ? bestTrade.trade.amountOut?.toDecimalStandardUnit() : '');
+      setValue(`${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`, inputedAmount ?
+        (bestTrade.trade.tradeType === TradeType.EXACT_INPUT ?
+          bestTrade.trade.amountOut?.toDecimalStandardUnit() : bestTrade.trade.amountIn?.toDecimalStandardUnit())
+        : '');
     }
   }, [bestTrade]);
 

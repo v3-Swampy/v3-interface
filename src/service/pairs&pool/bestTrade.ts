@@ -122,11 +122,13 @@ export enum TradeState {
 }
 
 export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+  console.log(tradeType, amount, tokenIn, tokenOut)
   const amountDecimals = tradeType === TradeType.EXACT_INPUT ? tokenIn?.decimals : tokenOut?.decimals;
   const amountBig = Unit.fromStandardUnit(amount || '0', amountDecimals);
   const hexAmount = amountBig.toHexMinUnit();
 
   const routes = useAllRoutes(tokenIn, tokenOut);
+  console.log('routes', routes)
 
   const callData = useMemo(() => {
     if (!hexAmount || tradeType === null) return undefined;
@@ -211,6 +213,8 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
         trade: undefined,
       };
     }
+
+    // console.log('bestRoute', bestRoute, amountIn.toDecimalStandardUnit(tokenIn.decimals), amountOut.toDecimalStandardUnit(tokenOut.decimals))
 
     return {
       state: TradeState.VALID,
