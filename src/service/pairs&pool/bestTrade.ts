@@ -6,7 +6,7 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { UniswapV3Quoter } from '@contracts/index';
 import { isPoolEqual } from '.';
 import { type Pool, usePools } from '.';
-import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool';
+import { getRouter, getClientSideQuote, Protocol } from './clientSideSmartOrderRouter';
 
 export enum TradeType {
   EXACT_INPUT = 'exactIn',
@@ -173,7 +173,7 @@ interface GetQuoteArgs {
   routerPreference: RouterPreference;
   type: 'exactIn' | 'exactOut';
 }
-
+console.log(Protocol)
 const CLIENT_PARAMS = {
   protocols: [Protocol.V3],
 };

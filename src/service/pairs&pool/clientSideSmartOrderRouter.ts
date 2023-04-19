@@ -3,7 +3,7 @@ import { Pool } from '@uniswap/v3-sdk'
 import { RPC_PROVIDER } from '@utils/providers';
 // This file is lazy-loaded, so the import of smart-order-router is intentional.
 // eslint-disable-next-line no-restricted-imports
-import { AlphaRouter, AlphaRouterConfig, ChainId, routeAmountsToString, SwapRoute} from 'v-swap-smart-order-router'
+import { AlphaRouter, AlphaRouterConfig, ChainId, routeAmountsToString, SwapRoute} from 'v-swap-smart-order-router';
 import JSBI from 'jsbi'
 import { targetChainId } from '@service/account';
 
