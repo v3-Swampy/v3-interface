@@ -27,13 +27,13 @@ const stakedTokenIdsState = selector({
 
     const length = Number(await UniswapV3StakerFactory.func.tokenIdsLength(account));
 
-    const tokenIds =
+    let tokenIds =
       (
         await fetchMulticall(
           Array.from({ length }).map((_, i) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('tokenIds', [account, i])])
         )
       )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('tokenIds', r)[0]) || [];
-
+    tokenIds=[...new Set(tokenIds)] 
     const stakedTokenIds =
       (await fetchMulticall(tokenIds.map((tokenId) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('deposits', [tokenId])])))
         ?.map((d, i) => (UniswapV3StakerFactory.func.interface.decodeFunctionResult('deposits', d)[1] > 0 ? Number(tokenIds[i]) : null))
