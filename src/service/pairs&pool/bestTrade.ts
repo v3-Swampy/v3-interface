@@ -6,6 +6,7 @@ import { UniswapV3Quoter, fetchMulticall } from '@contracts/index';
 import { TradeType } from '@service/swap';
 import { isPoolEqual } from '.';
 import { type Pool, usePools } from '.';
+import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool';
 
 interface RouteProps {
   tokenIn: Token;
@@ -122,13 +123,13 @@ export enum TradeState {
 }
 
 export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
-  console.log(tradeType, amount, tokenIn, tokenOut)
+  console.log(tradeType, amount, tokenIn, tokenOut);
   const amountDecimals = tradeType === TradeType.EXACT_INPUT ? tokenIn?.decimals : tokenOut?.decimals;
   const amountBig = Unit.fromStandardUnit(amount || '0', amountDecimals);
   const hexAmount = amountBig.toHexMinUnit();
 
   const routes = useAllRoutes(tokenIn, tokenOut);
-  console.log('routes', routes)
+  console.log('routes', routes);
 
   const callData = useMemo(() => {
     if (!hexAmount || tradeType === null) return undefined;
@@ -145,23 +146,25 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
       return;
     }
 
-    fetchMulticall(callData.map((data) => [UniswapV3Quoter.address, data])).then((res) => {
-      const decodeData = res?.map((data, i) => {
-        const tradeTypeFunctionName = getQuoteFunctionName(routes[i], tradeType!);
-        const result = data && data !== '0x' ? UniswapV3Quoter.func.interface.decodeFunctionResult(tradeTypeFunctionName, data) : {};
-        return result;
+    fetchMulticall(callData.map((data) => [UniswapV3Quoter.address, data]))
+      .then((res) => {
+        const decodeData = res?.map((data, i) => {
+          const tradeTypeFunctionName = getQuoteFunctionName(routes[i], tradeType!);
+          const result = data && data !== '0x' ? UniswapV3Quoter.func.interface.decodeFunctionResult(tradeTypeFunctionName, data) : {};
+          return result;
+        });
+        setQuoteResults(decodeData);
+      })
+      .catch(() => {
+        setQuoteResults([]);
       });
-      setQuoteResults(decodeData);
-    }).catch(() => {
-      setQuoteResults([]);
-    })
   }, [callData]);
 
   return useMemo(() => {
     const tokensAreTheSame = tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut);
     if (!amount || !tokenIn || !tokenOut || tokensAreTheSame || !quoteResults?.length || !routes) {
       return {
-        state: !amount || !tokenIn || !tokenOut || tokensAreTheSame ? TradeState.NO_ROUTE_FOUND : quoteResults === undefined ? TradeState.LOADING :TradeState.INVALID,
+        state: !amount || !tokenIn || !tokenOut || tokensAreTheSame ? TradeState.NO_ROUTE_FOUND : quoteResults === undefined ? TradeState.LOADING : TradeState.INVALID,
         trade: undefined,
       };
     }
@@ -238,4 +241,33 @@ export const useTokenPrice = (tokenAddress: string | undefined) => {
     return new Unit(result.trade.amountOut).toDecimalStandardUnit(undefined, TokenUSDT.decimals);
   }
   return undefined;
+};
+
+export enum RouterPreference {
+  API = 'api',
+  CLIENT = 'client',
+  PRICE = 'price',
+}
+
+interface GetQuoteArgs {
+  tokenInAddress: string;
+  tokenInChainId: number;
+  tokenInDecimals: number;
+  tokenInSymbol?: string;
+  tokenOutAddress: string;
+  tokenOutChainId: number;
+  tokenOutDecimals: number;
+  tokenOutSymbol?: string;
+  amount: string;
+  routerPreference: RouterPreference;
+  type: 'exactIn' | 'exactOut';
+}
+
+const CLIENT_PARAMS = {
+  protocols: [Protocol.V3],
+};
+
+export const getClientSmartOrderRouter = async (args: GetQuoteArgs) => {
+  const router = getRouter();
+  return await getClientSideQuote(args, router, CLIENT_PARAMS);
 };

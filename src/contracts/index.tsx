@@ -13,7 +13,7 @@ import { isProduction } from '@utils/is';
 import { TokenVST } from '@service/tokens';
 import UniswapV3StakerABI from './abis/UniswapV3Staker.json';
 
-const Provider = new JsonRpcProvider(import.meta.env.VITE_ESpaceRpcUrl);
+export const Provider = new JsonRpcProvider(import.meta.env.VITE_ESpaceRpcUrl);
 
 const createContract = (address: string, ABI: InterfaceAbi) => {
   const _Contract = new Contract(address, ABI, Provider);
