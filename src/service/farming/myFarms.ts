@@ -71,18 +71,21 @@ const whichIncentiveTokenIdInState = selectorFamily({
     },
 });
 
+
+
 const stakedPositionsQuery = selector<Array<FarmingPosition>>({
   key: `StakedPositionsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const stakedTokenIds = get(stakedTokenIdsState);
     const stakedPositions=get(positionsQueryByTokenIds(stakedTokenIds))
+    console.info('stakedPositions',stakedPositions)
     const currentIndex=getCurrentIncentiveIndex()
     const _stakedPositions:Array<FarmingPosition>=[]
     stakedPositions.map((position)=>{
       const _position={...position} as FarmingPosition
       const whichIncentiveTokenIn=get(whichIncentiveTokenIdInState(position.id))
       _position.isActive=whichIncentiveTokenIn.index==currentIndex
-      _position.whichIncentiveTokenIn=getCurrentIncentiveKey(position.address)
+      _position.whichIncentiveTokenIn=whichIncentiveTokenIn.incentive
       _stakedPositions.push(_position)
     })
     return _stakedPositions
@@ -192,3 +195,6 @@ export const useIsPositionActive = (tokenId: number) => {
     return whichIncentiveTokenIDIn.index == getCurrentIncentiveIndex();
   }, [tokenId.toString()]);
 };
+
+export const useCalcPositions=(positions:Array<FarmingPosition>,pid:number)=>{
+}
