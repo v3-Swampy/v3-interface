@@ -6,7 +6,6 @@ import AuthConnectButton from '@modules/AuthConnectButton';
 import AuthTokenButton from '@modules/AuthTokenButton';
 import { UniswapV3Factory } from '@contracts/index';
 import useI18n from '@hooks/useI18n';
-import { useAllRoutes } from '@service/pairs&pool';
 
 const transitions = {
   en: {
@@ -28,7 +27,6 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount }) => {
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const isBothTokenSelected = sourceToken && destinationToken;
-  // const routes = useAllRoutes(sourceToken, destinationToken);
 
   return (
     <AuthConnectButton {...buttonProps}>

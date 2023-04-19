@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, memo } from 'react';
+import React, { useEffect, memo } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -9,9 +9,7 @@ import Balance from '@modules/Balance';
 import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
-import { useSourceToken, useDestinationToken, setToken, TradeType } from '@service/swap';
-import { useClientBestTrade, TradeState } from '@service/pairs&pool';
-import { trimDecimalZeros } from '@utils/numberUtils';
+import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
 
 const transitions = {
   en: {
@@ -30,56 +28,20 @@ interface Props {
   type: 'sourceToken' | 'destinationToken';
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
-  sourceTokenAmount: string;
-  destinationTokenAmount: string;
+  handleInputChange: (type: 'sourceToken' | 'destinationToken', amount: string) => void;
 }
 
-const SelectedToken: React.FC<Props> = ({ type, register, setValue, sourceTokenAmount, destinationTokenAmount }) => {
+const SelectedToken: React.FC<Props> = ({ type, register, setValue, handleInputChange }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
-  const pairKey = `${type === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`;
-  const useCurrentSelectToken = type === 'sourceToken' ? useSourceToken : useDestinationToken;
-  const currentSelectToken = useCurrentSelectToken();
-  const usePairToken = type === 'sourceToken' ? useDestinationToken : useSourceToken;
-  const pairToken = usePairToken();
-  const sourceToken = useSourceToken()
-  const destinationToken =  useDestinationToken()
-  console.log('aaa', pairKey, type)
-
+  const sourceToken = useSourceToken();
+  const destinationToken = useDestinationToken();
+  const currentSelectToken = type === 'sourceToken' ? sourceToken : destinationToken;
 
   useEffect(() => {
     setValue(`${type}-amount`, '');
   }, [currentSelectToken]);
-
-  const isTokenIn = type === 'sourceToken';
-  const amount = isTokenIn ? sourceTokenAmount : destinationTokenAmount;
-  console.log('test', amount)
-  const result = useClientBestTrade(isTokenIn ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT, amount, sourceToken, destinationToken)
-
-  const changePairAmount = useCallback<React.FocusEventHandler<HTMLInputElement>>(
-    (evt) => {
-      const amount = evt.target.value;
-      if(!amount) return;
-      console.log('amountInput', amount)
-      console.log('result', result)
-      let price = '0';
-      if (result.state === TradeState.VALID && result.trade) {
-        console.log('trade', result.trade)
-        price = new Unit(isTokenIn ? result.trade.amountOut : result.trade.amountIn).toDecimalStandardUnit(undefined, isTokenIn ? destinationToken?.decimals : sourceToken?.decimals);
-      }
-      const currentInputAmount = new Unit(amount);
-      const pairTokenExpectedAmount = currentInputAmount?.mul(price);
-      setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(5)));
-    },
-    [type, pairToken, result] // TODO: add price here
-  );
-
-  // useEffect(() => {
-  //   const currentInputAmount = new Unit(newAmount);
-  //   const pairTokenExpectedAmount = currentInputAmount?.mul(price);
-  //   setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
-  // }, [pairToken]);
 
   return (
     <div className="h-96px pt-16px pl-24px pr-16px rounded-20px bg-orange-light-hover">
@@ -92,10 +54,11 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue, sourceTokenA
           {...register(`${type}-amount`, {
             required: true,
             min: new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals),
+            onChange: (evt) => handleInputChange(type, evt.target.value),
           })}
           min={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           step={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
-          onBlur={changePairAmount}
+          type='number'
         />
 
         <BorderBox

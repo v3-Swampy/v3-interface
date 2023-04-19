@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
@@ -192,7 +193,12 @@ export const usePositionBalance = () => useRecoilValue(positionBalanceQuery);
 
 export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
-export const usePositions = () => useRecoilValue(positionsQuery);
+export const usePositions = (tokenIds?: Array<number>) => {
+  const allPositions = useRecoilValue(positionsQuery);
+  const filterPositions = useMemo(() => tokenIds ? allPositions.filter((position) => tokenIds.includes(position.id)) : allPositions, [allPositions, tokenIds]);
+  return filterPositions;
+};
+
 export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQuery);
 
 export const usePositionByTokenId = (tokenId: number) => useRecoilValue(positionQueryByTokenId(+tokenId));

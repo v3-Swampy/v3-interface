@@ -4,6 +4,7 @@ import ToolTip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
 import useI18n from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
+import { type useClientBestTrade } from '@service/pairs&pool';
 import AutoRouter from './AutoRouter';
 
 const transitions = {
@@ -30,7 +31,11 @@ const transitions = {
   },
 } as const;
 
-const SwapDetail: React.FC = () => {
+interface Props {
+  bestTrade: ReturnType<typeof useClientBestTrade>;
+}
+
+const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
   const i18n = useI18n(transitions);
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();

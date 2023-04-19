@@ -1,10 +1,13 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { debounce } from 'lodash-es';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
-import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken } from '@service/swap';
+import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken, getSourceToken, getDestinationToken } from '@service/swap';
+import { useClientBestTrade } from '@service/pairs&pool';
+import { TradeType } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
@@ -22,17 +25,42 @@ const transitions = {
 const SwapPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const sourceTokenAmount = watch('sourceToken-amount', '');
-  const destinationTokenAmount = watch('destinationToken-amount', '');
+  const sourceTokenAmount = watch('sourceToken-amount');
+  const destinationTokenAmount = watch('destinationToken-amount');
+  const sourceToken = useSourceToken();
+  const destinationToken = useDestinationToken();
+
+  const [inputedType, setInputedType] = useState<'sourceToken' | 'destinationToken' | null>(null);
+  const inputedAmount = inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
+  const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
+  const bestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+
+  const handleInputeTypeChange = useCallback(
+    debounce((type: 'sourceToken' | 'destinationToken', amount: string) => {
+      const sourceToken = getSourceToken();
+      const destinationToken = getDestinationToken();
+      if (!sourceToken || !destinationToken || !amount) {
+        setInputedType(null);
+        return;
+      }
+      setInputedType(type);
+    }, 333),
+    []
+  );
+  const handleInputChange = useCallback((type: 'sourceToken' | 'destinationToken', amount: string) => {
+    setInputedType(null);
+    handleInputeTypeChange(type, amount);
+  }, []);
 
   const onSubmit = useCallback(
     withForm(async (data) => {
       handleSwap({
         sourceTokenAmount: data['sourceToken-amount'],
         destinationTokenAmount: data['destinationToken-amount'],
+        bestTrade
       });
     }),
-    []
+    [bestTrade]
   );
 
   useCalcDetailAndRouter();
@@ -46,15 +74,15 @@ const SwapPage: React.FC = () => {
         </div>
 
         <form onSubmit={onSubmit}>
-          <SelectedToken type="sourceToken" register={register} setValue={setValue} sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount}/>
+          <SelectedToken type="sourceToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
           <div className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer" onClick={exchangeTokenDirection}>
             <div className="w-40px h-40px flex justify-center items-center rounded-full bg-orange-light">
               <ExchangeIcon className="w-26px h-26px" />
             </div>
           </div>
-          <SelectedToken type="destinationToken" register={register} setValue={setValue} sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount}/>
+          <SelectedToken type="destinationToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
 
-          <SwapDetail />
+          <SwapDetail bestTrade={bestTrade} />
 
           <SubmitButton sourceTokenAmount={sourceTokenAmount} />
         </form>

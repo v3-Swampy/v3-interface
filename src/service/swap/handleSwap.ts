@@ -4,6 +4,7 @@ import { UniswapV3Factory } from '@contracts/index';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { showToast } from '@components/showPopup';
 import { toI18n, compiled } from '@hooks/useI18n';
+import { type useClientBestTrade } from '@service/pairs&pool';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
 
 const transitions = {
@@ -15,7 +16,14 @@ const transitions = {
   },
 } as const;
 
-export const handleSwap = async ({ sourceTokenAmount, destinationTokenAmount }: { sourceTokenAmount: string; destinationTokenAmount: string }) => {
+export const handleSwap = async ({
+  sourceTokenAmount,
+  destinationTokenAmount,
+}: {
+  sourceTokenAmount: string;
+  destinationTokenAmount: string;
+  bestTrade: ReturnType<typeof useClientBestTrade>;
+}) => {
   const i18n = toI18n(transitions);
   const sourceToken = getSourceToken();
   const destinationToken = getDestinationToken();

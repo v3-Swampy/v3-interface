@@ -34,7 +34,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
   const wrapperedTokenB = useMemo(() => getWrapperTokenByAddress(tokenB?.address), [tokenB]);
 
   const pairs = useMemo(() => {
-    if (!wrapperedTokenA || !wrapperedTokenB) return [];
+    if (!wrapperedTokenA || !wrapperedTokenB) return undefined;
 
     return [
       // the direct pair
@@ -60,7 +60,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
 
   const allTokenPairsWithAllFees = useMemo(
     () =>
-      pairs.reduce<Array<{ tokenA: Token; tokenB: Token; fee: FeeAmount }>>(
+      pairs?.reduce<Array<{ tokenA: Token; tokenB: Token; fee: FeeAmount }>>(
         (list, [tokenA, tokenB]) =>
           list.concat([
             { tokenA, tokenB, fee: FeeAmount.LOW },
@@ -73,12 +73,22 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
   );
 
   const poolAddresses = useMemo(() => {
-    return allTokenPairsWithAllFees.map((tokenPairWithFee) => computePoolAddress(tokenPairWithFee));
+    return allTokenPairsWithAllFees?.map((tokenPairWithFee) => computePoolAddress(tokenPairWithFee));
   }, [allTokenPairsWithAllFees]);
 
-  const [validPools, setValidPools] = useState<Array<Pool>>([]);
+  const [validPools, setValidPools] = useState<Array<Pool> | undefined>([]);
   useEffect(() => {
-    if (!poolAddresses?.length || !wrapperedTokenA || !wrapperedTokenB) return;
+    if (!wrapperedTokenA || !wrapperedTokenB) {
+      setValidPools(undefined);
+      return;
+    }
+
+    if (!poolAddresses?.length || !allTokenPairsWithAllFees?.length) {
+      setValidPools([]);
+      return;
+    }
+
+    setValidPools(undefined);
     const poolContracts = poolAddresses.map((address) => createPoolContract(address));
 
     fetchMulticall(
@@ -107,12 +117,14 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
             })
         );
 
-        if (!pools?.length) return;
-        // console.log(pools);
+        if (!pools?.length) {
+          setValidPools([]);
+          return;
+        }
         setValidPools(pools.filter((pool) => pool.sqrtPriceX96 && pool.liquidity && pool.sqrtPriceX96 !== '0' && pool.liquidity !== '0'));
       });
   }, [allTokenPairsWithAllFees]);
-  console.log(validPools);
+
   return validPools;
 };
 

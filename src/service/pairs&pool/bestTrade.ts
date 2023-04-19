@@ -1,9 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
-import { selectorFamily, useRecoilValue } from 'recoil';
-import { getRecoil } from 'recoil-nexus';
 import { pack } from '@ethersproject/solidity';
 import { type Token, isTokenEqual, getWrapperTokenByAddress, TokenUSDT } from '@service/tokens';
-import { fetchChain } from '@utils/fetch';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { UniswapV3Quoter, fetchMulticall } from '@contracts/index';
 import { TradeType } from '@service/swap';
@@ -49,13 +46,12 @@ export const useAllRoutes = (_tokenIn: Token | null, _tokenOut: Token | null) =>
   const tokenOut = useMemo(() => getWrapperTokenByAddress(_tokenOut?.address), [_tokenOut?.address]);
 
   const pools = usePools(tokenIn, tokenOut);
-  console.log('allpools', pools);
 
   return useMemo(() => {
-    if (!pools || !tokenIn || !tokenOut) return [];
+    if (!pools || !tokenIn || !tokenOut) return undefined;
     const routes = computeAllRoutes(tokenIn, tokenOut, pools, [], [], tokenIn, 2);
     return routes;
-  }, [tokenIn?.address, tokenOut?.address, pools?.length]);
+  }, [tokenIn?.address, tokenOut?.address, pools]);
 };
 
 export const encodeRouteToPath = (route: Route, exactOutput: boolean): string => {
@@ -97,7 +93,7 @@ export const getQuoteCallParameters = (route: Route, amount: string, tradeType: 
     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, quoteParams);
   } else {
     const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT);
-    console.log('path', path);
+    // console.log('path', path);
     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, [path, amount]);
   }
   return {
@@ -118,50 +114,53 @@ export const getQuoteFunctionName = (route: Route, tradeType: TradeType) => {
 };
 
 export enum TradeState {
-  LOADING,
-  INVALID,
-  NO_ROUTE_FOUND,
-  VALID,
-  SYNCING,
+  LOADING = 'LOADING',
+  INVALID = 'INVALID',
+  NO_ROUTE_FOUND = 'NO_ROUTE_FOUND',
+  VALID = 'VALID',
+  SYNCING = 'SYNCING',
 }
 
-export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
   const amountDecimals = tradeType === TradeType.EXACT_INPUT ? tokenIn?.decimals : tokenOut?.decimals;
-  console.log('amount', amount, tradeType);
   const amountBig = Unit.fromStandardUnit(amount || '0', amountDecimals);
   const hexAmount = amountBig.toHexMinUnit();
+
   const routes = useAllRoutes(tokenIn, tokenOut);
-  console.log('routes', routes);
+
   const callData = useMemo(() => {
-    if (!amount) return [];
-    return routes.map((route) => getQuoteCallParameters(route, hexAmount, tradeType).callData);
-  }, [amount, tokenIn?.address, tokenOut?.address, tradeType, routes.length]);
-  const [quoteResults, setQuoteResults] = useState<Array<any>>([]);
+    if (!hexAmount || tradeType === null) return undefined;
+    return routes?.map((route) => getQuoteCallParameters(route, hexAmount, tradeType).callData);
+  }, [tradeType, hexAmount, tradeType, routes]);
+  const [quoteResults, setQuoteResults] = useState<Array<any> | undefined>(undefined);
+
   useEffect(() => {
-    console.log(
-      'callData',
-      callData.map((data) => [UniswapV3Quoter.address, data])
-    );
-    if (callData.length === 0) return setQuoteResults([]);
+    if (callData === undefined || routes === undefined) {
+      setQuoteResults(undefined);
+      return;
+    } else if (callData?.length === 0) {
+      setQuoteResults([]);
+      return;
+    }
+
     fetchMulticall(callData.map((data) => [UniswapV3Quoter.address, data])).then((res) => {
-      console.log('res', res);
       const decodeData = res?.map((data, i) => {
-        const tradeTypeFunctionName = getQuoteFunctionName(routes[i], tradeType);
+        const tradeTypeFunctionName = getQuoteFunctionName(routes[i], tradeType!);
         const result = data && data !== '0x' ? UniswapV3Quoter.func.interface.decodeFunctionResult(tradeTypeFunctionName, data) : {};
         return result;
       });
-      setQuoteResults(decodeData || []);
+      setQuoteResults(decodeData);
     });
-  }, [callData.length]);
-  console.log('quoteResults', quoteResults);
-  const tokensAreTheSame = useMemo(() => tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut), [tokenIn?.address, tokenOut?.address]);
+  }, [callData]);
+
   return useMemo(() => {
     const tokensAreTheSame = tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut);
-    if (!amount || !tokenIn || !tokenOut || tokensAreTheSame)
+    if (!amount || !tokenIn || !tokenOut || tokensAreTheSame || !quoteResults?.length || !routes) {
       return {
-        state: TradeState.NO_ROUTE_FOUND,
+        state: !amount || !tokenIn || !tokenOut || tokensAreTheSame ? TradeState.NO_ROUTE_FOUND : TradeState.LOADING ,
         trade: undefined,
       };
+    }
 
     const { bestRoute, amountIn, amountOut } = quoteResults.reduce(
       (
@@ -175,7 +174,6 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
       ) => {
         if (!result) return currentBest;
 
-        // overwrite the current best if it's not defined or if this route is better
         if (tradeType === TradeType.EXACT_INPUT) {
           const amountOut = new Unit(result.toString());
           if (currentBest.amountOut === null || currentBest.amountOut.lessThan(amountOut)) {
@@ -222,7 +220,7 @@ export const useClientBestTrade = (tradeType: TradeType, amount: string, tokenIn
         tradeType,
       },
     };
-  }, [amount, tokensAreTheSame, tokenIn?.address, tokenOut?.address, tradeType, quoteResults.length]);
+  }, [amount, tokenIn?.address, tokenOut?.address, tradeType, quoteResults]);
 };
 
 export const useTokenPrice = (tokenAddress: string | undefined) => {
