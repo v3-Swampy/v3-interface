@@ -20,6 +20,14 @@ const DEFAULT_TOKEN = {
   logoURI: '',
 };
 
+export interface IncentiveKey{
+  rewardToken:string;
+  pool:string,
+  startTime:number,
+  endTime:number;
+  refundee:string;
+}
+
 export interface PoolType {
   pid: number;
   address: string;
@@ -51,13 +59,18 @@ export const getPastHistory = (index?: number) => {
   return pastHistory;
 };
 
+export const getCurrentIncentiveKey=(poolAddress:string):IncentiveKey=>{
+  const currentIncentive=getCurrentIncentivePeriod()
+  return getIncentiveKey(poolAddress,currentIncentive.startTime,currentIncentive.endTime)
+}
+
 export const getPastIncentivesOfPool = (poolAddress?: string) => {
   if (!poolAddress) return [];
   const pastHistory = getPastHistory();
   return pastHistory.map((incentiveItem) => getIncentiveKey(poolAddress, incentiveItem.startTime, incentiveItem.endTime));
 };
 
-const getIncentiveKey = (address: string, startTime?: number, endTime?: number) => {
+const getIncentiveKey = (address: string, startTime?: number, endTime?: number): IncentiveKey=> {
   if (startTime && endTime) {
     return {
       rewardToken: VSTTokenContract.address,
@@ -172,7 +185,6 @@ export const usePoolList = () => {
         setPoolList(poolList);
         setLoading(false);
       } catch (error) {
-        console.log('getPoolList error: ', error);
         setPoolList([]);
         setLoading(false);
       }
@@ -206,5 +218,6 @@ export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid 
 };
 
 export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {
+  console.info('incentiveKeyObject',incentiveKeyObject)
   return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])])
 };

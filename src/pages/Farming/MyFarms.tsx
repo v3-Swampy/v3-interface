@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
-import { type Token } from '@service/tokens';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
@@ -14,6 +13,7 @@ import TokenPair from '@modules/Position/TokenPair';
 import { PoolType } from '@service/farming';
 import { usePool } from '@service/pairs&pool';
 import { useTokenPrice } from '@service/pairs&pool';
+import { useAccount } from '@service/account';
 
 const transitions = {
   en: {
@@ -38,6 +38,7 @@ const MyFarmsItem: React.FC<{
     multipier: string;
     staked: string;
     claimable: string;
+    pid:number
   };
 }> = ({ data }) => {
   const i18n = useI18n(transitions);
@@ -106,13 +107,15 @@ const MyFarmsItem: React.FC<{
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions poolAddress={data.address} token0Price={token0Price} token1Price={token1Price}></Positions>}
+      {isShow && <Positions poolAddress={data.address} token0Price={token0Price} token1Price={token1Price} pid={data.pid}></Positions>}
     </div>
   );
 };
 
 const MyFarms = () => {
+  const account=useAccount()
   const myFarmingList = useMyFarmingList();
+  if(!account) return <></>
   return (
     <div className="mt-6">
       {myFarmingList.map((item) => (
