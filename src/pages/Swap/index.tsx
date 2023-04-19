@@ -81,7 +81,11 @@ const SwapPage: React.FC = () => {
 
         <form onSubmit={onSubmit}>
           <SelectedToken type="sourceToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
-          <div className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer" onClick={exchangeTokenDirection}>
+          <div className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer" onClick={() => {
+            exchangeTokenDirection();
+            setValue('sourceToken-amount', '');
+            setValue('destinationToken-amount', '');
+          }}>
             <div className="w-40px h-40px flex justify-center items-center rounded-full bg-orange-light">
               <ExchangeIcon className="w-26px h-26px" />
             </div>
