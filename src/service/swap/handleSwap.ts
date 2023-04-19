@@ -19,6 +19,7 @@ const transitions = {
 export const handleSwap = async ({
   sourceTokenAmount,
   destinationTokenAmount,
+  bestTrade
 }: {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
@@ -31,7 +32,7 @@ export const handleSwap = async ({
 
   const hexSourceTokenAmount = Unit.fromStandardUnit(sourceTokenAmount, sourceToken.decimals).toHexMinUnit();
   const hexDestinationTokenAmount = Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toHexMinUnit();
-
+  console.log(bestTrade)
   const txHash = await sendTransaction({
     data: UniswapV3Factory.func.interface.encodeFunctionData('demo', [hexSourceTokenAmount, hexDestinationTokenAmount]),
     to: UniswapV3Factory.address,

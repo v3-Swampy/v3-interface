@@ -150,14 +150,16 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
         return result;
       });
       setQuoteResults(decodeData);
-    });
+    }).catch(() => {
+      setQuoteResults([]);
+    })
   }, [callData]);
 
   return useMemo(() => {
     const tokensAreTheSame = tokenIn && tokenOut && isTokenEqual(tokenIn, tokenOut);
     if (!amount || !tokenIn || !tokenOut || tokensAreTheSame || !quoteResults?.length || !routes) {
       return {
-        state: !amount || !tokenIn || !tokenOut || tokensAreTheSame ? TradeState.NO_ROUTE_FOUND : TradeState.LOADING ,
+        state: !amount || !tokenIn || !tokenOut || tokensAreTheSame ? TradeState.NO_ROUTE_FOUND : quoteResults === undefined ? TradeState.LOADING :TradeState.INVALID,
         trade: undefined,
       };
     }

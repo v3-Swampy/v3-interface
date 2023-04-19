@@ -7,6 +7,7 @@ import Dropdown from '@components/Dropdown';
 import ToolTip from '@components/Tooltip';
 import Spin from '@components/Spin';
 import Address from '@modules/Address';
+import { disconnect } from '@service/account';
 import { useHistory } from '@service/history';
 import { ReactComponent as CopyIcon } from '@assets/icons/copy.svg';
 import { ReactComponent as ShareIcon } from '@assets/icons/share.svg';
@@ -41,6 +42,10 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
       </a>
 
       <History />
+
+      <Button className="mt-16px h-40px text-14px rounded-100px" fullWidth variant="outlined" color="gray" onClick={disconnect}>
+        Disconnect
+      </Button>
     </BorderBox>
   );
 };

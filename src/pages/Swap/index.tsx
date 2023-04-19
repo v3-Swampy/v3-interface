@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { debounce } from 'lodash-es';
 import PageWrapper from '@components/Layout/PageWrapper';
@@ -6,7 +6,7 @@ import BorderBox from '@components/Box/BorderBox';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken, getSourceToken, getDestinationToken } from '@service/swap';
-import { useClientBestTrade } from '@service/pairs&pool';
+import { useClientBestTrade, TradeState } from '@service/pairs&pool';
 import { TradeType } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
@@ -31,9 +31,14 @@ const SwapPage: React.FC = () => {
   const destinationToken = useDestinationToken();
 
   const [inputedType, setInputedType] = useState<'sourceToken' | 'destinationToken' | null>(null);
-  const inputedAmount = inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
+  const inputedAmount = inputedType === null ? '' : inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
   const bestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+  useEffect(() => {
+    if (inputedType && bestTrade.state === TradeState.VALID && bestTrade.trade) {
+      setValue(`${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`, inputedAmount ? bestTrade.trade.amountOut?.toDecimalStandardUnit() : '');
+    }
+  }, [bestTrade]);
 
   const handleInputeTypeChange = useCallback(
     debounce((type: 'sourceToken' | 'destinationToken', amount: string) => {
@@ -49,6 +54,7 @@ const SwapPage: React.FC = () => {
   );
   const handleInputChange = useCallback((type: 'sourceToken' | 'destinationToken', amount: string) => {
     setInputedType(null);
+    setValue(`${type === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`, '');
     handleInputeTypeChange(type, amount);
   }, []);
 
@@ -57,7 +63,7 @@ const SwapPage: React.FC = () => {
       handleSwap({
         sourceTokenAmount: data['sourceToken-amount'],
         destinationTokenAmount: data['destinationToken-amount'],
-        bestTrade
+        bestTrade,
       });
     }),
     [bestTrade]
