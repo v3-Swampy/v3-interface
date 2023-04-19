@@ -17,11 +17,16 @@ export const PoolIncreaseLiquidity = lazyWithPreload(() => import('@pages/Pool/I
 export const PoolRemoveLiquidity = lazyWithPreload(() => import('@pages/Pool/RemoveLiquidity'));
 
 (function () {
-  const preLoadAll = () => {
-    PoolPage.preload();
-    FarmingPage.preload();
-    StakingPage.preload();
-  };
+  const preLoadAll = () =>
+    setTimeout(() => {
+      FarmingPage.preload();
+      StakingPage.preload();
+      PoolPage.preload();
+      PoolLiquidityItemPage.preload();
+      PoolAddLiquidityPage.preload();
+      PoolIncreaseLiquidity.preload();
+      PoolRemoveLiquidity.preload();
+    }, 500);
 
   try {
     handleRecoilInit(() => {
