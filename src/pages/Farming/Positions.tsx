@@ -3,8 +3,8 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { useStakedPositionsByPool, useWhichIncentiveTokenIdIn, useIsPositionActive, handleClaimUnStake, handleClaimAndReStake, FarmingPosition } from '@service/farming/myFarms';
-import { PositionForUI, usePositionStatus, PositionStatus } from '@service/position';
+import { useIsPositionActive, handleClaimUnStake, handleClaimAndReStake, FarmingPosition } from '@service/farming/myFarms';
+import { usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
@@ -41,10 +41,9 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
-const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; token1Price?: string; pid: number,isActive:boolean }> = ({ position, token0Price, token1Price, pid,isActive }) => {
+const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string; token1Price?: string; pid: number,isActive:boolean }> = ({ position, token0Price, token1Price, pid,isActive }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
-  const whichIncentive = useWhichIncentiveTokenIdIn(position.id);
   const currentIncentiveKey = getCurrentIncentiveKey(position.address);
   const isPositionActive = useIsPositionActive(position.id);
   const status = usePositionStatus(position);
@@ -83,7 +82,7 @@ const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; tok
               onClick={() =>
                 showClaimAndUnstakeModal({
                   isPositionActive,
-                  incentive: whichIncentive?.incentive,
+                  incentive: position?.whichIncentiveTokenIn,
                   id: position.id,
                   pid,
                   currentIncentiveKey,
@@ -100,7 +99,7 @@ const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; tok
               onClick={() =>
                 handleClaimAndReStake({
                   isActive: isPositionActive,
-                  keyThatTokenIdIn: whichIncentive?.incentive,
+                  keyThatTokenIdIn: position?.whichIncentiveTokenIn,
                   currentIncentiveKey: currentIncentiveKey,
                   tokenId: position.id,
                   pid,
