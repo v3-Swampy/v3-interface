@@ -8,8 +8,8 @@ import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { Position, positionQueryByTokenId, positionsQueryByTokenIds } from '@service/position';
 import { usePoolList } from '@service/farming/index';
-import { getCurrentIncentiveIndex,IncentiveKey,getCurrentIncentiveKey } from '@service/farming';
-
+import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey } from '@service/farming';
+import { fetchMulticall } from '@contracts/index';
 
 /**
  * Get the staked token id of user
@@ -17,27 +17,32 @@ import { getCurrentIncentiveIndex,IncentiveKey,getCurrentIncentiveKey } from '@s
 const stakedTokenIdsState = selector({
   key: `stakedTokenIds-${import.meta.env.MODE}`,
   get: async ({ get }) => {
-    const stakedTokenIds = [];
     const account = get(accountState);
+
     if (!account) return [];
-    const response = await UniswapV3StakerFactory.func.tokenIdsLength(account);
-    const tokenIdsLength = Number(response.toString());
-    if (tokenIdsLength == 0) return [];
-    for (let index = 0; index < tokenIdsLength; index++) {
-      const tokenId = await UniswapV3StakerFactory.func.tokenIds(account, index);
-      const deposits = await UniswapV3StakerFactory.func.deposits(tokenId);
-      if (Array.isArray(deposits) && deposits[1] > 0) {
-        stakedTokenIds.push(Number(tokenId));
-      }
-    }
-    return stakedTokenIds;
+
+    const length = Number(await UniswapV3StakerFactory.func.tokenIdsLength(account));
+
+    const tokenIds =
+      (
+        await fetchMulticall(
+          Array.from({ length }).map((_, i) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('tokenIds', [account, i])])
+        )
+      )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('tokenIds', r)[0]) || [];
+
+    const stakedTokenIds =
+      (await fetchMulticall(tokenIds.map((tokenId) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('deposits', [tokenId])])))
+        ?.map((d, i) => (UniswapV3StakerFactory.func.interface.decodeFunctionResult('deposits', d)[1] > 0 ? Number(tokenIds[i]) : null))
+        .filter((d) => d !== null) || [];
+
+    return stakedTokenIds as number[];
   },
 });
 
 /**
  * Get which incentive the tokenId in
  */
-const whichIncentiveTokenIdInState = selectorFamily<{index:number,incentive:IncentiveKey,incentiveId:string},number>({
+const whichIncentiveTokenIdInState = selectorFamily<{ index: number; incentive: IncentiveKey; incentiveId: string }, number>({
   key: `whichIncentive-${import.meta.env.MODE}`,
   get:
     (tokenId: number) =>
@@ -79,14 +84,14 @@ export const useStakedTokenIds = () => {
  * Claim&Unstake for active or ended incentive
  * active incentive: current incentive
  * ended  incentive: the incentive that tokenId in
- * 
+ *
  * for two actions:
  *  unstake for active incentives
- *  claim&UnStake for ended incentives 
+ *  claim&UnStake for ended incentives
  */
-export const handleClaimUnStake = async ( isActive:boolean,key:IncentiveKey, tokenId: number, pid: number, accountAddress: string ) => {
-  if(!accountAddress) return ;
-  const methodName=isActive?'unstakeToken':'unstakeTokenAtEnd'
+export const handleClaimUnStake = async (isActive: boolean, key: IncentiveKey, tokenId: number, pid: number, accountAddress: string) => {
+  if (!accountAddress) return;
+  const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
   const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
   const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
   const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
@@ -100,20 +105,20 @@ export const handleClaimUnStake = async ( isActive:boolean,key:IncentiveKey, tok
  * Claim&Unstake&reStake for active or ended incentive
  * active incentive: current incentive
  * ended  incentive: the incentive that tokenId in
- * 
+ *
  * for two actions：
  *   claim&UnStake&ReStake for ended incentives
- *   claim                 for active incentives 
+ *   claim                 for active incentives
  */
 export const handleClaimAndReStake = async (
-  isActive:boolean,
-  keyThatTokenIdIn:IncentiveKey,
-  currentIncentiveKey:IncentiveKey,
-  tokenId:number,
-  pid:number,
-  accountAddress:string
+  isActive: boolean,
+  keyThatTokenIdIn: IncentiveKey,
+  currentIncentiveKey: IncentiveKey,
+  tokenId: number,
+  pid: number,
+  accountAddress: string
 ) => {
-  const methodName=isActive?'unstakeToken':'unstakeTokenAtEnd'
+  const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
   const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
   const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
   const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
@@ -148,9 +153,9 @@ export const useStakedPositionsByPool = (poolAddress: string) => {
   return positions;
 };
 
-export const useIsPositionActive=(tokenId:number)=>{
-  const whichIncentiveTokenIDIn=useWhichIncentiveTokenIdIn(tokenId)
-  return useMemo(()=>{
-    return whichIncentiveTokenIDIn.index==getCurrentIncentiveIndex()
-  },[tokenId.toString()])
-}
+export const useIsPositionActive = (tokenId: number) => {
+  const whichIncentiveTokenIDIn = useWhichIncentiveTokenIdIn(tokenId);
+  return useMemo(() => {
+    return whichIncentiveTokenIDIn.index == getCurrentIncentiveIndex();
+  }, [tokenId.toString()]);
+};
