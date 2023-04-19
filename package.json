@@ -13,6 +13,8 @@
     "@cfxjs/use-wallet-react": "0.0.1-49",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/address": "^5.7.0",
+    "@ethersproject/properties": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
     "@ethersproject/solidity": "^5.7.0",
     "@react-spring/web": "^9.7.2",
     "@reduxjs/toolkit": "^1.9.5",
