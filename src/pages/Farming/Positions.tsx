@@ -76,8 +76,9 @@ const PostionItem: React.FC<{ position: PositionForUI; token0Price?: string; tok
       </div>
       <div className="flex items-center">
         {!isPositionActive ? (
-          <div className={`${className.buttonBase} ${className.buttonPausedSolid}`} onClick={()=>handleClaimUnStake(isPositionActive,whichIncentive?.incentive,position.id,pid,account||'')}>
-            {i18n.claim} & {i18n.unstake}
+          // <div className={`${className.buttonBase} ${className.buttonPausedSolid}`} onClick={()=>handleClaimUnStake(isPositionActive,whichIncentive?.incentive,position.id,pid,account||'')}>
+          <div className={`${className.buttonBase} ${className.buttonPausedSolid}`} onClick={()=>handleClaimAndReStake(isPositionActive,whichIncentive?.incentive,currentIncentiveKey,position.id,pid,account||'')}>  
+              {i18n.claim} & {i18n.unstake}
           </div>
         ) : (
           <>
