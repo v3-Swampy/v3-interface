@@ -6,11 +6,15 @@ import { getPastIncentivesOfPool, computeIncentiveKey } from './';
 import { VSTTokenContract } from '@contracts/index';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
-import { Position, positionQueryByTokenId, positionsQueryByTokenIds } from '@service/position';
+import { positionQueryByTokenId, positionsQueryByTokenIds,PositionForUI } from '@service/position';
 import { usePoolList } from '@service/farming/index';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey } from '@service/farming';
 import { fetchMulticall } from '@contracts/index';
 
+export interface FarmingPosition extends PositionForUI {
+  isActive:boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
+  whichIncentiveTokenIn:IncentiveKey
+}
 /**
  * Get the staked token id of user
  */
@@ -67,11 +71,21 @@ const whichIncentiveTokenIdInState = selectorFamily({
     },
 });
 
-const stakedPositionsQuery = selector<Array<Position>>({
+const stakedPositionsQuery = selector<Array<FarmingPosition>>({
   key: `StakedPositionsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const stakedTokenIds = get(stakedTokenIdsState);
-    return get(positionsQueryByTokenIds(stakedTokenIds));
+    const stakedPositions=get(positionsQueryByTokenIds(stakedTokenIds))
+    const currentIndex=getCurrentIncentiveIndex()
+    const _stakedPositions:Array<FarmingPosition>=[]
+    stakedPositions.map((position)=>{
+      const _position={...position} as FarmingPosition
+      const whichIncentiveTokenIn=get(whichIncentiveTokenIdInState(position.id))
+      _position.isActive=whichIncentiveTokenIn.index==currentIndex
+      _position.whichIncentiveTokenIn=getCurrentIncentiveKey(position.address)
+      _stakedPositions.push(_position)
+    })
+    return _stakedPositions
   },
 });
 
@@ -147,9 +161,9 @@ export const useMyFarmingList = () => {
   return myFarmingList;
 };
 
-export const useStakedPositionsByPool = (poolAddress: string) => {
+export const useStakedPositionsByPool = (poolAddress: string, isActive:boolean) => {
   const stakedPostions = useStakedPositions();
-  const positions = useMemo(() => stakedPostions.filter((position) => position.address == poolAddress), [stakedPostions]);
+  const positions = useMemo(() => stakedPostions.filter((position) => position.address == poolAddress&&position.isActive==isActive), [stakedPostions]);
   return positions;
 };
 
