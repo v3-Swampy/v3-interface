@@ -118,7 +118,7 @@ const Positions: React.FC<{positionList:Array<FarmingPosition>; token0Price?: st
       </div>
       <div>
         {positionList.map((p: any) => (
-          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} key={p.id} pid={pid} />
+          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} key={p.id} pid={pid} isActive={isActive} />
         ))}
       </div>
     </div>
