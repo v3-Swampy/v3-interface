@@ -75,6 +75,7 @@ const SelectedPriceRange: React.FC<{
 
   const fromPreview = !!leftToken && !!rightToken;
   const [inverted, setInverted] = useInvertedState(tokenId);
+  console.log('fromPreview', fromPreview)
   const leftTokenForUI = fromPreview ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
   const rightTokenForUI = fromPreview ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
   const isLeftTokenEqualToken0 = getWrapperTokenByAddress(leftTokenForUI?.address)?.address === token0?.address;
@@ -84,16 +85,16 @@ const SelectedPriceRange: React.FC<{
     <div className="flex flex-col text-black-normal text-14px leading-18px">
       <div className="flex items-center justify-between mb-8px font-medium">
         <span>{i18n.selected_range}</span>
-        {showInvertButton && leftTokenForUI && rightTokenForUI && (
+        {showInvertButton && position?.leftToken && position?.rightToken && (
           <div
             className="flex h-28px box-centent border-2px border-solid border-orange-light rounded-4px bg-orange-light text-14px font-medium cursor-pointer"
             onClick={() => setInverted((pre) => !pre)}
           >
             <span className={cx('px-8px rounded-4px h-24px flex items-center', inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
-              {leftTokenForUI?.symbol}
+              {position?.leftToken?.symbol}
             </span>
             <span className={cx('px-8px rounded-4px h-24px flex items-center', !inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
-              {rightTokenForUI?.symbol}
+              {position?.rightToken?.symbol}
             </span>
           </div>
         )}
