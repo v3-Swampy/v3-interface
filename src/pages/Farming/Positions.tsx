@@ -139,7 +139,7 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
   );
 };
 
-const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean,rewardList:Array<number>,isEnded }> = ({
+const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean,rewardList:Array<number>,isEnded:boolean }> = ({
   positionList,
   token0Price,
   token1Price,
