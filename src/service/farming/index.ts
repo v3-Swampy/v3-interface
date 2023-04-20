@@ -218,6 +218,5 @@ export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid 
 };
 
 export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {
-  console.info('incentiveKeyObject',incentiveKeyObject)
   return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])])
 };

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo,useState,useEffect } from 'react';
 import { UniswapV3StakerFactory } from '@contracts/index';
 import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
@@ -14,6 +14,7 @@ import { fetchMulticall } from '@contracts/index';
 export interface FarmingPosition extends PositionForUI {
   isActive:boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
   whichIncentiveTokenIn:IncentiveKey
+  claimable?:number
 }
 /**
  * Get the staked token id of user
@@ -71,6 +72,32 @@ const whichIncentiveTokenIdInState = selectorFamily({
     },
 });
 
+/**
+ * Get rewardInfo of multiple positions
+ */
+// const rewardInfosSeletor = selectorFamily({
+//   key: `rewardInfos-${import.meta.env.MODE}`,
+//   get:
+//     (params) =>
+//     async ({ }) => {
+//       console.info('params',params)
+//       if(params&&params?.positions.length==0) return []
+//       const rewardInfos=(
+//         await fetchMulticall(
+//           params.positions.map((position, i) => {
+//             const key=position.isActive?getCurrentIncentiveKey(position.address):position.whichIncentiveTokenIn
+//             return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id,params.pid])]
+//           })
+//         )
+//       )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0]) || [];
+//       const rewardInfos=[]
+//       console.info('rewardInfos',rewardInfos)
+//       return rewardInfos
+//     },
+// });
+
+
+
 
 
 const stakedPositionsQuery = selector<Array<FarmingPosition>>({
@@ -78,7 +105,6 @@ const stakedPositionsQuery = selector<Array<FarmingPosition>>({
   get: async ({ get }) => {
     const stakedTokenIds = get(stakedTokenIdsState);
     const stakedPositions=get(positionsQueryByTokenIds(stakedTokenIds))
-    console.info('stakedPositions',stakedPositions)
     const currentIndex=getCurrentIncentiveIndex()
     const _stakedPositions:Array<FarmingPosition>=[]
     stakedPositions.map((position)=>{
@@ -167,6 +193,7 @@ export const getwhichIncentiveTokenIdIn = (tokenId: number) => getRecoil(whichIn
 
 export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(whichIncentiveTokenIdInState(+tokenId));
 
+
 export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
 export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedPositionsQuery);
 
@@ -196,5 +223,33 @@ export const useIsPositionActive = (tokenId: number) => {
   }, [tokenId.toString()]);
 };
 
-export const useCalcPositions=(positions:Array<FarmingPosition>,pid:number)=>{
+export const useCalcPositions=(positionList:Array<FarmingPosition>,pid:number)=>{
+  const [positionsTotalReward, setPositionsTotalReward] = useState<number>(0);
+  const [rewardList,setRewardList]=useState<Array<number>>([])
+  if(positionList.length==0) return {}
+  let rewards=0
+  useEffect(()=>{
+    async function main(positions:Array<FarmingPosition>,pid:number){
+      (
+        await fetchMulticall(
+          positions.map((position, i) => {
+            const key=position.isActive?getCurrentIncentiveKey(position.address):position.whichIncentiveTokenIn
+            return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id,pid])]
+          })
+        )
+      )?.map((r,i) => {
+        const claimable=UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0]
+        rewardList.push(Number(claimable))
+        rewards+=Number(claimable)
+        positions[i].claimable=claimable
+      }) || [];
+      setPositionsTotalReward(rewards)
+      setRewardList(rewardList)
+    }
+    const _positions=JSON.parse(JSON.stringify(positionList))
+    main(_positions,pid)
+  },[positionList.toString(),pid])
+  return {
+    positionsTotalReward,rewardList
+  }
 }
