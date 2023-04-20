@@ -5,6 +5,7 @@ import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
 import { usePosition } from '@service/position';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
+import { useInvertedState } from '@modules/Position/invertedState';
 
 const transitions = {
   en: {
@@ -21,13 +22,14 @@ const PairInfo: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
+  const [inverted] = useInvertedState(tokenId);
   const { fee, amount0, amount1 } = position ?? {};
 
   if (!position) return null;
   return (
     <div>
       <div className="flex p-x-16px justify-between">
-        <TokenPair position={position} showFee={false} />
+        <TokenPair position={position} showFee={false} inverted={inverted} />
         <Status position={position} />
       </div>
       <div className="flex flex-col w-full mt-12px rounded-20px bg-orange-light-hover p-16px">
