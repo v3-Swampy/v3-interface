@@ -140,7 +140,7 @@ const showStakeModal = (type: ModalMode, currentUnlockTime?: number) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeModal type={type} currentUnlockTime={currentUnlockTime} {...confirmModalInnerProps} />,
-    className: '!max-w-572px !min-h-466px',
+    className: '!max-w-572px',
   });
 };
 

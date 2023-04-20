@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useInvertedState } from '@modules/Position/invertedState';
@@ -11,7 +11,7 @@ import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import DepositAmounts from '@modules/Position/DepositAmounts';
 import { invertPrice } from '@service/pairs&pool';
 import { isTokenEqual } from '@service/tokens';
-import { usePosition } from '@service/position';
+import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClickSubmitIncreasePositionLiquidity } from '@service/position';
 import PairInfo from './PairInfo';
 import SubmitButton from './SubmitButton';
 
@@ -28,7 +28,7 @@ const transitions = {
 
 const IncreaseLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
-  const { register, setValue, getValues, watch } = useForm();
+  const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
   const amountTokenA = watch('amount-tokenA', '') as string;
   const amountTokenB = watch('amount-tokenB', '') as string;
 
@@ -43,8 +43,20 @@ const IncreaseLiquidity: React.FC = () => {
   const priceLower = isLeftTokenEqualToken0 ? _priceLower : invertPrice(_priceUpper);
   const priceUpper = isLeftTokenEqualToken0 ? _priceUpper : invertPrice(_priceLower);
 
-  const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitCreatePosition } = useInTransaction(() => {});
-
+  const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitIncreasePositionLiquidity } = useInTransaction(_handleClickSubmitIncreasePositionLiquidity);
+  const onSubmit = useCallback(
+    withForm(async (data) => {
+      if (!position || !tokenId || !leftTokenForUI || !rightTokenForUI) return;
+      handleClickSubmitIncreasePositionLiquidity({
+        ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; fee: string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
+        tokenId: Number(tokenId),
+        tokenA: leftTokenForUI,
+        tokenB: rightTokenForUI,
+        position,
+      });
+    }),
+    [position, tokenId, leftTokenForUI, rightTokenForUI]
+  );
 
   return (
     <PageWrapper className="pt-56px">
@@ -56,27 +68,29 @@ const IncreaseLiquidity: React.FC = () => {
           </Link>
           <Settings />
         </div>
-        <BorderBox className="w-full p-16px rounded-28px flex justify-between gap-32px lt-md:gap-12px" variant="gradient-white">
-          <div className="max-w-310px mt-8px">
-            <PairInfo position={position} />
-            <DepositAmounts
-              title={i18n.add_more_Liquidity}
-              register={register}
-              setValue={setValue}
-              getValues={getValues}
-              tokenA={leftTokenForUI}
-              tokenB={rightTokenForUI}
-              priceLower={priceLower}
-              priceUpper={priceUpper}
-              fee={fee}
-              isRangeValid={true}
-            />
-          </div>
-          <div className="mt-8px flex-1 flex flex-col justify-between">
-            <SelectedPriceRange position={position} tokenId={tokenId} />
-            <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} position={position}/>
-          </div>
-        </BorderBox>
+        <form onSubmit={onSubmit}>
+          <BorderBox className="w-full p-16px rounded-28px flex justify-between gap-32px lt-md:gap-12px" variant="gradient-white">
+            <div className="max-w-310px mt-8px">
+              <PairInfo position={position} />
+              <DepositAmounts
+                title={i18n.add_more_Liquidity}
+                register={register}
+                setValue={setValue}
+                getValues={getValues}
+                tokenA={leftTokenForUI}
+                tokenB={rightTokenForUI}
+                priceLower={priceLower}
+                priceUpper={priceUpper}
+                fee={fee}
+                isRangeValid={true}
+              />
+            </div>
+            <div className="mt-8px flex-1 flex flex-col justify-between">
+              <SelectedPriceRange position={position} tokenId={tokenId} />
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+            </div>
+          </BorderBox>
+        </form>
       </div>
     </PageWrapper>
   );

@@ -9,7 +9,7 @@ import TokenPairAmount from '@modules/Position/TokenPairAmount';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { type PositionForUI } from '@service/position';
 import { type Token } from '@service/tokens';
-import { handleCreatePosition as _handleCreatePosition } from '@service/position';
+import { handleCreatePosition as _handleCreatePosition, handleIncreasePositionLiquidity as _handleIncreasePositionLiquidity } from '@service/position';
 import useInTransaction from '@hooks/useInTransaction';
 
 const transitions = {
@@ -26,9 +26,9 @@ const transitions = {
 interface Props {
   leftToken: Token;
   rightToken: Token;
+  leftAmount: Unit;
+  rightAmount: Unit;
   inverted: boolean;
-  amount0: Unit;
-  amount1: Unit;
   priceInit?: string;
   previewPosition: PositionForUI;
   previewUniqueId: string;
@@ -38,7 +38,7 @@ interface Props {
     value: string;
   };
   recordParams: {
-    type: 'Position_AddLiquidity';
+    type: 'Position_AddLiquidity' | 'Position_IncreaseLiquidity';
     tokenA_Address: string;
     tokenA_Value: string;
     tokenB_Address: string;
@@ -49,8 +49,8 @@ interface Props {
 const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   setNextInfo,
   inverted,
-  amount0,
-  amount1,
+  leftAmount,
+  rightAmount,
   priceInit,
   previewUniqueId,
   previewPosition,
@@ -60,14 +60,14 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   recordParams,
 }) => {
   const i18n = useI18n(transitions);
-  const { inTransaction, execTransaction: handleCreatePosition } = useInTransaction(_handleCreatePosition);
+  const { inTransaction, execTransaction } = useInTransaction(recordParams?.type === 'Position_AddLiquidity' ? _handleCreatePosition : _handleIncreasePositionLiquidity);
   const handleClickConfirm = useCallback(async () => {
     try {
-      const txHash = await handleCreatePosition(transactionParams);
+      const txHash = await execTransaction(transactionParams);
 
       setNextInfo({ txHash, recordParams });
     } catch (err) {
-      console.error('Add liquidity transaction failed: ', err);
+      console.error(`${recordParams?.type} transaction failed: `, err);
     }
   }, []);
 
@@ -80,7 +80,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
 
         <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
-          <TokenPairAmount amount0={amount0} amount1={amount1} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
           <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-medium">
             Fee Tier
             <span>{previewPosition.fee / 10000}%</span>
