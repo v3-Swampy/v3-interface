@@ -5,12 +5,12 @@ import _ from 'lodash-es';
 import dayjs from 'dayjs';
 import { getTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
-import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
 import { useTokenPrice } from '@service/pairs&pool';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { keccak256 } from '@ethersproject/solidity';
-
+import { FarmingPosition } from './myFarms';
 
 const DEFAULT_TOKEN = {
   name: '',
@@ -20,12 +20,12 @@ const DEFAULT_TOKEN = {
   logoURI: '',
 };
 
-export interface IncentiveKey{
-  rewardToken:string;
-  pool:string,
-  startTime:number,
-  endTime:number;
-  refundee:string;
+export interface IncentiveKey {
+  rewardToken: string;
+  pool: string;
+  startTime: number;
+  endTime: number;
+  refundee: string;
 }
 
 export interface PoolType {
@@ -59,10 +59,10 @@ export const getPastHistory = (index?: number) => {
   return pastHistory;
 };
 
-export const getCurrentIncentiveKey=(poolAddress:string):IncentiveKey=>{
-  const currentIncentive=getCurrentIncentivePeriod()
-  return getIncentiveKey(poolAddress,currentIncentive.startTime,currentIncentive.endTime)
-}
+export const getCurrentIncentiveKey = (poolAddress: string): IncentiveKey => {
+  const currentIncentive = getCurrentIncentivePeriod();
+  return getIncentiveKey(poolAddress, currentIncentive.startTime, currentIncentive.endTime);
+};
 
 export const getPastIncentivesOfPool = (poolAddress?: string) => {
   if (!poolAddress) return [];
@@ -70,7 +70,7 @@ export const getPastIncentivesOfPool = (poolAddress?: string) => {
   return pastHistory.map((incentiveItem) => getIncentiveKey(poolAddress, incentiveItem.startTime, incentiveItem.endTime));
 };
 
-const getIncentiveKey = (address: string, startTime?: number, endTime?: number): IncentiveKey=> {
+const getIncentiveKey = (address: string, startTime?: number, endTime?: number): IncentiveKey => {
   if (startTime && endTime) {
     return {
       rewardToken: VSTTokenContract.address,
@@ -218,5 +218,13 @@ export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid 
 };
 
 export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {
-  return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])])
+  return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])]);
+};
+
+export const geLiquility = (position: FarmingPosition, token0Price?: string | null, token1Price?: string | null) => {
+  if (token0Price && token1Price && position.amount0 && position.amount1) {
+    return position.amount0.mul(token0Price).add(position.amount1.mul(token1Price));
+  }
+
+  return new Unit(0);
 };

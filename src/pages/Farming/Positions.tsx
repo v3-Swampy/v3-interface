@@ -5,7 +5,7 @@ import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
 import { useIsPositionActive, handleClaimUnStake, handleClaimAndReStake, FarmingPosition } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
-import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
+import { getCurrentIncentiveKey, getCurrentIncentivePeriod,geLiquility } from '@service/farming';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
@@ -61,11 +61,7 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
   }, [status]);
 
   let liquidity = useMemo(() => {
-    if (token0Price && token1Price && position.amount0 && position.amount1) {
-      return position.amount0.mul(token0Price).add(position.amount1.mul(token1Price)).toDecimalStandardUnit(5);
-    }
-
-    return '0';
+    return geLiquility(position,token0Price,token1Price).toDecimalStandardUnit(5)
   }, [token0Price, token1Price, position.amount0, position.amount1]);
 
   const claimable=useMemo(()=>{

@@ -223,7 +223,7 @@ export const useIsPositionActive = (tokenId: number) => {
   }, [tokenId.toString()]);
 };
 
-export const useCalcPositions=(positionList:Array<FarmingPosition>,pid:number)=>{
+export const useCalcRewards=(positionList:Array<FarmingPosition>,pid:number)=>{
   const [positionsTotalReward, setPositionsTotalReward] = useState<number>(0);
   const [rewardList,setRewardList]=useState<Array<number>>([])
   if(positionList.length==0) return {}

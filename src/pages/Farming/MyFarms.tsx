@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo,useState } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
@@ -7,8 +7,8 @@ import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-import { useMyFarmingList, useStakedPositionsByPool,useCalcPositions } from '@service/farming/myFarms';
-import { getCurrentIncentivePeriod } from '@service/farming';
+import { useMyFarmingList, useStakedPositionsByPool,useCalcRewards } from '@service/farming/myFarms';
+import { getCurrentIncentivePeriod ,geLiquility} from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { PoolType } from '@service/farming';
 import { usePool } from '@service/pairs&pool';
@@ -56,10 +56,18 @@ const MyFarmsItem: React.FC<{
   const token0Price = useTokenPrice(data.token0.address);
   const token1Price = useTokenPrice(data.token1.address);
 
-  const [isShow, setIsShow] = React.useState<boolean>(false);
+  const [isShow, setIsShow] = useState<boolean>(false);
   const positionList = useStakedPositionsByPool(data.address, isActive);
-  const {positionsTotalReward,rewardList}=useCalcPositions(positionList,data.pid)
+  const {positionsTotalReward,rewardList}=useCalcRewards(positionList,data.pid)
   const currentIncentive = getCurrentIncentivePeriod();
+  const staked=useMemo(()=>{
+    let sum=new Unit(0);
+    positionList.map((positionItem)=>{
+      const liquility=geLiquility(positionItem,token0Price,token1Price)
+      sum=sum.add(liquility)
+    })
+    return sum.toDecimalStandardUnit(5)
+  },[positionList.toString(),token0Price,token1Price])
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
@@ -105,7 +113,7 @@ const MyFarmsItem: React.FC<{
         </div>
         <div>
           <div className={`${className.title}`}>{i18n.stake}</div>
-          <div className={`${className.content}`}>$ {numFormat(data.staked)}</div>
+          <div className={`${className.content}`}>$ {numFormat(staked)}</div>
         </div>
         <div>
           <div className={`${className.title}`}>
