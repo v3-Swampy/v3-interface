@@ -177,6 +177,7 @@ const DepositAmounts: React.FC<Props> = ({
   const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThan(priceUpper) : false;
 
   const token0PriceFixed5 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(5) : null), [priceTokenA]);
+  
   useLayoutEffect(() => {
     const value = getValues();
     const amountTokenA = value['amount-tokenA'];

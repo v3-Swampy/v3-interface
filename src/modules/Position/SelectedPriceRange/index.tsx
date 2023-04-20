@@ -9,7 +9,7 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { type PositionForUI } from '@service/position';
 import { invertPrice, usePool } from '@service/pairs&pool';
-import { type Token, getWrapperTokenByAddress } from '@service/tokens';
+import { type Token, isTokenEqual } from '@service/tokens';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/detail_exchange.svg';
 import { useInvertedState } from '../invertedState';
 
@@ -78,7 +78,7 @@ const SelectedPriceRange: React.FC<{
 
   const leftTokenForUI = fromPreview ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
   const rightTokenForUI = fromPreview ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
-  const isLeftTokenEqualToken0 = getWrapperTokenByAddress(leftTokenForUI?.address)?.address === token0?.address;
+  const isLeftTokenEqualToken0 = isTokenEqual(leftTokenForUI, token0);
 
   if (!position) return null;
   return (
@@ -111,7 +111,7 @@ const SelectedPriceRange: React.FC<{
         {leftTokenForUI && rightTokenForUI && (
           <p className="text-24px leading-30px font-medium">
             {trimDecimalZeros(
-              fromPreview && !!priceInit ? priceInit : pool?.priceOf(fromPreview ? rightTokenForUI : inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!
+              fromPreview && !!priceInit ? priceInit : pool?.priceOf(fromPreview ? leftTokenForUI : inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!
             ) ?? '-'}
           </p>
         )}

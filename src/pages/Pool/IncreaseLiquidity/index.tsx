@@ -1,27 +1,50 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useInvertedState } from '@modules/Position/invertedState';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
+import useInTransaction from '@hooks/useInTransaction';
 import Settings from '@modules/Settings';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
+import DepositAmounts from '@modules/Position/DepositAmounts';
+import { invertPrice } from '@service/pairs&pool';
+import { isTokenEqual } from '@service/tokens';
 import { usePosition } from '@service/position';
 import PairInfo from './PairInfo';
-import IncreaseAmounts from './IncreaseAmounts';
+import SubmitButton from './SubmitButton';
 
 const transitions = {
   en: {
     increase_liquidity: 'Increase Liquidity',
+    add_more_Liquidity: 'Add more liquidity',
   },
   zh: {
     increase_liquidity: '增加流动性',
+    add_more_Liquidity: 'Add more liquidity',
   },
 } as const;
 
 const IncreaseLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
+  const { register, setValue, getValues, watch } = useForm();
+  const amountTokenA = watch('amount-tokenA', '') as string;
+  const amountTokenB = watch('amount-tokenB', '') as string;
+
   const { tokenId } = useParams();
+  const [inverted] = useInvertedState(tokenId);
+
   const position = usePosition(Number(tokenId));
+  const { token0, leftToken, rightToken, fee, priceLower: _priceLower, priceUpper: _priceUpper } = position ?? {};
+  const leftTokenForUI = !inverted ? leftToken : rightToken;
+  const rightTokenForUI = !inverted ? rightToken : leftToken;
+  const isLeftTokenEqualToken0 = isTokenEqual(leftTokenForUI, token0);
+  const priceLower = isLeftTokenEqualToken0 ? _priceLower : invertPrice(_priceUpper);
+  const priceUpper = isLeftTokenEqualToken0 ? _priceUpper : invertPrice(_priceLower);
+
+  const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitCreatePosition } = useInTransaction(() => {});
+
 
   return (
     <PageWrapper className="pt-56px">
@@ -35,11 +58,23 @@ const IncreaseLiquidity: React.FC = () => {
         </div>
         <BorderBox className="w-full p-16px rounded-28px flex justify-between gap-32px lt-md:gap-12px" variant="gradient-white">
           <div className="max-w-310px mt-8px">
-            <PairInfo />
-            <IncreaseAmounts />
+            <PairInfo position={position} />
+            <DepositAmounts
+              title={i18n.add_more_Liquidity}
+              register={register}
+              setValue={setValue}
+              getValues={getValues}
+              tokenA={leftTokenForUI}
+              tokenB={rightTokenForUI}
+              priceLower={priceLower}
+              priceUpper={priceUpper}
+              fee={fee}
+              isRangeValid={true}
+            />
           </div>
-          <div className="mt-8px flex-1">
+          <div className="mt-8px flex-1 flex flex-col justify-between">
             <SelectedPriceRange position={position} tokenId={tokenId} />
+            <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} position={position}/>
           </div>
         </BorderBox>
       </div>

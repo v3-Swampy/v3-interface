@@ -46,7 +46,7 @@ interface Props {
   };
 }
 
-const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
+const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   setNextInfo,
   inverted,
   amount0,
@@ -87,7 +87,7 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
           </p>
         </div>
 
-        <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit}/>
+        <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
         <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
           {i18n.add}
         </Button>
@@ -96,13 +96,13 @@ const AddLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
   );
 };
 
-const showAddLiquidityModal = (props: Props) => {
+const showLiquidityPreviewModal = (props: Props) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
-    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <AddLiquidityModal {...confirmModalInnerProps} {...props} />,
+    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
     onSuccess: (navigate) => navigate('/pool'),
   });
 };
 
-export default showAddLiquidityModal;
+export default showLiquidityPreviewModal;
