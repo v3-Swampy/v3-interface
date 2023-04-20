@@ -70,7 +70,7 @@ const StakingPage: React.FC = () => {
   }, [unlockTime]);
 
   const lockedBalanceUSD = useMemo(() => {
-    return VSTPrice && lockedAmount ? numberWithCommas(new Unit(lockedAmount).mul(VSTPrice).toDecimalStandardUnit(3, TokenVST.decimals)) : '-'
+    return VSTPrice && lockedAmount ? numberWithCommas(new Unit(lockedAmount).mul(VSTPrice).toDecimalMinUnit(3)) : '-'
   }, [VSTPrice, lockedAmount]);
 
   return (

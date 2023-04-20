@@ -94,7 +94,7 @@ export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?
       className={cx('history-record flex-shrink-1 flex-grow-1', className)}
       dangerouslySetInnerHTML={{
         __html: compiled(i18n[HistoryTypeMap[type]], {
-          tokenAValue: trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : ''),
+          tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : (tokenA_Value ?? ''),
           tokenASymbol: tokenA?.symbol ?? '',
           tokenBValue: trimDecimalZeros(tokenB_Value ? Number(tokenB_Value).toFixed(4) : ''),
           tokenBSymbol: tokenB?.symbol ?? '',
