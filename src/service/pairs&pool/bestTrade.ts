@@ -6,11 +6,12 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { UniswapV3Quoter } from '@contracts/index';
 import { isPoolEqual } from '.';
 import { type Pool, usePools } from '.';
-import { getRouter, getClientSideQuote, Protocol } from './clientSideSmartOrderRouter';
+import { getRouter, getClientSideQuote, Protocol, V3PoolInRoute } from './clientSideSmartOrderRouter';
+import { targetChainId } from '@service/account';
 
 export enum TradeType {
-  EXACT_INPUT = 'exactIn',
-  EXACT_OUTPUT = 'exactOut',
+  EXACT_INPUT,
+  EXACT_OUTPUT,
 }
 
 interface RouteProps {
@@ -41,7 +42,7 @@ export enum TradeState {
 export interface BestTrade {
   state: TradeState;
   trade?: {
-    route: Route;
+    route: V3PoolInRoute[][];
     amountIn: Unit;
     amountOut: Unit;
     priceIn: Unit;
@@ -139,8 +140,6 @@ export const getQuoteFunctionName = (route: Route, tradeType: TradeType) => {
   }
   return tradeTypeFunctionName;
 };
-;
-
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined) => {
   const token = getWrapperTokenByAddress(tokenAddress);
@@ -170,10 +169,8 @@ interface GetQuoteArgs {
   tokenOutDecimals: number;
   tokenOutSymbol?: string;
   amount: string;
-  routerPreference: RouterPreference;
-  type: 'exactIn' | 'exactOut';
+  type: TradeType;
 }
-console.log(Protocol)
 const CLIENT_PARAMS = {
   protocols: [Protocol.V3],
 };
@@ -193,6 +190,64 @@ export const useTokenPriceUnit = (tokenAddress: string | undefined) => {
     return result.trade!.amountOut;
   }
   return null;
+};
+
+export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
+  useEffect(() => {
+    const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
+    const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
+    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null) {
+      setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
+      return;
+    }
+    const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
+    const router = getRouter();
+    const args: GetQuoteArgs = {
+      tokenInAddress: tokenInWrappered.address,
+      tokenInChainId: Number(targetChainId),
+      tokenInDecimals: tokenInWrappered.decimals,
+      tokenInSymbol: tokenInWrappered.symbol,
+      tokenOutAddress: tokenOutWrappered.address,
+      tokenOutChainId: Number(targetChainId),
+      tokenOutDecimals: tokenOutWrappered.decimals,
+      tokenOutSymbol: tokenOutWrappered.symbol,
+      amount: amountUnit.toDecimalMinUnit(),
+      type: tradeType,
+    };
+    setBestTrade({ state: TradeState.LOADING });
+    getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
+      if (res?.error) {
+        setBestTrade({
+          state: TradeState.ERROR,
+        });
+      } else {
+        const data = res?.data;
+        console.log('client', data)
+        const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(data?.quote ?? 0) : amountUnit;
+
+        const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(data?.quoteGasAdjusted ?? 0);
+        const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(data?.quoteGasAdjusted ?? 0) : amountUnit;
+
+        const priceIn = amountInGasAdjusted.div(amountOutGasAdjusted);
+        const priceOut = amountOutGasAdjusted.div(amountInGasAdjusted);
+
+        setBestTrade({
+          state: TradeState.VALID,
+          trade: {
+            amountIn: amountInGasAdjusted,
+            amountOut: amountOutGasAdjusted,
+            priceIn,
+            priceOut,
+            route: data.route,
+            tradeType,
+            networkFeeByAmount: amountOut.sub(amountOutGasAdjusted),
+          },
+        });
+      }
+    });
+  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
+  return bestTrade;
 };
 
 export const useServerBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
@@ -227,11 +282,12 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
             state: TradeState.ERROR,
           });
         } else {
+          console.log('server', res)
           const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
-          
-          const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0)
+
+          const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
           const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0) : amountUnit;
-          
+
           const priceIn = amountInGasAdjusted.div(amountOutGasAdjusted);
           const priceOut = amountOutGasAdjusted.div(amountInGasAdjusted);
 

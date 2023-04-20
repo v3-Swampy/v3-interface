@@ -9,7 +9,7 @@ import { targetChainId } from '@service/account';
 
 type TokenInRoute = Pick<Token, 'address' | 'chainId' | 'symbol' | 'decimals'>
 
-type V3PoolInRoute = {
+export type V3PoolInRoute = {
   type: 'v3-pool'
   tokenIn: TokenInRoute
   tokenOut: TokenInRoute
@@ -56,7 +56,7 @@ export function getRouter(): AlphaRouter {
 
 // from routing-api (https://github.com/Uniswap/routing-api/blob/main/lib/handlers/quote/quote.ts#L243-L311)
 export function transformSwapRouteToGetQuoteResult(
-  type: 'exactIn' | 'exactOut',
+  type: TradeType,
   amount: CurrencyAmount<Currency>,
   {
     quote,
@@ -84,12 +84,12 @@ export function transformSwapRouteToGetQuoteResult(
 
       let edgeAmountIn = undefined
       if (i === 0) {
-        edgeAmountIn = type === 'exactIn' ? amount.quotient.toString() : quote.quotient.toString()
+        edgeAmountIn = type === TradeType.EXACT_INPUT ? amount.quotient.toString() : quote.quotient.toString()
       }
 
       let edgeAmountOut = undefined
       if (i === pools.length - 1) {
-        edgeAmountOut = type === 'exactIn' ? quote.quotient.toString() : amount.quotient.toString()
+        edgeAmountOut = TradeType.EXACT_INPUT ? quote.quotient.toString() : amount.quotient.toString()
       }
 
       if (nextPool instanceof Pool) {
@@ -148,7 +148,7 @@ async function getQuote(
     tokenOut,
     amount: amountRaw,
   }: {
-    type: 'exactIn' | 'exactOut'
+    type: TradeType
     tokenIn: { address: string; chainId: number; decimals: number; symbol?: string }
     tokenOut: { address: string; chainId: number; decimals: number; symbol?: string }
     amount: BigintIsh
@@ -159,14 +159,14 @@ async function getQuote(
   const currencyIn = new Token(tokenIn.chainId, tokenIn.address, tokenIn.decimals, tokenIn.symbol)
   const currencyOut = new Token(tokenOut.chainId, tokenOut.address, tokenOut.decimals, tokenOut.symbol)
 
-  const baseCurrency = type === 'exactIn' ? currencyIn : currencyOut
-  const quoteCurrency = type === 'exactIn' ? currencyOut : currencyIn
+  const baseCurrency = type === TradeType.EXACT_INPUT ? currencyIn : currencyOut
+  const quoteCurrency = type === TradeType.EXACT_INPUT ? currencyOut : currencyIn
   const amount = CurrencyAmount.fromRawAmount(baseCurrency, JSBI.BigInt(amountRaw))
 
   const swapRoute = await router.route(
     amount,
     quoteCurrency,
-    type === 'exactIn' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT,
+    type,
     /*swapConfig=*/ undefined,
     config
   )
@@ -186,7 +186,7 @@ interface QuoteArguments {
   tokenOutDecimals: number
   tokenOutSymbol?: string
   amount: string
-  type: 'exactIn' | 'exactOut'
+  type: TradeType
 }
 
 export async function getClientSideQuote(
