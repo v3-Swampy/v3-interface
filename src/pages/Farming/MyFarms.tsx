@@ -81,11 +81,13 @@ const MyFarmsItem: React.FC<{
     return new Unit(positionsTotalReward||0).toDecimalStandardUnit(5, TokenVST.decimals)
   },[positionsTotalReward])
 
-  const isEnded = dayjs().isAfter(dayjs.unix(Number(currentIncentive.endTime)));
   if (Array.isArray(positionList) && positionList.length == 0) return null;
   const endTime = useMemo(() => {
+    // if incentive status is active, we can use the time of incentive, otherwise, we can use any past time to indicate that the current phase is over and that time has passed
     return isActive ? currentIncentive.endTime : Math.floor(Date.now() / 1000) - 24 * 60 * 60;
   }, [isActive, currentIncentive]);
+
+  const isEnded=useMemo(()=>dayjs().isAfter(dayjs.unix(Number(endTime))),[endTime])
   return (
     <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${isEnded ? 'bg-gray-light/30' : 'bg-orange-light-hover'}`}>
       <Corner timestatmp={endTime}></Corner>
@@ -128,7 +130,7 @@ const MyFarmsItem: React.FC<{
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions positionList={positionList} token0Price={token0Price} token1Price={token1Price} pid={data.pid} isActive={isActive} rewardList={rewardList||[]}></Positions>}
+      {isShow && <Positions positionList={positionList} token0Price={token0Price} token1Price={token1Price} pid={data.pid} isActive={isActive} rewardList={rewardList||[]} isEnded={isEnded}></Positions>}
     </div>
   );
 };
