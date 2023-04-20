@@ -12,6 +12,7 @@ import { handleStakingVST as _handleStakingVST, useBoostFactor } from '@service/
 import AmountInput from './AmountInput';
 import DurationSelect, { defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
+import dayjs from 'dayjs';
 
 const transitions = {
   en: {
@@ -55,28 +56,27 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
     if (!!disabledAmount) return ModalMode.IncreaseUnlockTime;
     return ModalMode.IncreaseAmount;
   }, [disabledAmount, disabledLocktime]);
-  console.log('currentStakeDuration_hh', currentStakeDuration)
 
   const onSubmit = useCallback(
     withForm(async (data) => {
-      console.log('currentStakeDuration', currentStakeDuration)
+      const extendDuration = data['VST-stake-duration'];
+      const extendDurationText = data['VST-stake-duration-text']
+      const addAmount = data['VST-stake-amount']
       let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams;
-      let unlockTime = Math.ceil(new Date().valueOf() / 1000) + currentStakeDuration;
-      console.log('unlockTime', unlockTime)
+      let unlockTime = dayjs(currentUnlockTime ? currentUnlockTime * 1000 : undefined).unix() + extendDuration;
       let amount = '0x0';
       switch (modalMode) {
         case ModalMode.CreateLock:
-          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST.decimals).toHexMinUnit();
+          amount = Unit.fromStandardUnit(addAmount, TokenVST.decimals).toHexMinUnit();
           methodName = 'createLock';
           methodParams = [amount, unlockTime];
           break;
         case ModalMode.IncreaseUnlockTime:
           methodName = 'increaseUnlockTime';
-          unlockTime = currentUnlockTime && currentStakeDuration ? +currentUnlockTime + +currentStakeDuration : null;
           methodParams = [unlockTime];
           break;
         case ModalMode.IncreaseAmount:
-          amount = Unit.fromStandardUnit(data['VST-stake-amount'], TokenVST.decimals).toHexMinUnit();
+          amount = Unit.fromStandardUnit(addAmount, TokenVST.decimals).toHexMinUnit();
           methodName = 'increaseAmount';
           methodParams = [account, amount];
           break;
@@ -91,7 +91,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
           txHash,
           recordParams: {
             type: methodName === 'createLock' ? 'Stake_CreateLock' : methodName === 'increaseUnlockTime' ? 'Stake_IncreaseUnlockTime' : 'Stake_IncreaseAmount',
-            tokenA_Value: methodName !== 'increaseUnlockTime' ? Unit.fromStandardUnit(amount, TokenVST.decimals).toDecimalStandardUnit(5) : unlockTime, //TODO: convert to day
+            tokenA_Value: methodName !== 'increaseUnlockTime' ? addAmount : extendDurationText,
             tokenA_Address: methodName !== 'increaseUnlockTime' ? TokenVST.address : '',
           },
         });
@@ -107,7 +107,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
     <div className="mt-24px">
       <form onSubmit={onSubmit}>
         {!disabledAmount && <AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />}
-        {!disabledLocktime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} />}
+        {!disabledLocktime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} currentUnlockTime={currentUnlockTime} />}
         <p
           className="pl-8px mt-16px w-full font-normal text-black-normal"
           dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }}
