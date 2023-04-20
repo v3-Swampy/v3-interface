@@ -115,3 +115,7 @@ export const useBoostFactor = () => {
   //boosting factor = (67% * <amout of veVST> /<total supply of veVST> + 33%) / 33%
   return veVSTTotalSupply && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
 };
+
+export const useVEMaxtime=()=> useRecoilValue(escrowTotalMaxTimeQuery)
+
+export const useVETotalSupply=()=> useRecoilValue(escrowTotalSupplyQuery)

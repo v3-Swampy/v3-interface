@@ -8,7 +8,7 @@ import AuthTokenButton from '@modules/AuthTokenButton';
 import Button from '@components/Button';
 import { VotingEscrowContract } from '@contracts/index';
 import useInTransaction from '@hooks/useInTransaction';
-import { handleStakingVST as _handleStakingVST, useBoostFactor } from '@service/staking';
+import { handleStakingVST as _handleStakingVST, useVEMaxtime,useVETotalSupply } from '@service/staking';
 import AmountInput from './AmountInput';
 import DurationSelect, { defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
@@ -18,12 +18,12 @@ const transitions = {
   en: {
     title: 'Stake VST',
     confirm: 'Confirm',
-    current_boosting: 'Your Current Boosting: <b>{boosting}</b>',
+    current_boosting: 'Your Boosting will be: <b>{boosting}</b>',
   },
   zh: {
     title: '质押 VST',
     confirm: '确认',
-    current_boosting: 'Your Current Boosting: <b>{boosting}</b>',
+    current_boosting: 'Your Current will be: <b>{boosting}</b>',
   },
 } as const;
 
@@ -47,8 +47,9 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
   const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
   const stakeAmount = watch('VST-stake-amount');
+  const maxTime=useVEMaxtime()
+  const veTotalSupply=useVETotalSupply()
   const account = useAccount();
-  const boostingFactor = useBoostFactor();
   const { inTransaction, execTransaction: handleStakingVST } = useInTransaction(_handleStakingVST);
 
   const modalMode = useMemo(() => {
@@ -56,6 +57,13 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
     if (!!disabledAmount) return ModalMode.IncreaseUnlockTime;
     return ModalMode.IncreaseAmount;
   }, [disabledAmount, disabledLocktime]);
+
+  const boosting=useMemo(()=>{
+    const userVeVST=stakeAmount*(currentStakeDuration/(maxTime||0))
+    const userVeVST_decimals=Unit.fromStandardUnit(userVeVST,TokenVST.decimals)
+    const _totalSupply=new Unit(veTotalSupply).add(userVeVST_decimals).toDecimalStandardUnit(undefined,TokenVST.decimals)
+     return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1)
+  },[stakeAmount,maxTime,currentStakeDuration])
 
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -110,7 +118,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
         {!disabledLocktime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} currentUnlockTime={currentUnlockTime} />}
         <p
           className="pl-8px mt-16px w-full font-normal text-black-normal"
-          dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }}
+          dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boosting}x` }) }}
         />
         <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
           <Button {...buttonProps} loading={inTransaction}>
