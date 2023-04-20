@@ -24,6 +24,7 @@ const PairInfo: React.FC = () => {
   const position = usePosition(Number(tokenId));
   const [inverted] = useInvertedState(tokenId);
   const { fee, amount0, amount1 } = position ?? {};
+  const [inverted] = useInvertedState(tokenId);
 
   if (!position) return null;
   return (

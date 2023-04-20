@@ -75,7 +75,7 @@ const SelectedPriceRange: React.FC<{
 
   const fromPreview = !!leftToken && !!rightToken;
   const [inverted, setInverted] = useInvertedState(tokenId);
-  console.log('fromPreview', fromPreview)
+
   const leftTokenForUI = fromPreview ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
   const rightTokenForUI = fromPreview ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
   const isLeftTokenEqualToken0 = getWrapperTokenByAddress(leftTokenForUI?.address)?.address === token0?.address;
@@ -90,32 +90,32 @@ const SelectedPriceRange: React.FC<{
             className="flex h-28px box-centent border-2px border-solid border-orange-light rounded-4px bg-orange-light text-14px font-medium cursor-pointer"
             onClick={() => setInverted((pre) => !pre)}
           >
-            <span className={cx('px-8px rounded-4px h-24px flex items-center', inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
+            <span className={cx('px-8px rounded-4px h-24px flex items-center', !inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
               {position?.leftToken?.symbol}
             </span>
-            <span className={cx('px-8px rounded-4px h-24px flex items-center', !inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
+            <span className={cx('px-8px rounded-4px h-24px flex items-center', inverted ? 'text-orange-normal bg-orange-light-hover' : 'text-gray-normal bg-transparent')}>
               {position?.rightToken?.symbol}
             </span>
           </div>
         )}
       </div>
       <div className="flex items-stretch mb-16px">
-        <PriceItem type={PriceType.Min} price={!isLeftTokenEqualToken0 ? priceLower : invertPrice(priceUpper)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+        <PriceItem type={PriceType.Min} price={isLeftTokenEqualToken0 ? priceLower : invertPrice(priceUpper)} tokenA={rightTokenForUI} tokenB={leftTokenForUI} />
         <div className="flex items-center">
           <ExchangeIcon className="w-24px h-24px text-gray-normal mx-8px" />
         </div>
-        <PriceItem type={PriceType.Max} price={!isLeftTokenEqualToken0 ? priceUpper : invertPrice(priceLower)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+        <PriceItem type={PriceType.Max} price={isLeftTokenEqualToken0 ? priceUpper : invertPrice(priceLower)} tokenA={rightTokenForUI} tokenB={leftTokenForUI} />
       </div>
       <div className="flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal">
         <p className="font-medium">{i18n.current_price}</p>
         {leftTokenForUI && rightTokenForUI && (
           <p className="text-24px leading-30px font-medium">
             {trimDecimalZeros(
-              fromPreview && !!priceInit ? priceInit : pool?.priceOf(fromPreview ? rightTokenForUI : !inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!
+              fromPreview && !!priceInit ? priceInit : pool?.priceOf(fromPreview ? rightTokenForUI : inverted ? position?.rightToken! : position?.leftToken!)?.toDecimalMinUnit(5)!
             ) ?? '-'}
           </p>
         )}
-        <p className="text-gray-normal text-12px leading-15px text-center font-normal">{`${leftTokenForUI?.symbol} ${i18n.per} ${rightTokenForUI?.symbol}`}</p>
+        <p className="text-gray-normal text-12px leading-15px text-center font-normal">{`${rightTokenForUI?.symbol} ${i18n.per} ${leftTokenForUI?.symbol}`}</p>
       </div>
     </div>
   );
