@@ -38,7 +38,7 @@ interface Props {
   /** When creating Position, the lower price may be greater than the upper price.
    * However, when creating and removing, it is definitely true.
    * */
-  isRangeValid?: boolean | null;
+  isRangeValid: boolean | null;
   /**
    * When creating Position, pool may not exist.
    * So there will be a manually entered priceInit value
@@ -139,7 +139,7 @@ const DepositAmount: React.FC<
 
       {isOutOfRange && (
         <>
-          <LockIcon className='w-20px h-24px' />
+          <LockIcon className="w-20px h-24px" />
           <p className="mt-4px text-center text-12px text-gray-normal">{i18n.outof_range}</p>
         </>
       )}
@@ -158,8 +158,10 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
   );
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
-  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !Number.isNaN(Number(priceLower)) ? priceTokenA.lessThan(priceLower) : false;
-  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !Number.isNaN(Number(priceUpper)) ? priceTokenA.greaterThan(priceUpper) : false;
+  const isPriceLowerGreaterThanCurrentPrice =
+    priceTokenA && priceLower && (Unit.isUnit(priceLower) ? !priceLower.isNaN() : !Number.isNaN(Number(priceLower))) ? priceTokenA.lessThan(priceLower) : false;
+  const isPriceUpperLessThanCurrentPrice =
+    priceTokenA && priceUpper && (Unit.isUnit(priceUpper) ? !priceUpper.isNaN() : !Number.isNaN(Number(priceUpper))) ? priceTokenA.greaterThan(priceUpper) : false;
 
   const token0PriceFixed5 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(5) : null), [priceTokenA]);
   useLayoutEffect(() => {
@@ -173,7 +175,6 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
     setValue('amount-tokenB', trimDecimalZeros(tokenBExpectedAmount.toDecimalMinUnit(tokenB?.decimals)));
   }, [token0PriceFixed5]);
 
-
   useLayoutEffect(() => {
     if (isPriceLowerGreaterThanCurrentPrice) {
       setValue('amount-tokenB', '');
@@ -182,7 +183,7 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
     if (isPriceUpperLessThanCurrentPrice) {
       setValue('amount-tokenA', '');
     }
-  }, [isPriceUpperLessThanCurrentPrice, isPriceLowerGreaterThanCurrentPrice])
+  }, [isPriceUpperLessThanCurrentPrice, isPriceLowerGreaterThanCurrentPrice]);
 
   if (!tokenA || !tokenB || !fee) return null;
   return (

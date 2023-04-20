@@ -36,6 +36,7 @@ const IncreaseAmounts: React.FC = () => {
       priceLower={priceLower}
       priceUpper={priceUpper}
       fee={fee}
+      isRangeValid={true}
     />
   );
 };

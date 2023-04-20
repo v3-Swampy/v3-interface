@@ -11,10 +11,10 @@ import IncreaseAmounts from './IncreaseAmounts';
 
 const transitions = {
   en: {
-    add_liquidity: 'Add Liquidity',
+    increase_liquidity: 'Increase Liquidity',
   },
   zh: {
-    add_liquidity: '添加流动性',
+    increase_liquidity: '增加流动性',
   },
 } as const;
 
@@ -22,14 +22,14 @@ const IncreaseLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
-  
+
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center mb-16px gap-8px">
-          <span className="i-material-symbols:keyboard-arrow-left text-24px text-gray-normal" />
-          <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline leading-30px text-24px text-orange-normal">
-            {i18n.add_liquidity}
+        <div className="relative flex items-center pl-16px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+          <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
+            <span className="i-material-symbols:keyboard-arrow-left absolute -left-10px translate-y-1px text-24px text-gray-normal" />
+            {i18n.increase_liquidity}
           </Link>
           <Settings />
         </div>
