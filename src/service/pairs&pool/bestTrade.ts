@@ -140,18 +140,6 @@ export const getQuoteFunctionName = (route: Route, tradeType: TradeType) => {
   }
   return tradeTypeFunctionName;
 };
-/** undefined means loading */
-export const useTokenPrice = (tokenAddress: string | undefined) => {
-  const token = getWrapperTokenByAddress(tokenAddress);
-  const result = useServerBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
-  if (!tokenAddress) return undefined;
-  if (tokenAddress == TokenUSDT.address) return '1';
-  if (result.state === TradeState.LOADING) return undefined;
-  if (result.state === TradeState.VALID) {
-    return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
-  }
-  return null;
-};
 
 export enum RouterPreference {
   API = 'api',
@@ -171,6 +159,7 @@ interface GetQuoteArgs {
   amount: string;
   type: TradeType;
 }
+
 const CLIENT_PARAMS = {
   protocols: [Protocol.V3],
 };
@@ -178,18 +167,6 @@ const CLIENT_PARAMS = {
 export const getClientSmartOrderRouter = async (args: GetQuoteArgs) => {
   const router = getRouter();
   return await getClientSideQuote(args, router, CLIENT_PARAMS);
-};
-/** undefined means loading */
-export const useTokenPriceUnit = (tokenAddress: string | undefined) => {
-  const token = getWrapperTokenByAddress(tokenAddress);
-  const result = useServerBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
-  if (!tokenAddress) return undefined;
-  if (tokenAddress == TokenUSDT.address) return new Unit(1);
-  if (result.state === TradeState.LOADING) return undefined;
-  if (result.state === TradeState.VALID) {
-    return result.trade!.amountOut;
-  }
-  return null;
 };
 
 export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
@@ -313,3 +290,16 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
 };
 
 export const useBestTrade = useServerBestTrade;
+
+/** undefined means loading */
+export const useTokenPrice = (tokenAddress: string | undefined) => {
+  const token = getWrapperTokenByAddress(tokenAddress);
+  const result = useServerBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
+  if (!tokenAddress) return undefined;
+  if (tokenAddress == TokenUSDT.address) return '1';
+  if (result.state === TradeState.LOADING) return undefined;
+  if (result.state === TradeState.VALID) {
+    return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
+  }
+  return null;
+};

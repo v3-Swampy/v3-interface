@@ -4,7 +4,7 @@ import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE }
 import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey } from './';
 import { VSTTokenContract } from '@contracts/index';
-import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { sendTransaction } from '@service/account';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds,PositionForUI } from '@service/position';
 import { usePoolList } from '@service/farming/index';

@@ -6,7 +6,8 @@ import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { isTokenEqual } from '@service/tokens';
-import { TradeState, useTokenPriceUnit, type useBestTrade } from '@service/pairs&pool';
+import { TradeState, useTokenPrice, type useBestTrade } from '@service/pairs&pool';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
 
 const transitions = {
@@ -52,9 +53,13 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
   const fromToken = diretion === 'SourceToDestination' ? sourceToken : destinationToken;
   const toToken = diretion === 'SourceToDestination' ? destinationToken : sourceToken;
   const toTokenPrice = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
-  const destinationTokenUSDPrice = useTokenPriceUnit(destinationToken?.address);
-  const toTokenPriceOfUSDT = useMemo(() => toTokenPrice && destinationTokenUSDPrice && toTokenPrice.mul(destinationTokenUSDPrice), [toTokenPrice, destinationTokenUSDPrice]);
-  const networkFee = useMemo(() => destinationTokenUSDPrice && bestTrade.trade?.networkFeeByAmount.mul(destinationTokenUSDPrice), [bestTrade]);
+  const sourceTokenUSDPrice = useTokenPrice(sourceToken?.address);
+  const destinationTokenUSDPrice = useTokenPrice(destinationToken?.address);
+  const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
+  const networkFee = useMemo(
+    () => (destinationTokenUSDPrice && bestTrade.trade ? bestTrade.trade?.networkFeeByAmount.mul(destinationTokenUSDPrice) : undefined),
+    [destinationTokenUSDPrice, bestTrade]
+  );
 
   if (!isBothTokenSelected) return null;
   return (
@@ -89,7 +94,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
           <>
             <p className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
               {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
-              {toTokenPriceOfUSDT && <>&nbsp;&nbsp;({`${toTokenPriceOfUSDT.toDecimalMinUnit(5)}$`})</>}
+              {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
               <ToolTip>
                 <span
                   className={cx(
@@ -161,7 +166,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
 
       <div className="my-16px h-2px bg-#FFF5E7" />
 
-      <AutoRouter bestTrade={bestTrade}/>
+      <AutoRouter bestTrade={bestTrade} />
     </Accordion>
   );
 };
