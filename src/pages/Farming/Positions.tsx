@@ -5,10 +5,12 @@ import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
 import { useIsPositionActive, handleClaimUnStake, handleClaimAndReStake, FarmingPosition } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
-import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
+import { getCurrentIncentiveKey, getCurrentIncentivePeriod,geLiquility } from '@service/farming';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
+import { TokenVST } from '@service/tokens';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 
 const transitions = {
   en: {
@@ -41,12 +43,13 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
-const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean }> = ({
+const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean,reward:number }> = ({
   position,
   token0Price,
   token1Price,
   pid,
   isActive,
+  reward
 }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
@@ -58,12 +61,12 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
   }, [status]);
 
   let liquidity = useMemo(() => {
-    if (token0Price && token1Price && position.amount0 && position.amount1) {
-      return position.amount0.mul(token0Price).add(position.amount1.mul(token1Price)).toDecimalStandardUnit(5);
-    }
-
-    return '0';
+    return geLiquility(position,token0Price,token1Price).toDecimalStandardUnit(5)
   }, [token0Price, token1Price, position.amount0, position.amount1]);
+
+  const claimable=useMemo(()=>{
+    return new Unit(reward||0).toDecimalStandardUnit(5, TokenVST.decimals)
+  },[reward])
 
   return (
     <div key={position.id} className="flex items-center justify-between mt-4">
@@ -78,7 +81,7 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.claimable}</div>
-        <div className={`${className.content} flex items-center`}>${numFormat(position?.liquidity)} VST</div>
+        <div className={`${className.content} flex items-center`}>{claimable} VST</div>
       </div>
       <div className="flex items-center">
         {!isPositionActive ? (
@@ -136,12 +139,13 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
   );
 };
 
-const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean }> = ({
+const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean,rewardList:Array<number> }> = ({
   positionList,
   token0Price,
   token1Price,
   pid,
   isActive,
+  rewardList
 }) => {
   const i18n = useI18n(transitions);
   const currentIncentive = getCurrentIncentivePeriod();
@@ -159,8 +163,8 @@ const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: 
         </span>
       </div>
       <div>
-        {positionList.map((p: any) => (
-          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} key={p.id} pid={pid} isActive={isActive} />
+        {positionList.map((p: any,i) => (
+          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} key={p.id} pid={pid} isActive={isActive} reward={Array.isArray(rewardList)?rewardList[i]:0}/>
         ))}
       </div>
     </div>

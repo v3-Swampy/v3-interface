@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo,useState } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
@@ -7,13 +7,16 @@ import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-import { useMyFarmingList, useStakedPositionsByPool } from '@service/farming/myFarms';
-import { getCurrentIncentivePeriod } from '@service/farming';
+import { useMyFarmingList, useStakedPositionsByPool,useCalcRewards } from '@service/farming/myFarms';
+import { getCurrentIncentivePeriod ,geLiquility} from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { PoolType } from '@service/farming';
 import { usePool } from '@service/pairs&pool';
 import { useTokenPrice } from '@service/pairs&pool';
 import { useAccount } from '@service/account';
+import { TokenVST } from '@service/tokens';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+
 
 const transitions = {
   en: {
@@ -53,9 +56,18 @@ const MyFarmsItem: React.FC<{
   const token0Price = useTokenPrice(data.token0.address);
   const token1Price = useTokenPrice(data.token1.address);
 
-  const [isShow, setIsShow] = React.useState<boolean>(false);
+  const [isShow, setIsShow] = useState<boolean>(false);
   const positionList = useStakedPositionsByPool(data.address, isActive);
+  const {positionsTotalReward,rewardList}=useCalcRewards(positionList,data.pid)
   const currentIncentive = getCurrentIncentivePeriod();
+  const staked=useMemo(()=>{
+    let sum=new Unit(0);
+    positionList.map((positionItem)=>{
+      const liquility=geLiquility(positionItem,token0Price,token1Price)
+      sum=sum.add(liquility)
+    })
+    return sum.toDecimalStandardUnit(5)
+  },[positionList.toString(),token0Price,token1Price])
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
@@ -64,6 +76,10 @@ const MyFarmsItem: React.FC<{
   const handleShow = () => {
     setIsShow(!isShow);
   };
+
+  const claimable=useMemo(()=>{
+    return new Unit(positionsTotalReward||0).toDecimalStandardUnit(5, TokenVST.decimals)
+  },[positionsTotalReward])
 
   const isEnded = dayjs().isAfter(dayjs.unix(Number(currentIncentive.endTime)));
   if (Array.isArray(positionList) && positionList.length == 0) return null;
@@ -97,7 +113,7 @@ const MyFarmsItem: React.FC<{
         </div>
         <div>
           <div className={`${className.title}`}>{i18n.stake}</div>
-          <div className={`${className.content}`}>$ {numFormat(data.staked)}</div>
+          <div className={`${className.content}`}>$ {numFormat(staked)}</div>
         </div>
         <div>
           <div className={`${className.title}`}>
@@ -106,13 +122,13 @@ const MyFarmsItem: React.FC<{
               <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
             </ToolTip>
           </div>
-          <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">{numFormat(data.claimable)} VST</div>
+          <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">{numFormat(claimable)} VST</div>
         </div>
         <div className="flex items-center">
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions positionList={positionList} token0Price={token0Price} token1Price={token1Price} pid={data.pid} isActive={isActive}></Positions>}
+      {isShow && <Positions positionList={positionList} token0Price={token0Price} token1Price={token1Price} pid={data.pid} isActive={isActive} rewardList={rewardList||[]}></Positions>}
     </div>
   );
 };
