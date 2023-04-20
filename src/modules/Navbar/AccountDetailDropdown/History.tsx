@@ -18,6 +18,7 @@ const transitions = {
   en: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
+    position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
     stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
     stake_increase_unlock_time: 'Increase unlock time {tokenAValue}',
@@ -30,6 +31,7 @@ const transitions = {
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
+    position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
     stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
     stake_increase_unlock_time: 'Increase unlock time {tokenAValue}',
@@ -44,6 +46,7 @@ const transitions = {
 const HistoryTypeMap = {
   ['Swap']: 'swap',
   ['Position_AddLiquidity']: 'position_add_liquidity',
+  ['Position_IncreaseLiquidity']: 'position_increase_liquidity',
   ['Position_CollectFees']: 'position_collect_fees',
   ['Stake_CreateLock']: 'stake_create_lock',
   ['Stake_IncreaseUnlockTime']: 'stake_increase_unlock_time',
@@ -73,6 +76,7 @@ type RefreshKey = keyof ReturnType<typeof useRefreshData>;
 export const RefreshTypeMap = {
   ['Swap']: 'refreshPositions',
   ['Position_AddLiquidity']: 'refreshPositions',
+  ['Position_IncreaseLiquidity']: 'refreshPositions',
   ['Position_CollectFees']: 'refreshPositions',
   ['Stake_CreateLock']: 'refreshPositions',
   ['Stake_IncreaseUnlockTime']: 'refreshPositions',
@@ -83,6 +87,9 @@ export const RefreshTypeMap = {
   ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
+
+
+
 
 export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);

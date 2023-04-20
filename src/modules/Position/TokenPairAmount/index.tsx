@@ -30,17 +30,19 @@ const TokenPairAmount: React.FC<{
   tokenId: number | string | undefined;
   leftToken?: Token;
   rightToken?: Token;
-}> = ({ amount0, amount1, ratio, position, tokenId, leftToken, rightToken }) => {
-  const { token1, liquidity } = position ?? {};
+  leftAmount?: Unit;
+  rightAmount?: Unit;
+}> = ({ amount0, amount1, ratio, position, tokenId, leftToken, rightToken, leftAmount, rightAmount }) => {
+  const { token0, liquidity } = position ?? {};
   // ui token pair revert button
   const [inverted] = useInvertedState(tokenId);
   // ui init display is inverted with token1/token0
-  const displayReverted = isTokenEqual(token1, rightToken);
-  const amountInverted = inverted !== displayReverted;
   const leftTokenForUI = leftToken ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
   const rightTokenForUI = rightToken ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
-  const amountLeft = !amountInverted ? new Unit(amount1 ?? '0') : new Unit(amount0 ?? '0');
-  const amountRight = !amountInverted ? new Unit(amount0 ?? '0') : new Unit(amount1 ?? '0');
+  const isLeftTokenEqualToken0 = isTokenEqual(leftTokenForUI, token0);
+
+  const amountLeft = leftAmount ? leftAmount : isLeftTokenEqualToken0 ? new Unit(amount0 ?? '0') : new Unit(amount1 ?? '0');
+  const amountRight = rightAmount ? rightAmount: isLeftTokenEqualToken0 ? new Unit(amount1 ?? '0') : new Unit(amount0 ?? '0');
   const amountLeftStr = trimDecimalZeros(amountLeft?.toDecimalStandardUnit(5, leftTokenForUI?.decimals));
   const amountRightStr = trimDecimalZeros(amountRight?.toDecimalStandardUnit(5, rightTokenForUI?.decimals));
   const removed = liquidity === '0';
@@ -48,8 +50,8 @@ const TokenPairAmount: React.FC<{
   if (!position) return null;
   return (
     <div className="flex flex-col gap-8px w-full">
-      <TokenItem token={leftTokenForUI} amount={amountLeftStr} ratio={typeof ratio == 'number' && !removed ? (!amountInverted ? ratio : 100 - ratio) : undefined} />
-      <TokenItem token={rightTokenForUI} amount={amountRightStr} ratio={typeof ratio == 'number' && !removed ? (!amountInverted ? 100 - ratio : ratio) : undefined} />
+      <TokenItem token={leftTokenForUI} amount={amountLeftStr} ratio={typeof ratio == 'number' && !removed ? (!isLeftTokenEqualToken0 ? ratio : 100 - ratio) : undefined} />
+      <TokenItem token={rightTokenForUI} amount={amountRightStr} ratio={typeof ratio == 'number' && !removed ? (!isLeftTokenEqualToken0 ? 100 - ratio : ratio) : undefined} />
     </div>
   );
 };
