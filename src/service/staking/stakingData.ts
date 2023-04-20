@@ -1,7 +1,7 @@
-import { selector, useRecoilValue, selectorFamily } from 'recoil';
+import { selector, useRecoilValue } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { VSTTokenContract, VotingEscrowContract } from '@contracts/index';
-import { useAccount } from '@service/account';
+import { accountState } from '@service/account';
 // import { TokenVST } from '@service/tokens';
 
 //VST Contract
@@ -55,18 +55,20 @@ const escrowDecimalsQuery = selector({
   },
 });
 
-const escrowUserInfoQuery = selectorFamily({
+const escrowUserInfoQuery = selector({
   key: `escrowUserInfo-${import.meta.env.MODE}`,
-  get: (account) => async () => {
+  get: async ({ get }) => {
+    const account = get(accountState);
     if (!account) return null;
     const response = await VotingEscrowContract.func.userInfo(account);
     return response;
   },
 });
 
-const escrowBalanceOfQuery = selectorFamily({
+const escrowBalanceOfQuery = selector({
   key: `escrowBalanceOf-${import.meta.env.MODE}`,
-  get: (account) => async () => {
+  get: async ({ get }) => {
+    const account = get(accountState);
     if (!account) return undefined;
     const response = await VotingEscrowContract.func.balanceOf(account);
     return response ? new Unit(response) : undefined;
@@ -94,8 +96,7 @@ export const useAverageStakeDuration = () => {
 };
 
 export const useUserInfo = () => {
-  const account = useAccount();
-  const userInfo = useRecoilValue(escrowUserInfoQuery(account));
+  const userInfo = useRecoilValue(escrowUserInfoQuery);
   const vstDecimals = useRecoilValue(vstDecimalsQuery);
   const lockedAmount = userInfo?.[0] && vstDecimals ? new Unit(userInfo?.[0]).toDecimalStandardUnit(undefined, vstDecimals) : '0';
   const unlockTime = Number(userInfo?.[1]) ?? 0;
@@ -103,18 +104,14 @@ export const useUserInfo = () => {
   return result;
 };
 
-export const userBalanceOfveVst = () => {
-  const account = useAccount();
-  const balanceOfVeVst = useRecoilValue(escrowBalanceOfQuery(account));
-  return balanceOfVeVst;
-};
+export const userBalanceOfveVst = () => useRecoilValue(escrowBalanceOfQuery);
 /**
  * calculate the boosting factor
  */
 export const useBoostFactor = () => {
   const balanceOfVeVst = userBalanceOfveVst();
   let veVSTTotalSupply = useRecoilValue(escrowTotalSupplyQuery);
-  console.log('stake',balanceOfVeVst?.toDecimalMinUnit(), veVSTTotalSupply?.toDecimalMinUnit())
+  console.log('stake', balanceOfVeVst?.toDecimalMinUnit(), veVSTTotalSupply?.toDecimalMinUnit());
   //boosting factor = (67% * <amout of veVST> /<total supply of veVST> + 33%) / 33%
   return veVSTTotalSupply && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
 };
