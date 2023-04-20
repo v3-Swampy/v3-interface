@@ -223,7 +223,7 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
         });
       } else {
         const data = res?.data;
-        console.log('client', data)
+        console.log('client', data);
         const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(data?.quote ?? 0) : amountUnit;
 
         const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(data?.quoteGasAdjusted ?? 0);
@@ -270,7 +270,9 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
     fetch(
       `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
         tokenInWrappered.chainId
-      }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType}`
+      }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
+        tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'
+      }`
     )
       .then((res) => res.json())
       .then((res) => {
@@ -282,7 +284,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
             state: TradeState.ERROR,
           });
         } else {
-          console.log('server', res)
+          console.log('server', res);
           const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
 
           const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
