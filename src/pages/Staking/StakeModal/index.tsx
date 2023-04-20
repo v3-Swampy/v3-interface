@@ -55,11 +55,14 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type, currentUnlockTime }) =
     if (!!disabledAmount) return ModalMode.IncreaseUnlockTime;
     return ModalMode.IncreaseAmount;
   }, [disabledAmount, disabledLocktime]);
+  console.log('currentStakeDuration_hh', currentStakeDuration)
 
   const onSubmit = useCallback(
     withForm(async (data) => {
+      console.log('currentStakeDuration', currentStakeDuration)
       let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams;
       let unlockTime = Math.ceil(new Date().valueOf() / 1000) + currentStakeDuration;
+      console.log('unlockTime', unlockTime)
       let amount = '0x0';
       switch (modalMode) {
         case ModalMode.CreateLock:
