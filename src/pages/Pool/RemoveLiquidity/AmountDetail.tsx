@@ -41,7 +41,7 @@ const AmountDetail: React.FC<{
   rightEarnedFees: string;
   amountWidthStyle?: string;
 }> = ({ leftRemoveAmount, rightRemoveAmount, leftEarnedFees, rightEarnedFees, tokenId, amountWidthStyle }) => {
-  const position: PositionForUI | undefined = usePosition(Number(tokenId));
+  const position = usePosition(Number(tokenId));
   const { leftToken, rightToken } = position || {};
   const i18n = useI18n(transitions);
 

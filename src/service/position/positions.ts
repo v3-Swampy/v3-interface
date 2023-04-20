@@ -44,10 +44,8 @@ export interface PositionForUI extends Position {
   rightToken: Token | null;
   // priceLower for ui
   priceLowerForUI: Unit;
-  priceLowerOf: (token: Token) => Unit;
   // priceUpper for ui
   priceUpperForUI: Unit;
-  priceUpperOf: (token: Token) => Unit;
   // token0 amount in position
   amount0?: Unit;
   // token1 amount in position
@@ -167,7 +165,7 @@ export const positionsQueryByTokenIds = selectorFamily({
     },
 });
 
-const positionsQuery = selector<Array<Position>>({
+export const positionsQuery = selector<Array<Position>>({
   key: `PositionListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const tokenIds = get(tokenIdsQuery);
@@ -215,16 +213,6 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
   const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
   const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
 
-  const priceLowerOf = (token: Token) => {
-    if (token?.address === token0.address || token?.address === unwrapToken0?.address) return priceLower;
-    else return invertPrice(priceLower);
-  };
-
-  const priceUpperOf = (token: Token) => {
-    if (token?.address === token0.address || token?.address === unwrapToken0?.address) return priceUpper;
-    else return invertPrice(priceUpper);
-  };
-
   if (
     // if token0 is a dollar-stable asset, set it as the quote token
     stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
@@ -242,8 +230,6 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
       leftToken: unwrapToken0,
       priceLowerForUI: invertPrice(priceUpper),
       priceUpperForUI: invertPrice(priceLower),
-      priceLowerOf,
-      priceUpperOf,
       pool,
     };
   }
@@ -256,8 +242,6 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
     leftToken: unwrapToken1,
     priceLowerForUI: priceLower,
     priceUpperForUI: priceUpper,
-    priceLowerOf,
-    priceUpperOf,
     pool,
   };
 };

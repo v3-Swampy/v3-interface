@@ -5,7 +5,7 @@ import cx from 'clsx';
 import Input from '@components/Input';
 import Button from '@components/Button';
 import Balance from '@modules/Balance';
-import { type Token } from '@service/tokens';
+import { isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
 import { usePool, FeeAmount } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
@@ -147,8 +147,22 @@ const DepositAmount: React.FC<
   );
 };
 
-const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeValid, priceInit, priceLower, priceUpper, setValue, getValues, register }) => {
+const DepositAmounts: React.FC<Props> = ({
+  tokenA,
+  tokenB,
+  fee,
+  title,
+  isRangeValid,
+  priceInit,
+  priceLower: _priceLower,
+  priceUpper: _priceUpper,
+  setValue,
+  getValues,
+  register,
+}) => {
   const i18n = useI18n(transitions);
+  const priceLower = useMemo(() => (_priceLower ? new Unit(_priceLower) : undefined), [_priceLower]);
+  const priceUpper = useMemo(() => (_priceUpper ? new Unit(_priceUpper) : undefined), [_priceUpper]);
 
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
@@ -157,12 +171,11 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
     [tokenA?.address, pool, priceInit]
   );
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
+  
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
-  const isPriceLowerGreaterThanCurrentPrice =
-    priceTokenA && priceLower && (Unit.isUnit(priceLower) ? !priceLower.isNaN() : !Number.isNaN(Number(priceLower))) ? priceTokenA.lessThan(priceLower) : false;
-  const isPriceUpperLessThanCurrentPrice =
-    priceTokenA && priceUpper && (Unit.isUnit(priceUpper) ? !priceUpper.isNaN() : !Number.isNaN(Number(priceUpper))) ? priceTokenA.greaterThan(priceUpper) : false;
-
+  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThan(priceLower) : false;
+  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThan(priceUpper) : false;
+  console.log(tokenA?.symbol, tokenB?.symbol, priceTokenA?.toDecimalMinUnit(5), priceTokenB?.toDecimalMinUnit(5), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
   const token0PriceFixed5 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(5) : null), [priceTokenA]);
   useLayoutEffect(() => {
     const value = getValues();
