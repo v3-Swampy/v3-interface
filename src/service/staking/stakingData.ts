@@ -76,17 +76,25 @@ const escrowBalanceOfQuery = selector({
 });
 
 export const useTotalStakeVST = () => useRecoilValue(totalStakeVSTQuery);
+export const useVstDecimals = () => useRecoilValue(vstDecimalsQuery);
+export const useVstTotalSupply = () => useRecoilValue(vstTotalSupplyQuery);
+export const useVETotalSupply = () => useRecoilValue(escrowTotalSupplyQuery);
+export const useVEMaxTime = () => useRecoilValue(escrowTotalMaxTimeQuery);
+export const useEscrowDecimals = () => useRecoilValue(escrowDecimalsQuery);
+export const useEscrowUserInfo = () => useRecoilValue(escrowUserInfoQuery)
+export const userBalanceOfveVst = () => useRecoilValue(escrowBalanceOfQuery);
+
 
 export const useStakePercent = () => {
-  const totalStakeVST = useRecoilValue(totalStakeVSTQuery);
-  const totalSupply = useRecoilValue(vstTotalSupplyQuery);
+  const totalStakeVST = useTotalStakeVST();
+  const totalSupply = useVstTotalSupply();
   return totalStakeVST && totalSupply ? totalStakeVST.div(totalSupply).mul(100).toDecimalMinUnit(2) : '-';
 };
 
 export const useAverageStakeDuration = () => {
-  const totalLocked = useRecoilValue(totalStakeVSTQuery);
-  const veVSTTotalSupply = useRecoilValue(escrowTotalSupplyQuery);
-  const maxTime = useRecoilValue(escrowTotalMaxTimeQuery);
+  const totalLocked = useTotalStakeVST();
+  const veVSTTotalSupply = useVETotalSupply();
+  const maxTime = useVEMaxTime();
   if (!veVSTTotalSupply || !totalLocked || !maxTime) return '-';
   const avgValue: number = Number(veVSTTotalSupply.mul(maxTime).div(totalLocked).toDecimalMinUnit());
   const SECONDS_PER_DAY = 86400;
@@ -96,26 +104,20 @@ export const useAverageStakeDuration = () => {
 };
 
 export const useUserInfo = () => {
-  const userInfo = useRecoilValue(escrowUserInfoQuery);
-  const vstDecimals = useRecoilValue(vstDecimalsQuery);
+  const userInfo = useEscrowUserInfo();
+  const vstDecimals = useVstDecimals();
   const lockedAmount = userInfo?.[0] && vstDecimals ? new Unit(userInfo?.[0]).toDecimalStandardUnit(undefined, vstDecimals) : '0';
   const unlockTime = Number(userInfo?.[1]) ?? 0;
   const result: [string, number] = [lockedAmount, unlockTime];
   return result;
 };
 
-export const userBalanceOfveVst = () => useRecoilValue(escrowBalanceOfQuery);
 /**
  * calculate the boosting factor
  */
 export const useBoostFactor = () => {
   const balanceOfVeVst = userBalanceOfveVst();
-  let veVSTTotalSupply = useRecoilValue(escrowTotalSupplyQuery);
-  console.log('stake', balanceOfVeVst?.toDecimalMinUnit(), veVSTTotalSupply?.toDecimalMinUnit());
-  //boosting factor = (67% * <amout of veVST> /<total supply of veVST> + 33%) / 33%
+  let veVSTTotalSupply = useVETotalSupply();
+  //boosting factor = (67% * <amount of veVST> /<total supply of veVST> + 33%) / 33%
   return veVSTTotalSupply && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
 };
-
-export const useVEMaxtime=()=> useRecoilValue(escrowTotalMaxTimeQuery)
-
-export const useVETotalSupply=()=> useRecoilValue(escrowTotalSupplyQuery)
