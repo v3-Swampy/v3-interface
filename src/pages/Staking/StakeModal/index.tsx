@@ -48,8 +48,8 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
   const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
   const stakeAmount = watch('VST-stake-amount', 0);
-  const maxTime = useVEMaxTime()
-  const veTotalSupply = useVETotalSupply()
+  const maxTime = useVEMaxTime();
+  const veTotalSupply = useVETotalSupply();
   const account = useAccount();
   const { inTransaction, execTransaction: handleStakingVST } = useInTransaction(_handleStakingVST);
 
@@ -64,33 +64,41 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
     //   amount of veVST = lockAmount * (lockDuration/maxTime)
     //   total veVST     = VEContract.totalSupply() + amount of veVST
     //   boosting factor = (67% * <amount of veVST> /<total veVST> + 33%) / 33%
-    let totalStakeAmount = new Unit(0)
-    let duration: number = currentStakeDuration
+
+    // compare with current staked status,for example,
+    //    CreateLock: when you come first time, the addedAmount will be the amount that you will enter
+    //    IncreaseAmount: when you want to increase the amount only, the addedAmount will be the amount that you will enter
+    //    IncreaseUnlockTime: the amount will be same, because you will not change the amount value.
+    let addedStakeAmount: Unit = new Unit(0);
+    let duration: number = currentStakeDuration;
     switch (modalMode) {
       case ModalMode.CreateLock:
-        totalStakeAmount = new Unit(lockedAmount)
-        duration = currentStakeDuration
+        addedStakeAmount = new Unit(stakeAmount || 0);
+        // in this status, your lockedAmount will be 0.
+        duration = currentStakeDuration;
         break;
       case ModalMode.IncreaseAmount:
-        totalStakeAmount = new Unit(lockedAmount).add(stakeAmount)
-        duration = currentUnlockTime - dayjs().unix()
+        addedStakeAmount = new Unit(stakeAmount);
+        duration = currentUnlockTime - dayjs().unix();
         break;
       case ModalMode.IncreaseUnlockTime:
-        totalStakeAmount = new Unit(lockedAmount)
-        duration = currentUnlockTime - dayjs().unix() + currentStakeDuration
+        addedStakeAmount = new Unit(0);
+        duration = currentUnlockTime - dayjs().unix() + currentStakeDuration;
         break;
     }
-    const userVeVST = maxTime ? totalStakeAmount.mul(duration).div(maxTime) : new Unit(0)
-    const userVeVST_decimals = Unit.fromStandardUnit(userVeVST, TokenVST.decimals)
-    const _totalSupply = new Unit(veTotalSupply || 0).add(userVeVST_decimals).toDecimalStandardUnit(undefined, TokenVST.decimals)
-    return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1)
-  }, [stakeAmount, maxTime, currentStakeDuration, modalMode, lockedAmount, currentUnlockTime])
+    const totalStakeAmount = new Unit(lockedAmount).add(addedStakeAmount);
+    const userVeVST = maxTime ? totalStakeAmount.mul(duration).div(maxTime) : new Unit(0);
+    const addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
+    const addedUserVeVST_decimals = Unit.fromStandardUnit(addedUserVeVST, TokenVST.decimals);
+    const _totalSupply = new Unit(veTotalSupply || 0).add(addedUserVeVST_decimals).toDecimalStandardUnit(undefined, TokenVST.decimals);
+    return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1);
+  }, [stakeAmount, maxTime, currentStakeDuration, modalMode, lockedAmount, currentUnlockTime]);
 
   const onSubmit = useCallback(
     withForm(async (data) => {
       const extendDuration = data['VST-stake-duration'];
-      const extendDurationText = data['VST-stake-duration-text']
-      const addAmount = data['VST-stake-amount']
+      const extendDurationText = data['VST-stake-duration-text'];
+      const addAmount = data['VST-stake-amount'];
       let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams;
       let unlockTime = dayjs(currentUnlockTime ? currentUnlockTime * 1000 : undefined).unix() + extendDuration;
       let amount = '0x0';
@@ -138,17 +146,14 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
         <div>
           {!disabledAmount && <AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />}
           {!disabledLockTime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} currentUnlockTime={currentUnlockTime} />}
-          <p
-            className="pl-8px mt-16px w-full font-normal text-black-normal"
-            dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boosting}x` }) }}
-          />
+          <p className="pl-8px mt-16px w-full font-normal text-black-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boosting}x` }) }} />
         </div>
         <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
           <Button {...buttonProps} loading={inTransaction}>
             {i18n.confirm}
           </Button>
         </AuthTokenButton>
-      </form >
+      </form>
     </div>
   );
 };
