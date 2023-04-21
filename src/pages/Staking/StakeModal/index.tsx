@@ -60,7 +60,10 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
   }, [disabledAmount, disabledLocktime]);
 
   const boosting=useMemo(()=>{
-    //boosting factor = (67% * <amout of veVST> /<total supply of veVST> + 33%) / 33% 
+    // for estimating boosting:
+    //   amount of veVST = lockAmount * (lockDuration/maxTime)
+    //   total veVST     = VEContract.totalSupply() + amount of veVST
+    //   boosting factor = (67% * <amount of veVST> /<total veVST> + 33%) / 33% 
     let totalStakeAmount=new Unit(0)
     let duration=currentStakeDuration
     switch(modalMode){
