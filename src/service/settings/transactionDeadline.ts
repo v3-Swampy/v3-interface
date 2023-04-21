@@ -1,6 +1,11 @@
 import { atom, useRecoilState } from 'recoil';
 import { getRecoil } from 'recoil-nexus';
+import dayjs from 'dayjs';
+import durationPlugin from 'dayjs/plugin/duration';
 import { persistAtomWithDefault } from '@utils/recoilUtils';
+
+dayjs.extend(durationPlugin);
+const duration = dayjs.duration;
 
 /** unit minute */
 const transactionDeadlineState = atom<number>({
@@ -9,4 +14,5 @@ const transactionDeadlineState = atom<number>({
 });
 
 export const useTransactionDeadline = () => useRecoilState(transactionDeadlineState);
-export const getTransactionDeadline = () => getRecoil(transactionDeadlineState);
+export const getTransactionDeadlineState = () => getRecoil(transactionDeadlineState);
+export const getDeadline = () => dayjs().add(duration(getTransactionDeadlineState(), 'minute')).unix();

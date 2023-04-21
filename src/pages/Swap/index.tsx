@@ -33,8 +33,8 @@ const SwapPage: React.FC = () => {
   const [inputedType, setInputedType] = useState<'sourceToken' | 'destinationToken' | null>(null);
   const inputedAmount = inputedType === null ? '' : inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
-  const bestTrade = useServerBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
-  const clientBestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+  const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+  // const clientBestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
   // console.log('serverBestTrade', bestTrade?.trade?.amountIn?.toDecimalStandardUnit(undefined,18), bestTrade?.trade?.amountOut?.toDecimalStandardUnit(undefined,18))
   // console.log('clientBestTrade', clientBestTrade?.trade?.amountIn?.toDecimalStandardUnit(undefined,18), clientBestTrade?.trade?.amountOut?.toDecimalStandardUnit(undefined,18))
   useEffect(() => {

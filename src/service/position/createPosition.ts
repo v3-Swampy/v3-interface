@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-import durationPlugin from 'dayjs/plugin/duration';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { uniqueId } from 'lodash-es';
 import Decimal from 'decimal.js';
@@ -8,14 +6,12 @@ import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
 import { FeeAmount, getPool, type Pool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
-import { getTransactionDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance } from '@service/settings';
+import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
 
-dayjs.extend(durationPlugin);
-const duration = dayjs.duration;
 
 const Q192 = new Decimal(2).toPower(192);
 const Zero = new Unit(0);
@@ -65,7 +61,6 @@ export const handleClickSubmitCreatePosition = async ({
     const sqrtPriceX96 = priceInit
       ? Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0)
       : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
-    const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
 
     const _tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
     const _tickUpper = priceUpper === 'Infinity' ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
@@ -111,7 +106,7 @@ export const handleClickSubmitCreatePosition = async ({
         amount0Min: Unit.fromStandardUnit(amount0Min, token0.decimals).toHexMinUnit(),
         amount1Min: Unit.fromStandardUnit(amount1Min, token1.decimals).toHexMinUnit(),
         recipient: account,
-        deadline,
+        deadline: getDeadline(),
       },
     ]);
 

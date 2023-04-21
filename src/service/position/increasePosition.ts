@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-import durationPlugin from 'dayjs/plugin/duration';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { uniqueId } from 'lodash-es';
 import Decimal from 'decimal.js';
@@ -9,13 +7,10 @@ import { getAccount, sendTransaction } from '@service/account';
 import { getPool, type Pool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
-import { getTransactionDeadline, getSlippageTolerance } from '@service/settings';
+import { getDeadline, getSlippageTolerance } from '@service/settings';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
-
-dayjs.extend(durationPlugin);
-const duration = dayjs.duration;
 
 const Q192 = new Decimal(2).toPower(192);
 const Zero = new Unit(0);
@@ -51,7 +46,6 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     const token0Amount = !!_token0Amount ? _token0Amount : '0';
     const token1Amount = !!_token1Amount ? _token1Amount : '0';
 
-    const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
@@ -85,7 +79,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
         amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
         amount0Min: Unit.fromStandardUnit(amount0Min, token0.decimals).toHexMinUnit(),
         amount1Min: Unit.fromStandardUnit(amount1Min, token1.decimals).toHexMinUnit(),
-        deadline,
+        deadline: getDeadline(),
       },
     ]);
 

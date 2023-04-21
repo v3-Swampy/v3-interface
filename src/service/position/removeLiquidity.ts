@@ -1,11 +1,8 @@
-import dayjs from 'dayjs';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { getTransactionDeadline } from '@service/settings';
+import { getDeadline } from '@service/settings';
 import { getAccount, sendTransaction } from '@service/account';
 import showRemoveLiquidityModal from '@pages/Pool/RemoveLiquidity/RemoveLiquidityModal';
-
-const duration = dayjs.duration;
 
 export const handleSubmitRemoveLiquidity = async ({
   tokenId,
@@ -26,7 +23,7 @@ export const handleSubmitRemoveLiquidity = async ({
 }) => {
   const account = getAccount();
   if (!account) return '';
-  const deadline = dayjs().add(duration(getTransactionDeadline(), 'minute')).unix();
+
   const liquidity = new Unit(positionLiquidity).mul(removePercent).div(100).toDecimalMinUnit(0);
 
   const params = {
@@ -34,7 +31,7 @@ export const handleSubmitRemoveLiquidity = async ({
     liquidity: new Unit(liquidity).toHexMinUnit(),
     amount0Min: 0,
     amount1Min: 0,
-    deadline,
+    deadline: getDeadline(),
   };
   const data = NonfungiblePositionManager.func.interface.encodeFunctionData('decreaseLiquidity', [
     {

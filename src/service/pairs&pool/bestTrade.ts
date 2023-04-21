@@ -14,22 +14,35 @@ export enum TradeType {
   EXACT_OUTPUT,
 }
 
-interface RouteProps {
+interface Route {
+  address: string;
+  amountIn: string;
+  amountOut: string;
+  fee: string;
+  liquidity: string;
+  sqrtRatioX96: string;
+  tickCurrent: string;
   tokenIn: Token;
   tokenOut: Token;
-  pools: Pool[];
+  type: 'v3-pool';
 }
 
-export class Route implements RouteProps {
-  public tokenIn: Token;
-  public tokenOut: Token;
-  public pools: Pool[];
-  constructor({ tokenIn, tokenOut, pools }: RouteProps) {
-    this.tokenIn = tokenIn;
-    this.tokenOut = tokenOut;
-    this.pools = pools;
-  }
-}
+// interface RouteProps {
+//   tokenIn: Token;
+//   tokenOut: Token;
+//   pools: Pool[];
+// }
+
+// class Route implements RouteProps {
+//   public tokenIn: Token;
+//   public tokenOut: Token;
+//   public pools: Pool[];
+//   constructor({ tokenIn, tokenOut, pools }: RouteProps) {
+//     this.tokenIn = tokenIn;
+//     this.tokenOut = tokenOut;
+//     this.pools = pools;
+//   }
+// }
 
 export enum TradeState {
   INVALID = 'INVALID',
@@ -42,7 +55,7 @@ export enum TradeState {
 export interface BestTrade {
   state: TradeState;
   trade?: {
-    route: V3PoolInRoute[][];
+    route: Route[][];
     amountIn: Unit;
     amountOut: Unit;
     priceIn: Unit;
@@ -52,94 +65,64 @@ export interface BestTrade {
   };
 }
 
-export const computeAllRoutes = (tokenIn: Token, tokenOut: Token, pools: Pool[], currentPath: Pool[] = [], allPaths: Route[] = [], startTokenIn: Token = tokenIn, maxHop = 2) => {
-  if (!tokenIn || !tokenOut) throw new Error('Missing tokenIn/tokenOut');
+// export const encodeRouteToPath = (route: Route, exactOutput: boolean): string => {
+//   const firstInputToken: Token = route.tokenIn;
 
-  for (const pool of pools) {
-    if (!pool.involvesToken(tokenIn) || currentPath.find((pathPool) => isPoolEqual(pool, pathPool))) continue;
+//   const { path, types } = route.pools.reduce(
+//     (
+//       { inputToken, path, types }: { inputToken: Token; path: (string | number)[]; types: string[] },
+//       pool: Pool,
+//       index
+//     ): { inputToken: Token; path: (string | number)[]; types: string[] } => {
+//       const outputToken: Token = isTokenEqual(pool.token0, inputToken) ? pool.token1 : pool.token0;
+//       if (index === 0) {
+//         return {
+//           inputToken: outputToken,
+//           types: ['address', 'uint24', 'address'],
+//           path: [inputToken.address, pool.fee, outputToken.address],
+//         };
+//       } else {
+//         return {
+//           inputToken: outputToken,
+//           types: [...types, 'uint24', 'address'],
+//           path: [...path, pool.fee, outputToken.address],
+//         };
+//       }
+//     },
+//     { inputToken: firstInputToken, path: [], types: [] }
+//   );
 
-    const outputToken = isTokenEqual(pool.token0, tokenIn) ? pool.token1 : pool.token0;
-    if (isTokenEqual(outputToken, tokenOut)) {
-      allPaths.push(new Route({ pools: [...currentPath, pool], tokenIn: startTokenIn, tokenOut }));
-    } else if (maxHop > 1) {
-      computeAllRoutes(outputToken, tokenOut, pools, [...currentPath, pool], allPaths, startTokenIn, maxHop - 1);
-    }
-  }
+//   return exactOutput ? pack(types.reverse(), path.reverse()) : pack(types, path);
+// };
 
-  return allPaths;
-};
+// export const getQuoteCallParameters = (route: Route, amount: string, tradeType: TradeType) => {
+//   const singleHop = route.pools.length === 1;
+//   let callData: string;
+//   const tradeTypeFunctionName = getQuoteFunctionName(route, tradeType);
+//   if (singleHop) {
+//     const quoteParams = [route.tokenIn.address, route.tokenOut.address, route.pools[0].fee, amount, new Unit(0).toHexMinUnit()];
+//     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, quoteParams);
+//   } else {
+//     const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT);
+//     // console.log('path', path);
+//     callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, [path, amount]);
+//   }
+//   return {
+//     callData,
+//     value: new Unit(0).toHexMinUnit(),
+//   };
+// };
 
-export const useAllRoutes = (_tokenIn: Token | null, _tokenOut: Token | null) => {
-  const tokenIn = useMemo(() => getWrapperTokenByAddress(_tokenIn?.address), [_tokenIn?.address]);
-  const tokenOut = useMemo(() => getWrapperTokenByAddress(_tokenOut?.address), [_tokenOut?.address]);
-
-  const pools = usePools(tokenIn, tokenOut);
-
-  return useMemo(() => {
-    if (!pools || !tokenIn || !tokenOut) return undefined;
-    const routes = computeAllRoutes(tokenIn, tokenOut, pools, [], [], tokenIn, 2);
-    return routes;
-  }, [tokenIn?.address, tokenOut?.address, pools]);
-};
-
-export const encodeRouteToPath = (route: Route, exactOutput: boolean): string => {
-  const firstInputToken: Token = route.tokenIn;
-
-  const { path, types } = route.pools.reduce(
-    (
-      { inputToken, path, types }: { inputToken: Token; path: (string | number)[]; types: string[] },
-      pool: Pool,
-      index
-    ): { inputToken: Token; path: (string | number)[]; types: string[] } => {
-      const outputToken: Token = isTokenEqual(pool.token0, inputToken) ? pool.token1 : pool.token0;
-      if (index === 0) {
-        return {
-          inputToken: outputToken,
-          types: ['address', 'uint24', 'address'],
-          path: [inputToken.address, pool.fee, outputToken.address],
-        };
-      } else {
-        return {
-          inputToken: outputToken,
-          types: [...types, 'uint24', 'address'],
-          path: [...path, pool.fee, outputToken.address],
-        };
-      }
-    },
-    { inputToken: firstInputToken, path: [], types: [] }
-  );
-
-  return exactOutput ? pack(types.reverse(), path.reverse()) : pack(types, path);
-};
-
-export const getQuoteCallParameters = (route: Route, amount: string, tradeType: TradeType) => {
-  const singleHop = route.pools.length === 1;
-  let callData: string;
-  const tradeTypeFunctionName = getQuoteFunctionName(route, tradeType);
-  if (singleHop) {
-    const quoteParams = [route.tokenIn.address, route.tokenOut.address, route.pools[0].fee, amount, new Unit(0).toHexMinUnit()];
-    callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, quoteParams);
-  } else {
-    const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT);
-    // console.log('path', path);
-    callData = UniswapV3Quoter.func.interface.encodeFunctionData(tradeTypeFunctionName, [path, amount]);
-  }
-  return {
-    callData,
-    value: new Unit(0).toHexMinUnit(),
-  };
-};
-
-export const getQuoteFunctionName = (route: Route, tradeType: TradeType) => {
-  const singleHop = route.pools.length === 1;
-  let tradeTypeFunctionName;
-  if (singleHop) {
-    tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInputSingle' : 'quoteExactOutputSingle';
-  } else {
-    tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInput' : 'quoteExactOutput';
-  }
-  return tradeTypeFunctionName;
-};
+// export const getQuoteFunctionName = (route: Route, tradeType: TradeType) => {
+//   const singleHop = route.pools.length === 1;
+//   let tradeTypeFunctionName;
+//   if (singleHop) {
+//     tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInputSingle' : 'quoteExactOutputSingle';
+//   } else {
+//     tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInput' : 'quoteExactOutput';
+//   }
+//   return tradeTypeFunctionName;
+// };
 
 export enum RouterPreference {
   API = 'api',
@@ -277,7 +260,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
               amountOut: amountOutGasAdjusted,
               priceIn,
               priceOut,
-              route: res.route,
+              route: res.route?.[0],
               tradeType,
               networkFeeByAmount: amountOut.sub(amountOutGasAdjusted),
             },
