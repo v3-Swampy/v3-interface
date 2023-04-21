@@ -15,7 +15,7 @@ import { FarmingPosition } from './myFarms';
 import { selector, useRecoilValue } from 'recoil';
 
 // get poolinfo list of pids
-const poolsQuery = selector({
+export const poolsQuery = selector({
   key: `poolsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     // get poolinfo list of pids
