@@ -161,7 +161,14 @@ const myFarmsListQuery = selector({
 
     const multicallOfRewards = await fetchMulticall(
       resOfMulticall.map((r) => {
-        return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [r.incentiveKey, r.tokenId, r.position.pool.pid])];
+        return [
+          UniswapV3StakerFactory.address,
+          UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [
+            r.isActive ? getCurrentIncentiveKey(r.address) : r.incentiveKey,
+            r.tokenId,
+            r.position.pool.pid,
+          ]),
+        ];
       })
     );
 
