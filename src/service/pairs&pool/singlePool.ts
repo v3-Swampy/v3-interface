@@ -2,12 +2,79 @@ import { useCallback, useEffect } from 'react';
 import { atomFamily, useRecoilStateLoadable } from 'recoil';
 import { getRecoil, setRecoil } from 'recoil-nexus';
 import { throttle } from 'lodash-es';
-import { createPoolContract, fetchMulticall } from '@contracts/index';
+import { createPoolContract, fetchMulticall, UniswapV3Factory } from '@contracts/index';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
 import { getWrapperTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount, Pool, isPoolEqual } from './';
 import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
+import _ from 'lodash-es';
+import { type Position } from '@service/position';
+
+/**
+ * fetch pools info.
+ */
+export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' | 'fee'>[]) => {
+  const len = positions.length;
+
+  if (!len) return [];
+
+  const multicallsOfGetPool = positions.map(({ token0, token1, fee }) => {
+    return [UniswapV3Factory.address, UniswapV3Factory.func.interface.encodeFunctionData('getPool', [token0.address, token1.address, fee])];
+  });
+
+  // check pool exist
+  const resOfGetPool =
+    (await fetchMulticall(multicallsOfGetPool))?.map((res) => {
+      if (typeof res !== 'string' || res === '0x' || res === '0x0000000000000000000000000000000000000000') {
+        return false;
+      }
+      return true;
+    }) || [];
+
+  const multicallsOfPool = resOfGetPool
+    .map((isExist, index) => {
+      if (!isExist) return null;
+
+      const { token0, token1, fee } = positions[index];
+      const wrapperedTokenA = getWrapperTokenByAddress(token0?.address)!;
+      const wrapperedTokenB = getWrapperTokenByAddress(token1?.address)!;
+      const params = { tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee };
+      const poolAddress = computePoolAddress(params);
+      const poolContract = createPoolContract(poolAddress);
+      return [
+        [poolContract.address, poolContract.func.interface.encodeFunctionData('slot0')],
+        [poolContract.address, poolContract.func.interface.encodeFunctionData('liquidity')],
+      ];
+    })
+    .filter((p) => p !== null)
+    .flat();
+
+  const resOfPool = _.chunk(await fetchMulticall(multicallsOfPool as any), 2).map(([slot0, liquidity], index) => {
+    const { token0, token1, fee } = positions[index];
+    const wrapperedTokenA = getWrapperTokenByAddress(token0?.address)!;
+    const wrapperedTokenB = getWrapperTokenByAddress(token1?.address)!;
+    const params = { tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee };
+    const poolAddress = computePoolAddress(params);
+    const poolContract = createPoolContract(poolAddress);
+    const slots = slot0 && slot0 !== '0x' ? poolContract.func.interface.decodeFunctionResult('slot0', slot0) : null;
+    const liquidityRes = liquidity && liquidity !== '0x' ? poolContract.func.interface.decodeFunctionResult('liquidity', liquidity) : null;
+    const pool = new Pool({
+      ...params,
+      address: poolAddress,
+      sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
+      liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
+      tickCurrent: slots?.[1] ? +slots?.[1].toString() : null,
+    });
+
+    const poolKey = generatePoolKey({ tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee });
+    setRecoil(poolState(poolKey), pool);
+
+    return pool;
+  });
+
+  return resOfPool;
+};
 
 export const poolState = atomFamily<Pool | null | undefined, string>({
   key: `poolState-${import.meta.env.MODE}`,

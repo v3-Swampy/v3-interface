@@ -84,7 +84,7 @@ const tokenIdsQuery = selector<Array<number> | []>({
   },
 });
 
-const decodePosition = (tokenId: number, decodeRes: Array<any>) => {
+export const decodePosition = (tokenId: number, decodeRes: Array<any>) => {
   const token0 = getTokenByAddress(decodeRes?.[2])!;
   const token1 = getTokenByAddress(decodeRes?.[3])!;
   const fee = Number(decodeRes?.[4]);
@@ -192,7 +192,7 @@ export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
 export const usePositions = (tokenIds?: Array<number>) => {
   const allPositions = useRecoilValue(positionsQuery);
-  const filterPositions = useMemo(() => tokenIds ? allPositions.filter((position) => tokenIds.includes(position.id)) : allPositions, [allPositions, tokenIds]);
+  const filterPositions = useMemo(() => (tokenIds ? allPositions.filter((position) => tokenIds.includes(position.id)) : allPositions), [allPositions, tokenIds]);
   return filterPositions;
 };
 
@@ -202,7 +202,7 @@ export const usePositionByTokenId = (tokenId: number) => useRecoilValue(position
 
 export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
 
-const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
+export const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
   const upper = new Unit(1.0001).pow(new Unit(tickUpper));
