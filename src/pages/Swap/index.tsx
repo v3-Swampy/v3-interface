@@ -5,8 +5,8 @@ import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
-import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken, getSourceToken, getDestinationToken } from '@service/swap';
-import { useBestTrade, TradeState, useClientBestTrade, useServerBestTrade } from '@service/pairs&pool';
+import { exchangeTokenDirection, handleConfirmSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken, getSourceToken, getDestinationToken } from '@service/swap';
+import { useBestTrade, TradeState, useClientBestTrade, useServerBestTrade, useTokenPrice } from '@service/pairs&pool';
 import { TradeType } from '@service/pairs&pool/bestTrade';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
@@ -29,6 +29,8 @@ const SwapPage: React.FC = () => {
   const destinationTokenAmount = watch('destinationToken-amount');
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
+  const sourceTokenUSDPrice = useTokenPrice(sourceToken?.address);
+  const destinationTokenUSDPrice = useTokenPrice(destinationToken?.address);
 
   const [inputedType, setInputedType] = useState<'sourceToken' | 'destinationToken' | null>(null);
   const inputedAmount = inputedType === null ? '' : inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
@@ -45,9 +47,9 @@ const SwapPage: React.FC = () => {
         `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
         inputedAmount
           ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
-            undefined,
-            (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
-          )
+              undefined,
+              (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
+            )
           : ''
       );
     }
@@ -73,13 +75,15 @@ const SwapPage: React.FC = () => {
 
   const onSubmit = useCallback(
     withForm(async (data) => {
-      handleSwap({
+      handleConfirmSwap({
         sourceTokenAmount: data['sourceToken-amount'],
         destinationTokenAmount: data['destinationToken-amount'],
         bestTrade,
+        sourceTokenUSDPrice,
+        destinationTokenUSDPrice
       });
     }),
-    [bestTrade]
+    [bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice]
   );
 
   useCalcDetailAndRouter();
@@ -108,7 +112,7 @@ const SwapPage: React.FC = () => {
           </div>
           <SelectedToken type="destinationToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
 
-          <SwapDetail bestTrade={bestTrade} />
+          <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} />
 
           <SubmitButton sourceTokenAmount={sourceTokenAmount} />
         </form>

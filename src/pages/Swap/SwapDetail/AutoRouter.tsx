@@ -19,7 +19,7 @@ const transitions = {
 } as const;
 
 interface Props {
-  bestTrade: ReturnType<typeof useBestTrade>;
+  bestTrade: ReturnType<typeof useBestTrade>;  
 }
 
 const AutoRouter: React.FC<Props> = ({ bestTrade }) => {

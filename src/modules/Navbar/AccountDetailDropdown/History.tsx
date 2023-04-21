@@ -14,7 +14,7 @@ import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
 import { useRefreshStakedPositions } from '@service/farming/myFarms';
 
-const transitions = {
+export const transitions = {
   en: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
@@ -43,7 +43,7 @@ const transitions = {
   },
 } as const;
 
-const HistoryTypeMap = {
+export const TransitionsTypeMap = {
   ['Swap']: 'swap',
   ['Position_AddLiquidity']: 'position_add_liquidity',
   ['Position_IncreaseLiquidity']: 'position_increase_liquidity',
@@ -100,7 +100,7 @@ export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?
     <span
       className={cx('history-record flex-shrink-1 flex-grow-1', className)}
       dangerouslySetInnerHTML={{
-        __html: compiled(i18n[HistoryTypeMap[type]], {
+        __html: compiled(i18n[TransitionsTypeMap[type]], {
           tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : (tokenA_Value ?? ''),
           tokenASymbol: tokenA?.symbol ?? '',
           tokenBValue: trimDecimalZeros(tokenB_Value ? Number(tokenB_Value).toFixed(4) : ''),
@@ -156,6 +156,7 @@ const History: React.FC = () => {
   );
 
   const height = useMemo(() => clamp(history.length, 0, 4) * 46, [history]);
+  
   return (
     <>
       <div className="mt-26px mb-16px flex items-center">

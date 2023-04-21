@@ -54,6 +54,7 @@ export enum TradeState {
 
 export interface BestTrade {
   state: TradeState;
+  error?: string;
   trade?: {
     route: Route[];
     amountIn: Unit;
@@ -242,6 +243,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
         if (res?.errorCode) {
           setBestTrade({
             state: TradeState.ERROR,
+            error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode
           });
         } else {
           console.log('server', res);

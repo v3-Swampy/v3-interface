@@ -36,9 +36,12 @@ const transitions = {
 
 interface Props {
   bestTrade: ReturnType<typeof useBestTrade>;
+  fromPreview?: boolean;
+  sourceTokenUSDPrice: string | null | undefined;
+  destinationTokenUSDPrice: string | null | undefined;
 }
 
-const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
+const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview }) => {
   const i18n = useI18n(transitions);
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
@@ -53,8 +56,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
   const fromToken = diretion === 'SourceToDestination' ? sourceToken : destinationToken;
   const toToken = diretion === 'SourceToDestination' ? destinationToken : sourceToken;
   const toTokenPrice = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
-  const sourceTokenUSDPrice = useTokenPrice(sourceToken?.address);
-  const destinationTokenUSDPrice = useTokenPrice(destinationToken?.address);
+
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
   const networkFee = useMemo(
     () => (destinationTokenUSDPrice && bestTrade.trade ? bestTrade.trade?.networkFeeByAmount.mul(destinationTokenUSDPrice) : undefined),
@@ -64,10 +66,11 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
   if (!isBothTokenSelected) return null;
   return (
     <Accordion
-      className="mt-6px rounded-20px border-2px border-solid border-orange-light-hover"
+      className={cx("rounded-20px border-2px border-solid border-orange-light-hover", fromPreview ? 'mt-8px' : 'mt-6px')}
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
+      expand={fromPreview}
       disabled={bestTrade.state !== TradeState.VALID}
     >
       {(expand) =>
@@ -86,7 +89,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
             )}
             {bestTrade.state === TradeState.ERROR && (
               <p className="ml-24px flex items-center leading-18px text-14px text-error-normal font-medium cursor-pointer underline">
-                Fetching best price Failed, please wait a moment and try again.
+                {bestTrade.error ?? 'Fetching best price Failed, please wait a moment and try again.'}
               </p>
             )}
           </>
@@ -115,7 +118,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
               </span>
             )}
 
-            <span className="accordion-arrow i-ic:sharp-keyboard-arrow-down absolute right-16px top-1/2 -translate-y-[calc(50%-2.5px)] text-16px font-medium" />
+            {!fromPreview && <span className="accordion-arrow i-ic:sharp-keyboard-arrow-down absolute right-16px top-1/2 -translate-y-[calc(50%-2.5px)] text-16px font-medium" />}
           </>
         )
       }
@@ -164,9 +167,12 @@ const SwapDetail: React.FC<Props> = ({ bestTrade }) => {
         <span>${networkFee?.toDecimalStandardUnit(5)}</span>
       </p>
 
-      <div className="my-16px h-2px bg-#FFF5E7" />
-
-      <AutoRouter bestTrade={bestTrade} />
+      {!fromPreview && (
+        <>
+          <div className="my-16px h-2px bg-#FFF5E7" />
+          <AutoRouter bestTrade={bestTrade} />
+        </>
+      )}
     </Accordion>
   );
 };

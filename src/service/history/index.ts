@@ -1,9 +1,13 @@
 import { useEffect } from 'react';
 import { atom, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
+import { showToast } from '@components/showPopup';
+import { toI18n, compiled } from '@hooks/useI18n';
 import { persistAtomWithDefault } from '@utils/recoilUtils';
+import { getUnwrapperTokenByAddress } from '@service/tokens';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
-import { useRefreshData, RefreshTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
+import { useRefreshData, RefreshTypeMap, transitions, TransitionsTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
+import { trimDecimalZeros } from '@utils/numberUtils';
 
 export enum HistoryStatus {
   Pending = 'Pending',
@@ -67,6 +71,23 @@ export const useHistory = () => {
             });
           }
           refreshFuncsShouldRun.forEach((func) => func());
+
+          const i18n = toI18n(transitions);
+          const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value } = record;
+          const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
+          const tokenB = getUnwrapperTokenByAddress(tokenB_Address);
+
+          showToast(
+            compiled(i18n[TransitionsTypeMap[record.type]], {
+              tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : tokenA_Value ?? '',
+              tokenASymbol: tokenA?.symbol ?? '',
+              tokenBValue: trimDecimalZeros(tokenB_Value ? Number(tokenB_Value).toFixed(4) : ''),
+              tokenBSymbol: tokenB?.symbol ?? '',
+            }),
+            {
+              type: 'success',
+            }
+          );
         });
       });
 

@@ -23,6 +23,8 @@ dist-ssr
 *.sw?
 
 .gitkeep
+.env.development.local
+*.local
 pnpm-lock.yaml
 stats.html
 package-lock.json

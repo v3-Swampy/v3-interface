@@ -2,34 +2,27 @@ import { sendTransaction } from '@service/account';
 import { UniswapV3SwapRouter } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { pack } from '@ethersproject/solidity';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
-import { showToast } from '@components/showPopup';
-import { toI18n, compiled } from '@hooks/useI18n';
 import { TradeType, type useBestTrade } from '@service/pairs&pool';
-import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance } from '@service/settings';
+import { getDeadline } from '@service/settings';
 import { getAccount } from '@service/account';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
+import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
-const transitions = {
-  en: {
-    success_tip: 'Swap {sourceTokenAmount} {sourceToken} to {destinationTokenAmount} {destinationToken} success!',
-  },
-  zh: {
-    success_tip: '兑换 {sourceTokenAmount} {sourceToken} 成 {destinationTokenAmount} {destinationToken} 成功!',
-  },
-} as const;
 
-export const handleSwap = async ({
+export const handleConfirmSwap = async ({
   sourceTokenAmount,
   destinationTokenAmount,
   bestTrade,
+  sourceTokenUSDPrice,
+  destinationTokenUSDPrice
 }: {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
   bestTrade: ReturnType<typeof useBestTrade>;
+  sourceTokenUSDPrice: string | null | undefined;
+  destinationTokenUSDPrice: string | null | undefined;
 }) => {
-  const i18n = toI18n(transitions);
   const sourceToken = getSourceToken();
   const sourceTokenWrapper = getWrapperTokenByAddress(sourceToken?.address);
   const destinationToken = getDestinationToken();
@@ -44,13 +37,6 @@ export const handleSwap = async ({
   const types = Array.from({ length: path.length }, (_, index) => (index % 2 === 1 ? 'uint24' : 'address'));
   console.log(tradeTypeFunctionName);
   console.log(route);
-  console.log({
-    path: pack(types, path),
-    recipient: account,
-    deadline: getDeadline(),
-    amountIn: Unit.fromMinUnit(route.at(-1)?.amountIn!).toHexMinUnit(),
-    amountOutMinimum: 0,
-  });
 
   const params = {
     path: pack(types, path),
@@ -75,20 +61,39 @@ export const handleSwap = async ({
 
   const data0 = UniswapV3SwapRouter.func.interface.encodeFunctionData(tradeTypeFunctionName, [params]);
   const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [
-    isDestinationTokenTokenCfx ? 0 : 0,
+    isDestinationTokenTokenCfx ? Unit.fromStandardUnit(destinationTokenAmount, destinationTokenWrpper.decimals).toHexMinUnit() : 0,
     account,
   ]);
 
-  const txHash = await sendTransaction({
+
+  const transactionParams = {
     value: isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit() : '0x0',
     data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [isDestinationTokenTokenCfx ? [data0, data1] : [data0]]),
     to: UniswapV3SwapRouter.address,
-  });
+  }
 
-  const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
-  await receiptPromise;
+  const recordParams = {
+    type: 'Swap',
+    tokenA_Address: sourceToken.address,
+    tokenA_Value: Unit.fromStandardUnit(sourceTokenAmount, sourceToken.decimals).toDecimalStandardUnit(5),
+    tokenB_Address: destinationToken.address,
+    tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5),
+  } as const;
 
-  showToast(compiled(i18n.success_tip, { sourceTokenAmount, destinationTokenAmount, sourceToken: sourceToken.symbol!, destinationToken: destinationToken.symbol! }), {
-    type: 'success',
+  showStakeConfirmModal({
+    sourceToken,
+    destinationToken,
+    sourceTokenAmount,
+    destinationTokenAmount,
+    sourceTokenUSDPrice,
+    destinationTokenUSDPrice,
+    bestTrade,
+    transactionParams,
+    recordParams
   });
+};
+
+export const handleSwap = async (transactionParams: { to: string; data: string; value: string }) => {
+  const txHash = await sendTransaction(transactionParams);
+  return txHash;
 };
