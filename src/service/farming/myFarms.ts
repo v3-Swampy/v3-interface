@@ -5,8 +5,7 @@ import { getPastIncentivesOfPool, computeIncentiveKey } from './';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds, PositionForUI, type Position } from '@service/position';
-import { usePoolList } from '@service/farming/index';
-import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey } from '@service/farming';
+import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, usePoolList, poolsQuery } from '@service/farming';
 import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
 import { fetchPools } from '@service/pairs&pool';
 import _ from 'lodash-es';
@@ -110,6 +109,8 @@ export const usePools = () => {
 const myFarmsListQuery = selector({
   key: `myFarmsListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
+    const pools = get(poolsQuery);
+
     const positions = get(myFarmsPositionsQuery).map((position) => {
       const { token0, token1, fee } = position;
       const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
@@ -126,19 +127,25 @@ const myFarmsListQuery = selector({
           tokenId: p.id,
           incentiveHistoryIndex: i,
           address: p.address,
-          position: p,
+          position: {
+            ...p,
+            pool: {
+              ...p.pool,
+              pid: pools.find((p1) => p1.address === p.address)?.pid,
+            },
+          },
         }));
       })
       .flat();
 
-    const multicall = await fetchMulticall(
+    const multicallOfStakes = await fetchMulticall(
       incentiveKeysOfAllPositions.map((i) => {
         return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('stakes', [i.tokenId, i.incentiveId])];
       })
     );
 
     const resOfMulticall =
-      multicall
+      multicallOfStakes
         ?.map((m, i) => {
           const [, liquidity] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('stakes', m);
           const position = incentiveKeysOfAllPositions[i];
@@ -152,12 +159,42 @@ const myFarmsListQuery = selector({
         })
         .filter((r) => r.liquidity > 0) || [];
 
-    const result = resOfMulticall.reduce(
-      (prev: any, curr) => {
-        if (curr.isActive) {
-          prev.active.push(curr);
+    const multicallOfRewards = await fetchMulticall(
+      resOfMulticall.map((r) => {
+        return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [r.incentiveKey, r.tokenId, r.position.pool.pid])];
+      })
+    );
+
+    const resOfMulticallOfRewards =
+      multicallOfRewards?.map((m) => {
+        const [reward] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', m);
+        return reward;
+      }) || [];
+
+    // console.log('resOfMulticallOfRewards: ', resOfMulticallOfRewards);
+
+    const result: {
+      liquidity: any; // position liquidity
+      isActive: boolean; // position is active or ended
+      incentiveKey: IncentiveKey;
+      whichIncentiveTokenIn: IncentiveKey;
+      incentiveHistoryIndex: number;
+      incentiveId: string;
+      tokenId: number; // position id
+      address: string; // position address, the same as pool address
+      position: Position;
+      claimable: string; // position claimable
+    }[] = resOfMulticall.reduce(
+      (prev: any, curr, index) => {
+        const r = {
+          ...curr,
+          claimable: resOfMulticallOfRewards[index].toString(),
+        };
+
+        if (r.isActive) {
+          prev.active.push(r);
         } else {
-          prev.ended.push(curr);
+          prev.ended.push(r);
         }
 
         return prev;
