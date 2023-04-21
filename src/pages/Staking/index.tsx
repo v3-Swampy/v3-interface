@@ -9,7 +9,6 @@ import DataDetail from './DataDetail';
 import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
-import { trimDecimalZeros } from '@utils/numberUtils';
 import { handleUnStake, useBoostFactor } from '@service/staking';
 import { TokenVST, TokenUSDT } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
@@ -113,7 +112,7 @@ const StakingPage: React.FC = () => {
                       <p className="font-medium mb-16px">{i18n.unstake_time}</p>
                       <p className="text-black-light font-normal">{displayedUnlockedTime}</p>
                     </div>
-                    <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime, unlockTime)}>
+                    <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
                       {i18n.extend}
                     </Button>
                   </div>
