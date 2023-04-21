@@ -133,20 +133,22 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
 
   if (!TokenVST) return null;
   return (
-    <div className="mt-24px">
-      <form onSubmit={onSubmit}>
-        {!disabledAmount && <AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />}
-        {!disabledLockTime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} currentUnlockTime={currentUnlockTime} />}
-        <p
-          className="pl-8px mt-16px w-full font-normal text-black-normal"
-          dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boosting}x` }) }}
-        />
+    <div className="mt-24px flex flex-1 flex-col">
+      <form onSubmit={onSubmit} className="flex flex-1 flex-col justify-between">
+        <div>
+          {!disabledAmount && <AmountInput register={register} setValue={setValue} TokenVST={TokenVST} />}
+          {!disabledLockTime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} currentUnlockTime={currentUnlockTime} />}
+          <p
+            className="pl-8px mt-16px w-full font-normal text-black-normal"
+            dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boosting}x` }) }}
+          />
+        </div>
         <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
           <Button {...buttonProps} loading={inTransaction}>
             {i18n.confirm}
           </Button>
         </AuthTokenButton>
-      </form>
+      </form >
     </div>
   );
 };
@@ -161,7 +163,7 @@ const showStakeModal = (type: ModalMode) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeModal type={type} {...confirmModalInnerProps} />,
-    className: '!max-w-572px !min-h-466px',
+    className: '!max-w-572px !min-h-466px flex flex-col',
   });
 };
 
