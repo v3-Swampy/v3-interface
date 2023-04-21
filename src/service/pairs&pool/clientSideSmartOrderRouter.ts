@@ -1,52 +1,52 @@
-import { BigintIsh,Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
-import { Pool } from '@uniswap/v3-sdk'
+import { BigintIsh, Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core';
+import { Pool } from '@uniswap/v3-sdk';
 import { RPC_PROVIDER } from '@utils/providers';
 // This file is lazy-loaded, so the import of smart-order-router is intentional.
 // eslint-disable-next-line no-restricted-imports
-import { AlphaRouter, AlphaRouterConfig, ChainId, routeAmountsToString, SwapRoute} from 'v-swap-smart-order-router';
-import JSBI from 'jsbi'
+import { AlphaRouter, AlphaRouterConfig, ChainId, routeAmountsToString, SwapRoute } from 'v-swap-smart-order-router';
+import JSBI from 'jsbi';
 import { targetChainId } from '@service/account';
 
-type TokenInRoute = Pick<Token, 'address' | 'chainId' | 'symbol' | 'decimals'>
+type TokenInRoute = Pick<Token, 'address' | 'chainId' | 'symbol' | 'decimals'>;
 
 export type V3PoolInRoute = {
-  type: 'v3-pool'
-  tokenIn: TokenInRoute
-  tokenOut: TokenInRoute
-  sqrtRatioX96: string
-  liquidity: string
-  tickCurrent: string
-  fee: string
-  amountIn?: string
-  amountOut?: string
+  type: 'v3-pool';
+  tokenIn: TokenInRoute;
+  tokenOut: TokenInRoute;
+  sqrtRatioX96: string;
+  liquidity: string;
+  tickCurrent: string;
+  fee: string;
+  amountIn?: string;
+  amountOut?: string;
 
   // not used in the interface
-  address?: string
-}
+  address?: string;
+};
 
 interface GetQuoteResult {
-  quoteId?: string
-  blockNumber: string
-  amount: string
-  amountDecimals: string
-  gasPriceWei: string
-  gasUseEstimate: string
-  gasUseEstimateQuote: string
-  gasUseEstimateQuoteDecimals: string
-  gasUseEstimateUSD: string
-  methodParameters?: { calldata: string; value: string }
-  quote: string
-  quoteDecimals: string
-  quoteGasAdjusted: string
-  quoteGasAdjustedDecimals: string
-  route: Array<(V3PoolInRoute)[]>
-  routeString: string
+  quoteId?: string;
+  blockNumber: string;
+  amount: string;
+  amountDecimals: string;
+  gasPriceWei: string;
+  gasUseEstimate: string;
+  gasUseEstimateQuote: string;
+  gasUseEstimateQuoteDecimals: string;
+  gasUseEstimateUSD: string;
+  methodParameters?: { calldata: string; value: string };
+  quote: string;
+  quoteDecimals: string;
+  quoteGasAdjusted: string;
+  quoteGasAdjustedDecimals: string;
+  route: Array<V3PoolInRoute[]>;
+  routeString: string;
 }
 
 export enum Protocol {
-  V2 = "V2",
-  V3 = "V3",
-  MIXED = "MIXED"
+  V2 = 'V2',
+  V3 = 'V3',
+  MIXED = 'MIXED',
 }
 
 export function getRouter(): AlphaRouter {
@@ -58,38 +58,28 @@ export function getRouter(): AlphaRouter {
 export function transformSwapRouteToGetQuoteResult(
   type: TradeType,
   amount: CurrencyAmount<Currency>,
-  {
-    quote,
-    quoteGasAdjusted,
-    route,
-    estimatedGasUsed,
-    estimatedGasUsedQuoteToken,
-    estimatedGasUsedUSD,
-    gasPriceWei,
-    methodParameters,
-    blockNumber,
-  }: SwapRoute
+  { quote, quoteGasAdjusted, route, estimatedGasUsed, estimatedGasUsedQuoteToken, estimatedGasUsedUSD, gasPriceWei, methodParameters, blockNumber }: SwapRoute
 ): GetQuoteResult {
-  const routeResponse: Array<(V3PoolInRoute)[]> = []
+  const routeResponse: Array<V3PoolInRoute[]> = [];
 
   for (const subRoute of route) {
-    const { amount, quote, tokenPath } = subRoute
+    const { amount, quote, tokenPath } = subRoute;
 
-    const pools = subRoute.protocol === Protocol.V2 ? subRoute.route.pairs : subRoute.route.pools
-    const curRoute: (V3PoolInRoute)[] = []
+    const pools = subRoute.protocol === Protocol.V2 ? subRoute.route.pairs : subRoute.route.pools;
+    const curRoute: V3PoolInRoute[] = [];
     for (let i = 0; i < pools.length; i++) {
-      const nextPool = pools[i]
-      const tokenIn = tokenPath[i]
-      const tokenOut = tokenPath[i + 1]
+      const nextPool = pools[i];
+      const tokenIn = tokenPath[i];
+      const tokenOut = tokenPath[i + 1];
 
-      let edgeAmountIn = undefined
+      let edgeAmountIn = undefined;
       if (i === 0) {
-        edgeAmountIn = type === TradeType.EXACT_INPUT ? amount.quotient.toString() : quote.quotient.toString()
+        edgeAmountIn = type === TradeType.EXACT_INPUT ? amount.quotient.toString() : quote.quotient.toString();
       }
 
-      let edgeAmountOut = undefined
+      let edgeAmountOut = undefined;
       if (i === pools.length - 1) {
-        edgeAmountOut = TradeType.EXACT_INPUT ? quote.quotient.toString() : amount.quotient.toString()
+        edgeAmountOut = TradeType.EXACT_INPUT ? quote.quotient.toString() : amount.quotient.toString();
       }
 
       if (nextPool instanceof Pool) {
@@ -113,11 +103,11 @@ export function transformSwapRouteToGetQuoteResult(
           tickCurrent: nextPool.tickCurrent.toString(),
           amountIn: edgeAmountIn,
           amountOut: edgeAmountOut,
-        })
+        });
       }
     }
 
-    routeResponse.push(curRoute)
+    routeResponse.push(curRoute);
   }
 
   const result: GetQuoteResult = {
@@ -136,9 +126,9 @@ export function transformSwapRouteToGetQuoteResult(
     gasPriceWei: gasPriceWei.toString(),
     route: routeResponse,
     routeString: routeAmountsToString(route),
-  }
+  };
 
-  return result
+  return result;
 }
 
 async function getQuote(
@@ -148,60 +138,43 @@ async function getQuote(
     tokenOut,
     amount: amountRaw,
   }: {
-    type: TradeType
-    tokenIn: { address: string; chainId: number; decimals: number; symbol?: string }
-    tokenOut: { address: string; chainId: number; decimals: number; symbol?: string }
-    amount: BigintIsh
+    type: TradeType;
+    tokenIn: { address: string; chainId: number; decimals: number; symbol?: string };
+    tokenOut: { address: string; chainId: number; decimals: number; symbol?: string };
+    amount: BigintIsh;
   },
   router: AlphaRouter,
   config: Partial<AlphaRouterConfig>
 ): Promise<{ data: GetQuoteResult; error?: unknown }> {
-  const currencyIn = new Token(tokenIn.chainId, tokenIn.address, tokenIn.decimals, tokenIn.symbol)
-  const currencyOut = new Token(tokenOut.chainId, tokenOut.address, tokenOut.decimals, tokenOut.symbol)
+  const currencyIn = new Token(tokenIn.chainId, tokenIn.address, tokenIn.decimals, tokenIn.symbol);
+  const currencyOut = new Token(tokenOut.chainId, tokenOut.address, tokenOut.decimals, tokenOut.symbol);
 
-  const baseCurrency = type === TradeType.EXACT_INPUT ? currencyIn : currencyOut
-  const quoteCurrency = type === TradeType.EXACT_INPUT ? currencyOut : currencyIn
-  const amount = CurrencyAmount.fromRawAmount(baseCurrency, JSBI.BigInt(amountRaw))
+  const baseCurrency = type === TradeType.EXACT_INPUT ? currencyIn : currencyOut;
+  const quoteCurrency = type === TradeType.EXACT_INPUT ? currencyOut : currencyIn;
+  const amount = CurrencyAmount.fromRawAmount(baseCurrency, JSBI.BigInt(amountRaw));
 
-  const swapRoute = await router.route(
-    amount,
-    quoteCurrency,
-    type,
-    /*swapConfig=*/ undefined,
-    config
-  )
+  const swapRoute = await router.route(amount, quoteCurrency, type, /*swapConfig=*/ undefined, config);
 
-  if (!swapRoute) throw new Error('Failed to generate client side quote')
+  if (!swapRoute) throw new Error('Failed to generate client side quote');
 
-  return { data: transformSwapRouteToGetQuoteResult(type, amount, swapRoute) }
+  return { data: transformSwapRouteToGetQuoteResult(type, amount, swapRoute) };
 }
 
 interface QuoteArguments {
-  tokenInAddress: string
-  tokenInChainId: ChainId
-  tokenInDecimals: number
-  tokenInSymbol?: string
-  tokenOutAddress: string
-  tokenOutChainId: ChainId
-  tokenOutDecimals: number
-  tokenOutSymbol?: string
-  amount: string
-  type: TradeType
+  tokenInAddress: string;
+  tokenInChainId: ChainId;
+  tokenInDecimals: number;
+  tokenInSymbol?: string;
+  tokenOutAddress: string;
+  tokenOutChainId: ChainId;
+  tokenOutDecimals: number;
+  tokenOutSymbol?: string;
+  amount: string;
+  type: TradeType;
 }
 
 export async function getClientSideQuote(
-  {
-    tokenInAddress,
-    tokenInChainId,
-    tokenInDecimals,
-    tokenInSymbol,
-    tokenOutAddress,
-    tokenOutChainId,
-    tokenOutDecimals,
-    tokenOutSymbol,
-    amount,
-    type,
-  }: QuoteArguments,
+  { tokenInAddress, tokenInChainId, tokenInDecimals, tokenInSymbol, tokenOutAddress, tokenOutChainId, tokenOutDecimals, tokenOutSymbol, amount, type }: QuoteArguments,
   router: AlphaRouter,
   config: Partial<AlphaRouterConfig>
 ) {
@@ -224,5 +197,5 @@ export async function getClientSideQuote(
     },
     router,
     config
-  )
+  );
 }
