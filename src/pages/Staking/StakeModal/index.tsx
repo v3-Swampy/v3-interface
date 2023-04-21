@@ -161,7 +161,7 @@ const showStakeModal = (type: ModalMode) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeModal type={type} {...confirmModalInnerProps} />,
-    className: '!max-w-572px',
+    className: '!max-w-572px !min-h-466px',
   });
 };
 
