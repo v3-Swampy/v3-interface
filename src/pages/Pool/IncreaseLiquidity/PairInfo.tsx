@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import useI18n from '@hooks/useI18n';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
-import { usePosition } from '@service/position';
+import { type PositionForUI } from '@service/position';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
 
 const transitions = {
@@ -17,10 +17,9 @@ const transitions = {
   },
 } as const;
 
-const PairInfo: React.FC = () => {
+const PairInfo: React.FC<{ position: PositionForUI | undefined }> = ({ position }) => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
-  const position = usePosition(Number(tokenId));
   const { fee, amount0, amount1 } = position ?? {};
 
   if (!position) return null;

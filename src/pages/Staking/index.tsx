@@ -9,7 +9,6 @@ import DataDetail from './DataDetail';
 import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
-import { trimDecimalZeros } from '@utils/numberUtils';
 import { handleUnStake, useBoostFactor } from '@service/staking';
 import { TokenVST, TokenUSDT } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
@@ -61,7 +60,7 @@ const StakingPage: React.FC = () => {
   const boostingFactor = useBoostFactor();
   const stakingStatus = useMemo(() => {
     if (unlockTime === 0 || lockedAmount === '0') return PersonalStakingStatus.UNLOCKED;
-    if (unlockTime <= new Date().valueOf() / 1000) return PersonalStakingStatus.TO_UNLOCK;
+    if (unlockTime <= dayjs().unix()) return PersonalStakingStatus.TO_UNLOCK;
     return PersonalStakingStatus.LOCKED;
   }, [lockedAmount, unlockTime]);
 
@@ -70,7 +69,7 @@ const StakingPage: React.FC = () => {
   }, [unlockTime]);
 
   const lockedBalanceUSD = useMemo(() => {
-    return VSTPrice && lockedAmount ? numberWithCommas(new Unit(lockedAmount).mul(VSTPrice).toDecimalStandardUnit(3, TokenVST.decimals)) : '-'
+    return VSTPrice && lockedAmount ? numberWithCommas(new Unit(lockedAmount).mul(VSTPrice).toDecimalMinUnit(3)) : '-'
   }, [VSTPrice, lockedAmount]);
 
   return (
@@ -113,7 +112,7 @@ const StakingPage: React.FC = () => {
                       <p className="font-medium mb-16px">{i18n.unstake_time}</p>
                       <p className="text-black-light font-normal">{displayedUnlockedTime}</p>
                     </div>
-                    <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime, unlockTime)}>
+                    <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
                       {i18n.extend}
                     </Button>
                   </div>

@@ -5,7 +5,7 @@ import cx from 'clsx';
 import Input from '@components/Input';
 import Button from '@components/Button';
 import Balance from '@modules/Balance';
-import { type Token } from '@service/tokens';
+import { isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
 import { usePool, FeeAmount } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
@@ -38,7 +38,7 @@ interface Props {
   /** When creating Position, the lower price may be greater than the upper price.
    * However, when creating and removing, it is definitely true.
    * */
-  isRangeValid?: boolean | null;
+  isRangeValid: boolean | null;
   /**
    * When creating Position, pool may not exist.
    * So there will be a manually entered priceInit value
@@ -139,7 +139,7 @@ const DepositAmount: React.FC<
 
       {isOutOfRange && (
         <>
-          <LockIcon className='w-20px h-24px' />
+          <LockIcon className="w-20px h-24px" />
           <p className="mt-4px text-center text-12px text-gray-normal">{i18n.outof_range}</p>
         </>
       )}
@@ -147,8 +147,22 @@ const DepositAmount: React.FC<
   );
 };
 
-const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeValid, priceInit, priceLower, priceUpper, setValue, getValues, register }) => {
+const DepositAmounts: React.FC<Props> = ({
+  tokenA,
+  tokenB,
+  fee,
+  title,
+  isRangeValid,
+  priceInit,
+  priceLower: _priceLower,
+  priceUpper: _priceUpper,
+  setValue,
+  getValues,
+  register,
+}) => {
   const i18n = useI18n(transitions);
+  const priceLower = useMemo(() => (_priceLower ? new Unit(_priceLower) : undefined), [_priceLower]);
+  const priceUpper = useMemo(() => (_priceUpper ? new Unit(_priceUpper) : undefined), [_priceUpper]);
 
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
@@ -157,11 +171,13 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
     [tokenA?.address, pool, priceInit]
   );
   const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
+  
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
-  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !Number.isNaN(Number(priceLower)) ? priceTokenA.lessThan(priceLower) : false;
-  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !Number.isNaN(Number(priceUpper)) ? priceTokenA.greaterThan(priceUpper) : false;
+  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThan(priceLower) : false;
+  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThan(priceUpper) : false;
 
   const token0PriceFixed5 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(5) : null), [priceTokenA]);
+  
   useLayoutEffect(() => {
     const value = getValues();
     const amountTokenA = value['amount-tokenA'];
@@ -173,7 +189,6 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
     setValue('amount-tokenB', trimDecimalZeros(tokenBExpectedAmount.toDecimalMinUnit(tokenB?.decimals)));
   }, [token0PriceFixed5]);
 
-
   useLayoutEffect(() => {
     if (isPriceLowerGreaterThanCurrentPrice) {
       setValue('amount-tokenB', '');
@@ -182,7 +197,7 @@ const DepositAmounts: React.FC<Props> = ({ tokenA, tokenB, fee, title, isRangeVa
     if (isPriceUpperLessThanCurrentPrice) {
       setValue('amount-tokenA', '');
     }
-  }, [isPriceUpperLessThanCurrentPrice, isPriceLowerGreaterThanCurrentPrice])
+  }, [isPriceUpperLessThanCurrentPrice, isPriceLowerGreaterThanCurrentPrice]);
 
   if (!tokenA || !tokenB || !fee) return null;
   return (

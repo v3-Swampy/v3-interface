@@ -17,11 +17,12 @@ import { useRefreshStakedPositions } from '@service/farming/myFarms';
 const transitions = {
   en: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
-    position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liqudity to the pool',
+    position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
+    position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
     stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
-    statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
-    stake_increase_amount: 'Increase stake amount <b>>{tokenAValue} {tokenASymbol}</b>',
+    stake_increase_unlock_time: 'Increase unlock time {tokenAValue}',
+    stake_increase_amount: 'Increase stake amount <b>{tokenAValue} {tokenASymbol}</b>',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
     claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
@@ -29,10 +30,11 @@ const transitions = {
   },
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
-    position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liqudity to the pool',
+    position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
+    position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
     stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
-    statke_increase_unlock_time: 'Increase unlock time {tokenAValue}',
+    stake_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase stake <b>{tokenAValue} {tokenASymbol}</b>',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
@@ -44,9 +46,10 @@ const transitions = {
 const HistoryTypeMap = {
   ['Swap']: 'swap',
   ['Position_AddLiquidity']: 'position_add_liquidity',
+  ['Position_IncreaseLiquidity']: 'position_increase_liquidity',
   ['Position_CollectFees']: 'position_collect_fees',
   ['Stake_CreateLock']: 'stake_create_lock',
-  ['Stake_IncreaseUnlockTime']: 'statke_increase_unlock_time',
+  ['Stake_IncreaseUnlockTime']: 'stake_increase_unlock_time',
   ['Stake_IncreaseAmount']: 'stake_increase_amount',
   ['Position_RemoveLiquidity']: 'remove_liquidity',
   ['AllFarms_StakedLP']: 'stake_lp_of_all_farms',
@@ -73,6 +76,7 @@ type RefreshKey = keyof ReturnType<typeof useRefreshData>;
 export const RefreshTypeMap = {
   ['Swap']: 'refreshPositions',
   ['Position_AddLiquidity']: 'refreshPositions',
+  ['Position_IncreaseLiquidity']: 'refreshPositions',
   ['Position_CollectFees']: 'refreshPositions',
   ['Stake_CreateLock']: 'refreshPositions',
   ['Stake_IncreaseUnlockTime']: 'refreshPositions',
@@ -84,6 +88,9 @@ export const RefreshTypeMap = {
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 
+
+
+
 export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);
   const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
@@ -94,7 +101,7 @@ export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?
       className={cx('history-record flex-shrink-1 flex-grow-1', className)}
       dangerouslySetInnerHTML={{
         __html: compiled(i18n[HistoryTypeMap[type]], {
-          tokenAValue: trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : ''),
+          tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : (tokenA_Value ?? ''),
           tokenASymbol: tokenA?.symbol ?? '',
           tokenBValue: trimDecimalZeros(tokenB_Value ? Number(tokenB_Value).toFixed(4) : ''),
           tokenBSymbol: tokenB?.symbol ?? '',

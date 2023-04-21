@@ -1,11 +1,12 @@
-import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
-import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
-import _ from 'lodash-es';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import Decimal from 'decimal.js';
+import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
+import { chunk } from 'lodash-es';
 import dayjs from 'dayjs';
 import { getTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
-import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { sendTransaction } from '@service/account';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
 import { useTokenPrice } from '@service/pairs&pool';
 import { defaultAbiCoder } from '@ethersproject/abi';
@@ -152,7 +153,7 @@ export const usePoolList = () => {
         );
 
         const pairInfos = resOfMulticall2
-          ? _.chunk(resOfMulticall2, 5).map((r, i) => {
+          ? chunk(resOfMulticall2, 5).map((r, i) => {
               return {
                 token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
                 token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],

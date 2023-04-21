@@ -6,7 +6,7 @@ import BorderBox from '@components/Box/BorderBox';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import { exchangeTokenDirection, handleSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken, getSourceToken, getDestinationToken } from '@service/swap';
-import { useBestTrade, TradeState } from '@service/pairs&pool';
+import { useBestTrade, TradeState, useClientBestTrade, useServerBestTrade } from '@service/pairs&pool';
 import { TradeType } from '@service/pairs&pool/bestTrade';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
@@ -33,7 +33,10 @@ const SwapPage: React.FC = () => {
   const [inputedType, setInputedType] = useState<'sourceToken' | 'destinationToken' | null>(null);
   const inputedAmount = inputedType === null ? '' : inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
-  const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+  const bestTrade = useServerBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+  const clientBestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
+  // console.log('serverBestTrade', bestTrade?.trade?.amountIn?.toDecimalStandardUnit(undefined,18), bestTrade?.trade?.amountOut?.toDecimalStandardUnit(undefined,18))
+  // console.log('clientBestTrade', clientBestTrade?.trade?.amountIn?.toDecimalStandardUnit(undefined,18), clientBestTrade?.trade?.amountOut?.toDecimalStandardUnit(undefined,18))
   useEffect(() => {
     if (inputedType && bestTrade.state === TradeState.VALID && bestTrade?.trade) {
       const sourceToken = getSourceToken();
@@ -42,9 +45,9 @@ const SwapPage: React.FC = () => {
         `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
         inputedAmount
           ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
-              undefined,
-              (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
-            )
+            undefined,
+            (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
+          )
           : ''
       );
     }

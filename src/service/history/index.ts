@@ -18,6 +18,7 @@ export interface HistoryRecord {
     | 'Swap'
     | 'Position_AddLiquidity'
     | 'Position_CollectFees'
+    | 'Position_IncreaseLiquidity'
     | 'Stake_CreateLock'
     | 'Stake_IncreaseUnlockTime'
     | 'Stake_IncreaseAmount'

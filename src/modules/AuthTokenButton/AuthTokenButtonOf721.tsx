@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, type ComponentProps } from 'react';
 import { debounce } from 'lodash-es';
-import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { sendTransaction } from '@service/account';
 import useI18n from '@hooks/useI18n';
 import { createERC721Contract } from '@contracts/index'; // 更改为导入 ERC721 合约
 import Button from '@components/Button';

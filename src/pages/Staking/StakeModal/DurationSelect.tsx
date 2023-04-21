@@ -11,6 +11,7 @@ interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
   currentStakeDuration: number;
+  currentUnlockTime?: number;
 }
 
 const transitions = {
@@ -34,14 +35,15 @@ const transitions = {
 
 const DurationOptions = [duration(1, 'week'), duration(2, 'week'), duration(1, 'month'), duration(2, 'month'), duration(3, 'month'), duration(6, 'month')];
 export const defaultDuration = DurationOptions[0].asSeconds();
-const defaultDurationText = `1 week`;
+export const defaultDurationText = `1 week`;
 
-const DurationSelect: React.FC<Props> = ({ register, setValue, currentStakeDuration }) => {
+const DurationSelect: React.FC<Props> = ({ register, setValue, currentStakeDuration, currentUnlockTime }) => {
   const i18n = useI18n(transitions);
 
   const [untilTime, setUntilTime] = useState('');
   useEffect(() => {
-    setUntilTime(dayjs().add(currentStakeDuration, 'second').format('YYYY-MM-DD HH:00'));
+    const unlockTime = currentUnlockTime ? dayjs.unix(currentUnlockTime) : dayjs();
+    setUntilTime(unlockTime.add(currentStakeDuration, 'second').format('YYYY-MM-DD HH:00'));
   }, [currentStakeDuration]);
 
   const handleSelectDuration = useCallback(

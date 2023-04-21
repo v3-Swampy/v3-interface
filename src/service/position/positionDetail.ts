@@ -4,7 +4,6 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { sendTransaction } from '@service/account';
 import { PositionForUI, PositionsForUISelector } from './positions';
-import { trimDecimalZeros } from '@utils/numberUtils';
 import { accountState } from '@service/account';
 import { addRecordToHistory } from '@service/history';
 import Decimal from 'decimal.js';
