@@ -1,6 +1,7 @@
 import { sendTransaction } from '@service/account';
 import { UniswapV3SwapRouter } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { pack } from '@ethersproject/solidity';
 import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
 import { showToast } from '@components/showPopup';
 import { toI18n, compiled } from '@hooks/useI18n';
@@ -36,42 +37,51 @@ export const handleSwap = async ({
   const account = getAccount();
   if (!sourceTokenWrapper || !destinationTokenWrpper || !sourceTokenAmount || !destinationTokenAmount || !bestTrade?.trade || !account || !sourceToken || !destinationToken) return;
 
-  const hexSourceTokenAmount = Unit.fromStandardUnit(sourceTokenAmount, sourceToken.decimals).toHexMinUnit();
-  const hexDestinationTokenAmount = Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toHexMinUnit();
-
   const { route, tradeType } = bestTrade.trade;
-  const singleHop = route.length === 1;
-  let tradeTypeFunctionName: 'exactInputSingle' | 'exactOutputSingle' | 'quoteExactInput' | 'quoteExactOutput';
-  if (singleHop) {
-    tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'exactInputSingle' : 'exactOutputSingle';
-  } else {
-    tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInput' : 'quoteExactOutput';
-  }
-  console.log(route, route[0])
-  console.log(tradeTypeFunctionName)
-  const params = {}
-  if (singleHop) {
+  if (!route.length) return;
+  const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'exactInput' : 'exactInput';
+  const path = route.reduce((pre, cur) => pre.concat(cur.fee, cur.tokenOut.address), [route.at(0)?.tokenIn.address] as Array<string>);
+  const types = Array.from({ length: path.length }, (_, index) => (index % 2 === 1 ? 'uint24' : 'address'));
+  console.log(tradeTypeFunctionName);
+  console.log(route);
+  console.log({
+    path: pack(types, path),
+    recipient: account,
+    deadline: getDeadline(),
+    amountIn: Unit.fromMinUnit(route.at(-1)?.amountIn!).toHexMinUnit(),
+    amountOutMinimum: 0,
+  });
+
+  const params = {
+    path: pack(types, path),
+    recipient: account,
+    deadline: getDeadline(),
+  };
+
+  if (tradeTypeFunctionName === 'exactInput') {
     Object.assign(params, {
-      tokenIn: sourceTokenWrapper.address,
-      tokenOut: destinationTokenWrpper.address,
-      fee: route[0].fee,
-      recipient: account,
-      deadline: getDeadline(),
       amountIn: Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit(),
       amountOutMinimum: 0,
-      sqrtPriceLimitX96: 0
     });
   } else {
     Object.assign(params, {
-
+      amountOut: Unit.fromStandardUnit(destinationTokenAmount, destinationTokenWrpper.decimals).toHexMinUnit(),
+      amountInMaximum: 0,
     });
   }
 
   const isSourceTokenCfx = sourceToken?.address === 'CFX';
+  const isDestinationTokenTokenCfx = destinationToken?.address === 'CFX';
+
+  const data0 = UniswapV3SwapRouter.func.interface.encodeFunctionData(tradeTypeFunctionName, [params]);
+  const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [
+    isDestinationTokenTokenCfx ? 0 : 0,
+    account,
+  ]);
 
   const txHash = await sendTransaction({
     value: isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit() : '0x0',
-    data: UniswapV3SwapRouter.func.interface.encodeFunctionData(tradeTypeFunctionName, [params]),
+    data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [isDestinationTokenTokenCfx ? [data0, data1] : [data0]]),
     to: UniswapV3SwapRouter.address,
   });
 

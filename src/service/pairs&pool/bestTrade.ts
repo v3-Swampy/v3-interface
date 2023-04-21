@@ -55,7 +55,7 @@ export enum TradeState {
 export interface BestTrade {
   state: TradeState;
   trade?: {
-    route: Route[][];
+    route: Route[];
     amountIn: Unit;
     amountOut: Unit;
     priceIn: Unit;
