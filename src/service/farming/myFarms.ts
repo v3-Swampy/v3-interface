@@ -1,26 +1,50 @@
-import { useMemo,useState,useEffect } from 'react';
-import { UniswapV3StakerFactory } from '@contracts/index';
+import { useMemo, useState, useEffect } from 'react';
 import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey } from './';
-import { VSTTokenContract } from '@contracts/index';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
-import { positionQueryByTokenId, positionsQueryByTokenIds,PositionForUI } from '@service/position';
+import { positionQueryByTokenId, positionsQueryByTokenIds, PositionForUI, type Position } from '@service/position';
 import { usePoolList } from '@service/farming/index';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey } from '@service/farming';
-import { fetchMulticall } from '@contracts/index';
+import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
+import { fetchPools } from '@service/pairs&pool';
+import _ from 'lodash-es';
+import { enhancePositionForUI } from '@service/position';
+import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
+import { decodePosition } from '@service/position/positions';
 
 export interface FarmingPosition extends PositionForUI {
-  isActive:boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
-  whichIncentiveTokenIn:IncentiveKey
-  claimable?:number
+  isActive: boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
+  whichIncentiveTokenIn: IncentiveKey;
+  claimable?: number;
 }
-/**
- * Get the staked token id of user
- */
-const stakedTokenIdsState = selector({
-  key: `stakedTokenIds-${import.meta.env.MODE}`,
+
+export const myFarmsPositionsQueryByTokenIds = selectorFamily({
+  key: `myFarmsPositionsQueryByTokenIds-${import.meta.env.MODE}`,
+  get:
+    (tokenIds: Array<number>) =>
+    async ({ get }) => {
+      if (!tokenIds?.length) return [];
+
+      const positionsResult = await fetchMulticall(
+        tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+      );
+
+      if (Array.isArray(positionsResult))
+        return positionsResult?.map((singleRes, index) => {
+          const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+          const position: Position = decodePosition(tokenIds[index], decodeRes);
+
+          return position;
+        });
+      return [];
+    },
+});
+
+// get tokenIds (positions) of user
+const myTokenIdsQuery = selector({
+  key: `myTokenIdsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const account = get(accountState);
 
@@ -34,7 +58,25 @@ const stakedTokenIdsState = selector({
           Array.from({ length }).map((_, i) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('tokenIds', [account, i])])
         )
       )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('tokenIds', r)[0]) || [];
-    tokenIds=[...new Set(tokenIds)] 
+
+    tokenIds = [...new Set(tokenIds)];
+
+    return tokenIds;
+  },
+});
+
+/**
+ * Get the staked tokenIds (positions) of user
+ */
+const stakedTokenIdsQuery = selector({
+  key: `stakedTokenIdsQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const account = get(accountState);
+
+    if (!account) return [];
+
+    const tokenIds = get(myTokenIdsQuery);
+
     const stakedTokenIds =
       (await fetchMulticall(tokenIds.map((tokenId) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('deposits', [tokenId])])))
         ?.map((d, i) => (UniswapV3StakerFactory.func.interface.decodeFunctionResult('deposits', d)[1] > 0 ? Number(tokenIds[i]) : null))
@@ -43,6 +85,96 @@ const stakedTokenIdsState = selector({
     return stakedTokenIds as number[];
   },
 });
+
+const myFarmsPositionsQuery = selector({
+  key: `myFarmsPositionsQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const stakedTokenIds = get(stakedTokenIdsQuery);
+    const positions = get(myFarmsPositionsQueryByTokenIds(stakedTokenIds));
+    return positions;
+  },
+});
+
+const myFarmsPoolsQuery = selector({
+  key: `myFarmsPoolsQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const positions = get(myFarmsPositionsQuery);
+    return fetchPools(_.uniqBy(positions, (p) => p.address));
+  },
+});
+
+export const usePools = () => {
+  return useRecoilValue(myFarmsPoolsQuery);
+};
+
+const myFarmsListQuery = selector({
+  key: `myFarmsListQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const positions = get(myFarmsPositionsQuery).map((position) => {
+      const { token0, token1, fee } = position;
+      const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
+      return enhancePositionForUI(position, pool);
+    });
+
+    const currentIndex = getCurrentIncentiveIndex();
+
+    const incentiveKeysOfAllPositions = positions
+      .map((p) => {
+        return getPastIncentivesOfPool(p.address).map((k, i) => ({
+          incentiveKey: k,
+          incentiveId: computeIncentiveKey(k),
+          tokenId: p.id,
+          incentiveHistoryIndex: i,
+          address: p.address,
+          position: p,
+        }));
+      })
+      .flat();
+
+    const multicall = await fetchMulticall(
+      incentiveKeysOfAllPositions.map((i) => {
+        return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('stakes', [i.tokenId, i.incentiveId])];
+      })
+    );
+
+    const resOfMulticall =
+      multicall
+        ?.map((m, i) => {
+          const [, liquidity] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('stakes', m);
+          const position = incentiveKeysOfAllPositions[i];
+
+          return {
+            ...position,
+            liquidity,
+            isActive: position.incentiveHistoryIndex === currentIndex,
+            whichIncentiveTokenIn: position.incentiveKey,
+          };
+        })
+        .filter((r) => r.liquidity > 0) || [];
+
+    const result = resOfMulticall.reduce(
+      (prev: any, curr) => {
+        if (curr.isActive) {
+          prev.active.push(curr);
+        } else {
+          prev.ended.push(curr);
+        }
+
+        return prev;
+      },
+      {
+        active: [],
+        ended: [],
+      }
+    );
+
+    return result;
+  },
+});
+
+export const useMyFarmsList = () => {
+  return useRecoilValue(myFarmsListQuery);
+};
 
 /**
  * Get which incentive the tokenId in
@@ -96,30 +228,26 @@ const whichIncentiveTokenIdInState = selectorFamily({
 //     },
 // });
 
-
-
-
-
 const stakedPositionsQuery = selector<Array<FarmingPosition>>({
   key: `StakedPositionsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
-    const stakedTokenIds = get(stakedTokenIdsState);
-    const stakedPositions=get(positionsQueryByTokenIds(stakedTokenIds))
-    const currentIndex=getCurrentIncentiveIndex()
-    const _stakedPositions:Array<FarmingPosition>=[]
-    stakedPositions.map((position)=>{
-      const _position={...position} as FarmingPosition
-      const whichIncentiveTokenIn=get(whichIncentiveTokenIdInState(position.id))
-      _position.isActive=whichIncentiveTokenIn.index==currentIndex
-      _position.whichIncentiveTokenIn=whichIncentiveTokenIn.incentive
-      _stakedPositions.push(_position)
-    })
-    return _stakedPositions
+    const stakedTokenIds = get(stakedTokenIdsQuery);
+    const stakedPositions = get(positionsQueryByTokenIds(stakedTokenIds));
+    const currentIndex = getCurrentIncentiveIndex();
+    const _stakedPositions: Array<FarmingPosition> = [];
+    stakedPositions.map((position) => {
+      const _position = { ...position } as FarmingPosition;
+      const whichIncentiveTokenIn = get(whichIncentiveTokenIdInState(position.id));
+      _position.isActive = whichIncentiveTokenIn.index == currentIndex;
+      _position.whichIncentiveTokenIn = whichIncentiveTokenIn.incentive;
+      _stakedPositions.push(_position);
+    });
+    return _stakedPositions;
   },
 });
 
 export const useStakedTokenIds = () => {
-  const stakedTokenIds = useRecoilValue(stakedTokenIdsState);
+  const stakedTokenIds = useRecoilValue(stakedTokenIdsQuery);
   return stakedTokenIds;
 };
 
@@ -193,7 +321,6 @@ export const getwhichIncentiveTokenIdIn = (tokenId: number) => getRecoil(whichIn
 
 export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(whichIncentiveTokenIdInState(+tokenId));
 
-
 export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
 export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedPositionsQuery);
 
@@ -210,9 +337,9 @@ export const useMyFarmingList = () => {
   return myFarmingList;
 };
 
-export const useStakedPositionsByPool = (poolAddress: string, isActive:boolean) => {
+export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean) => {
   const stakedPostions = useStakedPositions();
-  const positions = useMemo(() => stakedPostions.filter((position) => position.address == poolAddress&&position.isActive==isActive), [stakedPostions]);
+  const positions = useMemo(() => stakedPostions.filter((position) => position.address == poolAddress && position.isActive == isActive), [stakedPostions]);
   return positions;
 };
 
@@ -223,33 +350,34 @@ export const useIsPositionActive = (tokenId: number) => {
   }, [tokenId.toString()]);
 };
 
-export const useCalcRewards=(positionList:Array<FarmingPosition>,pid:number)=>{
+export const useCalcRewards = (positionList: Array<FarmingPosition>, pid: number) => {
   const [positionsTotalReward, setPositionsTotalReward] = useState<number>(0);
-  const [rewardList,setRewardList]=useState<Array<number>>([])
-  if(positionList.length==0) return {}
-  let rewards=0
-  useEffect(()=>{
-    async function main(positions:Array<FarmingPosition>,pid:number){
+  const [rewardList, setRewardList] = useState<Array<number>>([]);
+  if (positionList.length == 0) return {};
+  let rewards = 0;
+  useEffect(() => {
+    async function main(positions: Array<FarmingPosition>, pid: number) {
       (
         await fetchMulticall(
           positions.map((position, i) => {
-            const key=position.isActive?getCurrentIncentiveKey(position.address):position.whichIncentiveTokenIn
-            return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id,pid])]
+            const key = position.isActive ? getCurrentIncentiveKey(position.address) : position.whichIncentiveTokenIn;
+            return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id, pid])];
           })
         )
-      )?.map((r,i) => {
-        const claimable=UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0]
-        rewardList.push(Number(claimable))
-        rewards+=Number(claimable)
-        positions[i].claimable=claimable
+      )?.map((r, i) => {
+        const claimable = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0];
+        rewardList.push(Number(claimable));
+        rewards += Number(claimable);
+        positions[i].claimable = claimable;
       }) || [];
-      setPositionsTotalReward(rewards)
-      setRewardList(rewardList)
+      setPositionsTotalReward(rewards);
+      setRewardList(rewardList);
     }
-    const _positions=JSON.parse(JSON.stringify(positionList))
-    main(_positions,pid)
-  },[positionList.toString(),pid])
+    const _positions = JSON.parse(JSON.stringify(positionList));
+    main(_positions, pid);
+  }, [positionList.toString(), pid]);
   return {
-    positionsTotalReward,rewardList
-  }
-}
+    positionsTotalReward,
+    rewardList,
+  };
+};

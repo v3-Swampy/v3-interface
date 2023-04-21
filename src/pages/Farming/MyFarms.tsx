@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo,useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
@@ -7,8 +7,8 @@ import ToolTip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-import { useMyFarmingList, useStakedPositionsByPool,useCalcRewards } from '@service/farming/myFarms';
-import { getCurrentIncentivePeriod ,geLiquility} from '@service/farming';
+import { useMyFarmingList, useStakedPositionsByPool, useCalcRewards } from '@service/farming/myFarms';
+import { getCurrentIncentivePeriod, geLiquility } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { PoolType } from '@service/farming';
 import { usePool } from '@service/pairs&pool';
@@ -17,6 +17,7 @@ import { useAccount } from '@service/account';
 import { TokenVST } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 
+import { usePools, useMyFarmsList } from '@service/farming/myFarms';
 
 const transitions = {
   en: {
@@ -58,16 +59,16 @@ const MyFarmsItem: React.FC<{
 
   const [isShow, setIsShow] = useState<boolean>(false);
   const positionList = useStakedPositionsByPool(data.address, isActive);
-  const {positionsTotalReward,rewardList}=useCalcRewards(positionList,data.pid)
+  const { positionsTotalReward, rewardList } = useCalcRewards(positionList, data.pid);
   const currentIncentive = getCurrentIncentivePeriod();
-  const staked=useMemo(()=>{
-    let sum=new Unit(0);
-    positionList.map((positionItem)=>{
-      const liquility=geLiquility(positionItem,token0Price,token1Price)
-      sum=sum.add(liquility)
-    })
-    return sum.toDecimalStandardUnit(5)
-  },[positionList.toString(),token0Price,token1Price])
+  const staked = useMemo(() => {
+    let sum = new Unit(0);
+    positionList.map((positionItem) => {
+      const liquility = geLiquility(positionItem, token0Price, token1Price);
+      sum = sum.add(liquility);
+    });
+    return sum.toDecimalStandardUnit(5);
+  }, [positionList.toString(), token0Price, token1Price]);
   const className = {
     title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
     content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
@@ -77,9 +78,9 @@ const MyFarmsItem: React.FC<{
     setIsShow(!isShow);
   };
 
-  const claimable=useMemo(()=>{
-    return new Unit(positionsTotalReward||0).toDecimalStandardUnit(5, TokenVST.decimals)
-  },[positionsTotalReward])
+  const claimable = useMemo(() => {
+    return new Unit(positionsTotalReward || 0).toDecimalStandardUnit(5, TokenVST.decimals);
+  }, [positionsTotalReward]);
 
   const isEnded = dayjs().isAfter(dayjs.unix(Number(currentIncentive.endTime)));
   if (Array.isArray(positionList) && positionList.length == 0) return null;
@@ -128,25 +129,42 @@ const MyFarmsItem: React.FC<{
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions positionList={positionList} token0Price={token0Price} token1Price={token1Price} pid={data.pid} isActive={isActive} rewardList={rewardList||[]}></Positions>}
+      {isShow && (
+        <Positions positionList={positionList} token0Price={token0Price} token1Price={token1Price} pid={data.pid} isActive={isActive} rewardList={rewardList || []}></Positions>
+      )}
     </div>
   );
 };
 
 const MyFarms = () => {
   const account = useAccount();
-  const myFarmingList = useMyFarmingList();
-  if (!account) return <></>;
-  return (
-    <div className="mt-6">
-      {myFarmingList.map((item) => (
-        <MyFarmsItem key={`${item.address}-active`} data={item} isActive={true} />
-      ))}
-      {myFarmingList.map((item) => (
-        <MyFarmsItem key={`${item.address}-ended`} data={item} isActive={false} />
-      ))}
-    </div>
-  );
+  // must get pools first
+  usePools();
+  // then get my farms list
+  const myFarmingList = useMyFarmsList();
+
+  console.log('myFarmingList: ', myFarmingList);
+
+  if (!account || !myFarmingList.length) {
+    return <div className="mt-4 py-2">Empty List</div>;
+  }
+
+  return null;
+
+  // const account = useAccount();
+  // const myFarmingList = useMyFarmingList();
+
+  // if (!account) return <></>;
+  // return (
+  //   <div className="mt-6">
+  //     {myFarmingList.map((item) => (
+  //       <MyFarmsItem key={`${item.address}-active`} data={item} isActive={true} />
+  //     ))}
+  //     {myFarmingList.map((item) => (
+  //       <MyFarmsItem key={`${item.address}-ended`} data={item} isActive={false} />
+  //     ))}
+  //   </div>
+  // );
 };
 
 export default MyFarms;

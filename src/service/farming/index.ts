@@ -11,6 +11,32 @@ import { useTokenPrice } from '@service/pairs&pool';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { keccak256 } from '@ethersproject/solidity';
 import { FarmingPosition } from './myFarms';
+import { selector, useRecoilValue } from 'recoil';
+
+// get poolinfo list of pids
+const poolsQuery = selector({
+  key: `poolsQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    // get poolinfo list of pids
+    const resOfMulticall: any = await fetchMulticall(
+      poolIds.map((id) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('poolInfo', [id])])
+    );
+
+    let pools = resOfMulticall
+      ? poolIds.map((pid, i) => {
+          const r = UniswapV3StakerFactory.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
+
+          return {
+            address: r[0], // pool address
+            allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
+            pid,
+          };
+        })
+      : [];
+
+    return pools;
+  },
+});
 
 const DEFAULT_TOKEN = {
   name: '',
@@ -96,6 +122,7 @@ export const usePoolList = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [poolList, setPoolList] = useState<any[]>([]);
   const price = useTokenPrice(VSTTokenContract.address) || 0;
+  const poolInfos = useRecoilValue(poolsQuery);
 
   useEffect(() => {
     setLoading(true);
@@ -105,23 +132,6 @@ export const usePoolList = () => {
         let poolList = [];
 
         if (pids.length === 0) return;
-
-        // get poolinfo list of pids
-        const resOfMulticall: any = await fetchMulticall(
-          pids.map((id) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('poolInfo', [id])])
-        );
-
-        let poolInfos = resOfMulticall
-          ? pids.map((pid, i) => {
-              const r = UniswapV3StakerFactory.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
-
-              return {
-                address: r[0], // pool address
-                allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
-                pid,
-              };
-            })
-          : [];
 
         // initial pair contract
         const pairContracts = poolInfos.map((poolInfo) => createPairContract(poolInfo.address));
