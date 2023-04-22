@@ -9,7 +9,7 @@ import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
 import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
-
+const zeroAddress = '0x0000000000000000000000000000000000000000';
 export const handleConfirmSwap = async ({
   sourceTokenAmount,
   destinationTokenAmount,
@@ -38,9 +38,12 @@ export const handleConfirmSwap = async ({
   console.log(tradeTypeFunctionName);
   console.log(route);
 
+  const isSourceTokenCfx = sourceToken?.address === 'CFX';
+  const isDestinationTokenTokenCfx = destinationToken?.address === 'CFX';
+
   const params = {
     path: pack(types, path),
-    recipient: account,
+    recipient: isDestinationTokenTokenCfx ? zeroAddress : account,
     deadline: getDeadline(),
   };
 
@@ -55,9 +58,6 @@ export const handleConfirmSwap = async ({
       amountInMaximum: 0,
     });
   }
-
-  const isSourceTokenCfx = sourceToken?.address === 'CFX';
-  const isDestinationTokenTokenCfx = destinationToken?.address === 'CFX';
 
   const data0 = UniswapV3SwapRouter.func.interface.encodeFunctionData(tradeTypeFunctionName, [params]);
   const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [

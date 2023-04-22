@@ -8,6 +8,7 @@ import { handleSwap as _handleSwap } from '@service/swap';
 import { type useBestTrade } from '@service/pairs&pool';
 import useInTransaction from '@hooks/useInTransaction';
 import SwapDetail from '@pages/Swap/SwapDetail';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange_gray.svg';
 
 const transitions = {
@@ -90,7 +91,7 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
       <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} fromPreview />
 
       <p className="my-16px px-24px text-14px leading-18px text-gray-normal font-medium">
-        Input is estimated. You will sell at most<span className='mx-6px text-black-normal'>{Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5)} {sourceToken.symbol}</span>or the transaction will revert.
+        Input is estimated. You will sell at most<span className='mx-6px text-black-normal'>{trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}</span>or the transaction will revert.
       </p>
 
       <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
