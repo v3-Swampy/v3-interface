@@ -61,7 +61,7 @@ export const handleConfirmSwap = async ({
 
   const data0 = UniswapV3SwapRouter.func.interface.encodeFunctionData(tradeTypeFunctionName, [params]);
   const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [
-    isDestinationTokenTokenCfx ? Unit.fromStandardUnit(destinationTokenAmount, destinationTokenWrpper.decimals).toHexMinUnit() : 0,
+    isDestinationTokenTokenCfx ? 0 : 0,
     account,
   ]);
 
