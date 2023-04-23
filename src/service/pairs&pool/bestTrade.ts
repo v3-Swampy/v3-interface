@@ -56,7 +56,7 @@ export interface BestTrade {
   state: TradeState;
   error?: string;
   trade?: {
-    route: Route[];
+    route: Route[][];
     amountIn: Unit;
     amountOut: Unit;
     priceIn: Unit;
@@ -185,6 +185,7 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
       } else {
         const data = res?.data;
         console.log('client', data);
+        const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(data?.quote ?? 0);
         const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(data?.quote ?? 0) : amountUnit;
 
         const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(data?.quoteGasAdjusted ?? 0);
@@ -196,11 +197,11 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
         setBestTrade({
           state: TradeState.VALID,
           trade: {
-            amountIn: amountInGasAdjusted,
-            amountOut: amountOutGasAdjusted,
+            amountIn,
+            amountOut,
             priceIn,
             priceOut,
-            route: data.route?.[0] as unknown as Route[],
+            route: data.route as unknown as Route[][],
             tradeType,
             networkFeeByAmount: amountOut.sub(amountOutGasAdjusted),
           },
@@ -246,7 +247,8 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
             error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
           });
         } else {
-          console.log('server', res);
+          console.log('server', 'tradeType: ', tradeType, res);
+          const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
           const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
 
           const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
@@ -258,11 +260,11 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
           setBestTrade({
             state: TradeState.VALID,
             trade: {
-              amountIn: amountInGasAdjusted,
-              amountOut: amountOutGasAdjusted,
+              amountIn,
+              amountOut,
               priceIn,
               priceOut,
-              route: res.route?.[0],
+              route: res.route,
               tradeType,
               networkFeeByAmount: amountOut.sub(amountOutGasAdjusted),
             },

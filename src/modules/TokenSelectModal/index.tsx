@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useCallback, useTransition } from 'react';
 import cx from 'clsx';
+import { clamp } from 'lodash-es';
 import { FixedSizeList } from 'react-window';
 import CustomScrollbar from 'custom-react-scrollbar';
 import { escapeRegExp } from 'lodash-es';
@@ -43,11 +44,6 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
     if (!filter) return tokens;
     return tokens?.filter((token) => [token.name, token.symbol, token.address].some((str) => str?.search(new RegExp(escapeRegExp(filter), 'i')) !== -1));
   }, [filter, tokens]);
-
-  const listRef = useRef<HTMLDivElement>();
-  const handleScroll = useCallback<React.UIEventHandler<HTMLDivElement>>(({ target }) => {
-    listRef.current!.scrollTo(0, (target as unknown as HTMLDivElement).scrollTop);
-  }, []);
 
   const Token = useCallback(
     ({ index, style }: { index: number; style: React.CSSProperties }) => {
@@ -94,12 +90,10 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
       <div className="my-16px h-2px bg-orange-light-hover" />
 
-      <div className="flex flex-col gap-12px pb-4px rounded-20px bg-orange-light-hover">
-        <CustomScrollbar className="max-h-294px px-16px pt-12px" onScroll={handleScroll}>
-          <FixedSizeList width="100%" height={294} itemCount={filterTokens.length} itemSize={44} ref={listRef as any} style={{ overflow: undefined }}>
-            {Token}
-          </FixedSizeList>
-        </CustomScrollbar>
+      <div className="flex flex-col gap-12px px-16px pt-12px pb-4px rounded-20px bg-orange-light-hover">
+        <FixedSizeList width="100%" height={clamp(filterTokens.length, 0, 6) * 44} itemCount={filterTokens.length} itemSize={44} >
+          {Token}
+        </FixedSizeList>
       </div>
     </div>
   );

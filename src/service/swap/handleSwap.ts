@@ -32,45 +32,52 @@ export const handleConfirmSwap = async ({
 
   const { route, tradeType } = bestTrade.trade;
   if (!route.length) return;
-  const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'exactInput' : 'exactInput';
-  const path = route.reduce((pre, cur) => pre.concat(cur.fee, cur.tokenOut.address), [route.at(0)?.tokenIn.address] as Array<string>);
-  const types = Array.from({ length: path.length }, (_, index) => (index % 2 === 1 ? 'uint24' : 'address'));
-  console.log(tradeTypeFunctionName);
-  console.log(route);
-
   const isSourceTokenCfx = sourceToken?.address === 'CFX';
   const isDestinationTokenTokenCfx = destinationToken?.address === 'CFX';
+  const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'exactInput' : 'exactOutput';
 
-  const params = {
-    path: pack(types, path),
-    recipient: isDestinationTokenTokenCfx ? ZeroAddress : account,
-    deadline: getDeadline(),
-  };
+  const data0 = route.map(oneRoute => {
+    const path = oneRoute.reduce((pre, cur) => pre.concat(cur.fee, cur.tokenOut.address), [oneRoute.at(0)?.tokenIn.address] as Array<string>);
+    const types = Array.from({ length: path.length }, (_, index) => (index % 2 === 1 ? 'uint24' : 'address'));
+  
+ 
+    const params = {
+      path: pack(types, path),
+      recipient: isDestinationTokenTokenCfx ? ZeroAddress : account,
+      deadline: getDeadline(),
+    };
+  
+    if (tradeTypeFunctionName === 'exactInput') {
+      console.log(oneRoute.at(0)?.amountIn ?? '0', Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toDecimalStandardUnit(5, sourceToken.decimals))
+      Object.assign(params, {
+        amountIn: Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toHexMinUnit(),
+        amountOutMinimum: 0,
+      });
+    } else {
+      console.log(oneRoute.at(-1)?.amountOut ?? '0', Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toDecimalStandardUnit(5, destinationToken.decimals))
+      Object.assign(params, {
+        amountOut: Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toHexMinUnit(),
+        amountInMaximum: 0,
+      });
+    }
 
-  if (tradeTypeFunctionName === 'exactInput') {
-    Object.assign(params, {
-      amountIn: Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit(),
-      amountOutMinimum: 0,
-    });
-  } else {
-    Object.assign(params, {
-      amountOut: Unit.fromStandardUnit(destinationTokenAmount, destinationTokenWrpper.decimals).toHexMinUnit(),
-      amountInMaximum: 0,
-    });
-  }
+    const data = UniswapV3SwapRouter.func.interface.encodeFunctionData(tradeTypeFunctionName, [params]);
+    return data;
+  });
 
-  const data0 = UniswapV3SwapRouter.func.interface.encodeFunctionData(tradeTypeFunctionName, [params]);
   const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [
     isDestinationTokenTokenCfx ? 0 : 0,
     account,
   ]);
-
+  console.log([isDestinationTokenTokenCfx ? [...data0, data1] : [...data0]])
+  console.log(isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toDecimalStandardUnit(5) : '0x0')
 
   const transactionParams = {
     value: isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit() : '0x0',
-    data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [isDestinationTokenTokenCfx ? [data0, data1] : [data0]]),
+    data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [isDestinationTokenTokenCfx ? [...data0, data1] : [...data0]]),
     to: UniswapV3SwapRouter.address,
   }
+  console.log(transactionParams);
 
   const recordParams = {
     type: 'Swap',
