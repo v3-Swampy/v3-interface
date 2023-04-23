@@ -45,6 +45,7 @@ export interface BestTrade {
     priceIn: Unit;
     priceOut: Unit;
     networkFeeByAmount: Unit;
+    priceImpact: Unit;
     tradeType: TradeType;
   };
 }
@@ -101,22 +102,32 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
       type: tradeType,
     };
     setBestTrade({ state: TradeState.LOADING });
-    getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
-      if (res?.error) {
+    getClientSideQuote(args, router, CLIENT_PARAMS).then((_res) => {
+      if (_res?.error) {
         setBestTrade({
           state: TradeState.ERROR,
         });
       } else {
-        const data = res?.data;
-        console.log('client', data);
-        const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(data?.quote ?? 0);
-        const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(data?.quote ?? 0) : amountUnit;
+        const res = _res?.data;
+        console.log('client', res);
+        const route = res.route as Route[][];
+        amount !== '1' && console.log('tradeType: ', tradeType, res);
+        const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
+        const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
 
-        const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(data?.quoteGasAdjusted ?? 0);
-        const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(data?.quoteGasAdjusted ?? 0) : amountUnit;
+        const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
+        const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0) : amountUnit;
 
-        const priceIn = amountInGasAdjusted.div(amountOutGasAdjusted);
-        const priceOut = amountOutGasAdjusted.div(amountInGasAdjusted);
+        const priceIn = amountIn.div(amountOut);
+        const priceOut = amountOut.div(amountIn);
+
+        const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
+
+        const priceImpact = route.reduce((pre, oneRoute) => {
+          const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);
+          const percent = oneRoute.reduce((currentFee, pool) => currentFee.mul(new Unit(1).sub(new Unit(pool.fee).div(1000000))), new Unit(1));
+          return pre.add(overallPercent.mul(new Unit(1).sub(percent)));
+        }, new Unit(0));
 
         setBestTrade({
           state: TradeState.VALID,
@@ -125,9 +136,10 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
             amountOut,
             priceIn,
             priceOut,
-            route: data.route as unknown as Route[][],
+            route,
             tradeType,
-            networkFeeByAmount: amountOut.sub(amountOutGasAdjusted),
+            networkFeeByAmount,
+            priceImpact
           },
         });
       }
@@ -185,9 +197,12 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
 
           const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
 
-          route.reduce((pre, cur) => {
-            return new Unit(1);
-          }, new Unit(1));
+          const priceImpact = route.reduce((pre, oneRoute) => {
+            const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);
+            const percent = oneRoute.reduce((currentFee, pool) => currentFee.mul(new Unit(1).sub(new Unit(pool.fee).div(1000000))), new Unit(1));
+            return pre.add(overallPercent.mul(new Unit(1).sub(percent)));
+          }, new Unit(0));
+          
           setBestTrade({
             state: TradeState.VALID,
             trade: {
@@ -198,6 +213,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
               route,
               tradeType,
               networkFeeByAmount,
+              priceImpact
             },
           });
         }
@@ -207,12 +223,12 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
   return bestTrade;
 };
 
-export const useBestTrade = useServerBestTrade;
+export const useBestTrade = useClientBestTrade;
 
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined) => {
   const token = getWrapperTokenByAddress(tokenAddress);
-  const result = useServerBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
+  const result = useClientBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
   if (tokenAddress == TokenUSDT.address) return '1';
   if (!tokenAddress) return undefined;
   if (result.state === TradeState.LOADING) return undefined;

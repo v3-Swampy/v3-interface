@@ -7,6 +7,7 @@ import { getDeadline } from '@service/settings';
 import { getAccount } from '@service/account';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
+import Decimal from 'decimal.js';
 import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
@@ -55,7 +56,7 @@ export const handleConfirmSwap = async ({
     } else {
       Object.assign(params, {
         amountOut: Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toHexMinUnit(),
-        amountInMaximum: 0,
+        amountInMaximum: new Unit(new Decimal(2).pow(128).sub(1).toString()).toHexMinUnit(),
       });
     }
 
