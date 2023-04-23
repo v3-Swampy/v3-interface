@@ -63,9 +63,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
         <div className={`${className.title}`}>
           {i18n.APR} {i18n.range}
         </div>
-        <div className={`${className.content}`}>
-          {data.range[0]}% ~ {data.range[1]}%
-        </div>
+        <div className={`${className.content}`}>{data.range.length ? `${data.range[0]}% ~ ${data.range[1]}%` : '--'}</div>
       </div>
       <div>
         <div className={`${className.title}`}>{i18n.tvl}</div>
