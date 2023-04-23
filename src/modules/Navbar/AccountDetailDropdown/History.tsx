@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { FixedSizeList } from 'react-window';
 import cx from 'clsx';
 import CustomScrollbar from 'custom-react-scrollbar';
@@ -116,11 +116,6 @@ const History: React.FC = () => {
   const history = useHistory();
   const hasPending = history.some((item) => item.status === HistoryStatus.Pending);
 
-  const listRef = useRef<HTMLDivElement>();
-  const handleScroll = useCallback<React.UIEventHandler<HTMLDivElement>>(({ target }) => {
-    listRef.current!.scrollTo(0, (target as unknown as HTMLDivElement).scrollTop);
-  }, []);
-
   const Record = useCallback(
     ({ index, style }: { index: number; style: React.CSSProperties }) => {
       const record = history[index];
@@ -171,9 +166,9 @@ const History: React.FC = () => {
           Clear All
         </Button>
       </div>
-      <CustomScrollbar className="max-h-294px" onScroll={handleScroll}>
+      <CustomScrollbar className="max-h-294px">
         {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-medium">No transaction history</p>}
-        <FixedSizeList width="100%" height={height} itemCount={history.length} itemSize={46} ref={listRef as any} style={{ overflow: undefined }}>
+        <FixedSizeList width="100%" height={height} itemCount={history.length} itemSize={46} outerElementType={CustomScrollbar}>
           {Record}
         </FixedSizeList>
       </CustomScrollbar>

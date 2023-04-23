@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback, useTransition } from 'react';
+import React, { useState, useMemo, useCallback, useTransition } from 'react';
 import cx from 'clsx';
 import { clamp } from 'lodash-es';
 import { FixedSizeList } from 'react-window';
@@ -76,6 +76,8 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
     [filterTokens]
   );
 
+  const height = useMemo(() => clamp(filterTokens.length, 0, 6) * 44, [history]);
+
   return (
     <div className="mt-24px">
       <div className="flex items-center h-40px px-28px rounded-100px bg-orange-light-hover">
@@ -90,7 +92,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
       <div className="my-16px h-2px bg-orange-light-hover" />
 
       <div className="flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover">
-        <FixedSizeList width="100%" height={clamp(filterTokens.length, 0, 6) * 44} itemCount={filterTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
+        <FixedSizeList width="100%" height={height} itemCount={filterTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
           {Token}
         </FixedSizeList>
       </div>
