@@ -5,19 +5,11 @@ import BorderBox from '@components/Box/BorderBox';
 import ToolTip from '@components/Tooltip';
 import Input from '@components/Input';
 import Switch from '@components/Switch';
-import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import { isMobile } from '@utils/is';
 import useI18n from '@hooks/useI18n';
-import { useTransactionDeadline, useSlippageTolerance, useExpertMode, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
+import { useTransactionDeadline, useSlippageTolerance, useExpertMode, useRoutingApi, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
 import { ReactComponent as SettingsIcon } from '@assets/icons/settings.svg';
-import { ReactComponent as WarningIcon } from '@assets/icons/warning.svg';
-import { ReactComponent as WarningWhiteIcon } from '@assets/icons/warning_white.svg';
-import Button from '@components/Button';
-
-interface CommonProps {
-  className?: string;
-  onClick?: VoidFunction;
-}
+import showExpertModeModal from './ExpertModeModal';
 
 const transitions = {
   en: {
@@ -52,31 +44,6 @@ const transitions = {
   },
 } as const;
 
-const ExpertModeModal: React.FC<CommonProps> = ({ onClick }: { onClick?: VoidFunction }) => {
-  return <div className="flex flex-col items-center">
-    <WarningIcon className="w-80px h-68px mt-74px mb-30px" />
-    <p className="text-18px leading-30px text-#000 mb-72px w-270px font-medium">ONLY USE THIS MODE IF YOU KNOW WHAT YOU ARE DOING.</p>
-    <p className="text-16px leading-20px text-#8e8e8e mb-16px font-light">Expert mode turns off the confirm transaction prompt and allows high slippage trades that often result in bad rates and lost funds.</p>
-    <Button className="h-48px rounded-100px text-16px w-full !font-bold bg-#e14e28 flex items-center" onClick={onClick}>
-      <WarningWhiteIcon className="w-16px h-16px mr-8px" />
-      Turn On Expert Mode
-    </Button>
-  </div>
-};
-
-const showExpertModeModal = ({ className, title, subTitle, onClose, ...props }: CommonProps & { title: string; subTitle?: string; onClose?: VoidFunction; onClick?: VoidFunction }) => {
-  if (isMobile) {
-    showDrawer({
-      Content: <ExpertModeModal {...props} />,
-      title,
-      subTitle,
-      onClose,
-    });
-  } else {
-    showModal({ Content: <ExpertModeModal {...props} />, className, title, subTitle, onClose });
-  }
-};
-
 const SettingsContent: React.FC = () => {
   const i18n = useI18n(transitions);
 
@@ -91,25 +58,22 @@ const SettingsContent: React.FC = () => {
   }, []);
 
   const [expertMode, setExpertMode] = useExpertMode();
-
-  const handleConfirm = () => {
-    const confirmWord = `confirm`;
-    if (window.prompt(`Please type the word "${confirmWord}" to enable expert mode.`) === confirmWord) {
-      setExpertMode(true);
-      hidePopup();
-    }
-  }
+  const [routingApi, setRoutingApi] = useRoutingApi();
 
   const handleSwitchExpertMode = (e: any) => {
-    const checked = e.target.checked;
+    const checked: boolean = e.target.checked;
     if (checked) {
-      showExpertModeModal({ onClick: () => handleConfirm(), title: "Are you sure?", className:"!max-w-458px" });
+      showExpertModeModal({ title: "Are you sure?", className: "!max-w-458px" });
     }
     else {
       setExpertMode(false);
     }
   }
 
+  const handleSwitchRoutingApi = (e: any) => {
+    const checked: boolean = e.target.checked;
+    setRoutingApi(checked);
+  }
 
   return (
     <BorderBox variant="orange" className="w-240px p-16px rounded-28px bg-white-normal shadow-popper">
@@ -182,7 +146,7 @@ const SettingsContent: React.FC = () => {
             <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
           </ToolTip>
         </p>
-        <Switch id="switch--auto_router_api" />
+        <Switch id="switch--auto_router_api" checked={routingApi} onChange={(e) => handleSwitchRoutingApi(e)} />
       </div>
 
       <div className="mt-4px flex justify-between items-center">
