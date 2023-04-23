@@ -14,11 +14,13 @@ import useInTransaction from '@hooks/useInTransaction';
 
 const transitions = {
   en: {
-    title: 'Add Liquidity',
+    create_title: 'Add Liquidity',
+    increase_title: 'Increase Liquidity',
     add: 'Add',
   },
   zh: {
-    title: '添加流动性',
+    create_title: '新添流动性',
+    increase_title: 'Increase Liquidity',
     add: '添加',
   },
 } as const;
@@ -98,7 +100,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
 
 const showLiquidityPreviewModal = (props: Props) => {
   showConfirmTransactionModal({
-    title: toI18n(transitions).title,
+    title: toI18n(transitions)[props.recordParams.type === 'Position_AddLiquidity' ? 'create_title' : 'increase_title'],
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
     onSuccess: (navigate) => navigate('/pool'),
