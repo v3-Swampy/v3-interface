@@ -7,6 +7,7 @@ import { getDeadline } from '@service/settings';
 import { getAccount } from '@service/account';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
+import Decimal from 'decimal.js';
 import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
@@ -48,16 +49,14 @@ export const handleConfirmSwap = async ({
     };
   
     if (tradeTypeFunctionName === 'exactInput') {
-      console.log(oneRoute.at(0)?.amountIn ?? '0', Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toDecimalStandardUnit(5, sourceToken.decimals))
       Object.assign(params, {
         amountIn: Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toHexMinUnit(),
         amountOutMinimum: 0,
       });
     } else {
-      console.log(oneRoute.at(-1)?.amountOut ?? '0', Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toDecimalStandardUnit(5, destinationToken.decimals))
       Object.assign(params, {
         amountOut: Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toHexMinUnit(),
-        amountInMaximum: 0,
+        amountInMaximum: new Unit(new Decimal(2).pow(128).sub(1).toString()).toHexMinUnit(),
       });
     }
 
@@ -82,7 +81,7 @@ export const handleConfirmSwap = async ({
   const recordParams = {
     type: 'Swap',
     tokenA_Address: sourceToken.address,
-    tokenA_Value: Unit.fromStandardUnit(sourceTokenAmount, sourceToken.decimals).toDecimalStandardUnit(5),
+    tokenA_Value: Unit.fromStandardUnit(2, sourceToken.decimals).toDecimalStandardUnit(5),
     tokenB_Address: destinationToken.address,
     tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5),
   } as const;
