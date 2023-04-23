@@ -1,12 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { uniqueId } from 'lodash-es';
-import { pack } from '@ethersproject/solidity';
-import { type Token, isTokenEqual, getWrapperTokenByAddress, TokenUSDT } from '@service/tokens';
+import { type Token, getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { UniswapV3Quoter } from '@contracts/index';
-import { isPoolEqual } from '.';
-import { type Pool, usePools } from '.';
-import { getRouter, getClientSideQuote, Protocol, V3PoolInRoute } from './clientSideSmartOrderRouter';
+import { FeeAmount, createPool } from '..';
+import { getRouter, getClientSideQuote, Protocol } from '../clientSideSmartOrderRouter';
 import { targetChainId } from '@service/account';
 
 export enum TradeType {
@@ -108,39 +105,15 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
           state: TradeState.ERROR,
         });
       } else {
-        const res = _res?.data;
-        console.log('client', res);
-        const route = res.route as Route[][];
-        amount !== '1' && console.log('tradeType: ', tradeType, res);
-        const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
-        const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
-
-        const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
-        const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0) : amountUnit;
-
-        const priceIn = amountIn.div(amountOut);
-        const priceOut = amountOut.div(amountIn);
-
-        const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
-
-        const priceImpact = route.reduce((pre, oneRoute) => {
-          const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);
-          const percent = oneRoute.reduce((currentFee, pool) => currentFee.mul(new Unit(1).sub(new Unit(pool.fee).div(1000000))), new Unit(1));
-          return pre.add(overallPercent.mul(new Unit(1).sub(percent)));
-        }, new Unit(0));
-
         setBestTrade({
           state: TradeState.VALID,
-          trade: {
-            amountIn,
-            amountOut,
-            priceIn,
-            priceOut,
-            route,
+          trade: calcTradeFromData({
             tradeType,
-            networkFeeByAmount,
-            priceImpact
-          },
+            amount,
+            tokenIn: tokenInWrappered,
+            amountUnit,
+            res: _res?.data,
+          }),
         });
       }
     });
@@ -184,37 +157,15 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
             error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
           });
         } else {
-          const route = res.route as Route[][];
-          amount !== '1' && console.log('server', 'tradeType: ', tradeType, res);
-          const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
-          const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
-
-          const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
-          const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0) : amountUnit;
-
-          const priceIn = amountIn.div(amountOut);
-          const priceOut = amountOut.div(amountIn);
-
-          const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
-
-          const priceImpact = route.reduce((pre, oneRoute) => {
-            const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);
-            const percent = oneRoute.reduce((currentFee, pool) => currentFee.mul(new Unit(1).sub(new Unit(pool.fee).div(1000000))), new Unit(1));
-            return pre.add(overallPercent.mul(new Unit(1).sub(percent)));
-          }, new Unit(0));
-
           setBestTrade({
             state: TradeState.VALID,
-            trade: {
-              amountIn,
-              amountOut,
-              priceIn,
-              priceOut,
-              route,
+            trade: calcTradeFromData({
               tradeType,
-              networkFeeByAmount,
-              priceImpact
-            },
+              amount,
+              tokenIn: tokenInWrappered,
+              amountUnit,
+              res,
+            }),
           });
         }
       });
@@ -237,3 +188,73 @@ export const useTokenPrice = (tokenAddress: string | undefined) => {
   }
   return null;
 };
+
+function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; tradeType: TradeType; amount: string; amountUnit: Unit; tokenIn: Token }) {
+  const route = res.route as Route[][];
+  const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
+  const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
+
+  const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
+  const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0) : amountUnit;
+
+  const priceIn = amountIn.div(amountOut);
+  const priceOut = amountOut.div(amountIn);
+
+  const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
+
+  const realizedLpFeePercent = route.reduce((pre, oneRoute) => {
+    const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);
+    const percent = oneRoute.reduce((currentFee, pool) => currentFee.mul(new Unit(1).sub(new Unit(pool.fee).div(1000000))), new Unit(1));
+    return pre.add(overallPercent.mul(new Unit(1).sub(percent)));
+  }, new Unit(0));
+
+  let spotOutputAmount = new Unit(0);
+  route.forEach((oneRoute) => {
+    const thisRoutePools = oneRoute.map((poolData) =>
+      createPool({
+        tokenA: getTokenByAddress(poolData.tokenIn.address)!,
+        tokenB: getTokenByAddress(poolData.tokenOut.address)!,
+        fee: +poolData.fee as FeeAmount,
+        tickCurrent: +poolData.tickCurrent,
+        liquidity: poolData.liquidity,
+        sqrtPriceX96: poolData.sqrtRatioX96,
+      })
+    );
+    const midPrice = thisRoutePools.slice(1).reduce(
+      ({ nextInput, price }, pool) => {
+        return isTokenEqual(nextInput, pool.token0)
+          ? {
+              nextInput: pool.token1,
+              price: price.mul(pool.token0Price!),
+            }
+          : {
+              nextInput: pool.token0,
+              price: price.mul(pool.token1Price!),
+            };
+      },
+      isTokenEqual(thisRoutePools[0].token0, tokenIn)
+        ? {
+            nextInput: thisRoutePools[0].token1,
+            price: thisRoutePools[0].token0Price!,
+          }
+        : {
+            nextInput: thisRoutePools[0].token0,
+            price: thisRoutePools[0].token1Price!,
+          }
+    ).price;
+    spotOutputAmount = spotOutputAmount.add(new Unit(oneRoute.at(0)!.amountIn).mul(midPrice));
+  });
+  const _priceImpact = spotOutputAmount.sub(amountOut).div(spotOutputAmount);
+  const priceImpact = _priceImpact.sub(realizedLpFeePercent);
+
+  return {
+    amountIn,
+    amountOut,
+    priceIn,
+    priceOut,
+    route,
+    tradeType,
+    networkFeeByAmount,
+    priceImpact,
+  };
+}

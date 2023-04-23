@@ -338,9 +338,9 @@ export const useMyFarmsList = () => {
             return {
               ...p,
               totalLiquidity: p?.position?.amount0
-                ?.div(p?.token0?.decimals)
+                ?.div(p?.position.token0?.decimals)
                 .mul(token0Price)
-                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(p.token1?.decimals).mul(token1Price)),
+                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(p.position.token1?.decimals).mul(token1Price)),
             };
           }),
         };

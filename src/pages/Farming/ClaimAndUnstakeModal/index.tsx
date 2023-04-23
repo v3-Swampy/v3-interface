@@ -1,35 +1,27 @@
-import React, { useMemo, Suspense, useCallback } from 'react';
+import React, {  Suspense } from 'react';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { ReactComponent as LogoIcon } from '@assets/icons/logo_icon.svg';
-import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
-import PositionStatus from '@modules/Position/PositionStatus';
-import PriceRange from '@modules/Position/PriceRange';
-import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
-import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
-import { Link, useNavigate } from 'react-router-dom';
-import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
-import { useTokenPrice } from '@service/pairs&pool';
 import { type IncentiveKey } from '@service/farming';
-import AuthConnectButton from '@modules/AuthConnectButton';
 import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake } from '@service/farming/myFarms';
 import { useAccount } from '@service/account';
 import useInTransaction from '@hooks/useInTransaction';
 import { addRecordToHistory } from '@service/history';
 import type { PoolType } from '@service/farming';
+import { PositionForUI } from '@service/position';
 
 const transitions = {
   en: {
     title: 'Claim & Unstake',
-    info: 'New CFX/USDC incentive pool is live! Click “<span class="text-orange-normal">Claim & Stake to New</span>” to earn!',
+    info: 'New {symbol0}/{symbol1} incentive pool is live! Click “<span class="text-orange-normal">Claim & Stake to New</span>” to earn!',
     claimAndUnstake: 'Claim & Unstake',
     claimAndStake: 'Claim & Stake to New',
   },
   zh: {
     title: 'Claim & Unstake',
-    info: 'New CFX/USDC incentive pool is live! Click “<span class="text-orange-normal">Claim & Stake to New</span>” to earn!',
+    info: 'New {symbol0}/{symbol1} incentive pool is live! Click “<span class="text-orange-normal">Claim & Stake to New</span>” to earn!',
     claimAndUnstake: 'Claim & Unstake',
     claimAndStake: 'Claim & Stake to New',
   },
@@ -50,12 +42,12 @@ interface ModalType {
   id: number;
   pid: number;
   currentIncentiveKey: IncentiveKey;
+  position:PositionForUI
 }
 
-const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey }) => {
+const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey,position }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
-
   // @ts-ignore
   const { inTransaction, execTransaction: handleClaimUnStake } = useInTransaction(_handleClaimUnStake, true);
   // @ts-ignore
@@ -72,7 +64,7 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
       <div
         className="text-22px leading-28px font-400 font-not-italic mt-8 w-90"
         dangerouslySetInnerHTML={{
-          __html: i18n.info,
+          __html:compiled(i18n.info,{symbol0:position?.token0?.symbol,symbol1:position?.token1?.symbol}),
         }}
       ></div>
       <div className="absolute flex bottom-6 left-4 right-4 justify-between">
