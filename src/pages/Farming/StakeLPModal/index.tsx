@@ -10,11 +10,13 @@ import PriceRange from '@modules/Position/PriceRange';
 import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
 import { addRecordToHistory } from '@service/history';
 import { useTokenPrice } from '@service/pairs&pool';
+import { trimDecimalZeros } from '@utils/numberUtils';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 
 const transitions = {
   en: {
@@ -50,14 +52,16 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
-  const token0Price = useTokenPrice(data.token0.address);
-  const token1Price = useTokenPrice(data.token1.address);
+  const { amount0, amount1, token0, token1 } = data ?? {};
+
+  const token0Price = useTokenPrice(token0.address);
+  const token1Price = useTokenPrice(token1.address);
 
   let liquidity = useMemo(() => {
-    if (token0Price && token1Price && data.amount0 && data.amount1) {
-      return data.amount0.mul(token0Price).add(data.amount1.mul(token1Price)).toDecimalStandardUnit(5);
-    }
-    return '0';
+    const token0Liquidity = token0Price && amount0 ? amount0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '';
+    const token1Liquidity = token1Price && amount1 ? amount1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '';
+    const liquidity = token0Liquidity && token1Liquidity ? `$${trimDecimalZeros(new Unit(token0Liquidity).add(token1Liquidity).toDecimalMinUnit(5))}` : '--';
+    return liquidity;
   }, [token0Price, token1Price, data.amount0, data.amount1]);
 
   const classNameButton = useMemo(() => {
@@ -69,7 +73,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
       <div>
         <div>
           <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
-          <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">${liquidity}</span>
+          <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">{liquidity}</span>
           <PositionStatus position={data} />
         </div>
         <PriceRange position={data} />
