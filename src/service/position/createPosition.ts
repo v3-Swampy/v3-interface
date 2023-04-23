@@ -129,8 +129,8 @@ export const handleClickSubmitCreatePosition = async ({
     showLiquidityPreviewModal({
       leftToken: _tokenA,
       rightToken: _tokenB,
-      leftAmount: Unit.fromStandardUnit(_amountTokenA),
-      rightAmount: Unit.fromStandardUnit(_amountTokenB),
+      leftAmount: Unit.fromStandardUnit(amountTokenA),
+      rightAmount: Unit.fromStandardUnit(amountTokenB),
       inverted,
       priceInit,
       previewUniqueId,
