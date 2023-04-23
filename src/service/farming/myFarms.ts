@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey } from './';
-import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, usePoolList, poolsQuery } from '@service/farming';
@@ -337,7 +337,10 @@ export const useMyFarmsList = () => {
           positions: p.positions.map((p) => {
             return {
               ...p,
-              totalLiquidity: p.position.amount0?.div(p.token0.decimals).mul(token0Price).add(p.position.amount1?.div(p.token1.decimals).mul(token1Price)),
+              totalLiquidity: p?.position?.amount0
+                ?.div(p?.token0?.decimals)
+                .mul(token0Price)
+                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(p.token1?.decimals).mul(token1Price)),
             };
           }),
         };
@@ -357,7 +360,7 @@ export const useMyFarmsList = () => {
           positions: p.positions.map((p) => {
             return {
               ...p,
-              totalLiquidity: p.position.amount0?.mul(token0Price).add(p.position.amount1?.mul(token1Price)),
+              totalLiquidity: p.position.amount0?.mul(token0Price).add(p.position.amount1 ? p.position.amount1.mul(token1Price) : 0),
             };
           }),
         };
