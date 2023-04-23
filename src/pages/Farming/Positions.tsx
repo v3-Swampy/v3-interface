@@ -3,9 +3,9 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { useIsPositionActive, handleClaimUnStake, handleClaimAndReStake, FarmingPosition } from '@service/farming/myFarms';
+import { handleClaimUnStake, handleClaimAndReStake, MyFarmsPositionType } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
-import { getCurrentIncentiveKey, getCurrentIncentivePeriod,geLiquility } from '@service/farming';
+import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
@@ -43,33 +43,19 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
-const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean,reward:number }> = ({
-  position,
-  token0Price,
-  token1Price,
-  pid,
-  isActive,
-  reward
-}) => {
+const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({ position, pid }) => {
+  const { claimable, isActive, liquidity } = position;
+  console.info('liquidity', liquidity?.toString());
   const i18n = useI18n(transitions);
   const account = useAccount();
   const currentIncentiveKey = getCurrentIncentiveKey(position.address);
-  const isPositionActive = useIsPositionActive(position.id);
-  const status = usePositionStatus(position);
+  const status = usePositionStatus(position.position);
   const isPaused = useMemo(() => {
     return isActive ? status == PositionStatus.OutOfRange : true;
   }, [status]);
 
-  let liquidity = useMemo(() => {
-    return geLiquility(position,token0Price,token1Price).toDecimalStandardUnit(5)
-  }, [token0Price, token1Price, position.amount0, position.amount1]);
-
-  const claimable=useMemo(()=>{
-    return new Unit(reward||0).toDecimalStandardUnit(5, TokenVST.decimals)
-  },[reward])
-
   return (
-    <div key={position.id} className="flex items-center justify-between mt-4">
+    <div key={position.tokenId} className="flex items-center justify-between mt-4">
       <div className={`${className.buttonBase} ${isPaused ? className.buttonPaused : className.buttonFarming} ml-15px`}>
         <span className={`inline-block ${isPaused ? 'bg-orange-dot' : 'bg-green-normal'} w-6px h-6px rounded-full absolute -left-14px`}></span>
         {isPaused ? <CoffeeCupIcon className="w-6 h-6 mr-1"></CoffeeCupIcon> : <HammerIcon className="w-6 h-6 mr-1"></HammerIcon>}
@@ -77,22 +63,22 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
-        <div className={`${className.content} flex items-center`}>${numFormat(liquidity)}</div>
+        <div className={`${className.content} flex items-center`}>${liquidity ? numFormat(liquidity.toString()) : 0}</div>
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.claimable}</div>
-        <div className={`${className.content} flex items-center`}>{claimable} VST</div>
+        <div className={`${className.content} flex items-center`}>{claimable ? numFormat(new Unit(claimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
       </div>
       <div className="flex items-center">
-        {!isPositionActive ? (
+        {!isActive ? (
           <AuthConnectButton className={`${className.buttonBase} ${className.buttonPausedSolid}`}>
             <div
               className={`${className.buttonBase} ${className.buttonPausedSolid}`}
               onClick={() =>
                 showClaimAndUnstakeModal({
-                  isPositionActive,
+                  isActive,
                   incentive: position?.whichIncentiveTokenIn,
-                  id: position.id,
+                  id: position.tokenId,
                   pid,
                   currentIncentiveKey,
                 })
@@ -107,10 +93,10 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
               className={`${className.buttonBase} mr-15px color-green-normal border border-solid border-green-normal`}
               onClick={() =>
                 handleClaimAndReStake({
-                  isActive: isPositionActive,
+                  isActive,
                   keyThatTokenIdIn: position?.whichIncentiveTokenIn,
                   currentIncentiveKey: currentIncentiveKey,
-                  tokenId: position.id,
+                  tokenId: position.tokenId,
                   pid,
                   accountAddress: account as string,
                 })
@@ -122,9 +108,9 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
               className={`${className.buttonBase} ${className.buttonPausedSolid}`}
               onClick={() =>
                 handleClaimUnStake({
-                  isActive: isPositionActive,
+                  isActive,
                   key: currentIncentiveKey,
-                  tokenId: position.id,
+                  tokenId: position.tokenId,
                   pid,
                   accountAddress: account as string,
                 })
@@ -139,15 +125,7 @@ const PostionItem: React.FC<{ position: FarmingPosition; token0Price?: string | 
   );
 };
 
-const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: string | null; token1Price?: string | null; pid: number; isActive: boolean,rewardList:Array<number>,isEnded:boolean }> = ({
-  positionList,
-  token0Price,
-  token1Price,
-  pid,
-  isActive,
-  rewardList,
-  isEnded
-}) => {
+const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: number; isEnded: boolean }> = ({ positionList, pid, isEnded }) => {
   const i18n = useI18n(transitions);
   const currentIncentive = getCurrentIncentivePeriod();
 
@@ -163,8 +141,8 @@ const Positions: React.FC<{ positionList: Array<FarmingPosition>; token0Price?: 
         </span>
       </div>
       <div>
-        {positionList.map((p: any,i) => (
-          <PostionItem position={p} token0Price={token0Price} token1Price={token1Price} key={p.id} pid={pid} isActive={isActive} reward={Array.isArray(rewardList)?rewardList[i]:0}/>
+        {positionList.map((p: any, i) => (
+          <PostionItem position={p} key={p.tokenId} pid={pid} />
         ))}
       </div>
     </div>

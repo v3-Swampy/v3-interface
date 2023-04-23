@@ -45,14 +45,14 @@ export enum ModalMode {
 type Props = ConfirmModalInnerProps & PoolType;
 
 interface ModalType {
-  isPositionActive: boolean;
+  isActive: boolean;
   incentive: any;
   id: number;
   pid: number;
   currentIncentiveKey: IncentiveKey;
 }
 
-const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isPositionActive, incentive, id, pid, currentIncentiveKey }) => {
+const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
@@ -82,7 +82,7 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isPositionActive, incentive
           className={`${classNames.baseButton} border border-solid bg-white-normal`}
           onClick={async () => {
             const txHash = await handleClaimUnStake({
-              isActive: isPositionActive,
+              isActive,
               key: incentive,
               tokenId: id,
               pid,
@@ -102,7 +102,7 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isPositionActive, incentive
           className={`${classNames.baseButton} ${classNames.activeButton}`}
           onClick={async () => {
             const txHash = await handleClaimAndReStake({
-              isActive: isPositionActive,
+              isActive,
               keyThatTokenIdIn: incentive,
               currentIncentiveKey: currentIncentiveKey,
               tokenId: id,
