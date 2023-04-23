@@ -236,8 +236,6 @@ const myFarmsListQuery = selector({
         return reward;
       }) || [];
 
-    // console.log('resOfMulticallOfRewards: ', resOfMulticallOfRewards);
-
     let result: {
       active: MyFarmsPositionType[];
       ended: MyFarmsPositionType[];
@@ -269,35 +267,96 @@ const myFarmsListQuery = selector({
   },
 });
 
+const usePrice = (tokens: string[]) => {
+  const [price, setPrice] = useState<{
+    [key: string]: string;
+  } | null>(null);
+
+  const priceMap: {
+    [key: string]: string;
+  } = {};
+
+  for (const address of tokens) {
+    const p = useTokenPrice(address);
+    if (p) {
+      priceMap[address] = p;
+    }
+  }
+
+  if (tokens.every((t) => !!priceMap[t])) {
+    !price && setPrice(priceMap);
+  }
+
+  return price;
+};
+
 export const useMyFarmsList = () => {
+  // must get pools first
+  usePools();
+
   const list = useRecoilValue(myFarmsListQuery);
+  const [listWithPrice, setListWithPrice] = useState<{
+    active: GroupedPositions[];
+    ended: GroupedPositions[];
+  } | null>(null);
 
   const tokensMap: {
     [key: string]: true;
-  } = {};
+  } = {
+    [VSTTokenContract.address]: true,
+  };
 
   list.active.concat(list.ended).forEach((p) => {
     tokensMap[p.token0.address] = true;
     tokensMap[p.token1.address] = true;
   });
 
-  console.log('tokens: ', Object.keys(tokensMap));
-
   const tokensArr = Object.keys(tokensMap);
 
-  const priceMap: {
-    [key: string]: string | null | undefined;
-  } = {};
+  const priceMap = usePrice(tokensArr);
 
-  for (const address of tokensArr) {
-    priceMap[address] = useTokenPrice(address);
+  if (priceMap) {
+    const l = {
+      active: list.active.map((p) => {
+        const token0Price = priceMap[p.token0.address];
+        const token1Price = priceMap[p.token1.address];
+
+        return {
+          ...p,
+          totalLiquidity: p.totalAmount0.mul(token0Price || 0).add(p.totalAmount1.mul(token1Price || 0)),
+          claimableValue: p.totalClaimable.mul(token0Price || 0),
+          // @ts-ignore
+          positions: p.positions.map((p) => {
+            return {
+              ...p,
+              totalLiquidity: p.position.amount0.mul(token0Price).add(p.position.amount1.mul(token1Price)),
+            };
+          }),
+        };
+      }),
+      ended: list.ended.map((p) => {
+        const token0Price = priceMap[p.token0.address];
+        const token1Price = priceMap[p.token1.address];
+
+        return {
+          ...p,
+          totalLiquidity: p.totalAmount0.mul(token0Price || 0).add(p.totalAmount1.mul(token1Price || 0)),
+          claimableValue: p.totalClaimable.mul(token0Price || 0),
+          // @ts-ignore
+          positions: p.positions.map((p) => {
+            return {
+              ...p,
+              totalLiquidity: p.position.amount0.mul(token0Price).add(p.position.amount1.mul(token1Price)),
+            };
+          }),
+        };
+      }),
+    };
+
+    !listWithPrice && setListWithPrice(l);
   }
 
-  console.log('price: ', priceMap);
-
-  console.log('list: ', list);
-
-  return list;
+  return listWithPrice || list;
 };
 
 /**

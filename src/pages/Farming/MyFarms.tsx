@@ -148,12 +148,11 @@ const MyFarmsItem: React.FC<{
 
 const MyFarms = () => {
   const account = useAccount();
-  // must get pools first
-  usePools();
+
   // then get my farms list
   const myFarmingList = useMyFarmsList();
 
-  // console.log('myFarmingList: ', myFarmingList);
+  console.log('myFarmingList: ', myFarmingList);
 
   if (!account) {
     return <div className="mt-4 py-2">Empty List</div>;

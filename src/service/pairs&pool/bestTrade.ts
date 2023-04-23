@@ -243,7 +243,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
         if (res?.errorCode) {
           setBestTrade({
             state: TradeState.ERROR,
-            error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode
+            error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
           });
         } else {
           console.log('server', res);
@@ -279,9 +279,9 @@ export const useBestTrade = useServerBestTrade;
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined) => {
   const token = getWrapperTokenByAddress(tokenAddress);
+  if (tokenAddress == TokenUSDT.address) return '1';
   const result = useServerBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
   if (!tokenAddress) return undefined;
-  if (tokenAddress == TokenUSDT.address) return '1';
   if (result.state === TradeState.LOADING) return undefined;
   if (result.state === TradeState.VALID) {
     return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
