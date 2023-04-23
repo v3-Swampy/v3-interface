@@ -81,6 +81,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({
                   id: position.tokenId,
                   pid,
                   currentIncentiveKey,
+                  position:position.position
                 })
               }
             >
