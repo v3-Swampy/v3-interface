@@ -6,6 +6,7 @@ import { sendTransaction } from '@service/account';
 import { PositionForUI, PositionsForUISelector } from './positions';
 import { accountState } from '@service/account';
 import { addRecordToHistory } from '@service/history';
+import { ZeroAddress } from '@service/swap';
 import Decimal from 'decimal.js';
 
 const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
@@ -69,19 +70,33 @@ export const handleCollectFees = async (tokenId: number) => {
   const position = getPosition(tokenId);
   const [fee0, fee1] = getPositionFees(tokenId);
   console.log('fee', fee0, fee1);
-  const { token0, token1 } = position!;
-  const data = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
+  if(!owner || !position || (!fee0 && !fee1)) return ''
+  const { token0, token1 } = position;
+  const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
+  const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
     {
       tokenId: tokenIdHexString,
-      recipient: owner, // some tokens might fail if transferred to address(0)
+      recipient: hasWCFX ? ZeroAddress : owner, // some tokens might fail if transferred to address(0)
       amount0Max: MAX_UINT128.toHexMinUnit(),
       amount1Max: MAX_UINT128.toHexMinUnit(),
     },
   ]);
-  const txHash = await sendTransaction({
-    data,
+  const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('unwrapWETH9', [
+    token0.symbol === 'WCFX' ? fee0.toHexMinUnit() : fee1.toHexMinUnit(),
+    owner,
+  ]);
+
+  const data2 = NonfungiblePositionManager.func.interface.encodeFunctionData('sweepToken', [
+    token0.symbol === 'WCFX' ? token1.address : token0.address,
+    token0.symbol === 'WCFX' ? fee1.toHexMinUnit() : fee0.toHexMinUnit(),
+    owner,
+  ]);
+
+  const transactionParams = {
+    data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0]]),
     to: NonfungiblePositionManager.address,
-  });
+  }
+  const txHash = await sendTransaction(transactionParams);
   addRecordToHistory({
     txHash,
     type: 'Position_CollectFees',

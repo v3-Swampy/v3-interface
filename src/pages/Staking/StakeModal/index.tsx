@@ -78,7 +78,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
         duration = currentStakeDuration;
         break;
       case ModalMode.IncreaseAmount:
-        addedStakeAmount = new Unit(stakeAmount||0);
+        addedStakeAmount = new Unit(stakeAmount || 0);
         duration = currentUnlockTime - dayjs().unix();
         break;
       case ModalMode.IncreaseUnlockTime:

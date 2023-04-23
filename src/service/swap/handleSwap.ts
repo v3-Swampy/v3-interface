@@ -9,7 +9,7 @@ import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
 import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
-const zeroAddress = '0x0000000000000000000000000000000000000000';
+export const ZeroAddress = '0x0000000000000000000000000000000000000000';
 export const handleConfirmSwap = async ({
   sourceTokenAmount,
   destinationTokenAmount,
@@ -43,7 +43,7 @@ export const handleConfirmSwap = async ({
 
   const params = {
     path: pack(types, path),
-    recipient: isDestinationTokenTokenCfx ? zeroAddress : account,
+    recipient: isDestinationTokenTokenCfx ? ZeroAddress : account,
     deadline: getDeadline(),
   };
 
