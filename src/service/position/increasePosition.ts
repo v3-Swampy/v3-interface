@@ -72,7 +72,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     const inverted = token0?.address === tokenA?.address;
     setInvertedState(previewUniqueId, inverted);
     // console.log(token0Amount, token1Amount)
-    const data = NonfungiblePositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
+    const dataWithoutCFX = NonfungiblePositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
       {
         tokenId,
         amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
@@ -82,12 +82,15 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
         deadline: getDeadline(),
       },
     ]);
+    const dataWithCFX = NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [
+      [dataWithoutCFX, NonfungiblePositionManager.func.interface.encodeFunctionData('refundETH')],
+    ]);
 
     const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
 
     const transactionParams = {
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
-      data,
+      data: !hasWCFX ? dataWithoutCFX : dataWithCFX,
       to: NonfungiblePositionManager.address,
     };
 
@@ -98,7 +101,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
       tokenB_Address: tokenB.address,
       tokenB_Value: Unit.fromStandardUnit(amountTokenB, tokenB.decimals).toDecimalStandardUnit(5),
     } as const;
-    console.log(position.amount0?.toDecimalStandardUnit(5), position.token0.symbol, position.amount1?.toDecimalStandardUnit(5), position.token1.symbol)
+
     showLiquidityPreviewModal({
       leftToken: _tokenA,
       rightToken: _tokenB,

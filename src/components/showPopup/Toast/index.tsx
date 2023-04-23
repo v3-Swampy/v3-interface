@@ -24,7 +24,7 @@ const ToastComponent: React.FC<{ content: string | React.ReactNode | Function; d
     });
 
     return (
-      <div className="relative bg-purple-dark-hover rounded-10px overflow-hidden group lt-mobile:w-[calc(100vw-24px)] lt-tiny:w-[calc(100vw-12px)]">
+      <div className="relative bg-orange-light-hover rounded-10px overflow-hidden group lt-mobile:w-[calc(100vw-24px)] lt-tiny:w-[calc(100vw-12px)]">
         <div className={cx('flex items-center px-24px py-16px', { 'text-#FF9900': type === 'warning', 'text-green-normal': type === 'success' })}>
           {showClose && (
             <span
