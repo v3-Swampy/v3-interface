@@ -202,7 +202,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
             const percent = oneRoute.reduce((currentFee, pool) => currentFee.mul(new Unit(1).sub(new Unit(pool.fee).div(1000000))), new Unit(1));
             return pre.add(overallPercent.mul(new Unit(1).sub(percent)));
           }, new Unit(0));
-          
+
           setBestTrade({
             state: TradeState.VALID,
             trade: {

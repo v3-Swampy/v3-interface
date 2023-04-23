@@ -24,6 +24,25 @@ export type V3PoolInRoute = {
   address?: string;
 };
 
+type V2Reserve = {
+  token: TokenInRoute;
+  quotient: string;
+};
+
+export type V2PoolInRoute = {
+  type: 'v2-pool';
+  tokenIn: TokenInRoute;
+  tokenOut: TokenInRoute;
+  reserve0: V2Reserve;
+  reserve1: V2Reserve;
+  amountIn?: string;
+  amountOut?: string;
+
+  // not used in the interface
+  // avoid returning it from the client-side smart-order-router
+  address?: string;
+};
+
 interface GetQuoteResult {
   quoteId?: string;
   blockNumber: string;
@@ -39,7 +58,7 @@ interface GetQuoteResult {
   quoteDecimals: string;
   quoteGasAdjusted: string;
   quoteGasAdjustedDecimals: string;
-  route: Array<V3PoolInRoute[]>;
+  route: Array<(V3PoolInRoute | V2PoolInRoute)[]>;
   routeString: string;
 }
 
@@ -60,13 +79,13 @@ export function transformSwapRouteToGetQuoteResult(
   amount: CurrencyAmount<Currency>,
   { quote, quoteGasAdjusted, route, estimatedGasUsed, estimatedGasUsedQuoteToken, estimatedGasUsedUSD, gasPriceWei, methodParameters, blockNumber }: SwapRoute
 ): GetQuoteResult {
-  const routeResponse: Array<V3PoolInRoute[]> = [];
+  const routeResponse: Array<(V3PoolInRoute | V2PoolInRoute)[]> = [];
 
   for (const subRoute of route) {
     const { amount, quote, tokenPath } = subRoute;
 
     const pools = subRoute.protocol === Protocol.V2 ? subRoute.route.pairs : subRoute.route.pools;
-    const curRoute: V3PoolInRoute[] = [];
+    const curRoute: (V3PoolInRoute | V2PoolInRoute)[] = [];
     for (let i = 0; i < pools.length; i++) {
       const nextPool = pools[i];
       const tokenIn = tokenPath[i];
@@ -101,6 +120,45 @@ export function transformSwapRouteToGetQuoteResult(
           liquidity: nextPool.liquidity.toString(),
           sqrtRatioX96: nextPool.sqrtRatioX96.toString(),
           tickCurrent: nextPool.tickCurrent.toString(),
+          amountIn: edgeAmountIn,
+          amountOut: edgeAmountOut,
+        });
+      } else {
+        const reserve0 = nextPool.reserve0;
+        const reserve1 = nextPool.reserve1;
+
+        curRoute.push({
+          type: 'v2-pool',
+          tokenIn: {
+            chainId: tokenIn.chainId,
+            decimals: tokenIn.decimals,
+            address: tokenIn.address,
+            symbol: tokenIn.symbol,
+          },
+          tokenOut: {
+            chainId: tokenOut.chainId,
+            decimals: tokenOut.decimals,
+            address: tokenOut.address,
+            symbol: tokenOut.symbol,
+          },
+          reserve0: {
+            token: {
+              chainId: reserve0.currency.wrapped.chainId,
+              decimals: reserve0.currency.wrapped.decimals,
+              address: reserve0.currency.wrapped.address,
+              symbol: reserve0.currency.wrapped.symbol,
+            },
+            quotient: reserve0.quotient.toString(),
+          },
+          reserve1: {
+            token: {
+              chainId: reserve1.currency.wrapped.chainId,
+              decimals: reserve1.currency.wrapped.decimals,
+              address: reserve1.currency.wrapped.address,
+              symbol: reserve1.currency.wrapped.symbol,
+            },
+            quotient: reserve1.quotient.toString(),
+          },
           amountIn: edgeAmountIn,
           amountOut: edgeAmountOut,
         });
