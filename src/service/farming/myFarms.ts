@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey } from './';
-import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, usePoolList, poolsQuery } from '@service/farming';
@@ -22,7 +22,7 @@ export interface FarmingPosition extends PositionForUI {
   claimable?: number;
 }
 
-interface MyFarmsPositionType {
+export interface MyFarmsPositionType {
   liquidity: any; // position liquidity
   isActive: boolean; // position is active or ended
   incentiveKey: IncentiveKey;
@@ -33,6 +33,8 @@ interface MyFarmsPositionType {
   address: string; // position address, the same as pool address
   position: PositionForUI;
   claimable: string; // position claimable
+  token0: Token;
+  token1: Token;
 }
 
 export const myFarmsPositionsQueryByTokenIds = selectorFamily({
@@ -122,11 +124,15 @@ export const usePools = () => {
   return useRecoilValue(myFarmsPoolsQuery);
 };
 
-interface GroupedPositions extends PositionForUI {
-  positions: PositionForUI;
+export interface GroupedPositions extends PositionForUI {
+  positions: MyFarmsPositionType[];
   totalAmount0: Decimal;
   totalAmount1: Decimal;
   totalClaimable: Decimal;
+  pid: number;
+  totalLiquidity: Decimal;
+  token0Price: Decimal;
+  token1Price: Decimal;
 }
 
 const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] => {
@@ -314,7 +320,6 @@ export const useMyFarmsList = () => {
   const tokensArr = Object.keys(tokensMap);
 
   const priceMap = usePrice(tokensArr);
-
   if (priceMap) {
     const l = {
       active: list.active.map((p) => {
@@ -323,13 +328,19 @@ export const useMyFarmsList = () => {
 
         return {
           ...p,
-          totalLiquidity: p.totalAmount0.mul(token0Price || 0).add(p.totalAmount1.mul(token1Price || 0)),
+          totalLiquidity: p.totalAmount0
+            .div(p.token0.decimals)
+            .mul(token0Price || 0)
+            .add(p.totalAmount1.div(p.token1.decimals).mul(token1Price || 0)),
           claimableValue: p.totalClaimable.mul(token0Price || 0),
           // @ts-ignore
           positions: p.positions.map((p) => {
             return {
               ...p,
-              totalLiquidity: p.position.amount0.mul(token0Price).add(p.position.amount1.mul(token1Price)),
+              totalLiquidity: p?.position?.amount0
+                ?.div(p?.token0?.decimals)
+                .mul(token0Price)
+                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(p.token1?.decimals).mul(token1Price)),
             };
           }),
         };
@@ -340,13 +351,16 @@ export const useMyFarmsList = () => {
 
         return {
           ...p,
-          totalLiquidity: p.totalAmount0.mul(token0Price || 0).add(p.totalAmount1.mul(token1Price || 0)),
+          totalLiquidity: p.totalAmount0
+            .div(p.token0.decimals)
+            .mul(token0Price || 0)
+            .add(p.totalAmount1.div(p.token1.decimals).mul(token1Price || 0)),
           claimableValue: p.totalClaimable.mul(token0Price || 0),
           // @ts-ignore
           positions: p.positions.map((p) => {
             return {
               ...p,
-              totalLiquidity: p.position.amount0.mul(token0Price).add(p.position.amount1.mul(token1Price)),
+              totalLiquidity: p.position.amount0?.mul(token0Price).add(p.position.amount1 ? p.position.amount1.mul(token1Price) : 0),
             };
           }),
         };
