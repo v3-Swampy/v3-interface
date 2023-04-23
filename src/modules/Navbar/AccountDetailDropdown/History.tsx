@@ -13,6 +13,7 @@ import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
 import { useRefreshStakedPositions } from '@service/farming/myFarms';
+import { useRefreshUserInfo } from '@service/staking';
 
 export const transitions = {
   en: {
@@ -20,9 +21,9 @@ export const transitions = {
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
-    stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
-    stake_increase_unlock_time: 'Increase unlock time {tokenAValue}',
-    stake_increase_amount: 'Increase stake amount <b>{tokenAValue} {tokenASymbol}</b>',
+    stake_create_lock: 'Stake {tokenAValue} {tokenASymbol}',
+    stake_increase_unlock_time: 'Increase unlock time',
+    stake_increase_amount: 'Increase staked amount {tokenAValue} {tokenASymbol}',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
     claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
@@ -33,9 +34,9 @@ export const transitions = {
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
-    stake_create_lock: 'Stake <b>{tokenAValue} {tokenASymbol}</b>',
+    stake_create_lock: 'Stake {tokenAValue} {tokenASymbol}',
     stake_increase_unlock_time: 'Increase unlock time {tokenAValue}',
-    stake_increase_amount: 'Increase stake <b>{tokenAValue} {tokenASymbol}</b>',
+    stake_increase_amount: 'Increase staked {tokenAValue} {tokenASymbol}',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
     claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
@@ -64,10 +65,12 @@ export const TransitionsTypeMap = {
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
   const refreshStakedPositions = useRefreshStakedPositions();
+  const refreshUserInfo = useRefreshUserInfo();
 
   return {
     refreshPositions,
     refreshStakedPositions,
+    refreshUserInfo,
   } as const;
 };
 
@@ -78,18 +81,15 @@ export const RefreshTypeMap = {
   ['Position_AddLiquidity']: 'refreshPositions',
   ['Position_IncreaseLiquidity']: 'refreshPositions',
   ['Position_CollectFees']: 'refreshPositions',
-  ['Stake_CreateLock']: 'refreshPositions',
-  ['Stake_IncreaseUnlockTime']: 'refreshPositions',
-  ['Stake_IncreaseAmount']: 'refreshPositions',
+  ['Stake_CreateLock']: 'refreshUserInfo',
+  ['Stake_IncreaseUnlockTime']: 'refreshUserInfo',
+  ['Stake_IncreaseAmount']: 'refreshUserInfo',
   ['AllFarms_StakedLP']: 'refreshPositions',
   ['Position_RemoveLiquidity']: 'refreshPositions',
   ['MyFarms_ClaimAndUnstake']: 'refreshStakedPositions',
   ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
-
-
-
 
 export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);
@@ -101,7 +101,7 @@ export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?
       className={cx('history-record flex-shrink-1 flex-grow-1', className)}
       dangerouslySetInnerHTML={{
         __html: compiled(i18n[TransitionsTypeMap[type]], {
-          tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : (tokenA_Value ?? ''),
+          tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : tokenA_Value ?? '',
           tokenASymbol: tokenA?.symbol ?? '',
           tokenBValue: trimDecimalZeros(tokenB_Value ? Number(tokenB_Value).toFixed(4) : ''),
           tokenBSymbol: tokenB?.symbol ?? '',
@@ -156,7 +156,7 @@ const History: React.FC = () => {
   );
 
   const height = useMemo(() => clamp(history.length, 0, 4) * 46, [history]);
-  
+
   return (
     <>
       <div className="mt-26px mb-16px flex items-center">
