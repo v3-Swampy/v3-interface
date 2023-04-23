@@ -49,13 +49,12 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
     ({ index, style }: { index: number; style: React.CSSProperties }) => {
       const token = filterTokens[index];
       return (
-        <div className="h-44px flex items-center bg-orange-light-hover">
+        <div className="px-16px h-44px flex items-center bg-orange-light-hover" style={style}>
           <div
             className={cx(
-              'flex items-center !h-40px pl-8px pr-16px rounded-100px hover:bg-orange-light cursor-pointer transition-colors',
+              'flex items-center w-full h-40px pl-8px pr-16px rounded-100px hover:bg-orange-light cursor-pointer transition-colors',
               currentSelectToken?.address === token.address && 'bg-orange-light pointer-events-none'
             )}
-            style={style}
             onClick={() => {
               onSelect(token);
               hidePopup();
@@ -90,8 +89,8 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
       <div className="my-16px h-2px bg-orange-light-hover" />
 
-      <div className="flex flex-col gap-12px px-16px pt-12px pb-4px rounded-20px bg-orange-light-hover">
-        <FixedSizeList width="100%" height={clamp(filterTokens.length, 0, 6) * 44} itemCount={filterTokens.length} itemSize={44} >
+      <div className="flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover">
+        <FixedSizeList width="100%" height={clamp(filterTokens.length, 0, 6) * 44} itemCount={filterTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
           {Token}
         </FixedSizeList>
       </div>
