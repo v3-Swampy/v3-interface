@@ -17,11 +17,13 @@ const transitions = {
     create_title: 'Add Liquidity',
     increase_title: 'Increase Liquidity',
     add: 'Add',
+    increase: 'Increase',
   },
   zh: {
     create_title: '新添流动性',
     increase_title: 'Increase Liquidity',
-    add: '添加',
+    add: '新添',
+    increase: '增加',
   },
 } as const;
 
