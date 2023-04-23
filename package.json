@@ -21,6 +21,7 @@
     "@tippyjs/react": "^4.2.6",
     "@uniswap/sdk-core": "^3.2.2",
     "@uniswap/v3-sdk": "^3.9.0",
+    "@uniswap/v3-staker": "^1.0.2",
     "@use-gesture/react": "^10.2.26",
     "clsx": "^1.2.1",
     "custom-react-scrollbar": "^0.0.4",
@@ -62,6 +63,7 @@
     "rollup-plugin-node-polyfills": "^0.2.1",
     "typescript": "^5.0.4",
     "unocss": "^0.51.5",
+    "v2-sdk": "link:@types/@uniswap/v2-sdk",
     "vite": "^4.2.2",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-svgr": "^2.4.0"

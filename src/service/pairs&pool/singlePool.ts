@@ -105,14 +105,12 @@ export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB
   ]).then((res) => {
     const slots = res?.[0] && res?.[0] !== '0x' ? poolContract.func.interface.decodeFunctionResult('slot0', res[0]) : null;
     const liquidityRes = res?.[1] && res?.[1] !== '0x' ? poolContract.func.interface.decodeFunctionResult('liquidity', res[1]) : null;
-    const pool = new Pool({
+    return createPool({
       ...params,
-      address: poolAddress,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
       tickCurrent: slots?.[1] ? +slots?.[1].toString() : null,
     });
-    return pool;
   });
 };
 
@@ -169,4 +167,32 @@ export const getPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: 
 export const updatePool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: Token; fee: FeeAmount }) => {
   const pool = await fetchPool({ tokenA, tokenB, fee });
   setRecoil(poolState(generatePoolKey({ tokenA, tokenB, fee })), pool);
+};
+
+export const createPool = ({
+  tokenA,
+  tokenB,
+  fee,
+  sqrtPriceX96,
+  liquidity,
+  tickCurrent,
+}: {
+  tokenA: Token;
+  tokenB: Token;
+  fee: FeeAmount;
+  sqrtPriceX96: string | null;
+  liquidity: string | null;
+  tickCurrent: number | null;
+}) => {
+  const wrapperedTokenA = getWrapperTokenByAddress(tokenA?.address)!;
+  const wrapperedTokenB = getWrapperTokenByAddress(tokenB?.address)!;
+  const params = { tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee };
+  const poolAddress = computePoolAddress(params);
+  return new Pool({
+    ...params,
+    address: poolAddress,
+    sqrtPriceX96,
+    liquidity,
+    tickCurrent,
+  });
 };

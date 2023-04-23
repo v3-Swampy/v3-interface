@@ -145,7 +145,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </ToolTip>
-        <span className="text-black-normal">0.00%</span>
+        <span className="text-black-normal">{bestTrade.trade?.priceImpact.mul(100).toDecimalMinUnit(2)}%</span>
       </p>
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
