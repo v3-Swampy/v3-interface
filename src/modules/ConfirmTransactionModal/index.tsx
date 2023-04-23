@@ -54,7 +54,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
       }
       const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
       await receiptPromise;
-      
+
       setStep(Step.Success);
     } catch (_) {
       setStep(Step.Failed);
@@ -146,7 +146,7 @@ const showConfirmTransactionModal = ({ className, title, subTitle, onClose, ...p
       onClose,
     });
   } else {
-    showModal({ Content: <ConfirmTransactionModal {...props} />, className: className, title, subTitle, onClose });
+    showModal({ Content: <ConfirmTransactionModal {...props} />, className, title, subTitle, onClose });
   }
 };
 

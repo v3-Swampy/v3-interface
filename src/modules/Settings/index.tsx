@@ -5,9 +5,17 @@ import BorderBox from '@components/Box/BorderBox';
 import ToolTip from '@components/Tooltip';
 import Input from '@components/Input';
 import Switch from '@components/Switch';
+import { showModal, showDrawer, hidePopup } from '@components/showPopup';
+import { isMobile } from '@utils/is';
 import useI18n from '@hooks/useI18n';
-import { useTransactionDeadline, useSlippageTolerance, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
+import { useTransactionDeadline, useSlippageTolerance, useExpertMode, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
 import { ReactComponent as SettingsIcon } from '@assets/icons/settings.svg';
+import Button from '@components/Button';
+
+interface CommonProps {
+  className?: string;
+  onClick?: VoidFunction;
+}
 
 const transitions = {
   en: {
@@ -42,6 +50,28 @@ const transitions = {
   },
 } as const;
 
+const ExpertModeModal: React.FC<CommonProps> = ({ onClick }: { onClick?: VoidFunction }) => {
+  return <div className="flex flex-col p-16px">
+    <p className="text-16px leading-20px text-black-normal mb-16px">Expert mode turns off the confirm transaction prompt and allows high slippage trades that often result
+      in bad rates and lost funds.</p>
+    <p className="text-20px leading-24px font-bold">ONLY USE THIS MODE IF YOU KNOW WHAT YOU ARE DOING.</p>
+    <Button className="h-48px rounded-100px text-16px !font-bold bg-red mt-40px" onClick={onClick}>Turn On Expert Mode</Button>
+  </div>
+};
+
+const showExpertModeModal = ({ className, title, subTitle, onClose, ...props }: CommonProps & { title: string; subTitle?: string; onClose?: VoidFunction; onClick?: VoidFunction }) => {
+  if (isMobile) {
+    showDrawer({
+      Content: <ExpertModeModal {...props} />,
+      title,
+      subTitle,
+      onClose,
+    });
+  } else {
+    showModal({ Content: <ExpertModeModal {...props} />, className, title, subTitle, onClose });
+  }
+};
+
 const SettingsContent: React.FC = () => {
   const i18n = useI18n(transitions);
 
@@ -54,6 +84,27 @@ const SettingsContent: React.FC = () => {
   const onTransactionDeadlineChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
     setTransactionDeadline(+value);
   }, []);
+
+  const [expertMode, setExpertMode] = useExpertMode();
+
+  const handleConfirm = () => {
+    const confirmWord = `confirm`;
+    if (window.prompt(`Please type the word "${confirmWord}" to enable expert mode.`) === confirmWord) {
+      setExpertMode(true);
+      hidePopup();
+    }
+  }
+
+  const handleSwitchExpertMode = (e: any) => {
+    const checked = e.target.checked;
+    if (checked) {
+      showExpertModeModal({ onClick: () => handleConfirm(), title: "Are you sure?" });
+    }
+    else {
+      setExpertMode(false);
+    }
+  }
+
 
   return (
     <BorderBox variant="orange" className="w-240px p-16px rounded-28px bg-white-normal shadow-popper">
@@ -136,7 +187,7 @@ const SettingsContent: React.FC = () => {
             <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
           </ToolTip>
         </p>
-        <Switch id="switch--expert_mode" />
+        <Switch id="switch--expert_mode" checked={expertMode} onChange={(e) => handleSwitchExpertMode(e)} />
       </div>
     </BorderBox>
   );
