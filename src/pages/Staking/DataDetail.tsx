@@ -13,12 +13,12 @@ const transitions = {
   en: {
     total_staking: 'Total Staked {token}',
     percentage_of_culatingtion: '<b>{percentage}%</b> of all circulating {token}',
-    average_stake_duration: 'Average Stake Duration: <b>{months} months</b>',
+    average_stake_duration: 'Average Stake Duration: <b>{duration}</b>',
   },
   zh: {
     total_staking: '总共质押的 {token}',
     percentage_of_culatingtion: '占 {token} 总流通量的 <b>{percentage}%</b>',
-    average_stake_duration: '平均质押时长: <b>{months}> 个月</b',
+    average_stake_duration: '平均质押时长: <b>{duration}></b>',
   },
 } as const;
 
@@ -47,7 +47,7 @@ const DataDetailContent: React.FC = () => {
         <p className="font-medium" dangerouslySetInnerHTML={{ __html: compiled(i18n.percentage_of_culatingtion, { token: TokenVST?.symbol, percentage: percentageOfCulatingtion }) }} />
         <p
           className="leading-21px text-14px text-black-normal font-medium"
-          dangerouslySetInnerHTML={{ __html: compiled(i18n.average_stake_duration, { months: averageStakeDuration }) }}
+          dangerouslySetInnerHTML={{ __html: compiled(i18n.average_stake_duration, { duration: averageStakeDuration }) }}
         />
       </div>
     </div>

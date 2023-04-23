@@ -145,7 +145,10 @@ export const usePoolList = () => {
                 [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
                 [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
                 [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
-                [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getPoolStat', [getIncentiveKey(pairContract.address)])],
+                [
+                  UniswapV3StakerFactory.address,
+                  UniswapV3StakerFactory.func.interface.encodeFunctionData('poolStat', [computeIncentiveKey(getIncentiveKey(pairContract.address))]),
+                ],
                 [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('totalAllocPoint')],
               ];
             })
@@ -158,7 +161,7 @@ export const usePoolList = () => {
                 token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
                 token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
                 fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
-                totalSupply: UniswapV3StakerFactory.func.interface.decodeFunctionResult('getPoolStat', r[3])[0].toString(),
+                totalSupply: UniswapV3StakerFactory.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
                 totalAllocPoint: UniswapV3StakerFactory.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
               };
             })
@@ -171,14 +174,20 @@ export const usePoolList = () => {
 
           const currentIncentivePeriod = getCurrentIncentivePeriod();
 
-          /**
-           * <reward rate per second> = incentive amount / (incentive endTime - incentive startTime)
-           * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
-           * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
-           */
-          const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
-          const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(pairInfo.totalAllocPoint).mul(price).div(totalSupply).mul(31536000);
-          const APRLow = APRHigh.mul(0.33);
+          let APRRange: [string, string] | [] = [];
+
+          if (price) {
+            /**
+             * <reward rate per second> = incentive amount / (incentive endTime - incentive startTime)
+             * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
+             * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
+             */
+            const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
+            const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(pairInfo.totalAllocPoint).mul(price).div(totalSupply).mul(31536000);
+            const APRLow = APRHigh.mul(0.33);
+
+            APRRange = [APRLow.toFixed(2), APRHigh.toFixed(2)];
+          }
 
           const tvl = new Decimal(price).mul(totalSupply).div(1e18).toFixed(2);
 
@@ -188,7 +197,7 @@ export const usePoolList = () => {
             token0: getTokenByAddress(token0) || DEFAULT_TOKEN,
             token1: getTokenByAddress(token1) || DEFAULT_TOKEN,
             tvl,
-            range: [APRLow.toFixed(2), APRHigh.toFixed(2)],
+            range: APRRange,
             currentIncentivePeriod: getCurrentIncentivePeriod() as Incentive,
           };
         });
