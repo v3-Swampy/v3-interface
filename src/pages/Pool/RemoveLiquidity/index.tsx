@@ -112,7 +112,6 @@ const RemoveLiquidity: React.FC = () => {
       handleSubmitRemoveLiquidity({
         tokenId,
         removePercent,
-        positionLiquidity: position?.liquidity,
         leftRemoveAmount: leftRemoveAmountForUI,
         rightRemoveAmount: rightRemoveAmountForUI,
         leftEarnedFees: leftEarnedFeesForUI,

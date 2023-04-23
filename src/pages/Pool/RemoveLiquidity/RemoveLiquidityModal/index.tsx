@@ -32,7 +32,6 @@ interface Props {
   transactionParams: {
     to: string;
     data: string;
-    value: string;
   };
   recordParams: {
     type: 'Position_RemoveLiquidity';

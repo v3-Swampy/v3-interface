@@ -9,7 +9,7 @@ import { addRecordToHistory } from '@service/history';
 import { ZeroAddress } from '@service/swap';
 import Decimal from 'decimal.js';
 
-const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
+export const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
 
 const positionSelector = selectorFamily<PositionForUI | undefined, number>({
   key: `PositionDetailForUI-${import.meta.env.MODE}`,
