@@ -1,4 +1,4 @@
-import { selector, useRecoilValue } from 'recoil';
+import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { VSTTokenContract, VotingEscrowContract } from '@contracts/index';
 import { accountState } from '@service/account';
@@ -81,9 +81,8 @@ export const useVstTotalSupply = () => useRecoilValue(vstTotalSupplyQuery);
 export const useVETotalSupply = () => useRecoilValue(escrowTotalSupplyQuery);
 export const useVEMaxTime = () => useRecoilValue(escrowTotalMaxTimeQuery);
 export const useEscrowDecimals = () => useRecoilValue(escrowDecimalsQuery);
-export const useEscrowUserInfo = () => useRecoilValue(escrowUserInfoQuery)
+export const useEscrowUserInfo = () => useRecoilValue(escrowUserInfoQuery);
 export const userBalanceOfveVst = () => useRecoilValue(escrowBalanceOfQuery);
-
 
 export const useStakePercent = () => {
   const totalStakeVST = useTotalStakeVST();
@@ -121,3 +120,5 @@ export const useBoostFactor = () => {
   //boosting factor = (67% * <amount of veVST> /<total supply of veVST> + 33%) / 33%
   return veVSTTotalSupply && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
 };
+
+export const useRefreshUserInfo = () => useRecoilRefresher_UNSTABLE(escrowUserInfoQuery);

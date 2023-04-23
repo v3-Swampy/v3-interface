@@ -4,19 +4,35 @@ import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey } from './';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
-import { positionQueryByTokenId, positionsQueryByTokenIds, PositionForUI, type Position } from '@service/position';
+import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, usePoolList, poolsQuery } from '@service/farming';
 import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
-import { fetchPools } from '@service/pairs&pool';
+import { type Pool, fetchPools } from '@service/pairs&pool';
 import _ from 'lodash-es';
 import { enhancePositionForUI } from '@service/position';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { decodePosition } from '@service/position/positions';
+import Decimal from 'decimal.js';
+import { type Token } from '@service/tokens';
+import { useTokenPrice } from '@service/pairs&pool';
 
 export interface FarmingPosition extends PositionForUI {
   isActive: boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
   whichIncentiveTokenIn: IncentiveKey;
   claimable?: number;
+}
+
+interface MyFarmsPositionType {
+  liquidity: any; // position liquidity
+  isActive: boolean; // position is active or ended
+  incentiveKey: IncentiveKey;
+  whichIncentiveTokenIn: IncentiveKey;
+  incentiveHistoryIndex: number;
+  incentiveId: string;
+  tokenId: number; // position id
+  address: string; // position address, the same as pool address
+  position: PositionForUI;
+  claimable: string; // position claimable
 }
 
 export const myFarmsPositionsQueryByTokenIds = selectorFamily({
@@ -106,6 +122,48 @@ export const usePools = () => {
   return useRecoilValue(myFarmsPoolsQuery);
 };
 
+interface GroupedPositions extends PositionForUI {
+  positions: PositionForUI;
+  totalAmount0: Decimal;
+  totalAmount1: Decimal;
+  totalClaimable: Decimal;
+}
+
+const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] => {
+  const groupedData: {
+    [key: string]: {
+      positions: MyFarmsPositionType[];
+      totalAmount0: Decimal;
+      totalAmount1: Decimal;
+      totalClaimable: Decimal;
+    } extends Pool
+      ? Pool
+      : any;
+  } = {};
+
+  for (let i = 0, len = positions.length; i < len; i++) {
+    const p = positions[i];
+
+    if (groupedData[p.address]) {
+      groupedData[p.address].positions.push(p);
+    } else {
+      groupedData[p.address] = {
+        ...p.position.pool,
+        positions: [p],
+        totalAmount0: new Decimal(0),
+        totalAmount1: new Decimal(0),
+        totalClaimable: new Decimal(0),
+      };
+    }
+
+    groupedData[p.address].totalAmount0 = groupedData[p.address].totalAmount0.add(p.position.amount0?.toDecimal() || 0);
+    groupedData[p.address].totalAmount1 = groupedData[p.address].totalAmount1.add(p.position.amount1?.toDecimal() || 0);
+    groupedData[p.address].totalClaimable = groupedData[p.address].totalClaimable.add(p.claimable || 0);
+  }
+
+  return Object.values(groupedData);
+};
+
 const myFarmsListQuery = selector({
   key: `myFarmsListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
@@ -180,18 +238,10 @@ const myFarmsListQuery = selector({
 
     // console.log('resOfMulticallOfRewards: ', resOfMulticallOfRewards);
 
-    const result: {
-      liquidity: any; // position liquidity
-      isActive: boolean; // position is active or ended
-      incentiveKey: IncentiveKey;
-      whichIncentiveTokenIn: IncentiveKey;
-      incentiveHistoryIndex: number;
-      incentiveId: string;
-      tokenId: number; // position id
-      address: string; // position address, the same as pool address
-      position: Position;
-      claimable: string; // position claimable
-    }[] = resOfMulticall.reduce(
+    let result: {
+      active: MyFarmsPositionType[];
+      ended: MyFarmsPositionType[];
+    } = resOfMulticall.reduce(
       (prev: any, curr, index) => {
         const r = {
           ...curr,
@@ -212,12 +262,42 @@ const myFarmsListQuery = selector({
       }
     );
 
-    return result;
+    return {
+      active: groupPositions(result.active),
+      ended: groupPositions(result.ended),
+    };
   },
 });
 
 export const useMyFarmsList = () => {
-  return useRecoilValue(myFarmsListQuery);
+  const list = useRecoilValue(myFarmsListQuery);
+
+  const tokensMap: {
+    [key: string]: true;
+  } = {};
+
+  list.active.concat(list.ended).forEach((p) => {
+    tokensMap[p.token0.address] = true;
+    tokensMap[p.token1.address] = true;
+  });
+
+  console.log('tokens: ', Object.keys(tokensMap));
+
+  const tokensArr = Object.keys(tokensMap);
+
+  const priceMap: {
+    [key: string]: string | null | undefined;
+  } = {};
+
+  for (const address of tokensArr) {
+    priceMap[address] = useTokenPrice(address);
+  }
+
+  console.log('price: ', priceMap);
+
+  console.log('list: ', list);
+
+  return list;
 };
 
 /**

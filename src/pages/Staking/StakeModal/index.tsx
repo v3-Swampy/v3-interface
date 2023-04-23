@@ -129,7 +129,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
           recordParams: {
             type: methodName === 'createLock' ? 'Stake_CreateLock' : methodName === 'increaseUnlockTime' ? 'Stake_IncreaseUnlockTime' : 'Stake_IncreaseAmount',
             tokenA_Value: methodName !== 'increaseUnlockTime' ? addAmount : extendDurationText,
-            tokenA_Address: methodName !== 'increaseUnlockTime' ? TokenVST.address : '',
+            tokenA_Address: TokenVST.address,
           },
         });
       } catch (err) {
