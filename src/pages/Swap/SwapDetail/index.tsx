@@ -6,7 +6,7 @@ import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { isTokenEqual } from '@service/tokens';
-import { TradeState, useTokenPrice, type useBestTrade } from '@service/pairs&pool';
+import { TradeState, TradeType, type useBestTrade } from '@service/pairs&pool';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
 
@@ -59,14 +59,17 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
 
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
   const networkFee = useMemo(
-    () => (destinationTokenUSDPrice && bestTrade.trade ? bestTrade.trade?.networkFeeByAmount.mul(destinationTokenUSDPrice) : undefined),
-    [destinationTokenUSDPrice, bestTrade]
+    () =>
+      destinationTokenUSDPrice && sourceTokenUSDPrice && bestTrade.trade
+        ? bestTrade.trade?.networkFeeByAmount.mul(bestTrade.trade.tradeType === TradeType.EXACT_INPUT ? destinationTokenUSDPrice : sourceTokenUSDPrice)
+        : undefined,
+    [destinationTokenUSDPrice, sourceTokenUSDPrice, bestTrade]
   );
 
   if (!isBothTokenSelected) return null;
   return (
     <Accordion
-      className={cx("rounded-20px border-2px border-solid border-orange-light-hover", fromPreview ? 'mt-8px' : 'mt-6px')}
+      className={cx('rounded-20px border-2px border-solid border-orange-light-hover', fromPreview ? 'mt-8px' : 'mt-6px')}
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
