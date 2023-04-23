@@ -7,7 +7,6 @@ import { getDeadline } from '@service/settings';
 import { getAccount } from '@service/account';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
-import Decimal from 'decimal.js';
 import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
@@ -43,7 +42,7 @@ export const handleConfirmSwap = async ({
   
  
     const params = {
-      path: pack(types, path),
+      path: pack(types, tradeTypeFunctionName === 'exactInput' ? path : path.reverse()),
       recipient: isDestinationTokenTokenCfx ? ZeroAddress : account,
       deadline: getDeadline(),
     };
@@ -56,7 +55,7 @@ export const handleConfirmSwap = async ({
     } else {
       Object.assign(params, {
         amountOut: Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toHexMinUnit(),
-        amountInMaximum: new Unit(new Decimal(2).pow(128).sub(1).toString()).toHexMinUnit(),
+        amountInMaximum: new Unit(2).pow(256).sub(1).toHexMinUnit(),
       });
     }
 
@@ -68,15 +67,19 @@ export const handleConfirmSwap = async ({
     isDestinationTokenTokenCfx ? 0 : 0,
     account,
   ]);
-  console.log([isDestinationTokenTokenCfx ? [...data0, data1] : [...data0]])
-  console.log(isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toDecimalStandardUnit(5) : '0x0')
+
+  const data2 = UniswapV3SwapRouter.func.interface.encodeFunctionData('refundETH');
+
+  const data = isDestinationTokenTokenCfx ? [...data0, data1] : [...data0];
+  if (isSourceTokenCfx && tradeTypeFunctionName === 'exactOutput') {
+    data.push(data2);
+  }
 
   const transactionParams = {
     value: isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit() : '0x0',
-    data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [isDestinationTokenTokenCfx ? [...data0, data1] : [...data0]]),
+    data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [data]),
     to: UniswapV3SwapRouter.address,
   }
-  console.log(transactionParams);
 
   const recordParams = {
     type: 'Swap',
