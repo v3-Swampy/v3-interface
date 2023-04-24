@@ -22,7 +22,9 @@ const Navbar: React.FC = () => {
       )}
     >
       <nav className="flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
-        <Logo className="w-96px h-45px flex-shrink-0 lt-md:w-68px lt-md:h-32px -translate-y-12px lt-md:-translate-y-4px" />
+        <NavLink to="/swap" style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined })}>
+          <Logo className="w-96px h-45px flex-shrink-0 lt-md:w-68px lt-md:h-32px -translate-y-12px lt-md:-translate-y-4px" />
+        </NavLink>
 
         <div className="ml-58px inline-flex items-center gap-32px lt-md:display-none">
           <NavLinks />

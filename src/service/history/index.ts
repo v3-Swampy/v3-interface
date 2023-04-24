@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { atom, useRecoilState } from 'recoil';
+import { atomFamily, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { showToast } from '@components/showPopup';
 import { toI18n, compiled } from '@hooks/useI18n';
 import { persistAtomWithDefault } from '@utils/recoilUtils';
+import { useAccount, getAccount } from '@service/account';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { waitTransactionReceipt } from '@utils/waitAsyncResult';
 import { useRefreshData, RefreshTypeMap, transitions, TransitionsTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
@@ -37,7 +38,7 @@ export interface HistoryRecord {
   refreshParams?: any | Array<any>;
 }
 
-const historyState = atom<Array<HistoryRecord>>({
+const historyState = atomFamily<Array<HistoryRecord>, string>({
   key: `historyState-${import.meta.env.MODE}`,
   effects: [persistAtomWithDefault([])],
 });
@@ -45,7 +46,8 @@ const historyState = atom<Array<HistoryRecord>>({
 let inHistoryTracking = false;
 const recordTracker = new Map<string, boolean>();
 export const useHistory = () => {
-  const [history, setHistory] = useRecoilState(historyState);
+  const account = useAccount();
+  const [history, setHistory] = useRecoilState(historyState(account ?? 'not-login-in'));
   const refreshFuncs = useRefreshData();
 
   useEffect(() => {
@@ -103,7 +105,8 @@ export const useHistory = () => {
 };
 
 export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) => {
-  setRecoil(historyState, (history) => {
+  const account = getAccount();
+  setRecoil(historyState(account ?? 'not-login-in'), (history) => {
     const hasSame = !!history.some((r) => r.txHash === record.txHash);
     if (hasSame) return history;
     return [{ ...record, status: HistoryStatus.Pending }, ...history];
@@ -115,5 +118,6 @@ export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) 
 
 
 export const clearHistory = () => {
-  setRecoil(historyState, []);
+  const account = getAccount();
+  setRecoil(historyState(account ?? 'not-login-in'), []);
 };
