@@ -4,7 +4,7 @@ import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
 import Avatar from '@components/Avatar';
 import Dropdown from '@components/Dropdown';
-import ToolTip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip';
 import Spin from '@components/Spin';
 import Address from '@modules/Address';
 import { disconnect } from '@service/account';
@@ -24,12 +24,12 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
         <Address address={account} className="text-14px text-black-normal font-medium" useTooltip={false} />
       </div>
 
-      <ToolTip visible={isCopied} text="复制成功">
+      <Tooltip visible={isCopied} text="复制成功">
         <div className="mt-8px relative flex items-center pl-50px text-12px text-gray-normal font-medium cursor-pointer" onClick={copy}>
           <CopyIcon className="absolute left-32px" />
           Copy Address
         </div>
-      </ToolTip>
+      </Tooltip>
 
       <a
         className="mt-10px block relative flex items-center pl-50px text-12px text-gray-normal font-medium cursor-pointer no-underline"

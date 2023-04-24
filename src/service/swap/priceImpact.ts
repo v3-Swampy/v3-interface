@@ -8,7 +8,7 @@ const PRICE_IMPACT_WITHOUT_FEE_CONFIRM_MIN = new Unit(0.1); // 10%
 // for non expert mode disable swaps above this
 const BLOCKED_PRICE_IMPACT_NON_EXPERT = new Unit(0.15); // 15%
 
-type WarningSeverity = 0 | 1 | 2 | 3 | 4;
+export type WarningSeverity = 0 | 1 | 2 | 3 | 4;
 const IMPACT_TIERS = [BLOCKED_PRICE_IMPACT_NON_EXPERT, ALLOWED_PRICE_IMPACT_HIGH, ALLOWED_PRICE_IMPACT_MEDIUM, ALLOWED_PRICE_IMPACT_LOW];
 
 export function warningSeverity(priceImpact: Unit | undefined): WarningSeverity {

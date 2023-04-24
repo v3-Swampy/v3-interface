@@ -1,6 +1,6 @@
 import React, { memo, useState, useCallback } from 'react';
 import cx from 'clsx';
-import ToolTip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';

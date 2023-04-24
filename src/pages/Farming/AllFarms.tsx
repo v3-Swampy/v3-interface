@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
-import ToolTip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip';
 import Corner from './Corner';
 import showStakeLPModal from './StakeLPModal';
 import { usePoolList, type PoolType } from '@service/farming';
@@ -72,9 +72,9 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
       <div>
         <div className={`${className.title}`}>
           {i18n.allocPoint}
-          <ToolTip text={i18n.tooltipMultipier}>
+          <Tooltip text={i18n.tooltipMultipier}>
             <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
-          </ToolTip>
+          </Tooltip>
         </div>
         <div className="text-12px font-500 not-italic leading-15px color-green-normal flex items-center">
           <LightningIcon className="w-5 h-5 mr-0.5" />

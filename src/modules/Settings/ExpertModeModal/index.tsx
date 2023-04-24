@@ -1,23 +1,35 @@
 
 import React from 'react';
 import { isMobile } from '@utils/is';
-import useI18n from '@hooks/useI18n';
+import useI18n, { compiled } from '@hooks/useI18n';
 import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import { ReactComponent as WarningIcon } from '@assets/icons/warning.svg';
 import { ReactComponent as WarningWhiteIcon } from '@assets/icons/warning_white.svg';
 import { useExpertMode } from '@service/settings';
 import Button from '@components/Button';
 
+
+const transitions = {
+  en: {
+    confirm: 'confirm',
+    confirm_prompt: 'Please type the word "{confirmWord}" to enable expert mode.'
+  },
+  zh: {
+    confirm: 'confirm',
+    confirm_prompt: 'Please type the word "{confirmWord}" to enable expert mode.'
+  },
+} as const;
 interface CommonProps {
   className?: string;
 }
 
 const ExpertModeModal: React.FC<CommonProps> = () => {
+  const i18n = useI18n(transitions);
   const [expertMode, setExpertMode] = useExpertMode();
 
   const handleConfirm = () => {
-    const confirmWord = `confirm`;
-    if (window.prompt(`Please type the word "${confirmWord}" to enable expert mode.`) === confirmWord) {
+    const confirmWord = i18n.confirm;
+    if (window.prompt(compiled(i18n.confirm_prompt, { confirmWord: i18n.confirm })) === confirmWord) {
       setExpertMode(true);
       hidePopup();
     }

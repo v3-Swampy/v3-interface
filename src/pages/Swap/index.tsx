@@ -19,11 +19,13 @@ import {
 } from '@service/swap';
 import { useBestTrade, TradeState, useTokenPrice } from '@service/pairs&pool';
 import { TradeType } from '@service/pairs&pool/bestTrade';
+import { useExpertMode } from '@service/settings';
 import { computeFiatValuePriceImpact } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
 import SwapDetail from './SwapDetail';
+import PriceImpactWarning from './PriceImpactWarning';
 
 const transitions = {
   en: {
@@ -64,7 +66,12 @@ const SwapPage: React.FC = () => {
   }, [bestTrade, stablecoinPriceImpact])
 
   console.log('price:', sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact?.toDecimalMinUnit());
-  console.log('severity', priceImpactSeverity, largerPriceImpact?.toDecimalMinUnit());
+  console.log('severity', priceImpactSeverity, largerPriceImpact?.toDecimalMinUnit(4));
+  const expertMode = useExpertMode()
+
+  const priceImpactTooHigh = priceImpactSeverity > 3 && !expertMode
+  const showPriceImpactWarning = largerPriceImpact?.toDecimalMinUnit() && priceImpactSeverity > 3
+
   useEffect(() => {
     if (inputedType && bestTrade.state === TradeState.VALID && bestTrade?.trade) {
       const sourceToken = getSourceToken();
@@ -73,9 +80,9 @@ const SwapPage: React.FC = () => {
         `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
         inputedAmount
           ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
-              undefined,
-              (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
-            )
+            undefined,
+            (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
+          )
           : ''
       );
     }
@@ -143,7 +150,9 @@ const SwapPage: React.FC = () => {
 
           <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} />
 
-          <SubmitButton sourceTokenAmount={sourceTokenAmount} />
+          {showPriceImpactWarning && <PriceImpactWarning largerPriceImpact={largerPriceImpact} />}
+
+          <SubmitButton sourceTokenAmount={sourceTokenAmount} priceImpactTooHigh={priceImpactTooHigh} priceImpactSeverity={priceImpactSeverity} tradeState={bestTrade.state} />
         </form>
       </BorderBox>
     </PageWrapper>

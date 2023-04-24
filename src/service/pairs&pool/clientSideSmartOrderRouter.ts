@@ -186,8 +186,6 @@ export function transformSwapRouteToGetQuoteResult(
     routeString: routeAmountsToString(route),
   };
 
-  console.log('result', result)
-
   return result;
 }
 
@@ -216,8 +214,6 @@ async function getQuote(
   const swapRoute = await router.route(amount, quoteCurrency, type, /*swapConfig=*/ undefined, config);
 
   if (!swapRoute) throw new Error('Failed to generate client side quote');
-
-  console.log('swapRoute', swapRoute)
 
   return { data: transformSwapRouteToGetQuoteResult(type, amount, swapRoute) };
 }

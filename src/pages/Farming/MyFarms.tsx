@@ -3,7 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
-import ToolTip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
@@ -101,9 +101,9 @@ const MyFarmsItem: React.FC<{
         <div>
           <div className={`${className.title}`}>
             {i18n.claimable}
-            <ToolTip text={i18n.tooltipClaimable}>
+            <Tooltip text={i18n.tooltipClaimable}>
               <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
-            </ToolTip>
+            </Tooltip>
           </div>
           <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">
             {totalClaimable ? numFormat(new Unit(totalClaimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST

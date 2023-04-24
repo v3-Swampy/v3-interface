@@ -1,6 +1,6 @@
 import React, { memo, useState, useCallback, useMemo } from 'react';
 import cx from 'clsx';
-import ToolTip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
@@ -101,14 +101,14 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             <p className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
               {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
               {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
-              <ToolTip>
+              <Tooltip>
                 <span
                   className={cx(
                     'i-fa6-solid:circle-info ml-6px mb-2px text-13px text-gray-normal font-medium transition-opacity duration-125',
                     expand && 'opacity-0 pointer-events-none'
                   )}
                 />
-              </ToolTip>
+              </Tooltip>
             </p>
             {networkFee && (
               <span
@@ -127,46 +127,46 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
       }
 
       <p className="flex justify-between items-center leading-18px text-14px font-medium">
-        <ToolTip text={i18n.expected_output_tooltip}>
+        <Tooltip text={i18n.expected_output_tooltip}>
           <span className="text-gray-normal">
             {i18n.expected_output}
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
-        </ToolTip>
+        </Tooltip>
         <span className="text-black-normal">
           {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
         </span>
       </p>
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px font-medium">
-        <ToolTip text={i18n.price_impact_tooltip}>
+        <Tooltip text={i18n.price_impact_tooltip}>
           <span className="text-gray-normal">
             {i18n.price_impact}
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
-        </ToolTip>
+        </Tooltip>
         <span className="text-black-normal">{bestTrade.trade?.priceImpact.mul(100).toDecimalMinUnit(2)}%</span>
       </p>
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
-        <ToolTip text={i18n.minimum_received_tooltip}>
+        <Tooltip text={i18n.minimum_received_tooltip}>
           <span>
             {i18n.minimum_received} (5.00%)
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
-        </ToolTip>
+        </Tooltip>
         <span>
           {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
         </span>
       </p>
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
-        <ToolTip text={i18n.network_fee_tooltip}>
+        <Tooltip text={i18n.network_fee_tooltip}>
           <span>
             {i18n.network_fee}
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
-        </ToolTip>
+        </Tooltip>
         <span>${networkFee?.toDecimalStandardUnit(5)}</span>
       </p>
 

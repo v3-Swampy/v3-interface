@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import cx from 'clsx';
 import Dropdown from '@components/Dropdown';
 import BorderBox from '@components/Box/BorderBox';
-import ToolTip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip';
 import Input from '@components/Input';
 import Switch from '@components/Switch';
 import { isMobile } from '@utils/is';
@@ -81,9 +81,9 @@ const SettingsContent: React.FC = () => {
 
       <p className="mb-8px leading-18px text-14px text-black-normal font-medium">
         {i18n.slippage_tolerance}
-        <ToolTip text={i18n.slippage_tolerance_tooltip}>
+        <Tooltip text={i18n.slippage_tolerance_tooltip}>
           <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
-        </ToolTip>
+        </Tooltip>
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
         <div
@@ -118,9 +118,9 @@ const SettingsContent: React.FC = () => {
 
       <p className="mt-16px mb-8px leading-18px text-14px text-black-normal font-medium">
         {i18n.transaction_deadline}
-        <ToolTip text={i18n.transaction_deadline_tooltip}>
+        <Tooltip text={i18n.transaction_deadline_tooltip}>
           <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
-        </ToolTip>
+        </Tooltip>
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
         <div className="flex-shrink-1 flex items-center w-full h-full px-16px rounded-100px border-1px border-solid border-orange-light">
@@ -142,9 +142,9 @@ const SettingsContent: React.FC = () => {
       <div className="flex justify-between items-center">
         <p className="leading-18px text-14px text-black-normal font-medium">
           {i18n.auto_router_api}
-          <ToolTip text={i18n.auto_router_api_tooltip}>
+          <Tooltip text={i18n.auto_router_api_tooltip}>
             <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
-          </ToolTip>
+          </Tooltip>
         </p>
         <Switch id="switch--auto_router_api" checked={routingApi} onChange={(e) => handleSwitchRoutingApi(e)} />
       </div>
@@ -152,9 +152,9 @@ const SettingsContent: React.FC = () => {
       <div className="mt-4px flex justify-between items-center">
         <p className="leading-18px text-14px text-black-normal font-medium">
           {i18n.expert_mode}
-          <ToolTip text={i18n.expert_mode_tooltip}>
+          <Tooltip text={i18n.expert_mode_tooltip}>
             <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
-          </ToolTip>
+          </Tooltip>
         </p>
         <Switch id="switch--expert_mode" checked={expertMode} onChange={(e) => handleSwitchExpertMode(e)} />
       </div>

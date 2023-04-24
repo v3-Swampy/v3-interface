@@ -4,7 +4,7 @@ import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
 
 interface CornerProps {
-  timestatmp: number;
+  timestamp: number;
 }
 
 const transitions = {
@@ -24,7 +24,7 @@ const transitions = {
   },
 } as const;
 
-const Corner: React.FC<CornerProps> = ({ timestatmp }) => {
+const Corner: React.FC<CornerProps> = ({ timestamp }) => {
   const i18n = useI18n(transitions);
   const [timeLeft, setTimeLeft] = useState('');
   const [classNames, setClassNames] = useState({
@@ -34,7 +34,7 @@ const Corner: React.FC<CornerProps> = ({ timestatmp }) => {
 
   useEffect(() => {
     const fn = () => {
-      const diff = dayjs(timestatmp * 1000).diff(dayjs(), 'second');
+      const diff = dayjs(timestamp * 1000).diff(dayjs(), 'second');
 
       let classNameBorder = '';
       let classNameContainer = '';
@@ -79,7 +79,7 @@ const Corner: React.FC<CornerProps> = ({ timestatmp }) => {
     fn();
 
     return () => clearInterval(intervalId);
-  }, [timestatmp]);
+  }, [timestamp]);
 
   return (
     <div

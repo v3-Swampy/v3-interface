@@ -1,7 +1,7 @@
 import React from 'react';
 import Popper, { type Props } from '@components/Popper';
 
-const ToolTip: React.FC<Omit<Props, 'Content'> & { text?: string }> = ({
+const Tooltip: React.FC<Omit<Props, 'Content'> & { text?: string }> = ({
   children,
   text,
   placement = 'top',
@@ -30,4 +30,4 @@ const ToolTip: React.FC<Omit<Props, 'Content'> & { text?: string }> = ({
   );
 };
 
-export default ToolTip;
+export default Tooltip;
