@@ -7,6 +7,7 @@ import useI18n from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { isTokenEqual } from '@service/tokens';
 import { TradeState, TradeType, type useBestTrade } from '@service/pairs&pool';
+import { useSlippageTolerance } from "@service/settings"
 import { trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
 
@@ -46,15 +47,16 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const isBothTokenSelected = sourceToken && destinationToken;
+  const { value: slippageTolerance } = useSlippageTolerance()
 
-  const [diretion, setDirection] = useState<'SourceToDestination' | 'DestinationToSource'>('SourceToDestination');
+  const [direction, setDirection] = useState<'SourceToDestination' | 'DestinationToSource'>('SourceToDestination');
   const handleClickAccordionTitle = useCallback<React.MouseEventHandler<HTMLParagraphElement>>((evt) => {
     evt.preventDefault();
     setDirection((pre) => (pre === 'SourceToDestination' ? 'DestinationToSource' : 'SourceToDestination'));
   }, []);
 
-  const fromToken = diretion === 'SourceToDestination' ? sourceToken : destinationToken;
-  const toToken = diretion === 'SourceToDestination' ? destinationToken : sourceToken;
+  const fromToken = direction === 'SourceToDestination' ? sourceToken : destinationToken;
+  const toToken = direction === 'SourceToDestination' ? destinationToken : sourceToken;
   const toTokenPrice = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
 
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
@@ -152,7 +154,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
       <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
         <Tooltip text={i18n.minimum_received_tooltip}>
           <span>
-            {i18n.minimum_received} (5.00%)
+            {i18n.minimum_received} ({slippageTolerance}%)
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </Tooltip>
