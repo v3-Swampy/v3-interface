@@ -1,4 +1,4 @@
-import { selectorFamily, useRecoilValue } from 'recoil';
+import { selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { getRecoil } from 'recoil-nexus';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager } from '@contracts/index';
@@ -64,13 +64,13 @@ export const positionFeesQuery = selectorFamily({
     },
 });
 
-export const handleCollectFees = async (tokenId: number) => {
+export const handleCollectFees = async ({ tokenId, refreshPositionFees }: { tokenId: number; refreshPositionFees: VoidFunction }) => {
   const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
   const owner = getPositionOwner(tokenId);
   const position = getPosition(tokenId);
   const [fee0, fee1] = getPositionFees(tokenId);
-  console.log('fee', fee0, fee1);
-  if(!owner || !position || (!fee0 && !fee1)) return ''
+
+  if (!owner || !position || (!fee0 && !fee1)) return '';
   const { token0, token1 } = position;
   const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
   const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
@@ -81,10 +81,7 @@ export const handleCollectFees = async (tokenId: number) => {
       amount1Max: MAX_UINT128.toHexMinUnit(),
     },
   ]);
-  const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('unwrapWETH9', [
-    token0.symbol === 'WCFX' ? fee0.toHexMinUnit() : fee1.toHexMinUnit(),
-    owner,
-  ]);
+  const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('unwrapWETH9', [token0.symbol === 'WCFX' ? fee0.toHexMinUnit() : fee1.toHexMinUnit(), owner]);
 
   const data2 = NonfungiblePositionManager.func.interface.encodeFunctionData('sweepToken', [
     token0.symbol === 'WCFX' ? token1.address : token0.address,
@@ -95,7 +92,7 @@ export const handleCollectFees = async (tokenId: number) => {
   const transactionParams = {
     data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0]]),
     to: NonfungiblePositionManager.address,
-  }
+  };
   const txHash = await sendTransaction(transactionParams);
   addRecordToHistory({
     txHash,
@@ -104,6 +101,8 @@ export const handleCollectFees = async (tokenId: number) => {
     tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
     tokenB_Address: token1.address,
     tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+  }).then(() => {
+    refreshPositionFees();
   });
   return txHash;
 };
@@ -113,6 +112,7 @@ export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(
 export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerQuery(+tokenId));
 
 export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesQuery(+tokenId));
+export const useRefreshPositionFees = (tokenId: number | undefined) => useRecoilRefresher_UNSTABLE(positionFeesQuery(+tokenId));
 
 export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(+tokenId));
 

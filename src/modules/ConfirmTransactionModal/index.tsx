@@ -7,7 +7,7 @@ import { isMobile } from '@utils/is';
 import { type Token } from '@service/tokens';
 import { addRecordToHistory, type HistoryRecord } from '@service/history';
 import { RecordAction } from '@modules/Navbar/AccountDetailDropdown/History';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { waitTransactionReceipt } from '@utils/waitAsyncResult';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed.svg';
 
@@ -52,7 +52,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
           ...recordParams,
         });
       }
-      const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
+      const [receiptPromise] = waitTransactionReceipt(txHash);
       await receiptPromise;
 
       setStep(Step.Success);

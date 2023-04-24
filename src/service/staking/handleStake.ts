@@ -1,6 +1,6 @@
 import { sendTransaction } from '@service/account';
 import { VotingEscrowContract } from '@contracts/index';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { waitTransactionReceipt } from '@utils/waitAsyncResult';
 import { showToast } from '@components/showPopup';
 import { toI18n } from '@hooks/useI18n';
 
@@ -29,7 +29,7 @@ export const handleUnStake = async () => {
     to: VotingEscrowContract.address,
   });
 
-  const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
+  const [receiptPromise] = waitTransactionReceipt(txHash);
   await receiptPromise;
 
   showToast(i18n.success_tip, {

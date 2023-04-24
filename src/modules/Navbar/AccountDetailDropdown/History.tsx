@@ -80,7 +80,6 @@ export const RefreshTypeMap = {
   ['Swap']: 'refreshPositions',
   ['Position_AddLiquidity']: 'refreshPositions',
   ['Position_IncreaseLiquidity']: 'refreshPositions',
-  ['Position_CollectFees']: 'refreshPositions',
   ['Stake_CreateLock']: 'refreshUserInfo',
   ['Stake_IncreaseUnlockTime']: 'refreshUserInfo',
   ['Stake_IncreaseAmount']: 'refreshUserInfo',

@@ -1,15 +1,32 @@
 import { fetchChain } from '@utils/fetch';
 
-export const isTransactionReceipt = async (transactionHash: string) => {
+export const isTransactionReceipt = async (txHash: string) => {
   const txReceipt: { blockNumber: string; blockHash: string; transactionHash: string; from: string; to: string; status: string } = await fetchChain({
     method: 'eth_getTransactionReceipt',
-    params: [transactionHash],
+    params: [txHash],
   });
 
   if (txReceipt && txReceipt.blockNumber) {
     return txReceipt;
   }
   return null;
+};
+
+
+const transactionReceiptCache = new Map<string, Readonly<[Promise<NonNullable<Awaited<ReturnType<typeof isTransactionReceipt>>>>, VoidFunction, () => 'fullfilled' | 'rejected' | 'pending']>>();
+export const waitTransactionReceipt = (txHash: string) => {
+  const cachedRes = transactionReceiptCache.get(txHash);
+  if (cachedRes) {
+    const [cachedPromise, _, getStatus] = cachedRes;
+    const cachedStatus = getStatus();
+    if (cachedStatus !== 'rejected') {
+      return cachedPromise;
+    }
+  }
+  
+  const newRes = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
+  transactionReceiptCache.set(txHash, newRes);
+  return newRes;
 };
 
 async function* endlessGenerator() {
@@ -25,19 +42,24 @@ export const waitSeconds = (seconds: number) => new Promise((resolve) => setTime
  * @param {Number} maxWaitTime - max wait time in seconds; 0 means endless;
  */
 const waitAsyncResult = <T extends () => Promise<any>>({ fetcher, maxWaitTime = 60, interval = 3 }: { fetcher: T; maxWaitTime?: number; interval?: number }) => {
-  let isStop = false;
-  const stop = () => (isStop = true);
-  const promise = new Promise<NonNullable<Awaited<ReturnType<T>>>>(async (resolve, reject) => {
+  let reject: (reason?: any) => void;
+  const stop = () => {
+    status = 'rejected';
+    reject(new Error('Wait async stop'));
+  };
+
+  let status: 'fullfilled' | 'rejected' | 'pending' = 'pending';
+  const getStatus = () => status;
+
+  const promise = new Promise<NonNullable<Awaited<ReturnType<T>>>>(async (resolve, _reject) => {
+    reject = _reject;
     const generator = maxWaitTime === 0 ? endlessGenerator() : Array.from({ length: Math.floor(maxWaitTime / interval) });
 
     for await (const _ of generator) {
       try {
-        if (isStop) {
-          reject(new Error('Wait async stop'));
-          return;
-        }
         const res = await fetcher();
         if (res) {
+          status === 'fullfilled';
           resolve(res);
           return;
         }
@@ -46,10 +68,11 @@ const waitAsyncResult = <T extends () => Promise<any>>({ fetcher, maxWaitTime = 
         await waitSeconds(interval);
       }
     }
+    status = 'rejected';
     reject(new Error('Wait async timeout'));
   });
 
-  return [promise, stop] as const;
+  return [promise, stop, getStatus] as const;
 };
 
 export const getAsyncResult = <T extends () => Promise<any>, K>(fetcher: T, callback: (args: K) => void, maxWaitTime: number = 44, interval = 2) => {

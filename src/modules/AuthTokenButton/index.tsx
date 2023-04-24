@@ -6,7 +6,7 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import { createERC20Contract } from '@contracts/index';
 import Button from '@components/Button';
 import { fetchChain } from '@utils/fetch';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { waitTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
 import { useBalance } from '@service/balance';
 import { getTokenByAddress } from '@service/tokens';
@@ -95,7 +95,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
         data: tokenContract.func.interface.encodeFunctionData('approve', [contractAddress, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff']),
       });
 
-      const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
+      const [receiptPromise] = waitTransactionReceipt(txHash);
       await receiptPromise;
       checkApproveFunc.current?.();
     } catch (err) {

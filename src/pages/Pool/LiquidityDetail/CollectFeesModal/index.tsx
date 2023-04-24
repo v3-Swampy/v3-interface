@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import useInTransaction from '@hooks/useInTransaction';
 import { type PositionForUI } from '@service/position';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
-import { handleCollectFees as _handleCollectFees } from '@service/position';
+import { handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/position';
 
 const transitions = {
   en: {
@@ -34,26 +34,20 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleCollectFees } = useInTransaction(_handleCollectFees);
   const { token0, token1 } = position || {};
+  const refreshPositionFees = useRefreshPositionFees(tokenId);
 
   const onSubmit = useCallback(async () => {
     try {
       if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0 === new Unit(0) && fee1 === new Unit(0))) return;
-      const txHash = await handleCollectFees(tokenId);
+      const txHash = await handleCollectFees({ tokenId, refreshPositionFees });
 
       setNextInfo({
         txHash,
-        recordParams: {
-          type: 'Position_CollectFees',
-          tokenA_Address: token0.address,
-          tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
-          tokenB_Address: token1.address,
-          tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
-        },
       });
     } catch (err) {
       console.error('Collect fees failed: ', err);
     }
-  }, []);
+  }, [refreshPositionFees]);
 
   return (
     <div className="mt-24px">

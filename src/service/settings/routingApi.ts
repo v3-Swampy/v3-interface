@@ -4,7 +4,7 @@ import { persistAtomWithDefault } from '@utils/recoilUtils';
 
 /** unit minute */
 const routingApiState = atom<boolean>({
-  key: `expertModeState-${import.meta.env.MODE}`,
+  key: `routingApiState-${import.meta.env.MODE}`,
   effects: [persistAtomWithDefault(true)],
 });
 

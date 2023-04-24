@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { waitTransactionReceipt } from '@utils/waitAsyncResult';
 
 const useInTransaction = <T extends (params: any) => void | Promise<any> | null | undefined>(transactionFunc: T, waitTxHash?: boolean) => {
   const [inTransaction, setInTransaction] = useState(false);
@@ -8,7 +8,7 @@ const useInTransaction = <T extends (params: any) => void | Promise<any> | null 
       setInTransaction(true);
       const res = await transactionFunc(params);
       if (waitTxHash === true && typeof res === 'string') {
-        const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(res) });
+        const [receiptPromise] = waitTransactionReceipt(res);
         await receiptPromise;
       }
       setInTransaction(false);
