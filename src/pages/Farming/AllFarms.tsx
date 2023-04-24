@@ -5,7 +5,7 @@ import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import ToolTip from '@components/Tooltip';
 import Corner from './Corner';
 import showStakeLPModal from './StakeLPModal';
-import { usePoolList, type PoolType } from '@service/farming';
+import { type PoolType, usePoolsQuery } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import AuthConnectButton from '@modules/AuthConnectButton';
 
@@ -67,7 +67,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
       </div>
       <div>
         <div className={`${className.title}`}>{i18n.tvl}</div>
-        <div className={`${className.content}`}>${numFormat(data.tvl)}</div>
+        <div className={`${className.content}`}>{data.tvl ? `$${numFormat(data.tvl)}` : '--'}</div>
       </div>
       <div>
         <div className={`${className.title}`}>
@@ -93,11 +93,11 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 };
 
 const AllFarms = () => {
-  const { loading, poolList } = usePoolList();
+  const poolList = usePoolsQuery();
 
   return (
     <div className="mt-6">
-      {poolList.map((p) => (
+      {poolList.map((p: any) => (
         <AllFarmsItem key={p.address} data={p} />
       ))}
     </div>
