@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
+import { Suspense } from 'react';
+import Spin from '@components/Spin';
 
 import AllFarms from './AllFarms';
 import MyFarms from './MyFarms';
@@ -45,8 +47,10 @@ const FarmingPage: React.FC = () => {
               {i18n.allFarms}
             </div>
           </div>
-          {activeTab === 'all' && <AllFarms />}
-          {activeTab === 'my' && <MyFarms />}
+          <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>
+            {activeTab === 'all' && <AllFarms />}
+            {activeTab === 'my' && <MyFarms />}
+          </Suspense>
         </BorderBox>
       </div>
     </PageWrapper>
