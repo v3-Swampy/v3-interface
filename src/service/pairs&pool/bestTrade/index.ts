@@ -174,7 +174,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
   return bestTrade;
 };
 
-export const useBestTrade = useClientBestTrade;
+export const useBestTrade = useServerBestTrade;
 
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined) => {

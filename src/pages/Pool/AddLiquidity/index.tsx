@@ -64,13 +64,14 @@ const AddLiquidity: React.FC = () => {
     withForm(async (data) => {
       if (!tokenA || !tokenB) return;
       handleClickSubmitCreatePosition({
-        ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; fee: string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
+        ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
+        fee: currentFee,
         tokenA,
         tokenB,
         priceInit,
       });
     }),
-    [tokenA, tokenB, priceInit]
+    [tokenA, tokenB, priceInit, currentFee]
   );
 
   const handleSwapToken = useCallback(() => {

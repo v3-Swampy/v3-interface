@@ -1,13 +1,25 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { debounce } from 'lodash-es';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
-import { exchangeTokenDirection, handleConfirmSwap, useCalcDetailAndRouter, useSourceToken, useDestinationToken, getSourceToken, getDestinationToken } from '@service/swap';
-import { useBestTrade, TradeState, useClientBestTrade, useServerBestTrade, useTokenPrice } from '@service/pairs&pool';
+import {
+  exchangeTokenDirection,
+  handleConfirmSwap,
+  useCalcDetailAndRouter,
+  useSourceToken,
+  useDestinationToken,
+  getSourceToken,
+  getDestinationToken,
+  confirmPriceImpactWithoutFee,
+  warningSeverity
+} from '@service/swap';
+import { useBestTrade, TradeState, useTokenPrice } from '@service/pairs&pool';
 import { TradeType } from '@service/pairs&pool/bestTrade';
+import { computeFiatValuePriceImpact } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
 import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
@@ -36,9 +48,23 @@ const SwapPage: React.FC = () => {
   const inputedAmount = inputedType === null ? '' : inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
   const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
-  // const clientBestTrade = useClientBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
-  // console.log('serverBestTrade', bestTrade?.trade?.amountIn?.toDecimalStandardUnit(undefined,18), bestTrade?.trade?.amountOut?.toDecimalStandardUnit(undefined,18))
-  // console.log('clientBestTrade', clientBestTrade?.trade?.amountIn?.toDecimalStandardUnit(undefined,18), clientBestTrade?.trade?.amountOut?.toDecimalStandardUnit(undefined,18))
+
+  const stablecoinPriceImpact = useMemo(
+    () => (!bestTrade?.trade ? undefined : computeFiatValuePriceImpact(sourceTokenUSDPrice, destinationTokenUSDPrice)),
+    [sourceTokenUSDPrice, destinationTokenUSDPrice, bestTrade]
+  );
+
+  const { priceImpactSeverity, largerPriceImpact } = useMemo(() => {
+    const marketPriceImpact = bestTrade?.trade?.priceImpact;
+    const largerPriceImpact = stablecoinPriceImpact && marketPriceImpact ? Unit.max(stablecoinPriceImpact, marketPriceImpact) : (marketPriceImpact || stablecoinPriceImpact);
+    return {
+      priceImpactSeverity: warningSeverity(largerPriceImpact),
+      largerPriceImpact,
+    }
+  }, [bestTrade, stablecoinPriceImpact])
+
+  console.log('price:', sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact?.toDecimalMinUnit());
+  console.log('severity', priceImpactSeverity, largerPriceImpact?.toDecimalMinUnit());
   useEffect(() => {
     if (inputedType && bestTrade.state === TradeState.VALID && bestTrade?.trade) {
       const sourceToken = getSourceToken();
@@ -75,15 +101,18 @@ const SwapPage: React.FC = () => {
 
   const onSubmit = useCallback(
     withForm(async (data) => {
+      if (stablecoinPriceImpact && !confirmPriceImpactWithoutFee(stablecoinPriceImpact)) {
+        return;
+      }
       handleConfirmSwap({
         sourceTokenAmount: data['sourceToken-amount'],
         destinationTokenAmount: data['destinationToken-amount'],
         bestTrade,
         sourceTokenUSDPrice,
-        destinationTokenUSDPrice
+        destinationTokenUSDPrice,
       });
     }),
-    [bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice]
+    [bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact]
   );
 
   useCalcDetailAndRouter();

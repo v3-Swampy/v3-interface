@@ -26,7 +26,7 @@ export const handleClickSubmitCreatePosition = async ({
   tokenB: _tokenB,
   priceInit,
 }: {
-  fee: string;
+  fee: FeeAmount;
   'amount-tokenA': string;
   'amount-tokenB': string;
   'price-lower': string;

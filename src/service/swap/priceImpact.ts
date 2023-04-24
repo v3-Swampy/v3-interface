@@ -32,3 +32,36 @@ export function getPriceImpactWarning(priceImpact: Unit): 'warning' | 'error' | 
   if (priceImpact.greaterThan(ALLOWED_PRICE_IMPACT_MEDIUM)) return 'warning';
   return;
 }
+
+
+/**
+ * Given the price impact, get user confirmation.
+ *
+ * @param priceImpactWithoutFee price impact of the trade without the fee.
+ */
+export function confirmPriceImpactWithoutFee(priceImpactWithoutFee: Unit): boolean {
+  if (!priceImpactWithoutFee.lessThan(PRICE_IMPACT_WITHOUT_FEE_CONFIRM_MIN)) {
+    return (
+      window.prompt(
+        `This swap has a price impact of at least ${PRICE_IMPACT_WITHOUT_FEE_CONFIRM_MIN.toDecimalMinUnit()}%. Please type the word "confirm" to continue with this swap.`
+      ) === 'confirm'
+    );
+  } else if (!priceImpactWithoutFee.lessThan(ALLOWED_PRICE_IMPACT_HIGH)) {
+    return window.confirm(
+      `This swap has a price impact of at least ${ALLOWED_PRICE_IMPACT_HIGH.toDecimalMinUnit()}%. Please confirm that you would like to continue with this swap.`
+    );
+  }
+  return true;
+}
+
+export function computeFiatValuePriceImpact(
+  sourceTokenUSDPrice: string | undefined | null,
+  destinationTokenUSDPrice: string | undefined | null
+): Unit | undefined {
+  if (!sourceTokenUSDPrice || !destinationTokenUSDPrice) return undefined
+  if (new Unit(sourceTokenUSDPrice).equals(0)) return undefined
+
+  const ratio = new Unit(1).sub(new Unit(destinationTokenUSDPrice).div(new Unit(sourceTokenUSDPrice)));
+  const numerator = ratio.mul(10000).toDecimalMinUnit(0);
+  return new Unit(numerator).div(10000);
+}

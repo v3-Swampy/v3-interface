@@ -84,9 +84,6 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
             <input
               className="display-none"
               value={currentFee}
-              {...register('fee', {
-                required: true,
-              })}
               type="number"
             />
             <span className="text-18px text-black-normal font-medium mr-auto">{currentFee / 10000}% fee tier</span>

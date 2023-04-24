@@ -1,14 +1,15 @@
 import { type AtomEffect, type MutableSnapshot } from 'recoil';
-import LocalStorage from 'localstorage-enhance';
+import { LocalStorageClass } from 'localstorage-enhance';
 export { type MutableSnapshot } from 'recoil';
+const RecoilPersistLocalStorage = new LocalStorageClass({ storageKey: 'recoil_persist_localStorage', capacity: 1500 });
 
 export const persistAtom: AtomEffect<any> = ({ setSelf, onSet, trigger, node: { key } }) => {
   if (trigger === 'get') {
-    setSelf(LocalStorage.getItem(key));
+    setSelf(RecoilPersistLocalStorage.getItem(key));
   }
 
   onSet((data) => {
-    LocalStorage.setItem({ key, data });
+    RecoilPersistLocalStorage.setItem({ key, data });
   });
 };
 
@@ -16,21 +17,21 @@ export const persistAtomWithNamespace =
   (namespace: string): AtomEffect<any> =>
   ({ setSelf, onSet, trigger, node: { key } }) => {
     if (trigger === 'get') {
-      setSelf(LocalStorage.getItem(key, namespace));
+      setSelf(RecoilPersistLocalStorage.getItem(key, namespace));
     }
 
     onSet((data) => {
-      LocalStorage.setItem({ key, data, namespace });
+      RecoilPersistLocalStorage.setItem({ key, data, namespace });
     });
   };
 
 export const persistAtomWithDefault =
   (defaultValue: any): AtomEffect<any> =>
   ({ setSelf, onSet, node: { key } }) => {
-    setSelf(LocalStorage.getItem(key) ?? defaultValue);
+    setSelf(RecoilPersistLocalStorage.getItem(key) ?? defaultValue);
 
     onSet((data) => {
-      LocalStorage.setItem({ key, data });
+      RecoilPersistLocalStorage.setItem({ key, data });
     });
   };
 
