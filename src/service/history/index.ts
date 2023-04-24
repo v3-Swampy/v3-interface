@@ -5,7 +5,7 @@ import { showToast } from '@components/showPopup';
 import { toI18n, compiled } from '@hooks/useI18n';
 import { persistAtomWithDefault } from '@utils/recoilUtils';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { waitTransactionReceipt } from '@utils/waitAsyncResult';
 import { useRefreshData, RefreshTypeMap, transitions, TransitionsTypeMap } from '@modules/Navbar/AccountDetailDropdown/History';
 import { trimDecimalZeros } from '@utils/numberUtils';
 
@@ -55,7 +55,7 @@ export const useHistory = () => {
       .filter((record) => record.status === HistoryStatus.Pending)
       .forEach((record) => {
         if (recordTracker.has(record.txHash)) return;
-        const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(record.txHash) });
+        const [receiptPromise] = waitTransactionReceipt(record.txHash);
         recordTracker.set(record.txHash, true);
         receiptPromise.then((receipt) => {
           setHistory((pre) => pre.map((r) => (r.txHash === record.txHash ? { ...r, status: receipt.status === '0x1' ? HistoryStatus.Success : HistoryStatus.Failed } : r)));
@@ -102,12 +102,17 @@ export const useHistory = () => {
   return history ?? [];
 };
 
-export const addRecordToHistory = (record: Omit<HistoryRecord, 'status'>) =>
+export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) => {
   setRecoil(historyState, (history) => {
     const hasSame = !!history.some((r) => r.txHash === record.txHash);
     if (hasSame) return history;
     return [{ ...record, status: HistoryStatus.Pending }, ...history];
   });
+
+  const [receiptPromise] = waitTransactionReceipt(record.txHash);
+  await receiptPromise;
+}
+
 
 export const clearHistory = () => {
   setRecoil(historyState, []);

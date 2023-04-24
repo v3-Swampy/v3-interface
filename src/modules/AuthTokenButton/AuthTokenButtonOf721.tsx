@@ -4,7 +4,7 @@ import { sendTransaction } from '@service/account';
 import useI18n from '@hooks/useI18n';
 import { createERC721Contract } from '@contracts/index'; // 更改为导入 ERC721 合约
 import Button from '@components/Button';
-import waitAsyncResult, { isTransactionReceipt } from '@utils/waitAsyncResult';
+import { waitTransactionReceipt } from '@utils/waitAsyncResult';
 import { useAccount } from '@service/account';
 import { fetchMulticall } from '@contracts/index';
 
@@ -83,7 +83,7 @@ const AuthTokenButtonOf721: React.FC<Props> = ({ children, tokenAddress, contrac
         data: tokenContract.func.interface.encodeFunctionData('setApprovalForAll', [contractAddress, true]),
       });
 
-      const [receiptPromise] = waitAsyncResult({ fetcher: () => isTransactionReceipt(txHash) });
+      const [receiptPromise] = waitTransactionReceipt(txHash);
       await receiptPromise;
       checkApprovalFunc.current?.();
     } catch (err) {
