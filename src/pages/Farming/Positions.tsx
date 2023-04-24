@@ -63,7 +63,8 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
-        <div className={`${className.content} flex items-center`}>${liquidity ? numFormat(liquidity.toString()) : 0}</div>
+        {/* @ts-ignore */}
+        <div className={`${className.content} flex items-center`}>${position.totalLiquidity ? numFormat(position.totalLiquidity.toDecimalMinUnit(2)) : 0}</div>
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.claimable}</div>
@@ -81,7 +82,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({
                   id: position.tokenId,
                   pid,
                   currentIncentiveKey,
-                  position:position.position
+                  position: position.position,
                 })
               }
             >

@@ -34,6 +34,7 @@ export interface HistoryRecord {
   tokenA_Value?: string;
   tokenB_Address?: string;
   tokenB_Value?: string;
+  refreshParams?: any | Array<any>;
 }
 
 const historyState = atom<Array<HistoryRecord>>({
@@ -62,15 +63,18 @@ export const useHistory = () => {
 
           // refresh the corresponding data
           const refreshFuncsKeyShouldRun = RefreshTypeMap[record?.type];
-          const refreshFuncsShouldRun: VoidFunction[] = [];
-          if (typeof refreshFuncsKeyShouldRun === 'string') {
+          const refreshFuncsShouldRun: Function[] = [];
+          const refreshParams: any[] = Array.isArray(record.refreshParams) ? record.refreshParams : [record.refreshParams];
+          if (typeof refreshFuncsKeyShouldRun === 'string' && refreshFuncs[refreshFuncsKeyShouldRun]) {
             refreshFuncsShouldRun.push(refreshFuncs[refreshFuncsKeyShouldRun]);
-          } else {
+          } else if (Array.isArray(refreshFuncsKeyShouldRun)) {
             refreshFuncsKeyShouldRun.forEach((key) => {
-              refreshFuncsShouldRun.push(refreshFuncs[key]);
+              if (key && refreshFuncs[key]) {
+                refreshFuncsShouldRun.push(refreshFuncs[key]);
+              }
             });
           }
-          refreshFuncsShouldRun.forEach((func) => func());
+          refreshFuncsShouldRun.forEach((func, index) => func(refreshParams[index]));
 
           const i18n = toI18n(transitions);
           const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value } = record;

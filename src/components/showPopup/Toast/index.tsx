@@ -33,7 +33,7 @@ const ToastComponent: React.FC<{ content: string | React.ReactNode | Function; d
             />
           )}
           <span className={cx('text-26px mr-16px flex-shrink-0', { 'i-fa-solid:check-circle': type === 'success', 'i-material-symbols:warning-rounded': type === 'warning' })} />
-          {(typeof content === 'string') && <p className="leading-24px text-14px mobile:max-w-282px">{content}</p>}
+          {(typeof content === 'string') && <p className="leading-24px text-14px mobile:max-w-282px" dangerouslySetInnerHTML={{ __html: content }}/>}
           {typeof content !== 'string' && <div className='leading-24px text-14px mobile:max-w-282px'>{renderReactNode(content)}</div>}
         </div>
 

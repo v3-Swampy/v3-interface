@@ -329,18 +329,18 @@ export const useMyFarmsList = () => {
         return {
           ...p,
           totalLiquidity: p.totalAmount0
-            .div(p.token0.decimals)
+            .div(10 ** p.token0.decimals)
             .mul(token0Price || 0)
-            .add(p.totalAmount1.div(p.token1.decimals).mul(token1Price || 0)),
+            .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
           claimableValue: p.totalClaimable.mul(token0Price || 0),
           // @ts-ignore
           positions: p.positions.map((p) => {
             return {
               ...p,
               totalLiquidity: p?.position?.amount0
-                ?.div(p?.position.token0?.decimals)
+                ?.div(10 ** p?.position.token0?.decimals)
                 .mul(token0Price)
-                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(p.position.token1?.decimals).mul(token1Price)),
+                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(10 ** p.position.token1?.decimals).mul(token1Price)),
             };
           }),
         };
@@ -352,15 +352,18 @@ export const useMyFarmsList = () => {
         return {
           ...p,
           totalLiquidity: p.totalAmount0
-            .div(p.token0.decimals)
+            .div(10 ** p.token0.decimals)
             .mul(token0Price || 0)
-            .add(p.totalAmount1.div(p.token1.decimals).mul(token1Price || 0)),
+            .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
           claimableValue: p.totalClaimable.mul(token0Price || 0),
           // @ts-ignore
           positions: p.positions.map((p) => {
             return {
               ...p,
-              totalLiquidity: p.position.amount0?.mul(token0Price).add(p.position.amount1 ? p.position.amount1.mul(token1Price) : 0),
+              totalLiquidity: p.position.amount0
+                ?.div(10 ** p.position.token0.decimals)
+                .mul(token0Price)
+                .add(p.position.amount1 ? p.position.amount1.div(10 ** p.position.token1.decimals).mul(token1Price) : 0),
             };
           }),
         };
