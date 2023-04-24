@@ -15,7 +15,7 @@ import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
 const transitions = {
   en: {
     deposit_amounts: 'Deposit Amounts',
-    select_token: 'Select Token',
+    select_token: 'Select a token',
     balance: 'Balance',
     max: 'MAX',
     outof_range: 'The market price is outside your specified price range. Single-asset deposit only.',

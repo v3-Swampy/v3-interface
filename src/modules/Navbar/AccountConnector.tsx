@@ -9,7 +9,7 @@ const ConnectWallet: React.FC<ComponentProps<'div'> & { icon: string; name: stri
   return (
     <div
       onClick={connect}
-      className="flex flex-col items-center justify-center w-100px h-100px rounded-8px hover:bg-#26233E transition-colors cursor-pointer"
+      className="flex flex-col items-center justify-center w-100px h-100px rounded-8px hover:bg-#FFEDD5 transition-colors cursor-pointer"
     >
       {children}
       <img className="w-30px h-30px mb-8px" src={icon} />
@@ -29,7 +29,7 @@ const ConnectModalContent: React.FC = () => {
 
 const showAccountConnector = () => {
   if (isMobile) {
-    showDrawer({ Content: <ConnectModalContent />, title: '连接钱包' });
+    showDrawer({ Content: <ConnectModalContent />, title: 'Connect Wallet' });
   } else {
     showModal({ Content: <ConnectModalContent />, className: '!max-w-370px', title: '连接钱包' }) as string;
   }

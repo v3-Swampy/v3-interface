@@ -12,7 +12,7 @@ import { getRecoil } from 'recoil-nexus';
 const transitions = {
   en: {
     select_pair: 'Select Pair',
-    select_token: 'Select token',
+    select_token: 'Select a token',
   },
   zh: {
     select_pair: '选择币对',

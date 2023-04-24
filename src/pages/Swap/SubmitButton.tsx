@@ -41,7 +41,7 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount,priceImpactTooHigh, p
     if(priceImpactTooHigh) return i18n.price_impact_too_high;
     if(priceImpactSeverity > 2) return i18n.swap_anyway;
     return i18n.swap;
-  }, [])
+  }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity])
 
   return (
     <AuthConnectButton {...buttonProps}>

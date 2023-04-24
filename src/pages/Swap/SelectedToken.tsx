@@ -13,7 +13,7 @@ import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
 
 const transitions = {
   en: {
-    select_token: 'Select Token',
+    select_token: 'Select a token',
     balance: 'Balance',
     max: 'MAX',
   },

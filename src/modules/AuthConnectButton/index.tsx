@@ -24,8 +24,8 @@ const AuthConnectButton: React.FC<ComponentProps<typeof Button>> = ({ children, 
   if (account && chainMatch) return children as React.ReactElement;
   return (
     <Button id="auth-connect-btn" {...props} onClick={handleClick} type="button">
-      {!account && '连接账户'}
-      {!!account && !chainMatch && '切换网络'}
+      {!account && 'Connect Wallet'}
+      {!!account && !chainMatch && 'Switch Network'}
     </Button>
   );
 };

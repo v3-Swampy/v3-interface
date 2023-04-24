@@ -81,7 +81,7 @@ const SwapPage: React.FC = () => {
         `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
         inputedAmount
           ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
-            undefined,
+            5,
             (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
           )
           : ''
@@ -89,7 +89,7 @@ const SwapPage: React.FC = () => {
     }
   }, [bestTrade]);
 
-  const handleInputeTypeChange = useCallback(
+  const handleInputTypeChange = useCallback(
     debounce((type: 'sourceToken' | 'destinationToken', amount: string) => {
       const sourceToken = getSourceToken();
       const destinationToken = getDestinationToken();
@@ -104,7 +104,7 @@ const SwapPage: React.FC = () => {
   const handleInputChange = useCallback((type: 'sourceToken' | 'destinationToken', amount: string) => {
     setInputedType(null);
     setValue(`${type === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`, '');
-    handleInputeTypeChange(type, amount);
+    handleInputTypeChange(type, amount);
   }, []);
 
   const onSubmit = useCallback(
