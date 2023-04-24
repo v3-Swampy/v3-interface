@@ -3,7 +3,7 @@ import { UniswapV3SwapRouter } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { pack } from '@ethersproject/solidity';
 import { TradeType, type useBestTrade } from '@service/pairs&pool';
-import { getDeadline } from '@service/settings';
+import { getDeadline, getSlippageTolerance } from '@service/settings';
 import { getAccount } from '@service/account';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
@@ -15,7 +15,7 @@ export const handleConfirmSwap = async ({
   destinationTokenAmount,
   bestTrade,
   sourceTokenUSDPrice,
-  destinationTokenUSDPrice
+  destinationTokenUSDPrice,
 }: {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
@@ -28,18 +28,19 @@ export const handleConfirmSwap = async ({
   const destinationToken = getDestinationToken();
   const destinationTokenWrpper = getWrapperTokenByAddress(destinationToken?.address);
   const account = getAccount();
+  const slippage = getSlippageTolerance() || 0;
   if (!sourceTokenWrapper || !destinationTokenWrpper || !sourceTokenAmount || !destinationTokenAmount || !bestTrade?.trade || !account || !sourceToken || !destinationToken) return;
 
   const { route, tradeType } = bestTrade.trade;
+  // console.log('bestTrade', bestTrade);
   if (!route.length) return;
   const isSourceTokenCfx = sourceToken?.address === 'CFX';
   const isDestinationTokenTokenCfx = destinationToken?.address === 'CFX';
   const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'exactInput' : 'exactOutput';
 
-  const data0 = route.map(oneRoute => {
+  const data0 = route.map((oneRoute) => {
     const path = oneRoute.reduce((pre, cur) => pre.concat(cur.fee, cur.tokenOut.address), [oneRoute.at(0)?.tokenIn.address] as Array<string>);
     const types = Array.from({ length: path.length }, (_, index) => (index % 2 === 1 ? 'uint24' : 'address'));
-
 
     const params = {
       path: pack(types, tradeTypeFunctionName === 'exactInput' ? path : path.reverse()),
@@ -48,14 +49,24 @@ export const handleConfirmSwap = async ({
     };
 
     if (tradeTypeFunctionName === 'exactInput') {
+      // amountOutMinimum = (1/(1+s)) * amountOut
+      const amountOutMinimumDecimal = new Unit(oneRoute.at(-1)?.amountOut ?? '0').mul(new Unit(1).div(new Unit(1).add(slippage))).toDecimalMinUnit(0);
+      // console.log('amountOutMinimumDecimal', amountOutMinimumDecimal);
       Object.assign(params, {
         amountIn: Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toHexMinUnit(),
-        amountOutMinimum: 0,
+        amountOutMinimum: new Unit(amountOutMinimumDecimal).toHexMinUnit(),
       });
     } else {
+      // amountInMaximum = (1+s)*amountIn
+      const amountInMaximumDecimal = new Unit(1)
+        .add(slippage)
+        .mul(oneRoute.at(0)?.amountIn ?? '0')
+        .toDecimalMinUnit(0);
+
+      // console.log('amountInMaximumDecimal', amountInMaximumDecimal);
       Object.assign(params, {
         amountOut: Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toHexMinUnit(),
-        amountInMaximum: new Unit(2).pow(256).sub(1).toHexMinUnit(),
+        amountInMaximum: new Unit(amountInMaximumDecimal).toHexMinUnit(),
       });
     }
 
@@ -75,11 +86,18 @@ export const handleConfirmSwap = async ({
     data.push(data2);
   }
 
+  // console.log('value', new Unit(1).add(slippage).mul(Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals)).toDecimalMinUnit(0));
+
   const transactionParams = {
-    value: isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit() : '0x0',
+    // value: isSourceTokenCfx ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit() : '0x0',
+    value: isSourceTokenCfx
+      ? tradeTypeFunctionName === 'exactInput'
+        ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit()
+        : new Unit(new Unit(1).add(slippage).mul(Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals)).toDecimalMinUnit(0)).toHexMinUnit()
+      : '0x0',
     data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [data]),
     to: UniswapV3SwapRouter.address,
-  }
+  };
 
   const recordParams = {
     type: 'Swap',
@@ -98,7 +116,7 @@ export const handleConfirmSwap = async ({
     destinationTokenUSDPrice,
     bestTrade,
     transactionParams,
-    recordParams
+    recordParams,
   });
 };
 
