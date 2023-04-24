@@ -39,14 +39,14 @@ export const handleConfirmSwap = async ({
   const data0 = route.map(oneRoute => {
     const path = oneRoute.reduce((pre, cur) => pre.concat(cur.fee, cur.tokenOut.address), [oneRoute.at(0)?.tokenIn.address] as Array<string>);
     const types = Array.from({ length: path.length }, (_, index) => (index % 2 === 1 ? 'uint24' : 'address'));
-  
- 
+
+
     const params = {
       path: pack(types, tradeTypeFunctionName === 'exactInput' ? path : path.reverse()),
       recipient: isDestinationTokenTokenCfx ? ZeroAddress : account,
       deadline: getDeadline(),
     };
-  
+
     if (tradeTypeFunctionName === 'exactInput') {
       Object.assign(params, {
         amountIn: Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toHexMinUnit(),
@@ -64,7 +64,7 @@ export const handleConfirmSwap = async ({
   });
 
   const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [
-    isDestinationTokenTokenCfx ? 0 : 0,
+    0,
     account,
   ]);
 
