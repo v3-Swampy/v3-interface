@@ -58,13 +58,14 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
   const toTokenPrice = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
 
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
-  const networkFee = useMemo(
-    () =>
-      destinationTokenUSDPrice && sourceTokenUSDPrice && bestTrade.trade
-        ? bestTrade.trade?.networkFeeByAmount.mul(bestTrade.trade.tradeType === TradeType.EXACT_INPUT ? destinationTokenUSDPrice : sourceTokenUSDPrice)
-        : undefined,
-    [destinationTokenUSDPrice, sourceTokenUSDPrice, bestTrade]
-  );
+  // const networkFee = useMemo(
+  //   () =>
+  //     destinationTokenUSDPrice && sourceTokenUSDPrice && bestTrade.trade
+  //       ? bestTrade.trade?.networkFeeByAmount.mul(bestTrade.trade.tradeType === TradeType.EXACT_INPUT ? destinationTokenUSDPrice : sourceTokenUSDPrice)
+  //       : undefined,
+  //   [destinationTokenUSDPrice, sourceTokenUSDPrice, bestTrade]
+  // );
+  const networkFee = bestTrade.trade?.networkFeeByAmount;
 
   if (!isBothTokenSelected) return null;
   return (
@@ -117,7 +118,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
                   expand && 'opacity-0 pointer-events-none'
                 )}
               >
-                <span className="i-ic:outline-local-gas-station text-16px mr-2px" />${networkFee?.toDecimalStandardUnit(5)}
+                <span className="i-ic:outline-local-gas-station text-16px mr-2px" />${networkFee?.toDecimalMinUnit(5)}
               </span>
             )}
 
@@ -167,7 +168,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </Tooltip>
-        <span>${networkFee?.toDecimalStandardUnit(5)}</span>
+        <span>${networkFee?.toDecimalMinUnit(5)}</span>
       </p>
 
       {!fromPreview && (

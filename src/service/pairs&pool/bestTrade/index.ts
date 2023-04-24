@@ -157,6 +157,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
             error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
           });
         } else {
+          console.log('res', res)
           setBestTrade({
             state: TradeState.VALID,
             trade: calcTradeFromData({
@@ -191,6 +192,7 @@ export const useTokenPrice = (tokenAddress: string | undefined, amount: string =
 };
 
 function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; tradeType: TradeType; amount: string; amountUnit: Unit; tokenIn: Token }) {
+  console.log('res', res)
   const route = res.route as Route[][];
   const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
   const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
@@ -201,7 +203,8 @@ function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; 
   const priceIn = amountIn.div(amountOut);
   const priceOut = amountOut.div(amountIn);
 
-  const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
+  // const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
+  const networkFeeByAmount = new Unit(res?.gasUseEstimateUSD);
 
   const realizedLpFeePercent = route.reduce((pre, oneRoute) => {
     const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);
