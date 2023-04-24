@@ -1,9 +1,9 @@
 import React, { memo, useCallback, useMemo, useLayoutEffect } from 'react';
-import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
+import { type UseFormRegister, type UseFormSetValue, type FieldValues, type UseFormGetValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import Input from '@components/Input';
-import { usePool, findClosestValidPrice, FeeAmount } from '@service/pairs&pool';
+import { usePool, findClosestValidPrice, FeeAmount, calcTickFromPrice, calcPriceFromTick } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useTokenA, useTokenB } from './SelectPair';
@@ -42,14 +42,15 @@ const transitions = {
 interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
+  getValues: UseFormGetValues<FieldValues>;
   isRangeValid: boolean | null;
   priceInit: string;
   priceUpper?: string;
 }
 
 const RangeInput: React.FC<
-  Pick<Props, 'register' | 'setValue' | 'priceUpper'> & { type: 'lower' | 'upper'; tokenA: Token | null; tokenB: Token | null; price: Unit | null | undefined; fee: FeeAmount }
-> = ({ type, tokenA, tokenB, price, fee, priceUpper, register, setValue }) => {
+  Pick<Props, 'register' | 'setValue' | 'getValues' | 'priceUpper'> & { type: 'lower' | 'upper'; tokenA: Token | null; tokenB: Token | null; price: Unit | null | undefined; fee: FeeAmount }
+> = ({ type, tokenA, tokenB, price, fee, priceUpper, register, setValue, getValues }) => {
   const i18n = useI18n(transitions);
 
   const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
@@ -70,6 +71,32 @@ const RangeInput: React.FC<
     [fee, tokenA?.address, tokenB?.address]
   );
 
+  const handleClickSub = useCallback(
+    () => {
+      if (!tokenA || !tokenB) return;
+      const value = getValues();
+      const price = new Unit(value[`price-${type}`])
+      const step = fee / 50;
+      if (fee - step < 0) return;
+      const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB })
+      setValue(`price-${type}`, calcPriceFromTick({ tick: Number(tick.toDecimalMinUnit()) - step, tokenA, tokenB, fee }).toDecimalMinUnit(5));
+    },
+    [fee, tokenA?.address, tokenB?.address]
+  );
+
+  const handleClickAdd = useCallback(
+    () => {
+      if (!tokenA || !tokenB) return;
+      const value = getValues();
+      const price = new Unit(value[`price-${type}`])
+      const step = fee / 50;
+      if (fee - step < 0) return;
+      const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB })
+      setValue(`price-${type}`, calcPriceFromTick({ tick: Number(tick.toDecimalMinUnit()) + step, tokenA, tokenB, fee }).toDecimalMinUnit(5));
+    },
+    [fee, tokenA?.address, tokenB?.address]
+  );
+
   return (
     <div className={cx('flex-grow-1 flex-shrink-1', !price && 'opacity-50 pointer-events-none')}>
       <div className="mb-6px flex justify-between w-full">
@@ -79,7 +106,7 @@ const RangeInput: React.FC<
       </div>
 
       <div className="add-liquidity-price-input relative flex items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light">
-        <div className="flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer">
+        <div className="flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer" onClick={handleClickSub}>
           <span className="i-ic:round-minus" />
         </div>
         <Input
@@ -102,7 +129,7 @@ const RangeInput: React.FC<
             <span className="i-icomoon-free:infinite text-18px text-black-normal font-medium" />
           </div>
         )}
-        <div className="ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer">
+        <div className="ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer" onClick={handleClickAdd}>
           <span className="i-material-symbols:add-rounded" />
         </div>
       </div>
@@ -110,7 +137,7 @@ const RangeInput: React.FC<
   );
 };
 
-const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRangeValid, priceUpper }) => {
+const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValues, isRangeValid, priceUpper }) => {
   const i18n = useI18n(transitions);
 
   const tokenA = useTokenA();
@@ -185,8 +212,8 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, isRange
       )}
 
       <div className="mt-10px flex gap-16px">
-        <RangeInput type="lower" register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} />
-        <RangeInput type="upper" register={register} setValue={setValue} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} priceUpper={priceUpper} />
+        <RangeInput type="lower" register={register} setValue={setValue} getValues={getValues} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} />
+        <RangeInput type="upper" register={register} setValue={setValue} getValues={getValues} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} priceUpper={priceUpper} />
       </div>
 
       {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}

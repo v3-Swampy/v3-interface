@@ -172,7 +172,7 @@ const AddLiquidity: React.FC = () => {
             </div>
 
             <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between">
-              <SetPriceRange register={register} setValue={setValue} isRangeValid={isRangeValid} priceInit={priceInit} priceUpper={priceUpper} />
+              <SetPriceRange register={register} setValue={setValue} getValues={getValues} isRangeValid={isRangeValid} priceInit={priceInit} priceUpper={priceUpper} />
 
               <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} />
             </div>
