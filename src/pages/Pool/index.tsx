@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
+import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import PriceRange from '@modules/Position/PriceRange';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePositionsForUI, usePositionByTokenId } from '@service/position';
+import { type PositionForUI, usePositionsForUI } from '@service/position';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 
 const transitions = {
@@ -43,7 +44,6 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
-  const position = usePositionByTokenId(1)
 
   if (!positions?.length) {
     return (
@@ -81,11 +81,17 @@ const PoolPage: React.FC = () => {
             </Button>
           </Link>
         </div>
-        <BorderBox className="relative w-full p-16px rounded-28px" variant="gradient-white">
-          <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>
+        <Suspense
+          fallback={
+            <Delay>
+              <Spin className="!block mx-auto text-60px" />
+            </Delay>
+          }
+        >
+          <BorderBox className="relative w-full p-16px rounded-28px" variant="gradient-white">
             <PoolContent />
-          </Suspense>
-        </BorderBox>
+          </BorderBox>
+        </Suspense>
       </div>
     </PageWrapper>
   );

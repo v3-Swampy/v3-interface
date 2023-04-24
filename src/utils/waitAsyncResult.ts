@@ -17,10 +17,10 @@ const transactionReceiptCache = new Map<string, Readonly<[Promise<NonNullable<Aw
 export const waitTransactionReceipt = (txHash: string) => {
   const cachedRes = transactionReceiptCache.get(txHash);
   if (cachedRes) {
-    const [cachedPromise, _, getStatus] = cachedRes;
+    const [_, __, getStatus] = cachedRes;
     const cachedStatus = getStatus();
     if (cachedStatus !== 'rejected') {
-      return cachedPromise;
+      return cachedRes;
     }
   }
   
