@@ -23,15 +23,14 @@ const PriceImpactWarning: React.FC<Props> = ({ largerPriceImpact }) => {
   return <div
     className="flex items-center justify-between pt-16px pb-12px pl-24px pr-16px rounded-20px border-2px border-solid border-orange-light-hover mt-6px text-14px leading-18px">
     <span className="text-black-light">Price impact warning</span>
-    <div className="flex items-center">
-      <span className="text-black-normal font-bold">{largerPriceImpact ? largerPriceImpact?.mul(100)?.toDecimalMinUnit(2) : '--'}%</span>
-      <Tooltip text={i18n.price_impact_tips} placement="bottom" interactive delay={[888, 333]}>
+    <Tooltip text={i18n.price_impact_tips} placement="bottom" interactive delay={[888, 333]}>
+      <div className="flex items-center">
+        <span className="text-black-normal font-bold">{largerPriceImpact ? largerPriceImpact?.mul(100)?.toDecimalMinUnit(2) : '--'}%</span>
         <span
           className=
           "i-fa6-solid:circle-info ml-6px mb-2px text-13px text-gray-normal font-medium transition-opacity duration-125"
-        />
-      </Tooltip>
-    </div>
+        /> </div>
+    </Tooltip>
   </div>
 }
 
