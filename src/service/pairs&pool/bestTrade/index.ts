@@ -174,14 +174,15 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
   return bestTrade;
 };
 
-export const useBestTrade = useServerBestTrade;
+export const useBestTrade = useClientBestTrade;
 
 /** undefined means loading */
-export const useTokenPrice = (tokenAddress: string | undefined) => {
+export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
   const token = getWrapperTokenByAddress(tokenAddress);
-  const result = useClientBestTrade(TradeType.EXACT_INPUT, '1', token, TokenUSDT);
-  if (tokenAddress == TokenUSDT.address) return '1';
+  const result = useBestTrade(TradeType.EXACT_INPUT, amount, token, TokenUSDT);
+  if (tokenAddress == TokenUSDT.address) return amount ? amount : undefined;
   if (!tokenAddress) return undefined;
+  if (!amount) return undefined;
   if (result.state === TradeState.LOADING) return undefined;
   if (result.state === TradeState.VALID) {
     return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);

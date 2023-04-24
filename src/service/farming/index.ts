@@ -12,12 +12,18 @@ import { useTokenPrice } from '@service/pairs&pool';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { keccak256 } from '@ethersproject/solidity';
 import { FarmingPosition } from './myFarms';
-import { selector, useRecoilValue } from 'recoil';
+import { selector, useRecoilValue, atom } from 'recoil';
+
+const poolIdsQuery = atom({
+  key: `poolIdsQuery-${import.meta.env.MODE}`,
+  default: poolIds,
+});
 
 // get poolinfo list of pids
-export const poolsQuery = selector({
-  key: `poolsQuery-${import.meta.env.MODE}`,
+export const poolsInfoQuery = selector({
+  key: `poolsInfoQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
+    const poolIds = get(poolIdsQuery);
     // get poolinfo list of pids
     const resOfMulticall: any = await fetchMulticall(
       poolIds.map((id) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('poolInfo', [id])])
@@ -119,104 +125,95 @@ const getIncentiveKey = (address: string, startTime?: number, endTime?: number):
   }
 };
 
-export const usePoolList = () => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [poolList, setPoolList] = useState<any[]>([]);
-  const price = useTokenPrice(VSTTokenContract.address) || 0;
-  const poolInfos = useRecoilValue(poolsQuery);
+const poolsQuery = selector({
+  key: `poolsQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const poolIds = get(poolIdsQuery);
+    const poolsInfo = get(poolsInfoQuery);
 
-  useEffect(() => {
-    setLoading(true);
+    if (poolIds.length === 0) return [];
 
-    async function main(pids: number[]) {
-      try {
-        let poolList = [];
+    // initial pair contract
+    const pairContracts = poolsInfo.map((poolInfo) => createPairContract(poolInfo.address));
 
-        if (pids.length === 0) return;
+    // get pair info list
+    const resOfMulticall2 = await fetchMulticall(
+      pairContracts
+        .map((pairContract) => {
+          return [
+            [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
+            [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
+            [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
+            [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('poolStat', [computeIncentiveKey(getIncentiveKey(pairContract.address))])],
+            [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('totalAllocPoint')],
+          ];
+        })
+        .flat()
+    );
 
-        // initial pair contract
-        const pairContracts = poolInfos.map((poolInfo) => createPairContract(poolInfo.address));
-
-        // get pair info list
-        const resOfMulticall2 = await fetchMulticall(
-          pairContracts
-            .map((pairContract) => {
-              return [
-                [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
-                [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
-                [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
-                [
-                  UniswapV3StakerFactory.address,
-                  UniswapV3StakerFactory.func.interface.encodeFunctionData('poolStat', [computeIncentiveKey(getIncentiveKey(pairContract.address))]),
-                ],
-                [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('totalAllocPoint')],
-              ];
-            })
-            .flat()
-        );
-
-        const pairInfos = resOfMulticall2
-          ? chunk(resOfMulticall2, 5).map((r, i) => {
-              return {
-                token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
-                token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
-                fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
-                totalSupply: UniswapV3StakerFactory.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
-                totalAllocPoint: UniswapV3StakerFactory.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
-              };
-            })
-          : [];
-
-        // merge pool info and pair info
-        poolList = poolInfos.map((p, i) => {
-          const { totalSupply, ...pairInfo } = pairInfos[i];
-          const { token0, token1 } = pairInfo;
-
-          const currentIncentivePeriod = getCurrentIncentivePeriod();
-
-          let APRRange: [string, string] | [] = [];
-
-          if (price) {
-            /**
-             * <reward rate per second> = incentive amount / (incentive endTime - incentive startTime)
-             * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
-             * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
-             */
-            const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
-            const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(pairInfo.totalAllocPoint).mul(price).div(totalSupply).mul(31536000);
-            const APRLow = APRHigh.mul(0.33);
-
-            APRRange = [APRLow.toFixed(2), APRHigh.toFixed(2)];
-          }
-
-          const tvl = new Decimal(price).mul(totalSupply).div(1e18).toFixed(2);
-
+    const pairsInfo = resOfMulticall2
+      ? chunk(resOfMulticall2, 5).map((r, i) => {
           return {
-            ...p,
-            ...pairInfo,
-            token0: getTokenByAddress(token0) || DEFAULT_TOKEN,
-            token1: getTokenByAddress(token1) || DEFAULT_TOKEN,
-            tvl,
-            range: APRRange,
-            currentIncentivePeriod: getCurrentIncentivePeriod() as Incentive,
+            token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
+            token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
+            fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
+            totalSupply: UniswapV3StakerFactory.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
+            totalAllocPoint: UniswapV3StakerFactory.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
           };
-        });
+        })
+      : [];
 
-        setPoolList(poolList);
-        setLoading(false);
-      } catch (error) {
-        setPoolList([]);
-        setLoading(false);
-      }
+    // merge pool info and pair info
+    return poolsInfo.map((p, i) => {
+      const { totalSupply, ...pairInfo } = pairsInfo[i];
+      const { token0, token1 } = pairInfo;
+
+      return {
+        ...p,
+        ...pairInfo,
+        token0: getTokenByAddress(token0) || DEFAULT_TOKEN,
+        token1: getTokenByAddress(token1) || DEFAULT_TOKEN,
+        tvl: 0,
+        range: [],
+        totalSupply,
+        currentIncentivePeriod: getCurrentIncentivePeriod(),
+      };
+    });
+  },
+});
+
+export const usePoolsQuery = () => {
+  const pools = useRecoilValue(poolsQuery);
+  const price = useTokenPrice(VSTTokenContract.address) || 0;
+
+  if (!price) return pools;
+
+  return pools.map((p) => {
+    const { totalSupply, totalAllocPoint } = p;
+    const currentIncentivePeriod = getCurrentIncentivePeriod();
+    let APRRange: [string, string] | [] = [];
+
+    if (price) {
+      /**
+       * <reward rate per second> = incentive amount / (incentive endTime - incentive startTime)
+       * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
+       * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
+       */
+      const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
+      const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(totalAllocPoint).mul(price).div(totalSupply).mul(31536000);
+      const APRLow = APRHigh.mul(0.33);
+
+      APRRange = [APRLow.toFixed(2), APRHigh.toFixed(2)];
     }
 
-    main(poolIds).catch(console.log);
-  }, [poolIds.toString(), price]);
+    const tvl = new Decimal(price).mul(totalSupply).div(1e18).toFixed(2);
 
-  return {
-    loading,
-    poolList,
-  };
+    return {
+      ...p,
+      tvl,
+      range: APRRange,
+    };
+  });
 };
 
 export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid }: { tokenId: number; address: string; startTime: number; endTime: number; pid: number }) => {

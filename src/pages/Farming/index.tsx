@@ -27,9 +27,8 @@ const FarmingPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
 
-  const buttonClass =
-    'inline-block py-10px leading-18px px-6 rounded-full text-center text-sm font-medium border border-solid text-gray box-border cursor-pointer hover:bg-orange-lightHover hover:border-orange-light-hover hover:text-black-normal';
-  const buttonClassActive = 'bg-orange-light !text-black-normal border border-solid border-orange-light hover:bg-orange-light';
+  const buttonClass = 'inline-block py-10px leading-18px px-6 rounded-full text-center text-sm font-medium border border-solid text-gray box-border cursor-pointer';
+  const buttonClassActive = 'bg-orange-light !text-black-normal border border-solid border-orange-light';
 
   return (
     <PageWrapper className="pt-56px">

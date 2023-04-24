@@ -5,7 +5,7 @@ import { getPastIncentivesOfPool, computeIncentiveKey } from './';
 import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
-import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, usePoolList, poolsQuery } from '@service/farming';
+import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';
 import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
 import { type Pool, fetchPools } from '@service/pairs&pool';
 import _ from 'lodash-es';
@@ -173,7 +173,7 @@ const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] =>
 const myFarmsListQuery = selector({
   key: `myFarmsListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
-    const pools = get(poolsQuery);
+    const pools = get(poolsInfoQuery);
 
     const positions = get(myFarmsPositionsQuery).map((position) => {
       const { token0, token1, fee } = position;
@@ -523,19 +523,6 @@ export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(wh
 
 export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
 export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedPositionsQuery);
-
-export const useMyFarmingList = () => {
-  const { poolList } = usePoolList();
-  const stakedPostions = useStakedPositions();
-  const myFarmingList = useMemo(() => {
-    const stakedPoolAddresses: Array<string> = [];
-    stakedPostions.forEach((stakedPostion) => stakedPoolAddresses.push(stakedPostion.address));
-    const stakedPools = poolList.filter((p) => stakedPoolAddresses.indexOf(p.address) != -1);
-    return stakedPools;
-  }, [poolList, stakedPostions]);
-
-  return myFarmingList;
-};
 
 export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean) => {
   const stakedPostions = useStakedPositions();
