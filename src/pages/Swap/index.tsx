@@ -37,8 +37,8 @@ const transitions = {
 const SwapPage: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const sourceTokenAmount = watch('sourceToken-amount');
-  const destinationTokenAmount = watch('destinationToken-amount');
+  const sourceTokenAmount = watch('sourceToken-amount') as string;
+  const destinationTokenAmount = watch('destinationToken-amount') as string;
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const sourceTokenUSDPrice = useTokenPrice(sourceToken?.address);
@@ -49,11 +49,13 @@ const SwapPage: React.FC = () => {
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
   const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
 
-  const stablecoinPriceImpact = useMemo(
-    () => (!bestTrade?.trade ? undefined : computeFiatValuePriceImpact(sourceTokenUSDPrice, destinationTokenUSDPrice)),
-    [sourceTokenUSDPrice, destinationTokenUSDPrice, bestTrade]
-  );
+  const sourceTokenTradeAmountUSDPrice = useTokenPrice(sourceToken?.address, sourceTokenAmount);
+  const destinationTokenTradeAmountUSDPrice = useTokenPrice(destinationToken?.address, destinationTokenAmount);
 
+  const stablecoinPriceImpact = useMemo(
+    () => (!bestTrade?.trade ? undefined : computeFiatValuePriceImpact(sourceTokenTradeAmountUSDPrice, destinationTokenTradeAmountUSDPrice)),
+    [sourceTokenTradeAmountUSDPrice, destinationTokenTradeAmountUSDPrice, bestTrade]
+  );
   const { priceImpactSeverity, largerPriceImpact } = useMemo(() => {
     const marketPriceImpact = bestTrade?.trade?.priceImpact;
     const largerPriceImpact = stablecoinPriceImpact && marketPriceImpact ? Unit.max(stablecoinPriceImpact, marketPriceImpact) : (marketPriceImpact || stablecoinPriceImpact);
@@ -63,7 +65,6 @@ const SwapPage: React.FC = () => {
     }
   }, [bestTrade, stablecoinPriceImpact])
 
-  console.log('price:', sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact?.toDecimalMinUnit());
   console.log('severity', priceImpactSeverity, largerPriceImpact?.toDecimalMinUnit());
   useEffect(() => {
     if (inputedType && bestTrade.state === TradeState.VALID && bestTrade?.trade) {
