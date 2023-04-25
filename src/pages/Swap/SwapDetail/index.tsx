@@ -1,4 +1,5 @@
 import React, { memo, useState, useCallback, useMemo } from 'react';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import Tooltip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
@@ -7,9 +8,10 @@ import useI18n from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { isTokenEqual } from '@service/tokens';
 import { TradeState, TradeType, type useBestTrade } from '@service/pairs&pool';
-import { useSlippageTolerance } from "@service/settings"
+import { getSlippageTolerance, useSlippageTolerance } from '@service/settings';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
+import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
 
 const transitions = {
   en: {
@@ -19,7 +21,9 @@ const transitions = {
     price_impact: 'Price Impact',
     price_impact_tooltip: 'The impact your trade has on the market price of this pool.',
     minimum_received: 'Minimum received after slippage',
+    maximum_send: 'Maximum sent after slippage',
     minimum_received_tooltip: 'The minimum amount you are guaranteed to receive. If the price slips any further,your transaction will revert.',
+    maximum_send_tooltip: 'The Maximum_ amount you are guaranteed to send. If the price slips any further, your transaction will revert.',
     network_fee: 'Network Fee',
     network_fee_tooltip: 'The fee paid to miners who process your transaction. This must be paid in CFX.',
   },
@@ -29,7 +33,9 @@ const transitions = {
     expected_output_tooltip: '你预期在当前市场价格下收到的金额。如果在你的交易未完成时，市场价格发生变化，你可能会收到更少或更多。',
     price_impact_tooltip: '你的交易对这个池子的市场价格的影响。',
     minimum_received: '滑点后收到的最低数额',
+    maximum_send: '滑点后发送的最大数额',
     minimum_received_tooltip: '保证你能收到的最低金额。如果价格进一步下滑，你的交易将被退回。',
+    maximum_send_tooltip: '保证你将要发送的最大金额。如果价格进一步下滑，你的交易将被退回。',
     network_fee: '网络费用',
     network_fee_tooltip: '支付给处理你交易的矿工的费用。以 CFX 支付。',
   },
@@ -44,10 +50,11 @@ interface Props {
 
 const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview }) => {
   const i18n = useI18n(transitions);
+  const slippage = getSlippageTolerance() || 0;
+  const { value: slippageForUi } = useSlippageTolerance();
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const isBothTokenSelected = sourceToken && destinationToken;
-  const { value: slippageTolerance } = useSlippageTolerance()
 
   const [direction, setDirection] = useState<'SourceToDestination' | 'DestinationToSource'>('SourceToDestination');
   const handleClickAccordionTitle = useCallback<React.MouseEventHandler<HTMLParagraphElement>>((evt) => {
@@ -58,6 +65,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
   const fromToken = direction === 'SourceToDestination' ? sourceToken : destinationToken;
   const toToken = direction === 'SourceToDestination' ? destinationToken : sourceToken;
   const toTokenPrice = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
+  const tradeType = bestTrade?.trade?.tradeType;
 
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
   // const networkFee = useMemo(
@@ -68,6 +76,19 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
   //   [destinationTokenUSDPrice, sourceTokenUSDPrice, bestTrade]
   // );
   const networkFee = bestTrade.trade?.networkFeeByAmount;
+
+  const slippageAmount = useMemo(() => {
+    let amount = '0';
+    let decimals;
+    if (tradeType === TradeType.EXACT_INPUT) {
+      amount = getAmountOutMinimumDecimal(bestTrade?.trade?.amountOut ?? '0', slippage);
+      decimals = destinationToken?.decimals;
+    } else {
+      amount = getAmountInMaximumDecimal(bestTrade?.trade?.amountIn ?? '0', slippage);
+      decimals = sourceToken?.decimals;
+    }
+    return new Unit(amount).toDecimalStandardUnit(5, decimals);
+  }, [tradeType, TradeType, bestTrade, slippage, sourceToken, destinationToken]);
 
   if (!isBothTokenSelected) return null;
   return (
@@ -151,17 +172,23 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
         <span className="text-black-normal">{bestTrade.trade?.priceImpact.mul(100).toDecimalMinUnit(2)}%</span>
       </p>
 
-      <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
-        <Tooltip text={i18n.minimum_received_tooltip}>
-          <span>
-            {i18n.minimum_received} ({slippageTolerance}%)
-            <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
-          </span>
-        </Tooltip>
-        <span>
-          {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
-        </span>
-      </p>
+      {tradeType !== undefined && (
+        <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
+          <div className="w-full">
+            <Tooltip text={tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received_tooltip : i18n.maximum_send_tooltip}>
+              <div className="flex justify-between items-center">
+                <span>
+                  {tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received : i18n.maximum_send} ({slippageForUi} %)
+                  <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
+                </span>
+                <span>
+                  {slippageAmount} {tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}
+                </span>
+              </div>
+            </Tooltip>
+          </div>
+        </p>
+      )}
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
         <Tooltip text={i18n.network_fee_tooltip}>
