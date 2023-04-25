@@ -3,7 +3,7 @@ import Decimal from 'decimal.js';
 import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
 import { chunk } from 'lodash-es';
 import dayjs from 'dayjs';
-import { getTokenByAddress, type Token } from '@service/tokens';
+import { getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
 import { sendTransaction } from '@service/account';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
@@ -70,6 +70,8 @@ export interface PoolType {
   range: [string, string];
   currentIncentivePeriod: Incentive;
   tvl: string;
+  leftToken: Token;
+  rightToken: Token;
 }
 
 export const getCurrentIncentivePeriod = (now?: number): Incentive => {
@@ -170,12 +172,14 @@ const poolsQuery = selector({
       return {
         ...p,
         ...pairInfo,
-        token0: getTokenByAddress(token0) || DEFAULT_TOKEN,
-        token1: getTokenByAddress(token1) || DEFAULT_TOKEN,
+        token0: getUnwrapperTokenByAddress(token0) || DEFAULT_TOKEN,
+        token1: getUnwrapperTokenByAddress(token1) || DEFAULT_TOKEN,
         tvl: 0,
         range: [],
         totalSupply,
         currentIncentivePeriod: getCurrentIncentivePeriod(),
+        leftToken: getUnwrapperTokenByAddress(token0) || DEFAULT_TOKEN,
+        rightToken: getUnwrapperTokenByAddress(token1) || DEFAULT_TOKEN,
       };
     });
   },

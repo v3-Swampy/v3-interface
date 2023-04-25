@@ -13,7 +13,7 @@ import { enhancePositionForUI } from '@service/position';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
-import { type Token } from '@service/tokens';
+import { getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { useTokenPrice } from '@service/pairs&pool';
 
 export interface FarmingPosition extends PositionForUI {
@@ -165,6 +165,8 @@ const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] =>
     groupedData[p.address].totalAmount0 = groupedData[p.address].totalAmount0.add(p.position.amount0?.toDecimal() || 0);
     groupedData[p.address].totalAmount1 = groupedData[p.address].totalAmount1.add(p.position.amount1?.toDecimal() || 0);
     groupedData[p.address].totalClaimable = groupedData[p.address].totalClaimable.add(p.claimable || 0);
+    groupedData[p.address].leftToken = getUnwrapperTokenByAddress(groupedData[p.address].token0.address);
+    groupedData[p.address].rightToken = getUnwrapperTokenByAddress(groupedData[p.address].token1.address);
   }
 
   return Object.values(groupedData);

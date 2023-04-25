@@ -37,6 +37,11 @@ export const resetToken = () => {
   setRecoil(tokenBState, null);
 };
 
+export const setTokens = (tokenA: Token, tokenB: Token) => {
+  setRecoil(tokenAState, tokenA);
+  setRecoil(tokenBState, tokenB);
+};
+
 export const swapTokenAB = () => {
   const tokenA = getRecoil(tokenAState);
   const tokenB = getRecoil(tokenBState);

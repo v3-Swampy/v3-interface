@@ -17,6 +17,7 @@ import { addRecordToHistory } from '@service/history';
 import { useTokenPrice } from '@service/pairs&pool';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 
 const transitions = {
   en: {
@@ -128,6 +129,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   }, []);
 
   const handleNavigate = useCallback(() => {
+    setTokens(token0, token1);
     hidePopup();
 
     setTimeout(() => {
