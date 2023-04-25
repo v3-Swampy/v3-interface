@@ -102,7 +102,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       setStatus('need-approve');
       console.error('Handle approve err', err);
     }
-  }, []);
+  }, [tokenAddress, contractAddress, checkApproveFunc.current]);
 
   useEffect(() => {
     if (status !== 'checking-approve') {
