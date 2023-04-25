@@ -7,6 +7,8 @@ import { getDeadline, getSlippageTolerance } from '@service/settings';
 import { getAccount } from '@service/account';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
+import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
+
 import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
@@ -49,20 +51,14 @@ export const handleConfirmSwap = async ({
     };
 
     if (tradeTypeFunctionName === 'exactInput') {
-      // amountOutMinimum = (1/(1+s)) * amountOut
-      const amountOutMinimumDecimal = new Unit(oneRoute.at(-1)?.amountOut ?? '0').mul(new Unit(1).div(new Unit(1).add(slippage))).toDecimalMinUnit(0);
+      const amountOutMinimumDecimal = getAmountOutMinimumDecimal(oneRoute.at(-1)?.amountOut ?? '0', slippage);
       // console.log('amountOutMinimumDecimal', amountOutMinimumDecimal);
       Object.assign(params, {
         amountIn: Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toHexMinUnit(),
         amountOutMinimum: new Unit(amountOutMinimumDecimal).toHexMinUnit(),
       });
     } else {
-      // amountInMaximum = (1+s)*amountIn
-      const amountInMaximumDecimal = new Unit(1)
-        .add(slippage)
-        .mul(oneRoute.at(0)?.amountIn ?? '0')
-        .toDecimalMinUnit(0);
-
+      const amountInMaximumDecimal = getAmountInMaximumDecimal(oneRoute.at(0)?.amountIn ?? '0', slippage);
       // console.log('amountInMaximumDecimal', amountInMaximumDecimal);
       Object.assign(params, {
         amountOut: Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toHexMinUnit(),
@@ -74,10 +70,7 @@ export const handleConfirmSwap = async ({
     return data;
   });
 
-  const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [
-    0,
-    account,
-  ]);
+  const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [0, account]);
 
   const data2 = UniswapV3SwapRouter.func.interface.encodeFunctionData('refundETH');
 
@@ -93,7 +86,7 @@ export const handleConfirmSwap = async ({
     value: isSourceTokenCfx
       ? tradeTypeFunctionName === 'exactInput'
         ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit()
-        : new Unit(new Unit(1).add(slippage).mul(Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals)).toDecimalMinUnit(0)).toHexMinUnit()
+        : new Unit(getAmountInMaximumDecimal(Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals), slippage)).toHexMinUnit()
       : '0x0',
     data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [data]),
     to: UniswapV3SwapRouter.address,
