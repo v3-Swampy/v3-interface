@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
-import { getPastIncentivesOfPool, computeIncentiveKey } from './';
+import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
 import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
@@ -13,7 +13,7 @@ import { enhancePositionForUI } from '@service/position';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
-import { type Token } from '@service/tokens';
+import { getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { useTokenPrice } from '@service/pairs&pool';
 
 export interface FarmingPosition extends PositionForUI {
@@ -162,9 +162,13 @@ const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] =>
       };
     }
 
+    const [leftToken, rightToken] = getLRToken(groupedData[p.address].token0, groupedData[p.address].token1);
+
     groupedData[p.address].totalAmount0 = groupedData[p.address].totalAmount0.add(p.position.amount0?.toDecimal() || 0);
     groupedData[p.address].totalAmount1 = groupedData[p.address].totalAmount1.add(p.position.amount1?.toDecimal() || 0);
     groupedData[p.address].totalClaimable = groupedData[p.address].totalClaimable.add(p.claimable || 0);
+    groupedData[p.address].leftToken = leftToken;
+    groupedData[p.address].rightToken = rightToken;
   }
 
   return Object.values(groupedData);

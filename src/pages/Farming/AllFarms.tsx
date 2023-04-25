@@ -51,8 +51,8 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
           <TokenPair
             position={
               {
-                leftToken: data.token0,
-                rightToken: data.token1,
+                leftToken: data.leftToken,
+                rightToken: data.rightToken,
                 fee: data.fee,
               } as any
             }
