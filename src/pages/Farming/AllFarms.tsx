@@ -63,7 +63,9 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
         <div className={`${className.title}`}>
           {i18n.APR} {i18n.range}
         </div>
-        <div className={`${className.content}`}>{data.range.length ? `${data.range[0]}% ~ ${data.range[1]}%` : '--'}</div>
+        {/* TODO hardcode temporary */}
+        {/* <div className={`${className.content}`}>{data.range.length ? `${data.range[0]}% ~ ${data.range[1]}%` : '--'}</div> */}
+        <div className={`${className.content}`}>{`Infinity% ~ Infinity%`}</div>
       </div>
       <div>
         <div className={`${className.title}`}>{i18n.tvl}</div>
@@ -76,10 +78,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
             <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
           </Tooltip>
         </div>
-        <div className="text-12px font-500 not-italic leading-15px color-green-normal flex items-center">
-          <LightningIcon className="w-5 h-5 mr-0.5" />
-          {data.allocPoint}X
-        </div>
+        <div className="text-12px font-500 not-italic leading-15px color-black-normal flex items-center">{data.allocPoint}X</div>
       </div>
       <div className="flex items-center">
         <AuthConnectButton className={className.authConnectButton}>
