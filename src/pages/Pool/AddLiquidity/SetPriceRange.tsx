@@ -56,7 +56,6 @@ const RangeInput: React.FC<
   const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (evt) => {
       if (!tokenA || !tokenB || !evt.target.value) return;
-      console.log('ttt', evt.target.value)
       try {
         if (evt.target.value === 'Infinity' || evt.target.value === 'NaN' || new Unit(evt.target.value).lessThanOrEqualTo(new Unit(0))) {
           setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');

@@ -51,17 +51,15 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 
   return (
     <div className="mt-24px">
-      <form onSubmit={onSubmit}>
-        <div className="flex p-16px bg-orange-light-hover rounded-20px mb-16px">
-          <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} tokenId={tokenId} />
-        </div>
-        <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
-        <AuthConnectButton {...buttonProps}>
-          <Button {...buttonProps} loading={inTransaction} onClick={onSubmit}>
-            {i18n.collect}
-          </Button>
-        </AuthConnectButton>
-      </form>
+      <div className="flex p-16px bg-orange-light-hover rounded-20px mb-16px">
+        <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} tokenId={tokenId} />
+      </div>
+      <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
+      <AuthConnectButton {...buttonProps}>
+        <Button {...buttonProps} loading={inTransaction} onClick={onSubmit}>
+          {i18n.collect}
+        </Button>
+      </AuthConnectButton>
     </div>
   );
 };
