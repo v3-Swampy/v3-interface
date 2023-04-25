@@ -156,16 +156,19 @@ export const calcRatio = (lower: Unit, current: Unit | null | undefined, upper: 
 };
 
 export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; searchTick: Unit | string | number }) => {
-  const usedSearchTick = typeof searchTick !== 'object' ? new Unit(searchTick) : searchTick;
+  const usedSearchTick = (typeof searchTick !== 'object' ? new Unit(searchTick) : searchTick).toDecimal();
+  const atom = new Decimal(fee / 50);
 
-  const atom = new Unit(fee / 50);
-  const r = usedSearchTick.mod(atom);
-  if (r.lessThan(atom.div(new Unit(2)))) {
-    return usedSearchTick.sub(r);
+  const quotient = Decimal.floor(usedSearchTick.abs().div(atom));
+  const candidate1 = quotient.mul(atom);
+  const candidate2 = quotient.add(1).mul(atom);
+  if (Decimal.abs(candidate1.sub(usedSearchTick.abs())).lessThan(Decimal.abs(candidate2.sub(usedSearchTick.abs())))) {
+    return usedSearchTick.greaterThanOrEqualTo(0) ? new Unit(candidate1) : new Unit(-candidate1);
   } else {
-    return usedSearchTick.add(atom).sub(r);
+    return usedSearchTick.greaterThanOrEqualTo(0) ? new Unit(candidate2) : new Unit(-candidate2);
   }
 };
+
 
 export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fee: FeeAmount; searchPrice: Unit | string | number; tokenA: Token; tokenB: Token }) => {
   const usedSearchPrice = typeof searchPrice !== 'object' ? new Unit(searchPrice) : searchPrice;

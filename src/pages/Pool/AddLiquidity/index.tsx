@@ -54,6 +54,44 @@ const AddLiquidity: React.FC = () => {
   const amountTokenB = watch('amount-tokenB', '') as string;
   const priceInit = watch('price-init', '') as string;
 
+  const handleSwapToken = useCallback(() => {
+    if (!swapTokenAB()) return;
+    const values = getValues();
+    const amountTokenA = values['amount-tokenA'];
+    const amountTokenB = values['amount-tokenB'];
+    const priceLower = values['price-lower'];
+    const priceUpper = values['price-upper'];
+    const priceInit = values['price-init'];
+
+    setTimeout(() => {
+      if (priceInit) {
+        setValue('price-init', (1 / +priceInit).toFixed(5));
+      }
+
+      if (priceLower) {
+        const isPriceLowerZero = new Unit(priceLower).equals(new Unit(0));
+        if (!isPriceLowerZero) {
+          setValue('price-upper', (1 / priceLower).toFixed(5));
+        } else {
+          setValue('price-upper', 'Infinity');
+        }
+      }
+
+      if (priceUpper) {
+        const isPriceUpperInfinity = priceUpper === 'Infinity';
+        if (!isPriceUpperInfinity) {
+          setValue('price-lower', (1 / priceUpper).toFixed(5));
+        } else {
+          setValue('price-lower', '0');
+        }
+      }
+      setTimeout(() => {
+        setValue('amount-tokenB', amountTokenA);
+        setValue('amount-tokenA', amountTokenB);
+      });
+    });
+  }, []);
+
   const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitCreatePosition } = useInTransaction(_handleClickSubmitCreatePosition);
   const onSubmit = useCallback(
     withForm(async (data) => {
@@ -88,7 +126,7 @@ const AddLiquidity: React.FC = () => {
                   'inline-block px-10px h-24px leading-24px cursor-pointer rounded-4px',
                   tokenA === token0 ? 'text-orange-normal bg-orange-light-hover pointer-events-none' : 'text-gray-normal'
                 )}
-                onClick={swapTokenAB}
+                onClick={handleSwapToken}
               >
                 {token0.symbol}
               </span>
@@ -97,7 +135,7 @@ const AddLiquidity: React.FC = () => {
                   'inline-block px-10px h-24px leading-24px cursor-pointer rounded-4px',
                   tokenA === token1 ? 'text-orange-normal bg-orange-light-hover pointer-events-none' : 'text-gray-normal'
                 )}
-                onClick={swapTokenAB}
+                onClick={handleSwapToken}
               >
                 {token1.symbol}
               </span>
@@ -109,7 +147,7 @@ const AddLiquidity: React.FC = () => {
         <form onSubmit={onSubmit}>
           <BorderBox className="relative w-full p-16px rounded-28px flex gap-32px lt-md:gap-16px" variant="gradient-white">
             <div className="w-310px flex-grow-1 flex-shrink-1">
-              <SelectPair />
+              <SelectPair handleSwapToken={handleSwapToken} />
               <SelectFeeTier register={register} />
               <DepositAmounts
                 register={register}

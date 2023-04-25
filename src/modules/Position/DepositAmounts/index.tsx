@@ -210,8 +210,8 @@ const DepositAmounts: React.FC<Props> = ({
   );
 
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
-  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThan(priceLower) : false;
-  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThan(priceUpper) : false;
+  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;
+  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThanOrEqualTo(priceUpper) : false;
 
   const account = useAccount();
   useLayoutEffect(() => {

@@ -10,6 +10,7 @@ import useI18n from '@hooks/useI18n';
 import { useTransactionDeadline, useSlippageTolerance, useExpertMode, useRoutingApi, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
 import { ReactComponent as SettingsIcon } from '@assets/icons/settings.svg';
 import showExpertModeModal from './ExpertModeModal';
+import Decimal from 'decimal.js';
 
 const transitions = {
   en: {
@@ -49,11 +50,22 @@ const SettingsContent: React.FC = () => {
 
   const { method: slippageToleranceMethod, value: slippageToleranceValue } = useSlippageTolerance();
   const onSlippageToleranceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
+    if (value && new Decimal(value).lt(0)) {
+      setSlippageTolerance(0);
+      return;
+    }
+    if (value && new Decimal(value).gt(50)) {
+      setSlippageTolerance(50);
+      return;
+    }
     setSlippageTolerance(value ? +value : null);
   }, []);
 
   const [transactionDeadline, setTransactionDeadline] = useTransactionDeadline();
   const onTransactionDeadlineChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
+    if (value && new Decimal(value).lt(0)) {
+      setTransactionDeadline(0);
+    }
     setTransactionDeadline(+value);
   }, []);
 
@@ -63,17 +75,16 @@ const SettingsContent: React.FC = () => {
   const handleSwitchExpertMode = (e: any) => {
     const checked: boolean = e.target.checked;
     if (checked) {
-      showExpertModeModal({ title: "Are you sure?", className: "!max-w-458px" });
-    }
-    else {
+      showExpertModeModal({ title: 'Are you sure?', className: '!max-w-458px' });
+    } else {
       setExpertMode(false);
     }
-  }
+  };
 
   const handleSwitchRoutingApi = (e: any) => {
     const checked: boolean = e.target.checked;
     setRoutingApi(checked);
-  }
+  };
 
   return (
     <BorderBox variant="orange" className="w-240px p-16px rounded-28px bg-white-normal shadow-popper">

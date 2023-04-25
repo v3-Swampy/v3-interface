@@ -17,25 +17,26 @@ import { addRecordToHistory } from '@service/history';
 import { useTokenPrice } from '@service/pairs&pool';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 
 const transitions = {
   en: {
     title: 'Stake LP',
-    subTitle: '{token0}/{token1} Positions (Out of range LP can not receive farming rewards)',
+    subTitle: '{leftToken}/{rightToken} Positions (Out of range LP can not receive farming rewards)',
     liquidity: 'Liquidity:',
     stakeLP: 'Stake LP',
-    more: 'Get more {token0}/{token1} LP ',
+    more: 'Get more {leftToken}/{rightToken} LP ',
     null: 'Don’t have any LP in this pool.',
-    provide: 'Provide liquidity for {token0}/{token1}',
+    provide: 'Provide liquidity for {leftToken}/{rightToken}',
   },
   zh: {
     title: '质押 LP',
-    subTitle: '{token0}/{token1} Positions (Out of range LP can not receive farming rewards)',
+    subTitle: '{leftToken}/{rightToken} Positions (Out of range LP can not receive farming rewards)',
     liquidity: 'Liquidity:',
     stakeLP: 'Stake LP',
-    more: 'Get more {token0}/{token1} LP',
+    more: 'Get more {leftToken}/{rightToken} LP',
     null: 'Don’t have any LP in this pool.',
-    provide: 'Provide liquidity for {token0}/{token1}',
+    provide: 'Provide liquidity for {leftToken}/{rightToken}',
   },
 } as const;
 
@@ -52,17 +53,17 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
-  const { amount0, amount1, token0, token1 } = data ?? {};
+  const { amount0, amount1, leftToken, rightToken } = data ?? {};
 
-  const token0Price = useTokenPrice(token0.address);
-  const token1Price = useTokenPrice(token1.address);
+  const leftTokenPrice = useTokenPrice(leftToken?.address);
+  const rightTokenPrice = useTokenPrice(rightToken?.address);
 
   let liquidity = useMemo(() => {
-    const token0Liquidity = token0Price && amount0 ? amount0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '';
-    const token1Liquidity = token1Price && amount1 ? amount1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '';
-    const liquidity = token0Liquidity && token1Liquidity ? `$${trimDecimalZeros(new Unit(token0Liquidity).add(token1Liquidity).toDecimalMinUnit(5))}` : '--';
+    const leftTokenLiquidity = leftTokenPrice && amount0 ? amount0.mul(leftTokenPrice).toDecimalStandardUnit(undefined, leftToken?.decimals) : '';
+    const rightTokenLiquidity = rightTokenPrice && amount1 ? amount1.mul(rightTokenPrice).toDecimalStandardUnit(undefined, rightToken?.decimals) : '';
+    const liquidity = leftTokenLiquidity && rightTokenLiquidity ? `$${trimDecimalZeros(new Unit(leftTokenLiquidity).add(rightTokenLiquidity).toDecimalMinUnit(5))}` : '--';
     return liquidity;
-  }, [token0Price, token1Price, data.amount0, data.amount1]);
+  }, [leftTokenPrice, rightTokenPrice, data.amount0, data.amount1]);
 
   const classNameButton = useMemo(() => {
     return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
@@ -99,10 +100,10 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
             addRecordToHistory({
               txHash,
               type: 'AllFarms_StakedLP',
-              // tokenA_Address: token0.address,
-              // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
-              // tokenB_Address: token1.address,
-              // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+              // tokenA_Address: leftToken.address,
+              // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
+              // tokenB_Address: rightToken.address,
+              // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
             });
           }}
           className={classNameButton}
@@ -114,7 +115,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   );
 };
 
-const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, token0, token1 }) => {
+const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, leftToken, rightToken }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const navigate = useNavigate();
@@ -128,12 +129,13 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   }, []);
 
   const handleNavigate = useCallback(() => {
+    setTokens(leftToken, rightToken);
     hidePopup();
 
     setTimeout(() => {
       navigate(`/pool/add_liquidity`);
     }, 50);
-  }, [navigate, token0, token1]);
+  }, [navigate, leftToken, rightToken]);
 
   if (fPositions.length === 0) {
     return (
@@ -144,8 +146,8 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
         <div className={classNameLink} onClick={handleNavigate}>
           <span>
             {compiled(i18n.provide, {
-              token0: token0.symbol,
-              token1: token1.symbol,
+              leftToken: leftToken.symbol,
+              rightToken: rightToken.symbol,
             })}
           </span>
         </div>
@@ -163,8 +165,8 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
           {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
           <div className={classNameLink} onClick={handleNavigate}>
             {compiled(i18n.more, {
-              token0: token0.symbol,
-              token1: token1.symbol,
+              leftToken: leftToken.symbol,
+              rightToken: rightToken.symbol,
             })}
           </div>
         </div>
@@ -177,8 +179,8 @@ const showStakeLPModal = (pool: PoolType) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     subTitle: compiled(toI18n(transitions).subTitle, {
-      token0: pool.token0.symbol,
-      token1: pool.token1.symbol,
+      leftToken: pool.leftToken.symbol,
+      rightToken: pool.rightToken.symbol,
     }),
     ConfirmContent: (props: ConfirmModalInnerProps) => (
       <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>

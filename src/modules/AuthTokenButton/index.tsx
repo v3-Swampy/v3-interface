@@ -21,14 +21,14 @@ const transitions = {
   en: {
     checking_balance: 'Checking Balance...',
     insufficient_balance: 'Insufficient {token} Balance',
-    need_approve: '{token} Need Approve',
-    checking_approve: 'Checking Approve...',
+    need_approve: 'Approve {token} ',
+    checking_approve: 'Checking Approval...',
     amount_should_greater_than_zero: 'Amount should greater than zero',
   },
   zh: {
     checking_balance: '检测约中...',
     insufficient_balance: '{token} 余额不足',
-    need_approve: '{token} 需要许可',
+    need_approve: '许可 {token}',
     checking_approve: '检测许可中...',
     amount_should_greater_than_zero: '输入金额应该大于0',
   },
@@ -102,7 +102,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       setStatus('need-approve');
       console.error('Handle approve err', err);
     }
-  }, []);
+  }, [tokenAddress, contractAddress, checkApproveFunc.current]);
 
   useEffect(() => {
     if (status !== 'checking-approve') {

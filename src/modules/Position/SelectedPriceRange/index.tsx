@@ -2,13 +2,13 @@
  * display the price range in liquidity detail and increase liquidity page
  * when click the inverted button invert the token pair
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { type PositionForUI } from '@service/position';
-import { invertPrice, usePool } from '@service/pairs&pool';
+import { invertPrice, usePool, FeeAmount } from '@service/pairs&pool';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/detail_exchange.svg';
 import { useInvertedState } from '../invertedState';
@@ -36,22 +36,26 @@ enum PriceType {
   Min,
   Max,
 }
-
-const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null | undefined; tokenB: Token | null | undefined; type: PriceType }> = ({
+const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null | undefined; tokenB: Token | null | undefined; type: PriceType; }> = ({
   price,
   tokenA,
   tokenB,
   type,
 }) => {
   const i18n = useI18n(transitions);
-
-  const _priceStr = price ? trimDecimalZeros(price.toDecimalMinUnit(5)) : '-';
-  const priceStr = _priceStr === 'Infinity' ? '∞' : _priceStr;
+  const displayPrice = useMemo(() => {
+    if (!price || !tokenA || !tokenB) return '-';
+    if (!price.isFinite()) return '∞';
+    const priceToFixed5 = price.toDecimalMinUnit(5);
+    const priceToFixed5CarryOne = new Unit(priceToFixed5).add(0.00001);
+    if (priceToFixed5CarryOne.sub(price).lessThan(0.000001)) return priceToFixed5CarryOne?.toDecimalMinUnit(5);
+    else return priceToFixed5;
+  }, [tokenA?.address, tokenB?.address, price]);
 
   return (
     <div className="flex flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px p-10px">
       <p className="font-medium">{type === PriceType.Min ? i18n.min_price : i18n.max_price}</p>
-      <p className="text-24px leading-30px font-medium">{priceStr}</p>
+      <p className="text-24px leading-30px font-medium">{displayPrice}</p>
       <p className="text-gray-normal text-12px leading-15px font-normal">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</p>
       <p className="max-w-172px text-12px leading-15px text-center font-normal">
         {compiled(i18n.price_desc, { tokenSymbol: type === PriceType.Min ? tokenA?.symbol ?? '' : tokenB?.symbol ?? '' })}
@@ -75,7 +79,6 @@ const SelectedPriceRange: React.FC<{
 
   const fromPreview = !!leftToken && !!rightToken;
   const [inverted, setInverted] = useInvertedState(tokenId);
-
   const leftTokenForUI = fromPreview ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
   const rightTokenForUI = fromPreview ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
   const isLeftTokenEqualToken0 = isTokenEqual(leftTokenForUI, token0);

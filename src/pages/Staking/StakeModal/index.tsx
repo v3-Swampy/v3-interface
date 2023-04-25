@@ -18,12 +18,12 @@ const transitions = {
   en: {
     title: 'Stake VST',
     confirm: 'Confirm',
-    current_boosting: 'Your Boosting will be: <b>{boosting}</b>',
+    current_boosting: 'Your estimated boost will be: <b>{boosting}</b>',
   },
   zh: {
     title: '质押 VST',
     confirm: '确认',
-    current_boosting: 'Your Current will be: <b>{boosting}</b>',
+    current_boosting: 'Your estimated boost will be: <b>{boosting}</b>',
   },
 } as const;
 

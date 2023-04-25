@@ -4,14 +4,13 @@ import Decimal from 'decimal.js';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { FeeAmount, getPool, type Pool } from '@service/pairs&pool';
+import { FeeAmount, getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
-
 
 const Q192 = new Decimal(2).toPower(192);
 const Zero = new Unit(0);
@@ -55,15 +54,15 @@ export const handleClickSubmitCreatePosition = async ({
     const isPriceLowerZero = new Unit(_priceLower).equals(Zero);
     const isPriceUpperInfinity = _priceUpper === 'Infinity';
     const [priceLower, priceUpper] = notNeedSwap
-      ? [_priceLower, _priceUpper]
-      : [isPriceUpperInfinity ? '0' : (1 / +_priceUpper).toFixed(5), isPriceLowerZero ? 'Infinity' : (1 / +_priceLower).toFixed(5)];
+      ? [new Unit(_priceLower), new Unit(_priceUpper)]
+      : [isPriceUpperInfinity ? new Unit('0') : new Unit(1).div(_priceUpper), isPriceLowerZero ? new Unit('Infinity') : new Unit(1).div(_priceLower)];
 
     const sqrtPriceX96 = priceInit
       ? Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0)
       : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
 
-    const _tickLower = new Unit(priceLower).equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
-    const _tickUpper = priceUpper === 'Infinity' ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
+    const _tickLower = priceLower.equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
+    const _tickUpper = !priceUpper.isFinite() ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
     const tickLower = typeof _tickLower === 'number' ? _tickLower : +findClosestValidTick({ fee, searchTick: _tickLower }).toDecimalMinUnit();
     const tickUpper = typeof _tickUpper === 'number' ? _tickUpper : +findClosestValidTick({ fee, searchTick: _tickUpper }).toDecimalMinUnit();
 
@@ -134,7 +133,7 @@ export const handleClickSubmitCreatePosition = async ({
       inverted,
       priceInit,
       previewUniqueId,
-      previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower: new Unit(priceLower), priceUpper: new Unit(priceUpper) }, pool),
+      previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
       transactionParams,
       recordParams,
     });
