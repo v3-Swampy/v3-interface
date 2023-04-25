@@ -64,7 +64,6 @@ const RangeInput: React.FC<
         setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
         return;
       }
-
       setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
     },
     [fee, tokenA?.address, tokenB?.address]
