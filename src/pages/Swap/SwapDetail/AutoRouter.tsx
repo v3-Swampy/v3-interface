@@ -61,7 +61,7 @@ export default memo(AutoRouter);
 
 export interface RoutingDiagramEntry {
   percent: string
-  path: [Token | null, Token | null, FeeAmount][]
+  path: [Token | null, Token | null, number][]
   protocol: Protocol
 }
 
@@ -85,7 +85,7 @@ export function getTokenPath(trade?: Trade): RoutingDiagramEntry[] {
       const entry: RoutingDiagramEntry['path'][0] = [
         tokenIn,
         tokenOut,
-        nextPool.fee,
+        Number(nextPool.fee),
       ];
       path.push(entry);
     }

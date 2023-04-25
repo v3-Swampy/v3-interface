@@ -15,7 +15,7 @@ export interface Route {
   address: string;
   amountIn: string;
   amountOut: string;
-  fee: FeeAmount;
+  fee: string;
   liquidity: string;
   sqrtRatioX96: string;
   tickCurrent: string;

@@ -5,7 +5,7 @@ import { FeeAmount } from '@service/pairs&pool';
 import Tooltip from '@components/Tooltip';
 import { RoutingDiagramEntry } from './AutoRouter'
 
-const Pool = ({ tokenIn, tokenOut, feeAmount }: { tokenIn: Token | null, tokenOut: Token | null, feeAmount: FeeAmount }) => {
+const Pool = ({ tokenIn, tokenOut, feeAmount }: { tokenIn: Token | null, tokenOut: Token | null, feeAmount: number }) => {
   return (
     <Tooltip text={`${tokenIn?.symbol}/${tokenOut?.symbol} ${feeAmount / 10000}% pool`}>
       <div className="flex bg-orange-light rounded-10px px-10px py-4px">
