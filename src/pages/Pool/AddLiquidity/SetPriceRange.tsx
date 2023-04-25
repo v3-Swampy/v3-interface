@@ -75,7 +75,9 @@ const RangeInput: React.FC<
     () => {
       if (!tokenA || !tokenB) return;
       const value = getValues();
-      const price = new Unit(value[`price-${type}`])
+      const priceStr = value[`price-${type}`];
+      if(!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
+      const price = new Unit(priceStr)
       const step = fee / 50;
       if (fee - step < 0) return;
       const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB })
@@ -88,7 +90,9 @@ const RangeInput: React.FC<
     () => {
       if (!tokenA || !tokenB) return;
       const value = getValues();
-      const price = new Unit(value[`price-${type}`])
+      const priceStr = value[`price-${type}`];
+      if(!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
+      const price = new Unit(priceStr)
       const step = fee / 50;
       if (fee - step < 0) return;
       const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB })
