@@ -32,6 +32,11 @@ const tokenBState = atom<Token | null>({
   effects: [persistAtom],
 });
 
+export const resetToken = () => {
+  setRecoil(tokenAState, null);
+  setRecoil(tokenBState, null);
+};
+
 export const swapTokenAB = () => {
   const tokenA = getRecoil(tokenAState);
   const tokenB = getRecoil(tokenBState);

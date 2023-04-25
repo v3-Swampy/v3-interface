@@ -12,7 +12,7 @@ import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import useInTransaction from '@hooks/useInTransaction';
 import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/position';
-import SelectPair, { useTokenA, useTokenB, swapTokenAB } from './SelectPair';
+import SelectPair, { useTokenA, useTokenB, swapTokenAB, resetToken } from './SelectPair';
 import DepositAmounts from '@modules/Position/DepositAmounts';
 import SelectFeeTier, { useCurrentFee } from './SelectFeeTier';
 import SetPriceRange from './SetPriceRange';
@@ -125,7 +125,7 @@ const AddLiquidity: React.FC = () => {
             {i18n.add_liquidity}
           </Link>
 
-          <Button color="orange" variant="text" className="mr-4px px-10px h-40px rounded-100px">
+          <Button color="orange" variant="text" className="mr-4px px-10px h-40px rounded-100px" onClick={resetToken}>
             {i18n.clear_all}
           </Button>
           {token0 && token1 && (
