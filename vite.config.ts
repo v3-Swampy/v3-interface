@@ -42,11 +42,11 @@ export default defineConfig({
             dot: '#FFB75D',
           },
           black: {
-            normal: '#225050',
+            normal: '#222222',
             light: '#769292',
           },
           gray: {
-            normal: '#C2C4D0',
+            normal: '#8E8E8E',
             light: '#E1E1E7',
           },
           white: {
