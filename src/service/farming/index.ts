@@ -3,7 +3,7 @@ import Decimal from 'decimal.js';
 import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
 import { chunk } from 'lodash-es';
 import dayjs from 'dayjs';
-import { getUnwrapperTokenByAddress, type Token } from '@service/tokens';
+import { getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens, getTokenByAddress } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
 import { sendTransaction } from '@service/account';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
@@ -168,18 +168,18 @@ const poolsQuery = selector({
     return poolsInfo.map((p, i) => {
       const { totalSupply, ...pairInfo } = pairsInfo[i];
       const { token0, token1 } = pairInfo;
-
+      const [leftToken, rightToken] = getLRToken(getTokenByAddress(token0), getTokenByAddress(token1));
       return {
         ...p,
         ...pairInfo,
-        token0: getUnwrapperTokenByAddress(token0) || DEFAULT_TOKEN,
-        token1: getUnwrapperTokenByAddress(token1) || DEFAULT_TOKEN,
+        token0: getTokenByAddress(token0) || DEFAULT_TOKEN,
+        token1: getTokenByAddress(token1) || DEFAULT_TOKEN,
         tvl: 0,
         range: [],
         totalSupply,
         currentIncentivePeriod: getCurrentIncentivePeriod(),
-        leftToken: getUnwrapperTokenByAddress(token0) || DEFAULT_TOKEN,
-        rightToken: getUnwrapperTokenByAddress(token1) || DEFAULT_TOKEN,
+        leftToken,
+        rightToken,
       };
     });
   },
@@ -249,4 +249,18 @@ export const geLiquility = (position: FarmingPosition, token0Price?: string | nu
   }
 
   return new Unit(0);
+};
+
+export const getLRToken = (token0: Token | null, token1: Token | null) => {
+  if (!token0 || !token1) return [];
+  const unwrapToken0 = getUnwrapperTokenByAddress(token0.address);
+  const unwrapToken1 = getUnwrapperTokenByAddress(token1.address);
+  const checkedLR =
+    // if token0 is a dollar-stable asset, set it as the quote token
+    stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
+    // if token1 is an ETH-/BTC-stable asset, set it as the base token
+    baseTokens.some((baseToken) => baseToken?.address === token1.address);
+  const leftToken = checkedLR ? unwrapToken0 : unwrapToken1;
+  const rightToken = checkedLR ? unwrapToken1 : unwrapToken0;
+  return [leftToken, rightToken];
 };
