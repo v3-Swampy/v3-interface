@@ -75,7 +75,11 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
   //       : undefined,
   //   [destinationTokenUSDPrice, sourceTokenUSDPrice, bestTrade]
   // );
-  const networkFee = bestTrade.trade?.networkFeeByAmount;
+  const networkFee = bestTrade.trade?.networkFeeByAmount
+    ? bestTrade.trade?.networkFeeByAmount.toDecimalMinUnit(5) === '0.00000'
+      ? '<$0.00001'
+      : '$' + bestTrade.trade?.networkFeeByAmount.toDecimalMinUnit(5)
+    : undefined;
 
   const slippageAmount = useMemo(() => {
     let amount = '0';
@@ -141,7 +145,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
                   expand && 'opacity-0 pointer-events-none'
                 )}
               >
-                <span className="i-ic:outline-local-gas-station text-16px mr-2px" />${networkFee?.toDecimalMinUnit(5)}
+                <span className="i-ic:outline-local-gas-station text-16px mr-2px" />{networkFee}
               </span>
             )}
 
@@ -197,13 +201,13 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </Tooltip>
-        <span>${networkFee?.toDecimalMinUnit(5)}</span>
+        <span>{networkFee}</span>
       </p>
 
       {!fromPreview && (
         <>
           <div className="my-16px h-2px bg-#FFF5E7" />
-          <AutoRouter bestTrade={bestTrade} />
+          <AutoRouter bestTrade={bestTrade} networkFee={networkFee} />
         </>
       )}
     </Accordion>

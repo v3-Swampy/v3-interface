@@ -11,11 +11,11 @@ export enum TradeType {
   EXACT_OUTPUT,
 }
 
-interface Route {
+export interface Route {
   address: string;
   amountIn: string;
   amountOut: string;
-  fee: string;
+  fee: FeeAmount;
   liquidity: string;
   sqrtRatioX96: string;
   tickCurrent: string;
@@ -35,16 +35,18 @@ export enum TradeState {
 export interface BestTrade {
   state: TradeState;
   error?: string;
-  trade?: {
-    route: Route[][];
-    amountIn: Unit;
-    amountOut: Unit;
-    priceIn: Unit;
-    priceOut: Unit;
-    networkFeeByAmount: Unit;
-    priceImpact: Unit;
-    tradeType: TradeType;
-  };
+  trade?: Trade;
+}
+
+export interface Trade {
+  route: Route[][];
+  amountIn: Unit;
+  amountOut: Unit;
+  priceIn: Unit;
+  priceOut: Unit;
+  networkFeeByAmount?: Unit;
+  priceImpact: Unit;
+  tradeType: TradeType;
 }
 
 export enum RouterPreference {
@@ -140,11 +142,9 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
 
     setBestTrade({ state: TradeState.LOADING });
     fetch(
-      `${import.meta.env.VITE_APIRoutingUrl}?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
-        tokenInWrappered.chainId
-      }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
-        tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'
-      }`
+      `${import.meta.env.VITE_APIRoutingUrl}?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+        tokenOutWrappered.address
+      }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
     )
       .then((res) => res.json())
       .then((res) => {
@@ -157,7 +157,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
             error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
           });
         } else {
-          console.log('res', res)
+          console.log('res', res);
           setBestTrade({
             state: TradeState.VALID,
             trade: calcTradeFromData({
@@ -175,7 +175,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
   return bestTrade;
 };
 
-export const useBestTrade = useClientBestTrade;
+export const useBestTrade = useServerBestTrade;
 
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
@@ -192,7 +192,7 @@ export const useTokenPrice = (tokenAddress: string | undefined, amount: string =
 };
 
 function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; tradeType: TradeType; amount: string; amountUnit: Unit; tokenIn: Token }) {
-  console.log('res', res)
+  console.log('res', res);
   const route = res.route as Route[][];
   const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
   const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
@@ -204,7 +204,7 @@ function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; 
   const priceOut = amountOut.div(amountIn);
 
   // const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
-  const networkFeeByAmount = new Unit(res?.gasUseEstimateUSD);
+  const networkFeeByAmount = res?.gasUseEstimateUSD ? new Unit(res?.gasUseEstimateUSD) : undefined;
 
   const realizedLpFeePercent = route.reduce((pre, oneRoute) => {
     const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);

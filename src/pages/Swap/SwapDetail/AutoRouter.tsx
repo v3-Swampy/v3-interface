@@ -1,31 +1,36 @@
 import React, { memo, useState, useCallback } from 'react';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import Tooltip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
-import { type useBestTrade } from '@service/pairs&pool';
+import { type useBestTrade, TradeType, FeeAmount, Trade, Route, Protocol } from '@service/pairs&pool';
+import { Token, getTokenByAddress } from '@service/tokens';
+import RoutingDiagram from './RoutingDiagram';
 
 const transitions = {
   en: {
     auto_router: 'Auto Router',
     auto_router_tip:
-      'Best price route costs ~${dollar_price} in gas. This route optimizes your total output by considering split routes, multiple hops, and the gas cost of each step.',
+      'Best price route costs ~{dollar_price} in gas. This route optimizes your total output by considering split routes, multiple hops, and the gas cost of each step.',
   },
   zh: {
     auto_router: '自动路由',
-    auto_router_tip: '最佳价格路由消耗的gas约为 ${dollar_price} 此路线通过考虑拆分路线、多跳和每一步的 gas 成本来优化您的总输出额。',
+    auto_router_tip: '最佳价格路由消耗的gas约为 {dollar_price} 此路线通过考虑拆分路线、多跳和每一步的 gas 成本来优化您的总输出额。',
   },
 } as const;
 
 interface Props {
-  bestTrade: ReturnType<typeof useBestTrade>;  
+  bestTrade: ReturnType<typeof useBestTrade>;
+  networkFee?: string;
 }
 
-const AutoRouter: React.FC<Props> = ({ bestTrade }) => {
+const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
   const i18n = useI18n(transitions);
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
+  const routes = getTokenPath(bestTrade?.trade);
 
   return (
     <Accordion
@@ -41,13 +46,54 @@ const AutoRouter: React.FC<Props> = ({ bestTrade }) => {
         </>
       )}
 
-      <p className="flex justify-between items-center leading-18px text-14px font-medium">123456</p>
+      <p className="flex justify-between items-center leading-18px text-14px font-medium">
+        <RoutingDiagram sourceToken={sourceToken} destinationToken={destinationToken} routes={routes} />
+      </p>
 
       <div className="my-16px h-2px bg-#FFF5E7" />
 
-      <p className="flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">{compiled(i18n.auto_router_tip, { dollar_price: '4.33' })}</p>
+      <p className="flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">{compiled(i18n.auto_router_tip, { dollar_price: networkFee || '$' })}</p>
     </Accordion>
   );
 };
 
 export default memo(AutoRouter);
+
+export interface RoutingDiagramEntry {
+  percent: string
+  path: [Token | null, Token | null, FeeAmount][]
+  protocol: Protocol
+}
+
+/**
+ * Loops through all routes on a trade and returns an array of diagram entries.
+ */
+export function getTokenPath(trade?: Trade): RoutingDiagramEntry[] {
+  if (!trade) return []
+  return trade.route.map((route: Route[]) => {
+    const routeAmountIn = route[0].amountIn;
+    const routeAmountOut = route[route.length - 1].amountIn;
+    const percent =
+      trade.tradeType === TradeType.EXACT_INPUT
+        ? new Unit(routeAmountIn).div(trade.amountIn).mul(100).toDecimalMinUnit(1)
+        : new Unit(routeAmountOut).div(trade.amountOut).mul(100).toDecimalMinUnit(1);
+    const path: RoutingDiagramEntry['path'] = [];
+    for (let i = 0; i < route.length; i++) {
+      const nextPool = route[i];
+      const tokenIn = getTokenByAddress(nextPool.tokenIn.address);
+      const tokenOut = getTokenByAddress(nextPool.tokenOut.address);
+      const entry: RoutingDiagramEntry['path'][0] = [
+        tokenIn,
+        tokenOut,
+        nextPool.fee,
+      ];
+      path.push(entry);
+    }
+    return {
+      percent,
+      path,
+      protocol: Protocol.V3,
+    };
+  });
+}
+
