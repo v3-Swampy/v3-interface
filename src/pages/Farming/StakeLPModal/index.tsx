@@ -120,7 +120,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   const navigate = useNavigate();
 
   const fPositions = useMemo(() => {
-    return positions.filter((p) => p.address === address);
+    return positions.filter((p) => p.address === address && p.liquidity !== '0');
   }, [positions, address]);
 
   const classNameLink = useMemo(() => {
