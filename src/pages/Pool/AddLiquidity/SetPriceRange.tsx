@@ -156,8 +156,8 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
   useLayoutEffect(() => {
     setValue('price-init', '');
     if (pool?.token0Price) {
-      setValue('price-lower', pool?.priceOf(tokenA!)?.div(new Unit(2)).toDecimalMinUnit(5));
-      setValue('price-upper', pool?.priceOf(tokenA!)?.mul(new Unit(2)).toDecimalMinUnit(5));
+      // setValue('price-lower', pool?.priceOf(tokenA!)?.div(new Unit(2)).toDecimalMinUnit(5));
+      // setValue('price-upper', pool?.priceOf(tokenA!)?.mul(new Unit(2)).toDecimalMinUnit(5));
     } else {
       setValue('price-lower', '');
       setValue('price-upper', '');

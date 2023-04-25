@@ -59,7 +59,7 @@ export const useIsBothTokenSelected = () => {
   return !!tokenA && !!tokenB;
 };
 
-const SelectPair: React.FC = () => {
+const SelectPair: React.FC<{ handleSwapToken: VoidFunction; }> = ({ handleSwapToken }) => {
   const i18n = useI18n(transitions);
 
   const [tokenA, setTokenA] = useRecoilState(tokenAState);
@@ -70,12 +70,12 @@ const SelectPair: React.FC = () => {
       const anotherToken = type === 'tokenA' ? tokenB : tokenA;
       const setToken = type === 'tokenA' ? setTokenA : setTokenB;
       if (anotherToken?.address === token.address) {
-        swapTokenAB();
+        handleSwapToken();
       } else {
         setToken(token);
       }
     },
-    [tokenA, tokenB]
+    [tokenA, tokenB, handleSwapToken]
   );
 
   return (
