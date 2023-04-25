@@ -12,12 +12,16 @@ const transitions = {
   en: {
     please_select_token: 'Select a token',
     swap: 'Swap',
+    enter_an_amount: 'Enter an amount',
+    no_liquidity: 'Insufficient liquidity for this trade',
     price_impact_too_high: 'Price Impact Too High',
     swap_anyway: 'Swap Anyway',
   },
   zh: {
     please_select_token: '请选择代币',
     swap: '交换',
+    enter_an_amount: 'Enter an amount',
+    no_liquidity: 'Insufficient liquidity for this trade',
     price_impact_too_high: 'Price Impact Too High',
     swap_anyway: 'Swap Anyway',
   },
@@ -39,10 +43,12 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount, destinationTokenAmou
 
   const buttonText = useMemo(() => {
     if (!isBothTokenSelected) return i18n.please_select_token;
+    if (!sourceTokenAmount && !destinationTokenAmount) return i18n.enter_an_amount;
+    if(tradeState === TradeState.NO_ROUTE_FOUND) return i18n.no_liquidity;
     if (priceImpactTooHigh) return i18n.price_impact_too_high;
     if (priceImpactSeverity > 2) return i18n.swap_anyway;
     return i18n.swap;
-  }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity])
+  }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity, sourceTokenAmount, destinationTokenAmount, tradeState])
 
   return (
     <AuthConnectButton {...buttonProps}>
