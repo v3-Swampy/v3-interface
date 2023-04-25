@@ -14,6 +14,7 @@ import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
 import { useRefreshStakedPositions } from '@service/farming/myFarms';
 import { useRefreshUserInfo } from '@service/staking';
+import { useRefreshPoolsQuery } from '@service/farming';
 
 export const transitions = {
   en: {
@@ -66,11 +67,13 @@ export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
   const refreshStakedPositions = useRefreshStakedPositions();
   const refreshUserInfo = useRefreshUserInfo();
+  const refreshPoolsQuery = useRefreshPoolsQuery();
 
   return {
     refreshPositions,
     refreshStakedPositions,
     refreshUserInfo,
+    refreshPoolsQuery,
   } as const;
 };
 
@@ -83,7 +86,7 @@ export const RefreshTypeMap = {
   ['Stake_CreateLock']: 'refreshUserInfo',
   ['Stake_IncreaseUnlockTime']: 'refreshUserInfo',
   ['Stake_IncreaseAmount']: 'refreshUserInfo',
-  ['AllFarms_StakedLP']: 'refreshPositions',
+  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
   ['MyFarms_ClaimAndUnstake']: 'refreshStakedPositions',
   ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',

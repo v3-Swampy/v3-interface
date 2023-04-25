@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
 import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
@@ -12,7 +11,7 @@ import { useTokenPrice } from '@service/pairs&pool';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { keccak256 } from '@ethersproject/solidity';
 import { FarmingPosition } from './myFarms';
-import { selector, useRecoilValue, atom } from 'recoil';
+import { selector, useRecoilValue, atom, useRecoilRefresher_UNSTABLE } from 'recoil';
 
 const poolIdsQuery = atom({
   key: `poolIdsQuery-${import.meta.env.MODE}`,
@@ -215,6 +214,8 @@ export const usePoolsQuery = () => {
     };
   });
 };
+
+export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery);
 
 export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid }: { tokenId: number; address: string; startTime: number; endTime: number; pid: number }) => {
   const key = {
