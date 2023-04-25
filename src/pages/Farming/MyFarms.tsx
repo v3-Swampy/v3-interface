@@ -90,7 +90,8 @@ const MyFarmsItem: React.FC<{
         <div>
           <div className={`${className.title}`}>{i18n.APR}</div>
           <div className={`${className.content} flex items-center`}>
-            {8}% <LightningIcon className="w-5 h-5 mx-0.5 ml-2" />
+            {/* TODO: hardcode the APR in first stage */}
+            Infinity% <LightningIcon className="w-5 h-5 mx-0.5 ml-2" />
             {boosting}X
           </div>
         </div>
