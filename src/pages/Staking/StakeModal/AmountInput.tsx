@@ -35,6 +35,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
       <div className="p-8px pl-16px rounded-16px bg-orange-light-hover mb-16px">
         <div className="flex justify-between items-center">
           <Input
+            type="number"
             className="text-24px"
             clearIcon
             placeholder="0"
