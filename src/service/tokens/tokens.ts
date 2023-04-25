@@ -167,3 +167,11 @@ export const isTokenEqual = (tokenA: Token | null | undefined, tokenB: Token | n
   if (!tokenA && !tokenB) return true;
   return getUnwrapperTokenByAddress(tokenA?.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB?.address)?.address?.toLocaleLowerCase();
 };
+
+
+export const getToken0And1 = ({ tokenA, tokenB }: { tokenA: Token; tokenB: Token}) => {
+  const tokenAWrappered = getWrapperTokenByAddress(tokenA.address);
+  const tokenBWrappered = getWrapperTokenByAddress(tokenB.address);
+  if (!tokenAWrappered || !tokenBWrappered) return [undefined, undefined];
+  return tokenAWrappered.address.toLocaleLowerCase() < tokenBWrappered.address.toLocaleLowerCase() ? [tokenAWrappered, tokenBWrappered] : [tokenBWrappered, tokenAWrappered];
+}

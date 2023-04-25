@@ -8,7 +8,6 @@ import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
-import { getSwapLock } from './';
 
 const transitions = {
   en: {
@@ -125,7 +124,7 @@ const RangeInput: React.FC<
           min={0}
           onBlur={handlePriceChange}
           step={0.00001}
-          type="number"
+          type={type === 'upper' ? 'string' : 'number'}
         />
 
         {type === 'upper' && priceUpper === 'Infinity' && (
@@ -156,7 +155,6 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
   );
 
   useLayoutEffect(() => {
-    if (getSwapLock()) return;
     setValue('price-init', '');
     if (pool?.token0Price) {
       setValue('price-lower', pool?.priceOf(tokenA!)?.div(new Unit(2)).toDecimalMinUnit(5));

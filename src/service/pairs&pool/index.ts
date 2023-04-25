@@ -70,7 +70,8 @@ export const isPoolEqual = (poolA: Pool | null | undefined, poolB: Pool | null |
   return poolA?.sqrtPriceX96 === poolB?.sqrtPriceX96 && poolA?.liquidity === poolB?.liquidity && poolA?.tickCurrent === poolB?.tickCurrent;
 };
 
-export const calcTickFromPrice = ({ price, tokenA, tokenB }: { price: Unit; tokenA: Token; tokenB: Token }) => {
+export const calcTickFromPrice = ({ price: _price, tokenA, tokenB }: { price: Unit | string | number; tokenA: Token; tokenB: Token }) => {
+  const price = new Unit(_price);
   const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
   const usedPrice = typeof price !== 'object' ? new Unit(price) : price;
   return Unit.log(usedPrice.mul(new Unit(`1e${token1.decimals}`)).div(new Unit(`1e${token0.decimals}`)), new Unit(1.0001));

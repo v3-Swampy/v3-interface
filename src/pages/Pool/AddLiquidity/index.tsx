@@ -1,8 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { atom } from 'recoil';
-import { getRecoil, setRecoil } from 'recoil-nexus';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import PageWrapper from '@components/Layout/PageWrapper';
@@ -30,10 +28,6 @@ const transitions = {
   },
 } as const;
 
-const swapLockState = atom({ key: 'swapLock', default: false });
-export const getSwapLock = () => getRecoil(swapLockState);
-const setSwapLock = (lock: boolean) => setRecoil(swapLockState, lock);
-
 const AddLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
@@ -46,6 +40,7 @@ const AddLiquidity: React.FC = () => {
 
   const priceLower = watch('price-lower', '') as string;
   const priceUpper = watch('price-upper', '') as string;
+
   /** null means range not input */
   const isRangeValid = useMemo(() => {
     try {
@@ -74,48 +69,6 @@ const AddLiquidity: React.FC = () => {
     [tokenA, tokenB, priceInit, currentFee]
   );
 
-  const handleSwapToken = useCallback(() => {
-    if (!swapTokenAB()) return;
-    setSwapLock(true);
-    const values = getValues();
-    const amountTokenA = values['amount-tokenA'];
-    const amountTokenB = values['amount-tokenB'];
-    const priceLower = values['price-lower'];
-    const priceUpper = values['price-upper'];
-    const priceInit = values['price-init'];
-
-    setTimeout(() => {
-      if (priceInit) {
-        setValue('price-init', (1 / +priceInit).toFixed(5));
-      }
-
-      if (priceLower) {
-        const isPriceLowerZero = new Unit(priceLower).equals(new Unit(0));
-        if (!isPriceLowerZero) {
-          setValue('price-upper', (1 / priceLower).toFixed(5));
-        } else {
-          setValue('price-upper', 'Infinity');
-        }
-      }
-
-      if (priceUpper) {
-        const isPriceUpperInfinity = priceUpper === 'Infinity';
-        if (!isPriceUpperInfinity) {
-          setValue('price-lower', (1 / priceUpper).toFixed(5));
-        } else {
-          setValue('price-lower', '0');
-        }
-      }
-      setValue('amount-tokenB', amountTokenA);
-      setTimeout(() => {
-        setValue('amount-tokenA', amountTokenB);
-        setTimeout(() => {
-          setSwapLock(false);
-        }, 100);
-      });
-    });
-  }, []);
-
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
@@ -135,7 +88,7 @@ const AddLiquidity: React.FC = () => {
                   'inline-block px-10px h-24px leading-24px cursor-pointer rounded-4px',
                   tokenA === token0 ? 'text-orange-normal bg-orange-light-hover pointer-events-none' : 'text-gray-normal'
                 )}
-                onClick={handleSwapToken}
+                onClick={swapTokenAB}
               >
                 {token0.symbol}
               </span>
@@ -144,7 +97,7 @@ const AddLiquidity: React.FC = () => {
                   'inline-block px-10px h-24px leading-24px cursor-pointer rounded-4px',
                   tokenA === token1 ? 'text-orange-normal bg-orange-light-hover pointer-events-none' : 'text-gray-normal'
                 )}
-                onClick={handleSwapToken}
+                onClick={swapTokenAB}
               >
                 {token1.symbol}
               </span>
@@ -156,7 +109,7 @@ const AddLiquidity: React.FC = () => {
         <form onSubmit={onSubmit}>
           <BorderBox className="relative w-full p-16px rounded-28px flex gap-32px lt-md:gap-16px" variant="gradient-white">
             <div className="w-310px flex-grow-1 flex-shrink-1">
-              <SelectPair handleSwapToken={handleSwapToken} />
+              <SelectPair />
               <SelectFeeTier register={register} />
               <DepositAmounts
                 register={register}

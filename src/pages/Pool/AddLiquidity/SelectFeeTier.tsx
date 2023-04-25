@@ -83,7 +83,6 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
               visible ? 'bg-orange-light-hover border-transparent' : 'bg-white-normal border-orange-light'
             )}
           >
-            <input className="display-none" value={currentFee} type="number" />
             <span className="text-18px text-black-normal font-medium mr-auto">{currentFee / 10000}% fee tier</span>
             {/* TODO hide temporary */}
             {/* <span className="px-8px h-20px leading-20px rounded-4px bg-orange-light-hover text-12px text-black-light font-light">93% select</span> */}

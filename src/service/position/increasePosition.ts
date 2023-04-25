@@ -105,8 +105,8 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     showLiquidityPreviewModal({
       leftToken: _tokenA,
       rightToken: _tokenB,
-      leftAmount: Unit.fromStandardUnit(amountTokenA).add((isTokenEqual(token0, _tokenA) ? position.amount0 : position.amount1) ?? 0),
-      rightAmount: Unit.fromStandardUnit(amountTokenB).add((isTokenEqual(token0, _tokenA) ? position.amount1 : position.amount0) ?? 0),
+      leftAmount: Unit.fromStandardUnit(amountTokenA, _tokenA.decimals),
+      rightAmount: Unit.fromStandardUnit(amountTokenB, _tokenB.decimals),
       inverted,
       previewUniqueId,
       previewPosition: createPreviewPositionForUI(

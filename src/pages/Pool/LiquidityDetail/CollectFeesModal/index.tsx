@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import useI18n, { toI18n, compiled } from '@hooks/useI18n';
+import useI18n, { toI18n } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Button from '@components/Button';

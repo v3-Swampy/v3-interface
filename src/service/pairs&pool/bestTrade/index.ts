@@ -181,7 +181,7 @@ export const useBestTrade = useClientBestTrade;
 export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
   const token = getWrapperTokenByAddress(tokenAddress);
   const result = useBestTrade(TradeType.EXACT_INPUT, amount, token, TokenUSDT);
-  if (tokenAddress == TokenUSDT.address) return amount ? amount : undefined;
+  if (tokenAddress === TokenUSDT.address) return amount ? amount : undefined;
   if (!tokenAddress) return undefined;
   if (!amount) return undefined;
   if (result.state === TradeState.LOADING) return undefined;

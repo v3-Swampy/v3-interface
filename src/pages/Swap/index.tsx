@@ -58,6 +58,7 @@ const SwapPage: React.FC = () => {
     () => (!bestTrade?.trade ? undefined : computeFiatValuePriceImpact(sourceTokenTradeAmountUSDPrice, destinationTokenTradeAmountUSDPrice)),
     [sourceTokenTradeAmountUSDPrice, destinationTokenTradeAmountUSDPrice, bestTrade]
   );
+
   const { priceImpactSeverity, largerPriceImpact } = useMemo(() => {
     const marketPriceImpact = bestTrade?.trade?.priceImpact;
     const largerPriceImpact = stablecoinPriceImpact && marketPriceImpact ? Unit.max(stablecoinPriceImpact, marketPriceImpact) : (marketPriceImpact || stablecoinPriceImpact);
