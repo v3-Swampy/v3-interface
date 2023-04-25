@@ -54,8 +54,8 @@ const SettingsContent: React.FC = () => {
       setSlippageTolerance(0);
       return;
     }
-    if (value && new Decimal(value).gt(100)) {
-      setSlippageTolerance(100);
+    if (value && new Decimal(value).gt(50)) {
+      setSlippageTolerance(50);
       return;
     }
     setSlippageTolerance(value ? +value : null);
