@@ -81,7 +81,7 @@ const SwapPage: React.FC = () => {
         `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
         inputedAmount
           ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
-            5,
+            undefined,
             (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
           )
           : ''
