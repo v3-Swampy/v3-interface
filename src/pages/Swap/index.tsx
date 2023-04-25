@@ -153,7 +153,7 @@ const SwapPage: React.FC = () => {
 
           {showPriceImpactWarning && <PriceImpactWarning largerPriceImpact={largerPriceImpact} />}
 
-          <SubmitButton sourceTokenAmount={sourceTokenAmount} priceImpactTooHigh={priceImpactTooHigh} priceImpactSeverity={priceImpactSeverity} tradeState={bestTrade.state} />
+          <SubmitButton sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount} priceImpactTooHigh={priceImpactTooHigh} priceImpactSeverity={priceImpactSeverity} tradeState={bestTrade.state} />
         </form>
       </BorderBox>
     </PageWrapper>
