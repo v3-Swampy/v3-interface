@@ -75,7 +75,7 @@ const RangeInput: React.FC<
       if (!tokenA || !tokenB) return;
       const value = getValues();
       const priceStr = value[`price-${type}`];
-      if(!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
+      if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
       const price = new Unit(priceStr)
       const step = fee / 50;
       if (fee - step < 0) return;
@@ -90,7 +90,7 @@ const RangeInput: React.FC<
       if (!tokenA || !tokenB) return;
       const value = getValues();
       const priceStr = value[`price-${type}`];
-      if(!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
+      if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
       const price = new Unit(priceStr)
       const step = fee / 50;
       if (fee - step < 0) return;
@@ -220,15 +220,16 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
 
       {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}
 
-      <div
-        className={cx(
-          'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-medium text-black-normal cursor-pointer',
-          !priceTokenA && 'text-gray-normal pointer-events-none'
-        )}
-        onClick={setFullRange}
-      >
-        {i18n.full_range}
-      </div>
+      {pool !== null && (
+        <div
+          className={cx(
+            'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-medium text-black-normal cursor-pointer',
+            !priceTokenA && 'text-gray-normal pointer-events-none'
+          )}
+          onClick={setFullRange}
+        >
+          {i18n.full_range}
+        </div>)}
     </div>
   );
 };
