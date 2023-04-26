@@ -55,3 +55,5 @@ export const UniswapV3StakerFactory = createContract(
   isProduction ? '0x9862833cee9fb15a8294222ba5a3e7e8445461c2' : '0x9862833cee9fb15a8294222ba5a3e7e8445461c2',
   UniswapV3StakerABI
 );
+
+export const RefudeeContractAddress = isProduction ? '0xad085e56f5673fd994453bbcdfe6828aa659cb0d' : '0xad085e56f5673fd994453bbcdfe6828aa659cb0d';
