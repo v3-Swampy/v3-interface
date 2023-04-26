@@ -3,7 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { handleClaimUnStake, handleClaimAndReStake, MyFarmsPositionType, calcPostionLiquidity } from '@service/farming/myFarms';
+import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPostionLiquidity } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount } from '@service/account';
@@ -12,6 +12,8 @@ import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
 import { TokenVST } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { addRecordToHistory } from '@service/history';
+import useInTransaction from '@hooks/useInTransaction';
+import Button from '@components/Button';
 
 const transitions = {
   en: {
@@ -39,8 +41,9 @@ const className = {
   content: 'color-black-normal text-12px font-500 not-italic leading-15px',
   buttonBase: 'flex items-center h-8 rounded-full py-7px px-20.5px relative cursor-pointer',
   buttonFarming: 'bg-green-normal/10 color-green-normal',
+  buttonFarmingSolid: 'color-green-normal border border-solid border-green-normal bg-white-normal',
   buttonPaused: 'bg-orange-dot/10 color-orange-dot',
-  buttonPausedSolid: 'color-orange-dot border border-solid border-orange-dot',
+  buttonPausedSolid: 'color-orange-dot border border-solid border-orange-dot bg-white-normal',
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
@@ -50,6 +53,9 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   const account = useAccount();
   const currentIncentiveKey = getCurrentIncentiveKey(position.address);
   const status = usePositionStatus(position.position);
+  const { inTransaction: unstakeInTransaction, execTransaction: handleClaimUnStake } = useInTransaction(_handleClaimUnStake, true);
+  const { inTransaction: claimIntransaction, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
+
   const isPaused = useMemo(() => {
     return isActive ? status == PositionStatus.OutOfRange : true;
   }, [status]);
@@ -95,8 +101,10 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
           </AuthConnectButton>
         ) : (
           <>
-            <div
-              className={`${className.buttonBase} mr-2 color-green-normal border border-solid border-green-normal`}
+            <Button
+              loading={claimIntransaction}
+              color="white"
+              className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2`}
               onClick={async () => {
                 const txHash = await handleClaimAndReStake({
                   isActive,
@@ -113,9 +121,11 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
               }}
             >
               {i18n.claim}
-            </div>
-            <div
-              className={`${className.buttonBase} ${className.buttonPausedSolid}`}
+            </Button>
+            <Button
+              loading={unstakeInTransaction}
+              color="white"
+              className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid}`}
               onClick={async () => {
                 const txHash = await handleClaimUnStake({
                   isActive,
@@ -131,7 +141,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
               }}
             >
               {i18n.unstake}
-            </div>
+            </Button>
           </>
         )}
       </div>
