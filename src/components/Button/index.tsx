@@ -6,7 +6,7 @@ import './index.css';
 
 export interface Props extends ComponentProps<'button'> {
   variant?: 'contained' | 'text' | 'outlined';
-  color?: 'orange' | 'gradient' | 'orange-light' | 'gray';
+  color?: 'orange' | 'gradient' | 'orange-light' | 'gray' | 'white';
   fullWidth?: boolean;
   loading?: boolean | 'start' | 'end';
   icon?: ReactNode;
