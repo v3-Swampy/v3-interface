@@ -29,6 +29,8 @@ export const transitions = {
     stake_lp_of_all_farms: 'Stake LP',
     claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
     claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
+    claim_lp_of_my_farms: 'Claim Reward',
+    unstake_lp_of_my_farms: 'Unstake',
   },
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
@@ -42,6 +44,8 @@ export const transitions = {
     stake_lp_of_all_farms: 'Stake LP',
     claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
     claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
+    claim_lp_of_my_farms: 'Claim Reward',
+    unstake_lp_of_my_farms: 'Unstake',
   },
 } as const;
 
@@ -57,6 +61,8 @@ export const TransitionsTypeMap = {
   ['AllFarms_StakedLP']: 'stake_lp_of_all_farms',
   ['MyFarms_ClaimAndUnstake']: 'claim_and_unstake_lp_of_my_farms',
   ['MyFarms_ClaimAndStake']: 'claim_and_stake_lp_of_my_farms',
+  ['MyFarms_Claim']: 'claim_lp_of_my_farms',
+  ['MyFarms_Unstake']: 'unstake_lp_of_my_farms',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
 
 /**
@@ -86,10 +92,12 @@ export const RefreshTypeMap = {
   ['Stake_CreateLock']: 'refreshUserInfo',
   ['Stake_IncreaseUnlockTime']: 'refreshUserInfo',
   ['Stake_IncreaseAmount']: 'refreshUserInfo',
-  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions'],
+  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedPositions'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
   ['MyFarms_ClaimAndUnstake']: 'refreshStakedPositions',
   ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',
+  ['MyFarms_Claim']: 'refreshStakedPositions',
+  ['MyFarms_Unstake']: 'refreshStakedPositions',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 
