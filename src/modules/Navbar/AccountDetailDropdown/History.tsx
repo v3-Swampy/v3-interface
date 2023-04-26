@@ -92,7 +92,7 @@ export const RefreshTypeMap = {
   ['Stake_CreateLock']: 'refreshUserInfo',
   ['Stake_IncreaseUnlockTime']: 'refreshUserInfo',
   ['Stake_IncreaseAmount']: 'refreshUserInfo',
-  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions'],
+  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedPositions'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
   ['MyFarms_ClaimAndUnstake']: 'refreshStakedPositions',
   ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',
