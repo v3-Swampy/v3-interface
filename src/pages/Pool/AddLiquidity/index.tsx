@@ -75,6 +75,8 @@ const AddLiquidity: React.FC = () => {
         } else {
           setValue('price-upper', 'Infinity');
         }
+      } else {
+        setValue('price-upper', '');
       }
 
       if (priceUpper) {
@@ -84,6 +86,8 @@ const AddLiquidity: React.FC = () => {
         } else {
           setValue('price-lower', '0');
         }
+      } else {
+        setValue('price-lower', '');
       }
       setTimeout(() => {
         setValue('amount-tokenB', amountTokenA);
