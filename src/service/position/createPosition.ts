@@ -91,7 +91,7 @@ export const handleClickSubmitCreatePosition = async ({
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;
     setInvertedState(previewUniqueId, inverted);
-
+    
     const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
     const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('mint', [
       {

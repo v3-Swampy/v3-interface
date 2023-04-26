@@ -76,11 +76,11 @@ export const calcTickFromPrice = ({ price: _price, tokenA, tokenB }: { price: Un
   return Unit.log(usedPrice.mul(new Unit(`1e${token1.decimals}`)).div(new Unit(`1e${token0.decimals}`)), new Unit(1.0001));
 };
 
-export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee }: { tick: Unit | number | string; tokenA: Token; tokenB: Token; fee?: FeeAmount }) => {
+export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee, convertLimit = true }: { tick: Unit | number | string; tokenA: Token; tokenB: Token; fee?: FeeAmount; convertLimit?: boolean; }) => {
   const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
   const usedTick = typeof tick !== 'object' ? new Unit(tick) : tick;
 
-  if (!!fee) {
+  if (!!fee && convertLimit) {
     if (usedTick.equals(new Unit(getMinTick(fee)))) return new Unit(0);
     if (usedTick.equals(new Unit(getMaxTick(fee)))) return new Unit('Infinity');
   }
@@ -212,5 +212,12 @@ export const invertPrice = (price: Unit | string | number | undefined) => {
 };
 
 const MIN_TICK_Base = -887272;
-export const getMinTick = (fee: FeeAmount) => +findClosestValidTick({ fee, searchTick: MIN_TICK_Base }).toDecimalMinUnit();
+export const getMinTick = (fee: FeeAmount) => {
+  const minTick = +findClosestValidTick({ fee, searchTick: MIN_TICK_Base }).toDecimalMinUnit();
+  if (minTick < MIN_TICK_Base) {
+    return minTick + fee / 50;
+  } else {
+    return minTick;
+  }
+}
 export const getMaxTick = (fee: FeeAmount) => -getMinTick(fee);

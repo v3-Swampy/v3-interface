@@ -5,11 +5,11 @@
 import React, { useMemo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
-import { trimDecimalZeros } from '@utils/numberUtils';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { type PositionForUI } from '@service/position';
-import { invertPrice, usePool, FeeAmount } from '@service/pairs&pool';
+import { invertPrice, usePool } from '@service/pairs&pool';
 import { type Token, isTokenEqual } from '@service/tokens';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/detail_exchange.svg';
 import { useInvertedState } from '../invertedState';
 
@@ -48,8 +48,8 @@ const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null
     if (!price.isFinite()) return '∞';
     const priceToFixed5 = price.toDecimalMinUnit(5);
     const priceToFixed5CarryOne = new Unit(priceToFixed5).add(0.00001);
-    if (priceToFixed5CarryOne.sub(price).lessThan(0.000001)) return priceToFixed5CarryOne?.toDecimalMinUnit(5);
-    else return priceToFixed5;
+    if (priceToFixed5CarryOne.sub(price).lessThan(0.000001)) return trimDecimalZeros(priceToFixed5CarryOne?.toDecimalMinUnit(5));
+    else return trimDecimalZeros(priceToFixed5);
   }, [tokenA?.address, tokenB?.address, price]);
 
   return (
