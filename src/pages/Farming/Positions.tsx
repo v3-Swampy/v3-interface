@@ -41,8 +41,9 @@ const className = {
   content: 'color-black-normal text-12px font-500 not-italic leading-15px',
   buttonBase: 'flex items-center h-8 rounded-full py-7px px-20.5px relative cursor-pointer',
   buttonFarming: 'bg-green-normal/10 color-green-normal',
+  buttonFarmingSolid: 'color-green-normal border border-solid border-green-normal bg-white-normal',
   buttonPaused: 'bg-orange-dot/10 color-orange-dot',
-  buttonPausedSolid: 'color-orange-dot border border-solid border-orange-dot',
+  buttonPausedSolid: 'color-orange-dot border border-solid border-orange-dot bg-white-normal',
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
@@ -103,7 +104,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
             <Button
               loading={claimIntransaction}
               color="white"
-              className={`${className.buttonBase} ${isPaused ? className.buttonPaused : className.buttonFarming} mr-2 color-green-normal border border-solid border-green-normal`}
+              className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2`}
               onClick={async () => {
                 const txHash = await handleClaimAndReStake({
                   isActive,
@@ -124,7 +125,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
             <Button
               loading={unstakeInTransaction}
               color="white"
-              className={`${className.buttonBase} ${isPaused ? className.buttonPaused : className.buttonFarming} ${className.buttonPausedSolid}`}
+              className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid}`}
               onClick={async () => {
                 const txHash = await handleClaimUnStake({
                   isActive,
