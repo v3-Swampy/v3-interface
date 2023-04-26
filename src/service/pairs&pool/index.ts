@@ -195,9 +195,7 @@ export const findNextPreValidPrice = ({
   const currentTick = findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB }) });
   let searchTick = direction === 'next' ? currentTick.add(atom) : currentTick.sub(atom);
   let nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
-  let count = 1;
   while (nextOrPreTickPrice.toDecimalMinUnit(5) === searchPriceFixed5) {
-    count++;
     searchTick = direction === 'next' ? searchTick.add(atom) : searchTick.sub(atom);
     nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
   }

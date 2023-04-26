@@ -71,29 +71,37 @@ export interface RoutingDiagramEntry {
 export function getTokenPath(trade?: Trade): RoutingDiagramEntry[] {
   if (!trade) return []
   return trade.route.map((route: Route[]) => {
-    const routeAmountIn = route[0].amountIn;
-    const routeAmountOut = route[route.length - 1].amountIn;
-    const percent =
-      trade.tradeType === TradeType.EXACT_INPUT
-        ? new Unit(routeAmountIn).div(trade.amountIn).mul(100).toDecimalMinUnit(1)
-        : new Unit(routeAmountOut).div(trade.amountOut).mul(100).toDecimalMinUnit(1);
-    const path: RoutingDiagramEntry['path'] = [];
-    for (let i = 0; i < route.length; i++) {
-      const nextPool = route[i];
-      const tokenIn = getTokenByAddress(nextPool.tokenIn.address);
-      const tokenOut = getTokenByAddress(nextPool.tokenOut.address);
-      const entry: RoutingDiagramEntry['path'][0] = [
-        tokenIn,
-        tokenOut,
-        Number(nextPool.fee),
-      ];
-      path.push(entry);
+    try {
+      const routeAmountIn = route[0].amountIn;
+      const routeAmountOut = route[route.length - 1].amountOut;
+      const percent =
+        trade.tradeType === TradeType.EXACT_INPUT
+          ? new Unit(routeAmountIn).div(trade.amountIn).mul(100).toDecimalMinUnit(1)
+          : new Unit(routeAmountOut).div(trade.amountOut).mul(100).toDecimalMinUnit(1);
+      const path: RoutingDiagramEntry['path'] = [];
+      for (let i = 0; i < route.length; i++) {
+        const nextPool = route[i];
+        const tokenIn = getTokenByAddress(nextPool.tokenIn.address);
+        const tokenOut = getTokenByAddress(nextPool.tokenOut.address);
+        const entry: RoutingDiagramEntry['path'][0] = [
+          tokenIn,
+          tokenOut,
+          Number(nextPool.fee),
+        ];
+        path.push(entry);
+      }
+      return {
+        percent,
+        path,
+        protocol: Protocol.V3,
+      };
+    } catch (_) {
+      return {
+        percent: '0',
+        path: [],
+        protocol: Protocol.V3,
+      }
     }
-    return {
-      percent,
-      path,
-      protocol: Protocol.V3,
-    };
   });
 }
 

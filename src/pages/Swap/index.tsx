@@ -38,7 +38,7 @@ const transitions = {
 
 const SwapPage: React.FC = () => {
   const i18n = useI18n(transitions);
-  const { register, handleSubmit: withForm, setValue, watch } = useForm();
+  const { register, handleSubmit: withForm, setValue, watch, getValues } = useForm();
   const sourceTokenAmount = watch('sourceToken-amount') as string;
   const destinationTokenAmount = watch('destinationToken-amount') as string;
   const sourceToken = useSourceToken();
@@ -68,7 +68,7 @@ const SwapPage: React.FC = () => {
     }
   }, [bestTrade, stablecoinPriceImpact])
 
-  console.log('severity', priceImpactSeverity, largerPriceImpact?.toDecimalMinUnit(4));
+
   const expertMode = useExpertMode()
 
   const priceImpactTooHigh = priceImpactSeverity > 3 && !expertMode
@@ -92,9 +92,7 @@ const SwapPage: React.FC = () => {
 
   const handleInputTypeChange = useCallback(
     debounce((type: 'sourceToken' | 'destinationToken', amount: string) => {
-      const sourceToken = getSourceToken();
-      const destinationToken = getDestinationToken();
-      if (!sourceToken || !destinationToken || !amount) {
+      if (!amount) {
         setInputedType(null);
         return;
       }
@@ -135,7 +133,7 @@ const SwapPage: React.FC = () => {
         </div>
 
         <form onSubmit={onSubmit}>
-          <SelectedToken type="sourceToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
+          <SelectedToken type="sourceToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
           <div
             className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer"
             onClick={() => {
@@ -148,9 +146,9 @@ const SwapPage: React.FC = () => {
               <ExchangeIcon className="w-26px h-26px" />
             </div>
           </div>
-          <SelectedToken type="destinationToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
+          <SelectedToken type="destinationToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
 
-          <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} />
+          <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} largerPriceImpact={largerPriceImpact}/>
 
           {showPriceImpactWarning && <PriceImpactWarning largerPriceImpact={largerPriceImpact} />}
 

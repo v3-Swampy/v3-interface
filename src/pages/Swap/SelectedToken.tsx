@@ -26,12 +26,13 @@ const transitions = {
 
 interface Props {
   type: 'sourceToken' | 'destinationToken';
+  inputedType: 'sourceToken' | 'destinationToken' | null;
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
   handleInputChange: (type: 'sourceToken' | 'destinationToken', amount: string) => void;
 }
 
-const SelectedToken: React.FC<Props> = ({ type, register, setValue, handleInputChange }) => {
+const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue, handleInputChange }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
@@ -41,7 +42,10 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue, handleInputC
 
   useEffect(() => {
     setValue(`${type}-amount`, '');
-  }, [currentSelectToken]);
+    if (inputedType === type) {
+      setValue(`${type === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`, '');
+    }
+  }, [currentSelectToken?.address]);
 
   return (
     <div className="h-96px pt-16px pl-24px pr-16px rounded-20px bg-orange-light-hover">
@@ -85,7 +89,11 @@ const SelectedToken: React.FC<Props> = ({ type, register, setValue, handleInputC
                 className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
                 color="orange"
                 disabled={!balance || balance === '0'}
-                onClick={() => setValue(`${type}-amount`, balance)}
+                onClick={() => {
+                  if (!balance) return;
+                  setValue(`${type}-amount`, balance);
+                  handleInputChange(type, balance);
+                }}
                 type="button"
               >
                 {i18n.max}

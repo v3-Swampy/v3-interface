@@ -44,11 +44,12 @@ const transitions = {
 interface Props {
   bestTrade: ReturnType<typeof useBestTrade>;
   fromPreview?: boolean;
+  largerPriceImpact?: Unit;
   sourceTokenUSDPrice: string | null | undefined;
   destinationTokenUSDPrice: string | null | undefined;
 }
 
-const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview }) => {
+const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview }) => {
   const i18n = useI18n(transitions);
   const slippage = getSlippageTolerance() || 0;
   const { value: slippageForUi } = useSlippageTolerance();
@@ -173,7 +174,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
           </span>
         </Tooltip>
-        <span className="text-gray-normal">{bestTrade.trade?.priceImpact.mul(100).toDecimalMinUnit(2)}%</span>
+        <span className="text-gray-normal">{largerPriceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
       </p>
 
       {tradeType !== undefined && (
