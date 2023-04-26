@@ -3,7 +3,7 @@ import { type UseFormRegister, type UseFormSetValue, type FieldValues, type UseF
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import Input from '@components/Input';
-import { usePool, findClosestValidPrice, FeeAmount, calcTickFromPrice, calcPriceFromTick } from '@service/pairs&pool';
+import { usePool, findClosestValidPrice, findNextPreValidPrice, FeeAmount } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useTokenA, useTokenB } from './SelectPair';
@@ -76,18 +76,26 @@ const RangeInput: React.FC<
     [fee, tokenA?.address, tokenB?.address]
   );
 
-  const placeholder = useMemo(() => (!priceTokenA ? '' : type === 'lower' ? priceTokenA.div(2).toDecimalMinUnit(5) : priceTokenA.mul(2).toDecimalMinUnit(5)), [priceTokenA]);
+  const placeholder = useMemo(
+    () =>
+      !priceTokenA || !tokenA || !tokenB
+        ? ''
+        : findClosestValidPrice({
+            fee,
+            tokenA,
+            tokenB,
+            searchPrice: type === 'lower' ? priceTokenA.div(2).toDecimalMinUnit(5) : priceTokenA.mul(2).toDecimalMinUnit(5),
+          })?.toDecimalMinUnit(5),
+    [priceTokenA]
+  );
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
     const value = getValues();
     const priceStr = value[`price-${type}`];
     if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
-    const price = new Unit(priceStr);
-    const step = fee / 50;
-    if (fee - step < 0) return;
-    const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB });
-    setValue(`price-${type}`, calcPriceFromTick({ tick: Number(tick.toDecimalMinUnit()) - step, tokenA, tokenB, fee }).toDecimalMinUnit(5));
+    const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
+    setValue(`price-${type}`, prePrice?.toDecimalMinUnit(5));
   }, [fee, tokenA?.address, tokenB?.address]);
 
   const handleClickAdd = useCallback(() => {
@@ -99,11 +107,8 @@ const RangeInput: React.FC<
       return;
     }
     if (priceStr === '0' || priceStr === 'Infinity') return;
-    const price = new Unit(priceStr);
-    const step = fee / 50;
-    if (fee - step < 0) return;
-    const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB });
-    setValue(`price-${type}`, calcPriceFromTick({ tick: Number(tick.toDecimalMinUnit()) + step, tokenA, tokenB, fee }).toDecimalMinUnit(5));
+    const nextPrice = findNextPreValidPrice({ direction: 'next', fee, tokenA, tokenB, searchPrice: priceStr });
+    setValue(`price-${type}`, nextPrice?.toDecimalMinUnit(5));
   }, [placeholder, fee, tokenA?.address, tokenB?.address]);
 
   const shouldHideSubIcon = useMemo(() => {
