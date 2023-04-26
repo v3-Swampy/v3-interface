@@ -48,6 +48,7 @@ export default defineConfig({
           gray: {
             normal: '#8E8E8E',
             light: '#E1E1E7',
+            slight: '#DDDDDD',
           },
           white: {
             normal: '#FFFDFA',

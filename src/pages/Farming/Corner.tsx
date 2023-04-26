@@ -40,8 +40,8 @@ const Corner: React.FC<CornerProps> = ({ timestamp }) => {
       let classNameContainer = '';
 
       if (new Decimal(diff).lessThan(0)) {
-        classNameBorder = 'border-l-gray-normal border-t-gray-normal';
-        classNameContainer = 'bg-gray-normal color-white-normal';
+        classNameBorder = 'border-l-gray-slight border-t-gray-slight';
+        classNameContainer = 'bg-gray-slight color-white-normal';
       } else if (new Decimal(diff).lessThan(24 * 60 * 60)) {
         classNameContainer = 'bg-orange-normal color-white-normal';
         classNameBorder = 'border-l-orange-normal border-t-orange-normal';
