@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { Link, useParams } from 'react-router-dom';
 import 'rc-slider/assets/index.css';
 
@@ -10,11 +11,12 @@ import { PositionForUI, usePosition, usePositionFees, handleSubmitRemoveLiquidit
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
+import Button from '@components/Button';
+import { trimDecimalZeros } from '@utils/numberUtils';
+import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import AmountSlider from './AmountSlider';
 import AmountDetail from './AmountDetail';
-import Button from '@components/Button';
-import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { trimDecimalZeros } from '@utils/numberUtils';
+
 
 const transitions = {
   en: {
@@ -132,9 +134,9 @@ const RemoveLiquidity: React.FC = () => {
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center mb-16px gap-8px">
-          <span className="i-material-symbols:keyboard-arrow-left text-24px text-gray-normal" />
-          <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline leading-30px text-24px text-orange-normal">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+          <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
+          <ArrowLeftIcon className="w-8px h-12px mr-16px text-gray-normal" />
             {i18n.remove_liquidity}
           </Link>
           <Settings />

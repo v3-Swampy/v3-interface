@@ -12,6 +12,7 @@ import DepositAmounts from '@modules/Position/DepositAmounts';
 import { invertPrice } from '@service/pairs&pool';
 import { isTokenEqual } from '@service/tokens';
 import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClickSubmitIncreasePositionLiquidity } from '@service/position';
+import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import PairInfo from './PairInfo';
 import SubmitButton from './SubmitButton';
 
@@ -61,9 +62,9 @@ const IncreaseLiquidity: React.FC = () => {
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
-        <div className="relative flex items-center pl-16px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
-            <span className="i-material-symbols:keyboard-arrow-left absolute -left-10px translate-y-1px text-24px text-gray-normal" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px text-gray-normal" />
             {i18n.increase_liquidity}
           </Link>
           <Settings />

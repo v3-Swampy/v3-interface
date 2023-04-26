@@ -12,6 +12,7 @@ import useInTransaction from '@hooks/useInTransaction';
 import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/position';
 import SelectPair, { useTokenA, useTokenB, swapTokenAB, resetToken } from './SelectPair';
 import DepositAmounts from '@modules/Position/DepositAmounts';
+import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import SelectFeeTier, { useCurrentFee } from './SelectFeeTier';
 import SetPriceRange from './SetPriceRange';
 import SubmitButton from './SubmitButton';
@@ -114,9 +115,9 @@ const AddLiquidity: React.FC = () => {
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
-        <div className="relative flex items-center pl-16px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline text-orange-normal">
-            <span className="i-material-symbols:keyboard-arrow-left absolute -left-10px translate-y-1px text-24px text-gray-normal" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px text-gray-normal" />
             {i18n.add_liquidity}
           </Link>
 
