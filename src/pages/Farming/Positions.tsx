@@ -137,7 +137,7 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
         <span className="text-14px font-500 font-not-italic leading-18px color-gray-normal">
           {i18n.myPosition} ({positionList.length})
         </span>
-        <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-normal' : 'color-orange-normal bg-orange-normal/10'}`}>
+        <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-slight' : 'color-orange-normal bg-orange-normal/10'}`}>
           <span className="i-mdi:clock mr-1 text-14px"></span>
           <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(currentIncentive.endTime * 1000).toLocaleString()}</span>
         </span>

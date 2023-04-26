@@ -97,7 +97,7 @@ const MyFarmsItem: React.FC<{
           <div className={`${className.title}`}>
             {i18n.claimable}
             <Tooltip text={i18n.tooltipClaimable}>
-              <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
+              <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-slight font-medium" />
             </Tooltip>
           </div>
           <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">
