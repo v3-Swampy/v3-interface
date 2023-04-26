@@ -83,7 +83,6 @@ export default defineConfig({
       '@components': resolve(__dirname, 'src/components'),
       '@service': resolve(__dirname, 'src/service'),
       '@constants': resolve(__dirname, 'src/constants'),
-      '@uniswap-v2-sdk': resolve(__dirname, 'src/uniswap-v2-sdk'),
       events: 'rollup-plugin-node-polyfills/polyfills/events',
       jsbi: 'jsbi/dist/jsbi-cjs.js',
     },
