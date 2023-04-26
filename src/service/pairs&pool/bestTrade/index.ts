@@ -142,7 +142,7 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
 
     setBestTrade({ state: TradeState.LOADING });
     fetch(
-      `${import.meta.env.VITE_APIRoutingUrl}?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+      `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
         tokenOutWrappered.address
       }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
     )
