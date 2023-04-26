@@ -6,6 +6,7 @@ import Input from '@components/Input';
 import { usePool, findClosestValidPrice, findNextPreValidPrice, FeeAmount } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
 import { ReactComponent as RoundMinusIcon } from '@assets/icons/round_minus.svg';
@@ -61,6 +62,12 @@ const RangeInput: React.FC<
 > = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues }) => {
   const i18n = useI18n(transitions);
 
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
+    if (evt.target.value === '') {
+      setValue('amount-tokenB', '');
+    }
+  }, []);
+
   const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (evt) => {
       if (!tokenA || !tokenB || !evt.target.value) return;
@@ -78,8 +85,8 @@ const RangeInput: React.FC<
     [fee, tokenA?.address, tokenB?.address]
   );
 
-  const placeholder = useMemo(
-    () =>
+  const placeholder = useMemo(() => {
+    const recommendVal = trimDecimalZeros(
       !priceTokenA || !tokenA || !tokenB
         ? ''
         : findClosestValidPrice({
@@ -87,9 +94,17 @@ const RangeInput: React.FC<
             tokenA,
             tokenB,
             searchPrice: type === 'lower' ? priceTokenA.div(2).toDecimalMinUnit(5) : priceTokenA.mul(2).toDecimalMinUnit(5),
-          })?.toDecimalMinUnit(5),
-    [priceTokenA]
-  );
+          })?.toDecimalMinUnit(5)
+    );
+    const priceTokenAFixed5 = priceTokenA?.toDecimalMinUnit(5);
+    if (type === 'lower' && priceTokenA && Number(priceTokenAFixed5) > 0.00001 && recommendVal === '0') {
+      const half = new Unit(priceTokenAFixed5!).div(2).toDecimalMinUnit(5);
+      if (new Unit(half).equals(0)) {
+        return '0.00001';
+      } else return half;
+    }
+    return recommendVal;
+  }, [priceTokenA]);
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
@@ -97,7 +112,8 @@ const RangeInput: React.FC<
     const priceStr = value[`price-${type}`];
     if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
     const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
-    setValue(`price-${type}`, prePrice?.toDecimalMinUnit(5));
+    const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit(5));
+    setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
   }, [fee, tokenA?.address, tokenB?.address]);
 
   const handleClickAdd = useCallback(() => {
@@ -110,7 +126,7 @@ const RangeInput: React.FC<
     }
     if (priceStr === '0' || priceStr === 'Infinity') return;
     const nextPrice = findNextPreValidPrice({ direction: 'next', fee, tokenA, tokenB, searchPrice: priceStr });
-    setValue(`price-${type}`, nextPrice?.toDecimalMinUnit(5));
+    setValue(`price-${type}`, trimDecimalZeros(nextPrice?.toDecimalMinUnit(5)));
   }, [placeholder, fee, tokenA?.address, tokenB?.address]);
 
   const shouldHideSubIcon = useMemo(() => {
@@ -162,9 +178,10 @@ const RangeInput: React.FC<
           {...register(`price-${type}`, {
             required: true,
             min: 0,
+            onBlur: handlePriceChange,
+            onChange: handleChange
           })}
           min={0}
-          onBlur={handlePriceChange}
           step={0.00001}
           type={type === 'upper' ? 'string' : 'number'}
         />

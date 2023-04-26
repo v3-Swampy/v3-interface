@@ -18,7 +18,7 @@ import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
 
 const transitions = {
   en: {
-    myPosition: 'My Positions',
+    myPosition: 'My staked positions',
     farming: 'Farming',
     paused: 'Paused',
     claim: 'Claim',
@@ -27,7 +27,7 @@ const transitions = {
     liquidity: 'Liquidity',
   },
   zh: {
-    myPosition: 'My Positions',
+    myPosition: 'My staked positions',
     farming: 'Farming',
     paused: 'Paused',
     claim: 'Claim',

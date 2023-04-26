@@ -1,4 +1,4 @@
-import React, { type ComponentProps, memo } from 'react';
+import React, { memo, useMemo, type ComponentProps } from 'react';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Tooltip from '@components/Tooltip';
@@ -19,6 +19,7 @@ interface Props extends Omit<ComponentProps<'div'>, 'children'> {
   showEllipsis?: boolean;
   placement?: PopperProps['placement'];
   children?: (balance?: string) => React.ReactNode;
+  gas?: Unit;
 }
 
 const abbrStr = {
@@ -26,9 +27,10 @@ const abbrStr = {
   4: '0.0001',
 };
 
-const Balance: React.FC<Props> = ({ className, address, decimals = 18, abbrDecimals = 4, symbolPrefix, symbol, showEllipsis = false, placement, children, ...props }) => {
+const Balance: React.FC<Props> = ({ className, address, decimals = 18, abbrDecimals = 4, symbolPrefix, symbol, showEllipsis = false, placement, gas, children, ...props }) => {
   const usedPlacement = placement || (abbrDecimals === 4 ? 'top' : 'bottom');
-  const balance = useBalance(address);
+  const _balance = useBalance(address);
+  const balance = useMemo(() => (_balance ? (!gas ? _balance : _balance.greaterThanOrEqualTo(gas) ? _balance.sub(gas) : new Unit(0)) : undefined), [_balance, gas]);
 
   if (!balance) {
     return (

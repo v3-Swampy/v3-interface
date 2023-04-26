@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useCallback } from 'react';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
 import { Suspense } from 'react';
 import Spin from '@components/Spin';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import AllFarms from './AllFarms';
 import MyFarms from './MyFarms';
@@ -23,12 +24,27 @@ const transitions = {
   },
 } as const;
 
-const FarmingPage: React.FC = () => {
-  const i18n = useI18n(transitions);
-  const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
+enum TabKey {
+  All = 'all-farms',
+  My = 'my-farms',
+}
+type TabKeyType = TabKey.All | TabKey.My;
 
+const FarmingPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { search, pathname } = useLocation();
+  const i18n = useI18n(transitions);
+  const params = new URLSearchParams(search);
+  const tab = params.get('tab') as TabKeyType;
   const buttonClass = 'inline-block py-10px leading-18px px-6 rounded-full text-center text-sm font-medium border border-solid text-gray box-border cursor-pointer';
   const buttonClassActive = 'bg-orange-light !text-black-normal border border-solid border-orange-light';
+
+  const handleClickTab = useCallback((tab: TabKeyType) => {
+    const search = new URLSearchParams(params);
+    search.set('tab', tab);
+
+    navigate(`${pathname}?${search.toString()}`);
+  }, []);
 
   return (
     <PageWrapper className="pt-56px">
@@ -39,17 +55,14 @@ const FarmingPage: React.FC = () => {
         </div>
         <BorderBox className="relative w-full p-16px rounded-28px" variant="gradient-white">
           <div>
-            <div className={`${buttonClass} mr-2 ${activeTab === 'my' ? buttonClassActive : ''}`} onClick={() => setActiveTab('my')}>
+            <div className={`${buttonClass} mr-2 ${tab === TabKey.My ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.My)}>
               {i18n.myFarms}
             </div>
-            <div className={`${buttonClass} ${activeTab === 'all' ? buttonClassActive : ''}`} onClick={() => setActiveTab('all')}>
+            <div className={`${buttonClass} ${tab !== TabKey.My ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.All)}>
               {i18n.allFarms}
             </div>
           </div>
-          <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>
-            {activeTab === 'all' && <AllFarms />}
-            {activeTab === 'my' && <MyFarms />}
-          </Suspense>
+          <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
         </BorderBox>
       </div>
     </PageWrapper>

@@ -22,15 +22,15 @@ const transitions = {
     poolName: 'Pool Name',
     APR: 'APR',
     stake: 'My Staked',
-    claimable: 'Claimable',
-    tooltipClaimable: 'The claimable is the amount of rewards you can claim.',
+    claimable: 'Est. earned',
+    tooltipClaimable: 'Your estimated earned rewards, affected by Ending Time and Boosting Coefficient.',
   },
   zh: {
     poolName: 'Pool Name',
     APR: 'APR',
     stake: 'My Staked',
-    claimable: 'Claimable',
-    tooltipClaimable: 'The claimable is the amount of rewards you can claim.',
+    claimable: 'Est. earned',
+    tooltipClaimable: 'Your estimated earned rewards, affected by Ending Time and Boosting Coefficient.',
   },
 } as const;
 
@@ -120,8 +120,6 @@ const MyFarms = () => {
 
   // then get my farms list
   const myFarmingList = useMyFarmsList();
-
-  console.log('myFarmingList: ', myFarmingList);
 
   if (!account || (myFarmingList.active.length == 0 && myFarmingList.ended.length == 0)) {
     return <div className="mt-4 py-2">Empty List</div>;

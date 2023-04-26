@@ -33,6 +33,7 @@ interface Props {
   handleInputChange: (type: 'sourceToken' | 'destinationToken', amount: string) => void;
 }
 
+const cfxGas = Unit.fromStandardUnit(0.02);
 const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue, handleInputChange }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
@@ -52,7 +53,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
     <div className="h-96px pt-16px pl-24px pr-16px rounded-20px bg-orange-light-hover">
       <div className="flex justify-between items-center">
         <Input
-          className="text-32px"
+          className="text-32px pr-32px"
           clearIcon
           disabled={!currentSelectToken}
           placeholder="0"
@@ -63,7 +64,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           })}
           min={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           step={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
-          type='number'
+          type="number"
         />
 
         <BorderBox
@@ -84,7 +85,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
       {account && currentSelectToken && (
         <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">
           {i18n.balance}:{' '}
-          <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals}>
+          <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals} gas={sourceToken?.address === 'CFX' ? cfxGas : undefined}>
             {(balance) => (
               <Button
                 className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"

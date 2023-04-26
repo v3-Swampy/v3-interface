@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import Balance from '@modules/Balance';
 import { isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
-import { usePool, FeeAmount, invertPrice } from '@service/pairs&pool';
+import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
@@ -72,14 +72,20 @@ const DepositAmount: React.FC<
   const changePairAmount = useRef<(newAmount: string) => void>(() => {});
   useLayoutEffect(() => {
     changePairAmount.current = (newAmount: string) => {
-      if (!priceTokenA || !priceLower || !priceUpper || !token || !pairToken) return;
+      if (!priceTokenA || !priceLower || !priceUpper || !token || !pairToken || !fee) return;
       if (!newAmount || isPairTokenOutOfRange || !pairToken || !token || !pairToken) {
         setValue(pairKey, '');
         return;
       }
+      const usedPriceLower = priceLower.equals(0) ? calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: getMinTick(fee), convertLimit: false }) : priceLower;
+      const usedPriceUpper = !priceUpper.isFinite() ? calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: getMaxTick(fee), convertLimit: false }) : priceUpper;
+      // const usedPriceLower = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: -6600, convertLimit: false });
+      // const usedPriceUpper = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: 60, convertLimit: false });
+      // console.log(usedPriceLower?.toDecimalMinUnit(), usedPriceUpper?.toDecimalMinUnit())
+
       const isThisTokenEqualsTokenA = isTokenEqual(token, tokenA);
       const currentInputAmount = new Unit(newAmount);
-      const temp = new Unit(1).div(priceTokenA.sqrt()).sub(new Unit(1).div(priceUpper.sqrt())).div(priceTokenA.sqrt().sub(priceLower.sqrt()));
+      const temp = new Unit(1).div(priceTokenA.sqrt()).sub(new Unit(1).div(usedPriceUpper.sqrt())).div(priceTokenA.sqrt().sub(usedPriceLower.sqrt()));
       const pairTokenExpectedAmount = currentInputAmount.mul(!isThisTokenEqualsTokenA ? temp : invertPrice(temp));
       setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     };
@@ -110,6 +116,10 @@ const DepositAmount: React.FC<
     }
     
   }, [isPairTokenOutOfRange]);
+
+  useLayoutEffect(() => {
+    setValue(`amount-${type}`, '');
+  }, [fee]);
 
   return (
     <div className={cx('mt-4px h-84px rounded-16px bg-orange-light-hover', !isOutOfRange ? 'pt-8px pl-16px pr-8px' : 'flex flex-col justify-center items-center px-24px')}>

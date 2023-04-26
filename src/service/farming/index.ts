@@ -12,6 +12,7 @@ import { defaultAbiCoder } from '@ethersproject/abi';
 import { keccak256 } from '@ethersproject/solidity';
 import { FarmingPosition } from './myFarms';
 import { selector, useRecoilValue, atom, useRecoilRefresher_UNSTABLE } from 'recoil';
+import { RefudeeContractAddress } from '@contracts/index';
 
 const poolIdsQuery = atom({
   key: `poolIdsQuery-${import.meta.env.MODE}`,
@@ -111,7 +112,7 @@ const getIncentiveKey = (address: string, startTime?: number, endTime?: number):
       pool: address,
       startTime: startTime,
       endTime: endTime,
-      refundee: '0xad085e56f5673fd994453bbcdfe6828aa659cb0d',
+      refundee: RefudeeContractAddress,
     };
   } else {
     const { startTime, endTime } = getCurrentIncentivePeriod();
@@ -121,7 +122,7 @@ const getIncentiveKey = (address: string, startTime?: number, endTime?: number):
       pool: address,
       startTime: startTime,
       endTime: endTime,
-      refundee: '0xad085e56f5673fd994453bbcdfe6828aa659cb0d',
+      refundee: RefudeeContractAddress,
     };
   }
 };
@@ -227,7 +228,7 @@ export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid 
     pool: address,
     startTime,
     endTime,
-    refundee: '0xad085e56f5673fd994453bbcdfe6828aa659cb0d',
+    refundee: RefudeeContractAddress,
   };
 
   const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData('depositToken', [tokenId]);

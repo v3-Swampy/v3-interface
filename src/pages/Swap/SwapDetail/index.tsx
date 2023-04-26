@@ -105,18 +105,18 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
-      expand={fromPreview}
-      disabled={bestTrade.state !== TradeState.VALID}
+      expand={fromPreview || (bestTrade.state !== TradeState.VALID || largerPriceImpact === undefined ? false : undefined)}
+      disabled={bestTrade.state !== TradeState.VALID || largerPriceImpact === undefined}
     >
       {(expand) =>
-        bestTrade.state !== TradeState.VALID ? (
+        bestTrade.state !== TradeState.VALID || largerPriceImpact === undefined ? (
           <>
             {bestTrade.state === TradeState.INVALID && (
               <p className="ml-24px flex items-center leading-18px text-14px text-gray-normal font-medium">
                 Enter the target amount in any input box to get the best price automatically
               </p>
             )}
-            {bestTrade.state === TradeState.LOADING && (
+            {(bestTrade.state === TradeState.LOADING || (bestTrade.state === TradeState.VALID && largerPriceImpact === undefined)) && (
               <p className="ml-24px flex items-center leading-18px text-14px text-black-normal font-medium">
                 <Spin className="mr-10px" />
                 Fetching best price...
@@ -149,7 +149,8 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
                   expand && 'opacity-0 pointer-events-none'
                 )}
               >
-                <StationIcon className="w-16px h-14px mr-2px" />{networkFee}
+                <StationIcon className="w-16px h-14px mr-2px" />
+                {networkFee}
               </span>
             )}
 
