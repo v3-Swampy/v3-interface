@@ -190,7 +190,13 @@ export const findNextPreValidPrice = ({
   tokenB: Token;
 }) => {
   let usedSearchPrice = typeof searchPrice !== 'object' ? new Unit(searchPrice) : searchPrice;
+
+  // hack code
   const searchPriceFixed5 = usedSearchPrice.toDecimalMinUnit(5);
+  if (+searchPriceFixed5 <= 0.00444) {
+    return direction === 'pre' ? new Unit(searchPriceFixed5).sub(0.00001) : new Unit(searchPriceFixed5).add(0.00001);
+  }
+
   const atom = fee / 50;
   const currentTick = findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB }) });
   let searchTick = direction === 'next' ? currentTick.add(atom) : currentTick.sub(atom);

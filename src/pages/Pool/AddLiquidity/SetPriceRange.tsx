@@ -104,7 +104,8 @@ const RangeInput: React.FC<
     const priceStr = value[`price-${type}`];
     if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
     const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
-    setValue(`price-${type}`, prePrice?.toDecimalMinUnit(5));
+    const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit(5));
+    setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
   }, [fee, tokenA?.address, tokenB?.address]);
 
   const handleClickAdd = useCallback(() => {

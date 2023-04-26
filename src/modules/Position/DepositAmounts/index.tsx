@@ -79,6 +79,9 @@ const DepositAmount: React.FC<
       }
       const usedPriceLower = priceLower.equals(0) ? calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: getMinTick(fee), convertLimit: false }) : priceLower;
       const usedPriceUpper = !priceUpper.isFinite() ? calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: getMaxTick(fee), convertLimit: false }) : priceUpper;
+      // const usedPriceLower = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: -6600, convertLimit: false });
+      // const usedPriceUpper = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: 60, convertLimit: false });
+      // console.log(usedPriceLower?.toDecimalMinUnit(), usedPriceUpper?.toDecimalMinUnit())
 
       const isThisTokenEqualsTokenA = isTokenEqual(token, tokenA);
       const currentInputAmount = new Unit(newAmount);
