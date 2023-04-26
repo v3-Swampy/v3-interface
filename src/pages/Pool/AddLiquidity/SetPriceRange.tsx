@@ -6,6 +6,7 @@ import Input from '@components/Input';
 import { usePool, findClosestValidPrice, findNextPreValidPrice, FeeAmount } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
 
@@ -76,8 +77,8 @@ const RangeInput: React.FC<
     [fee, tokenA?.address, tokenB?.address]
   );
 
-  const placeholder = useMemo(
-    () =>
+  const placeholder = useMemo(() => {
+    const recommendVal = trimDecimalZeros(
       !priceTokenA || !tokenA || !tokenB
         ? ''
         : findClosestValidPrice({
@@ -85,9 +86,17 @@ const RangeInput: React.FC<
             tokenA,
             tokenB,
             searchPrice: type === 'lower' ? priceTokenA.div(2).toDecimalMinUnit(5) : priceTokenA.mul(2).toDecimalMinUnit(5),
-          })?.toDecimalMinUnit(5),
-    [priceTokenA]
-  );
+          })?.toDecimalMinUnit(5)
+    );
+    const priceTokenAFixed5 = priceTokenA?.toDecimalMinUnit(5);
+    if (type === 'lower' && priceTokenA && Number(priceTokenAFixed5) > 0.00001 && recommendVal === '0') {
+      const half = new Unit(priceTokenAFixed5!).div(2).toDecimalMinUnit(5);
+      if (new Unit(half).equals(0)) {
+        return '0.00001';
+      } else return half;
+    }
+    return recommendVal;
+  }, [priceTokenA]);
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
