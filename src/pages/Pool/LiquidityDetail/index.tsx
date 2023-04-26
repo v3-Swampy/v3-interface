@@ -29,7 +29,7 @@ const LiquidityDetail: React.FC = () => {
       <div className="mx-auto max-w-800px">
         <div className="flex items-center pl-8px pr-16px mb-16px">
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-18px text-14px text-gray-normal">
-            <ArrowLeftIcon className="w-8px h-12px mr-16px text-gray-normal" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
             {i18n.back_to_pools}
           </Link>
         </div>

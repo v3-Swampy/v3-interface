@@ -3,6 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import Tooltip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
@@ -34,7 +35,7 @@ const transitions = {
 } as const;
 
 const className = {
-  title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
+  title: 'flex items-center color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
   content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
 };
 
@@ -98,7 +99,7 @@ const MyFarmsItem: React.FC<{
           <div className={`${className.title}`}>
             {i18n.claimable}
             <Tooltip text={i18n.tooltipClaimable}>
-              <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-slight font-medium" />
+              <InfoIcon className="w-12px h-12px ml-6px" />
             </Tooltip>
           </div>
           <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">
@@ -122,7 +123,7 @@ const MyFarms = () => {
 
   console.log('myFarmingList: ', myFarmingList);
 
-  if (!account||(myFarmingList.active.length==0&&myFarmingList.ended.length==0)) {
+  if (!account || (myFarmingList.active.length == 0 && myFarmingList.ended.length == 0)) {
     return <div className="mt-4 py-2">Empty List</div>;
   }
 

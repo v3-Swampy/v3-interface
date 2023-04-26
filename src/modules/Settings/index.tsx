@@ -9,6 +9,7 @@ import { isMobile } from '@utils/is';
 import useI18n from '@hooks/useI18n';
 import { useTransactionDeadline, useSlippageTolerance, useExpertMode, useRoutingApi, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
 import { ReactComponent as SettingsIcon } from '@assets/icons/settings.svg';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import showExpertModeModal from './ExpertModeModal';
 import Decimal from 'decimal.js';
 
@@ -90,10 +91,10 @@ const SettingsContent: React.FC = () => {
     <BorderBox variant="orange" className="w-240px p-16px rounded-28px bg-white-normal shadow-popper">
       <p className="mb-16px leading-18px text-14px text-orange-normal font-medium">{i18n.settings}</p>
 
-      <p className="mb-8px leading-18px text-14px text-black-normal font-medium">
+      <p className="flex items-center mb-8px leading-18px text-14px text-black-normal font-medium">
         {i18n.slippage_tolerance}
         <Tooltip text={i18n.slippage_tolerance_tooltip}>
-          <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
+          <InfoIcon className="w-12px h-12px ml-6px" />
         </Tooltip>
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
@@ -127,10 +128,10 @@ const SettingsContent: React.FC = () => {
         </button>
       </div>
 
-      <p className="mt-16px mb-8px leading-18px text-14px text-black-normal font-medium">
+      <p className="flex items-center mt-16px mb-8px leading-18px text-14px text-black-normal font-medium">
         {i18n.transaction_deadline}
         <Tooltip text={i18n.transaction_deadline_tooltip}>
-          <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
+          <InfoIcon className="w-12px h-12px ml-6px" />
         </Tooltip>
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
@@ -151,20 +152,20 @@ const SettingsContent: React.FC = () => {
       <p className="mt-24px mb-12px leading-18px text-14px text-orange-normal font-medium">{i18n.interface_settings}</p>
 
       <div className="flex justify-between items-center">
-        <p className="leading-18px text-14px text-black-normal font-medium">
+        <p className="flex items-center leading-18px text-14px text-black-normal font-medium">
           {i18n.auto_router_api}
           <Tooltip text={i18n.auto_router_api_tooltip}>
-            <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
+            <InfoIcon className="w-12px h-12px ml-6px" />
           </Tooltip>
         </p>
         <Switch id="switch--auto_router_api" checked={routingApi} onChange={(e) => handleSwitchRoutingApi(e)} />
       </div>
 
       <div className="mt-4px flex justify-between items-center">
-        <p className="leading-18px text-14px text-black-normal font-medium">
+        <p className="flex items-center leading-18px text-14px text-black-normal font-medium">
           {i18n.expert_mode}
           <Tooltip text={i18n.expert_mode_tooltip}>
-            <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
+            <InfoIcon className="w-12px h-12px ml-6px" />
           </Tooltip>
         </p>
         <Switch id="switch--expert_mode" checked={expertMode} onChange={(e) => handleSwitchExpertMode(e)} />

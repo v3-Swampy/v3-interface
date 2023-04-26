@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import Tooltip from '@components/Tooltip';
 import Corner from './Corner';
 import showStakeLPModal from './StakeLPModal';
@@ -35,7 +36,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 
   const className = useMemo(
     () => ({
-      title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
+      title: 'flex items-center color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
       content: 'color-black-normal text-14px font-500 not-italic leading-18px',
       authConnectButton: 'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer',
     }),
@@ -75,7 +76,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
         <div className={`${className.title}`}>
           {i18n.allocPoint}
           <Tooltip text={i18n.tooltipMultipier}>
-            <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-slight font-medium" />
+            <InfoIcon className="w-12px h-12px ml-6px" />
           </Tooltip>
         </div>
         <div className="text-12px font-500 not-italic leading-15px color-black-normal pl-3">{data.allocPoint}X</div>

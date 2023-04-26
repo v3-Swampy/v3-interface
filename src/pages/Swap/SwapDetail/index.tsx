@@ -12,6 +12,7 @@ import { getSlippageTolerance, useSlippageTolerance } from '@service/settings';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
 import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 
 const transitions = {
   en: {
@@ -131,12 +132,12 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
               {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
               {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
               <Tooltip>
-                <span
-                  className={cx(
-                    'i-fa6-solid:circle-info ml-6px mb-2px text-13px text-gray-normal font-medium transition-opacity duration-125',
-                    expand && 'opacity-0 pointer-events-none'
-                  )}
-                />
+                <span className={cx(
+                  'ml-6px mb-2px transition-opacity duration-125',
+                  expand && 'opacity-0 pointer-events-none'
+                )}>
+                  <InfoIcon className="w-12px h-12px" />
+                </span>
               </Tooltip>
             </p>
             {networkFee && (
@@ -157,9 +158,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
 
       <p className="flex justify-between items-center leading-18px text-14px font-medium">
         <Tooltip text={i18n.expected_output_tooltip}>
-          <span className="text-gray-normal">
+          <span className="flex items-center text-gray-normal">
             {i18n.expected_output}
-            <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
+            <InfoIcon className="w-12px h-12px ml-6px" />
           </span>
         </Tooltip>
         <span className="text-black-normal">
@@ -169,9 +170,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px font-medium">
         <Tooltip text={i18n.price_impact_tooltip}>
-          <span className="text-gray-normal">
+          <span className="flex items-center text-gray-normal">
             {i18n.price_impact}
-            <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
+            <InfoIcon className="w-12px h-12px ml-6px" />
           </span>
         </Tooltip>
         <span className="text-gray-normal">{largerPriceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
@@ -182,9 +183,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
           <div className="w-full">
             <Tooltip text={tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received_tooltip : i18n.maximum_send_tooltip}>
               <div className="flex justify-between items-center">
-                <span>
+                <span className="flex items-center">
                   {tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received : i18n.maximum_send} ({slippageForUi} %)
-                  <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
+                  <InfoIcon className="w-12px h-12px ml-6px" />
                 </span>
                 <span>
                   {slippageAmount} {tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}
@@ -197,9 +198,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
 
       <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
         <Tooltip text={i18n.network_fee_tooltip}>
-          <span>
+          <span className="flex items-center">
             {i18n.network_fee}
-            <span className="i-fa6-solid:circle-info ml-6px mb-2.5px text-13px text-gray-normal font-medium" />
+            <InfoIcon className="w-12px h-12px ml-6px" />
           </span>
         </Tooltip>
         <span>{networkFee}</span>
