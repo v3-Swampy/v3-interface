@@ -89,7 +89,7 @@ const Corner: React.FC<CornerProps> = ({ timestamp }) => {
         flex items-center ${classNames.classNameContainer}
       `}
     >
-      <span className="i-mdi:clock mr-1"></span>
+      <span className="i-mdi:clock mr-1 text-14px"></span>
       <span>{timeLeft}</span>
       <div
         className={`

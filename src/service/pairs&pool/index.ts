@@ -2,7 +2,7 @@ import { getWrapperTokenByAddress } from './../tokens/tokens';
 export * from './allRelatedPools';
 export * from './singlePool';
 export * from './bestTrade';
-export * from './clientSideSmartOrderRouter'
+export * from './clientSideSmartOrderRouter';
 export { default as computePoolAddress } from './computePoolAddress';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -62,9 +62,8 @@ export class Pool implements PoolProps {
   };
 }
 
-
 export const isPoolEqual = (poolA: Pool | null | undefined, poolB: Pool | null | undefined) => {
-  if ((poolA && !poolB)  || (!poolA && poolB)) return false;
+  if ((poolA && !poolB) || (!poolA && poolB)) return false;
   if ((poolA === null && poolB === undefined) || (poolA === undefined && poolB === null)) return false;
   if (!poolA && !poolB) return true;
   return poolA?.sqrtPriceX96 === poolB?.sqrtPriceX96 && poolA?.liquidity === poolB?.liquidity && poolA?.tickCurrent === poolB?.tickCurrent;
@@ -85,6 +84,7 @@ export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee }: { tick: Unit | 
     if (usedTick.equals(new Unit(getMinTick(fee)))) return new Unit(0);
     if (usedTick.equals(new Unit(getMaxTick(fee)))) return new Unit('Infinity');
   }
+
   return new Unit(1.0001)
     .pow(usedTick)
     .mul(new Unit(`1e${token0.decimals}`))
@@ -169,12 +169,39 @@ export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; sear
   }
 };
 
-
 export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fee: FeeAmount; searchPrice: Unit | string | number; tokenA: Token; tokenB: Token }) => {
   const usedSearchPrice = typeof searchPrice !== 'object' ? new Unit(searchPrice) : searchPrice;
   const tick = calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB });
   const closestValidTick = findClosestValidTick({ fee, searchTick: tick });
   return calcPriceFromTick({ tick: closestValidTick, tokenA, tokenB });
+};
+
+export const findNextPreValidPrice = ({
+  direction,
+  fee,
+  searchPrice,
+  tokenA,
+  tokenB,
+}: {
+  direction: 'pre' | 'next';
+  fee: FeeAmount;
+  searchPrice: Unit | string | number;
+  tokenA: Token;
+  tokenB: Token;
+}) => {
+  let usedSearchPrice = typeof searchPrice !== 'object' ? new Unit(searchPrice) : searchPrice;
+  const searchPriceFixed5 = usedSearchPrice.toDecimalMinUnit(5);
+  const atom = fee / 50;
+  const currentTick = findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB }) });
+  let searchTick = direction === 'next' ? currentTick.add(atom) : currentTick.sub(atom);
+  let nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
+  let count = 1;
+  while (nextOrPreTickPrice.toDecimalMinUnit(5) === searchPriceFixed5) {
+    count++;
+    searchTick = direction === 'next' ? searchTick.add(atom) : searchTick.sub(atom);
+    nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
+  }
+  return nextOrPreTickPrice;
 };
 
 export const invertPrice = (price: Unit | string | number | undefined) => {
