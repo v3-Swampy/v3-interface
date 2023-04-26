@@ -10,7 +10,6 @@ import Corner from './Corner';
 import { useMyFarmsList, GroupedPositions } from '@service/farming/myFarms';
 import { getCurrentIncentivePeriod } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
-import { usePool } from '@service/pairs&pool';
 import { useAccount } from '@service/account';
 import { TokenVST } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -44,11 +43,6 @@ const MyFarmsItem: React.FC<{
 }> = ({ data, isActive }) => {
   const i18n = useI18n(transitions);
 
-  usePool({
-    tokenA: data.token0,
-    tokenB: data.token1,
-    fee: data.fee,
-  });
   const { positions, totalClaimable, totalLiquidity, token0Price, token1Price } = data;
   console.info('totalClaimable', totalClaimable.toFixed(0));
   console.info('totalLiquidity', totalLiquidity?.toFixed(0));
