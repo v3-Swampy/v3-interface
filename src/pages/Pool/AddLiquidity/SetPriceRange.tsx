@@ -60,6 +60,12 @@ const RangeInput: React.FC<
 > = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues }) => {
   const i18n = useI18n(transitions);
 
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
+    if (evt.target.value === '') {
+      setValue('amount-tokenB', '');
+    }
+  }, []);
+
   const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (evt) => {
       if (!tokenA || !tokenB || !evt.target.value) return;
@@ -118,7 +124,7 @@ const RangeInput: React.FC<
     }
     if (priceStr === '0' || priceStr === 'Infinity') return;
     const nextPrice = findNextPreValidPrice({ direction: 'next', fee, tokenA, tokenB, searchPrice: priceStr });
-    setValue(`price-${type}`, nextPrice?.toDecimalMinUnit(5));
+    setValue(`price-${type}`, trimDecimalZeros(nextPrice?.toDecimalMinUnit(5)));
   }, [placeholder, fee, tokenA?.address, tokenB?.address]);
 
   const shouldHideSubIcon = useMemo(() => {
@@ -170,9 +176,10 @@ const RangeInput: React.FC<
           {...register(`price-${type}`, {
             required: true,
             min: 0,
+            onBlur: handlePriceChange,
+            onChange: handleChange
           })}
           min={0}
-          onBlur={handlePriceChange}
           step={0.00001}
           type={type === 'upper' ? 'string' : 'number'}
         />

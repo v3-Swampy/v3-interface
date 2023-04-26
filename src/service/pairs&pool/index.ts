@@ -193,7 +193,7 @@ export const findNextPreValidPrice = ({
 
   // hack code
   const searchPriceFixed5 = usedSearchPrice.toDecimalMinUnit(5);
-  if (+searchPriceFixed5 <= 0.00444) {
+  if (+searchPriceFixed5 <= 0.00233) {
     return direction === 'pre' ? new Unit(searchPriceFixed5).sub(0.00001) : new Unit(searchPriceFixed5).add(0.00001);
   }
 
