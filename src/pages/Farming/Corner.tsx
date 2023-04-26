@@ -2,6 +2,7 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
+import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
 
 interface CornerProps {
   timestamp: number;
@@ -110,7 +111,7 @@ const Corner: React.FC<CornerProps> = ({ timestamp }) => {
       `}
     >
       <span className="inline-flex">
-        <span className="i-mdi:clock mr-1 text-14px"></span>
+        <ClockIcon className="mr-1 w-12px h-12px" />
         <span>{timeLeft}</span>
       </span>
       {state === 'red' && <span>{i18n.claim}</span>}

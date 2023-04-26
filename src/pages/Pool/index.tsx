@@ -11,6 +11,7 @@ import PriceRange from '@modules/Position/PriceRange';
 import useI18n from '@hooks/useI18n';
 import { type PositionForUI, usePositionsForUI } from '@service/position';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
+import { ReactComponent as AddIcon } from '@assets/icons/add.svg';
 
 const transitions = {
   en: {
@@ -76,7 +77,7 @@ const PoolPage: React.FC = () => {
 
           <Link to="/pool/add_liquidity" className="no-underline">
             <Button color="gradient" className="px-24px h-40px rounded-100px">
-              <span className="i-material-symbols:add mr-8px text-white-normal text-24px font-medium" />
+              <AddIcon className="mr-8px w-12px h-12px" />
               {i18n.new_positions}
             </Button>
           </Link>

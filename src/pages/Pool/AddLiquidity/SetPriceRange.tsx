@@ -8,6 +8,8 @@ import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
+import { ReactComponent as RoundMinusIcon } from '@assets/icons/round_minus.svg';
+import { ReactComponent as RoundAddIcon } from '@assets/icons/round_add.svg';
 
 const transitions = {
   en: {
@@ -150,7 +152,7 @@ const RangeInput: React.FC<
           )}
           onClick={handleClickSub}
         >
-          <span className="i-ic:round-minus" />
+          <RoundMinusIcon className="w-24px h-24px" />
         </div>
         <Input
           className="mx-8px h-40px text-14px text-black-normal"
@@ -169,7 +171,7 @@ const RangeInput: React.FC<
 
         {type === 'upper' && priceUpper === 'Infinity' && (
           <div className="add-liquidity-price-infinity absolute flex justify-center items-center left-36px h-36px w-56px bg-orange-light-hover pointer-events-none">
-            <span className="i-icomoon-free:infinite text-18px text-black-normal font-medium" />
+            <span className="text-24px text-black-normal font-medium">∞</span>
           </div>
         )}
         <div
@@ -179,7 +181,7 @@ const RangeInput: React.FC<
           )}
           onClick={handleClickAdd}
         >
-          <span className="i-material-symbols:add-rounded" />
+          <RoundAddIcon className="w-24px h-24px" />
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { PopupClass } from '@components/Popup';
 import BorderBox from '@components/Box/BorderBox';
 import renderReactNode from '@utils/renderReactNode';
 import usePressEsc from '@hooks/usePressEsc';
+import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
 import { recordCurrentPopup, hidePopup } from '../';
 import './index.css';
@@ -39,7 +40,7 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?:
       <BorderBox variant="gradient-white" className={cx('relative w-90vw max-w-400px px-16px py-24px rounded-24px overflow-hidden shadow-popper', className)}>
         <div className="px-8px flex justify-between items-center text-14px text-black-normal">
           {title}
-          <span className="i-ep:close-bold text-14px cursor-pointer" onClick={hidePopup} />
+          <CloseBoldIcon className="w-12px h-12px text-gray-normal cursor-pointer" onClick={hidePopup} />
         </div>
         {subTitle && <div className="px-8px text-14px font-500 leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
         {renderReactNode(Content)}

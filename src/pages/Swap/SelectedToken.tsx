@@ -10,6 +10,7 @@ import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
 import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 
 const transitions = {
   en: {
@@ -76,7 +77,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           {currentSelectToken && <img className="w-24px h-24px mr-4px" src={currentSelectToken.logoURI} alt={`${currentSelectToken.symbol} logo`} />}
           {currentSelectToken && currentSelectToken.symbol}
           {!currentSelectToken && i18n.select_token}
-          <span className="i-ic:sharp-keyboard-arrow-down ml-24px flex-shrink-0 text-16px font-medium" />
+          <ArrowDownIcon className="w-8px h-5px ml-24px flex-shrink-0" />
         </BorderBox>
       </div>
 

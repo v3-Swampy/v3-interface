@@ -14,6 +14,7 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { addRecordToHistory } from '@service/history';
 import useInTransaction from '@hooks/useInTransaction';
 import Button from '@components/Button';
+import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
 
 const transitions = {
   en: {
@@ -166,7 +167,7 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
           {i18n.myPosition} ({positionList.length})
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-slight' : 'color-orange-normal bg-orange-normal/10'}`}>
-          <span className="i-mdi:clock mr-1 text-14px"></span>
+          <ClockIcon className="mr-1 w-12px h-12px" />
           <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(currentIncentive.endTime * 1000).toLocaleString()}</span>
         </span>
       </div>

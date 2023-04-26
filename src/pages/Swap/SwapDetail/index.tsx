@@ -13,6 +13,8 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
 import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
+import { ReactComponent as StationIcon } from '@assets/icons/station.svg';
 
 const transitions = {
   en: {
@@ -147,11 +149,11 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
                   expand && 'opacity-0 pointer-events-none'
                 )}
               >
-                <span className="i-ic:outline-local-gas-station text-16px mr-2px" />{networkFee}
+                <StationIcon className="w-16px h-14px mr-2px" />{networkFee}
               </span>
             )}
 
-            {!fromPreview && <span className="accordion-arrow i-ic:sharp-keyboard-arrow-down absolute right-16px top-1/2 -translate-y-[calc(50%-2.5px)] text-16px font-medium" />}
+            {!fromPreview && <ArrowDownIcon className="w-8px h-5px absolute right-16px accordion-arrow top-1/2 -translate-y-[calc(50%-2.5px)]" />}
           </>
         )
       }
