@@ -17,7 +17,7 @@ import Button from '@components/Button';
 
 const transitions = {
   en: {
-    myPosition: 'My Positions',
+    myPosition: 'My staked positions',
     farming: 'Farming',
     paused: 'Paused',
     claim: 'Claim',
@@ -26,7 +26,7 @@ const transitions = {
     liquidity: 'Liquidity',
   },
   zh: {
-    myPosition: 'My Positions',
+    myPosition: 'My staked positions',
     farming: 'Farming',
     paused: 'Paused',
     claim: 'Claim',

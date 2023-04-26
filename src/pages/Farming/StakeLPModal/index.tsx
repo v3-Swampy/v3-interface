@@ -22,7 +22,7 @@ import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 const transitions = {
   en: {
     title: 'Stake LP',
-    subTitle: '{leftToken}/{rightToken} Positions (Out of range LP can not receive farming rewards)',
+    subTitle: 'Your {leftToken}/{rightToken} positions (LP out of range will not receive farming rewards)',
     liquidity: 'Liquidity:',
     stakeLP: 'Stake LP',
     more: 'Get more {leftToken}/{rightToken} LP ',
@@ -31,7 +31,7 @@ const transitions = {
   },
   zh: {
     title: '质押 LP',
-    subTitle: '{leftToken}/{rightToken} Positions (Out of range LP can not receive farming rewards)',
+    subTitle: 'Your {leftToken}/{rightToken} positions (LP out of range will not receive farming rewards)',
     liquidity: 'Liquidity:',
     stakeLP: 'Stake LP',
     more: 'Get more {leftToken}/{rightToken} LP',
