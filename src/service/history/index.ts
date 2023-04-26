@@ -30,7 +30,9 @@ export interface HistoryRecord {
     | 'Position_RemoveLiquidity'
     | 'AllFarms_StakedLP'
     | 'MyFarms_ClaimAndUnstake'
-    | 'MyFarms_ClaimAndStake';
+    | 'MyFarms_ClaimAndStake'
+    | 'MyFarms_Claim'
+    | 'MyFarms_Unstake';
   tokenA_Address?: string;
   tokenA_Value?: string;
   tokenB_Address?: string;
@@ -114,8 +116,7 @@ export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) 
 
   const [receiptPromise] = waitTransactionReceipt(record.txHash);
   await receiptPromise;
-}
-
+};
 
 export const clearHistory = () => {
   const account = getAccount();

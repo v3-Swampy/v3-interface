@@ -7,13 +7,14 @@ import Tooltip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-import { useMyFarmsList, GroupedPositions } from '@service/farming/myFarms';
+import { useMyFarmsList, GroupedPositions, useCalcTotalLiquidity } from '@service/farming/myFarms';
 import { getCurrentIncentivePeriod } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { useAccount } from '@service/account';
 import { TokenVST } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useBoostFactor } from '@service/staking';
+import { useTokenPrice } from '@service/pairs&pool';
 
 const transitions = {
   en: {
@@ -43,14 +44,14 @@ const MyFarmsItem: React.FC<{
 }> = ({ data, isActive }) => {
   const i18n = useI18n(transitions);
 
-  const { positions, totalClaimable, totalLiquidity, token0Price, token1Price } = data;
-  console.info('totalClaimable', totalClaimable.toFixed(0));
-  console.info('totalLiquidity', totalLiquidity?.toFixed(0));
+  const { positions, totalClaimable, token0, token1 } = data;
 
   const [isShow, setIsShow] = useState<boolean>(false);
   const currentIncentive = getCurrentIncentivePeriod();
   const boosting = useBoostFactor();
-
+  const token0Pirce = useTokenPrice(token0.address);
+  const token1Pirce = useTokenPrice(token1.address);
+  const totalLiquidity = useCalcTotalLiquidity(positions, token0Pirce || '0', token1Pirce || '0');
   const handleShow = () => {
     setIsShow(!isShow);
   };
@@ -108,7 +109,7 @@ const MyFarmsItem: React.FC<{
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded}></Positions>}
+      {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Pirce={token0Pirce || ''} token1Pirce={token1Pirce || ''}></Positions>}
     </div>
   );
 };
@@ -121,7 +122,7 @@ const MyFarms = () => {
 
   console.log('myFarmingList: ', myFarmingList);
 
-  if (!account) {
+  if (!account||(myFarmingList.active.length==0&&myFarmingList.ended.length==0)) {
     return <div className="mt-4 py-2">Empty List</div>;
   }
 

@@ -13,7 +13,7 @@ import { enhancePositionForUI } from '@service/position';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
-import { getUnwrapperTokenByAddress, type Token } from '@service/tokens';
+import { type Token } from '@service/tokens';
 import { useTokenPrice } from '@service/pairs&pool';
 
 export interface FarmingPosition extends PositionForUI {
@@ -35,6 +35,8 @@ export interface MyFarmsPositionType {
   claimable: string; // position claimable
   token0: Token;
   token1: Token;
+  totalAmount0: Decimal;
+  totalAmount1: Decimal;
 }
 
 export const myFarmsPositionsQueryByTokenIds = selectorFamily({
@@ -184,7 +186,6 @@ const myFarmsListQuery = selector({
       const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
       return enhancePositionForUI(position, pool);
     });
-
     const currentIndex = getCurrentIncentiveIndex();
 
     const incentiveKeysOfAllPositions = positions
@@ -243,6 +244,7 @@ const myFarmsListQuery = selector({
     const resOfMulticallOfRewards =
       multicallOfRewards?.map((m) => {
         const [reward] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', m);
+        console.info('reward', Number(reward));
         return reward;
       }) || [];
 
@@ -305,79 +307,81 @@ export const useMyFarmsList = () => {
   usePools();
 
   const list = useRecoilValue(myFarmsListQuery);
-  const [listWithPrice, setListWithPrice] = useState<{
-    active: GroupedPositions[];
-    ended: GroupedPositions[];
-  } | null>(null);
+  return list;
+  // console.info('list',list)
+  // const [listWithPrice, setListWithPrice] = useState<{
+  //   active: GroupedPositions[];
+  //   ended: GroupedPositions[];
+  // } | null>(null);
 
-  const tokensMap: {
-    [key: string]: true;
-  } = {
-    [VSTTokenContract.address]: true,
-  };
+  // const tokensMap: {
+  //   [key: string]: true;
+  // } = {
+  //   [VSTTokenContract.address]: true,
+  // };
 
-  list.active.concat(list.ended).forEach((p) => {
-    tokensMap[p.token0.address] = true;
-    tokensMap[p.token1.address] = true;
-  });
+  // list.active.concat(list.ended).forEach((p) => {
+  //   tokensMap[p.token0.address] = true;
+  //   tokensMap[p.token1.address] = true;
+  // });
 
-  const tokensArr = Object.keys(tokensMap);
+  // const tokensArr = Object.keys(tokensMap);
 
-  const priceMap = usePrice(tokensArr);
-  if (priceMap) {
-    const l = {
-      active: list.active.map((p) => {
-        const token0Price = priceMap[p.token0.address];
-        const token1Price = priceMap[p.token1.address];
+  // const priceMap = usePrice(tokensArr);
+  // if (priceMap) {
+  //   const l = {
+  //     active: list.active.map((p) => {
+  //       const token0Price = priceMap[p.token0.address];
+  //       const token1Price = priceMap[p.token1.address];
 
-        return {
-          ...p,
-          totalLiquidity: p.totalAmount0
-            .div(10 ** p.token0.decimals)
-            .mul(token0Price || 0)
-            .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
-          claimableValue: p.totalClaimable.mul(token0Price || 0),
-          // @ts-ignore
-          positions: p.positions.map((p) => {
-            return {
-              ...p,
-              totalLiquidity: p?.position?.amount0
-                ?.div(10 ** p?.position.token0?.decimals)
-                .mul(token0Price)
-                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(10 ** p.position.token1?.decimals).mul(token1Price)),
-            };
-          }),
-        };
-      }),
-      ended: list.ended.map((p) => {
-        const token0Price = priceMap[p.token0.address];
-        const token1Price = priceMap[p.token1.address];
+  //       return {
+  //         ...p,
+  //         totalLiquidity: p.totalAmount0
+  //           .div(10 ** p.token0.decimals)
+  //           .mul(token0Price || 0)
+  //           .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
+  //         claimableValue: p.totalClaimable.mul(token0Price || 0),
+  //         // @ts-ignore
+  //         positions: p.positions.map((p) => {
+  //           return {
+  //             ...p,
+  //             totalLiquidity: p?.position?.amount0
+  //               ?.div(10 ** p?.position.token0?.decimals)
+  //               .mul(token0Price)
+  //               .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(10 ** p.position.token1?.decimals).mul(token1Price)),
+  //           };
+  //         }),
+  //       };
+  //     }),
+  //     ended: list.ended.map((p) => {
+  //       const token0Price = priceMap[p.token0.address];
+  //       const token1Price = priceMap[p.token1.address];
 
-        return {
-          ...p,
-          totalLiquidity: p.totalAmount0
-            .div(10 ** p.token0.decimals)
-            .mul(token0Price || 0)
-            .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
-          claimableValue: p.totalClaimable.mul(token0Price || 0),
-          // @ts-ignore
-          positions: p.positions.map((p) => {
-            return {
-              ...p,
-              totalLiquidity: p.position.amount0
-                ?.div(10 ** p.position.token0.decimals)
-                .mul(token0Price)
-                .add(p.position.amount1 ? p.position.amount1.div(10 ** p.position.token1.decimals).mul(token1Price) : 0),
-            };
-          }),
-        };
-      }),
-    };
+  //       return {
+  //         ...p,
+  //         totalLiquidity: p.totalAmount0
+  //           .div(10 ** p.token0.decimals)
+  //           .mul(token0Price || 0)
+  //           .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
+  //         claimableValue: p.totalClaimable.mul(token0Price || 0),
+  //         // @ts-ignore
+  //         positions: p.positions.map((p) => {
+  //           return {
+  //             ...p,
+  //             totalLiquidity: p.position.amount0
+  //               ?.div(10 ** p.position.token0.decimals)
+  //               .mul(token0Price)
+  //               .add(p.position.amount1 ? p.position.amount1.div(10 ** p.position.token1.decimals).mul(token1Price) : 0),
+  //           };
+  //         }),
+  //       };
+  //     }),
+  //   };
 
-    !listWithPrice && setListWithPrice(l);
-  }
+  //   !listWithPrice && setListWithPrice(l);
+  // }
 
-  return listWithPrice || list;
+  // return listWithPrice || list;
 };
 
 /**
@@ -407,30 +411,6 @@ const whichIncentiveTokenIdInState = selectorFamily({
       return res;
     },
 });
-
-/**
- * Get rewardInfo of multiple positions
- */
-// const rewardInfosSeletor = selectorFamily({
-//   key: `rewardInfos-${import.meta.env.MODE}`,
-//   get:
-//     (params) =>
-//     async ({ }) => {
-//       console.info('params',params)
-//       if(params&&params?.positions.length==0) return []
-//       const rewardInfos=(
-//         await fetchMulticall(
-//           params.positions.map((position, i) => {
-//             const key=position.isActive?getCurrentIncentiveKey(position.address):position.whichIncentiveTokenIn
-//             return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id,params.pid])]
-//           })
-//         )
-//       )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0]) || [];
-//       const rewardInfos=[]
-//       console.info('rewardInfos',rewardInfos)
-//       return rewardInfos
-//     },
-// });
 
 const stakedPositionsQuery = selector<Array<FarmingPosition>>({
   key: `StakedPositionsQuery-${import.meta.env.MODE}`,
@@ -526,7 +506,7 @@ export const getwhichIncentiveTokenIdIn = (tokenId: number) => getRecoil(whichIn
 export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(whichIncentiveTokenIdInState(+tokenId));
 
 export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
-export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedPositionsQuery);
+export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedTokenIdsQuery);
 
 export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean) => {
   const stakedPostions = useStakedPositions();
@@ -541,34 +521,53 @@ export const useIsPositionActive = (tokenId: number) => {
   }, [tokenId.toString()]);
 };
 
-export const useCalcRewards = (positionList: Array<FarmingPosition>, pid: number) => {
-  const [positionsTotalReward, setPositionsTotalReward] = useState<number>(0);
-  const [rewardList, setRewardList] = useState<Array<number>>([]);
-  if (positionList.length == 0) return {};
-  let rewards = 0;
-  useEffect(() => {
-    async function main(positions: Array<FarmingPosition>, pid: number) {
-      (
-        await fetchMulticall(
-          positions.map((position, i) => {
-            const key = position.isActive ? getCurrentIncentiveKey(position.address) : position.whichIncentiveTokenIn;
-            return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id, pid])];
-          })
-        )
-      )?.map((r, i) => {
-        const claimable = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0];
-        rewardList.push(Number(claimable));
-        rewards += Number(claimable);
-        positions[i].claimable = claimable;
-      }) || [];
-      setPositionsTotalReward(rewards);
-      setRewardList(rewardList);
-    }
-    const _positions = JSON.parse(JSON.stringify(positionList));
-    main(_positions, pid);
-  }, [positionList.toString(), pid]);
-  return {
-    positionsTotalReward,
-    rewardList,
-  };
+// export const useCalcRewards = (positionList: Array<FarmingPosition>, pid: number) => {
+//   const [positionsTotalReward, setPositionsTotalReward] = useState<number>(0);
+//   const [rewardList, setRewardList] = useState<Array<number>>([]);
+//   if (positionList.length == 0) return {};
+//   let rewards = 0;
+//   useEffect(() => {
+//     async function main(positions: Array<FarmingPosition>, pid: number) {
+//       (
+//         await fetchMulticall(
+//           positions.map((position, i) => {
+//             const key = position.isActive ? getCurrentIncentiveKey(position.address) : position.whichIncentiveTokenIn;
+//             return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id, pid])];
+//           })
+//         )
+//       )?.map((r, i) => {
+//         const claimable = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0];
+//         rewardList.push(Number(claimable));
+//         rewards += Number(claimable);
+//         positions[i].claimable = claimable;
+//       }) || [];
+//       setPositionsTotalReward(rewards);
+//       setRewardList(rewardList);
+//     }
+//     const _positions = JSON.parse(JSON.stringify(positionList));
+//     main(_positions, pid);
+//   }, [positionList.toString(), pid]);
+//   return {
+//     positionsTotalReward,
+//     rewardList,
+//   };
+// };
+
+export const useCalcTotalLiquidity = (positions: Array<MyFarmsPositionType>, token0Price: string, token1Price: string) => {
+  return useMemo(() => {
+    if (positions.length == 0) return new Decimal(0);
+    let total = new Decimal(0);
+    positions.map((p) => {
+      const positionLiquidity = calcPostionLiquidity(p, token0Price, token1Price);
+      total = total.add(positionLiquidity);
+    });
+    return total;
+  }, [positions, token0Price, token1Price]);
+};
+
+export const calcPostionLiquidity = (_position: MyFarmsPositionType, token0Price: string, token1Price: string) => {
+  const position = _position.position;
+  const token0Total = new Decimal(position.amount0?.toDecimalStandardUnit(undefined, position.token0.decimals) || 0).mul(token0Price || 0);
+  const token1Total = new Decimal(position.amount1?.toDecimalStandardUnit(undefined, position.token1.decimals) || 0).mul(token1Price || 0);
+  return token0Total.add(token1Total);
 };

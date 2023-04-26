@@ -3,7 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { handleClaimUnStake, handleClaimAndReStake, MyFarmsPositionType } from '@service/farming/myFarms';
+import { handleClaimUnStake, handleClaimAndReStake, MyFarmsPositionType, calcPostionLiquidity } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount } from '@service/account';
@@ -11,6 +11,7 @@ import AuthConnectButton from '@modules/AuthConnectButton';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
 import { TokenVST } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { addRecordToHistory } from '@service/history';
 
 const transitions = {
   en: {
@@ -43,9 +44,8 @@ const className = {
   incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
 };
 
-const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({ position, pid }) => {
-  const { claimable, isActive, liquidity } = position;
-  console.info('liquidity', liquidity?.toString());
+const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0Pirce: string; token1Pirce: string }> = ({ position, pid, token0Pirce, token1Pirce }) => {
+  const { claimable, isActive } = position;
   const i18n = useI18n(transitions);
   const account = useAccount();
   const currentIncentiveKey = getCurrentIncentiveKey(position.address);
@@ -53,6 +53,10 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({
   const isPaused = useMemo(() => {
     return isActive ? status == PositionStatus.OutOfRange : true;
   }, [status]);
+
+  const liquidity = useMemo(() => {
+    return calcPostionLiquidity(position, token0Pirce, token1Pirce);
+  }, [position, token0Pirce, token1Pirce]);
 
   return (
     <div key={position.tokenId} className="flex items-center justify-between mt-4">
@@ -64,7 +68,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({
       <div className="">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
         {/* @ts-ignore */}
-        <div className={`${className.content} flex items-center`}>${position.totalLiquidity ? numFormat(position.totalLiquidity.toDecimalMinUnit(2)) : 0}</div>
+        <div className={`${className.content} flex items-center`}>${liquidity ? numFormat(liquidity.toFixed(2)) : 0}</div>
       </div>
       <div className="">
         <div className={`${className.title}`}>{i18n.claimable}</div>
@@ -93,30 +97,38 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({
           <>
             <div
               className={`${className.buttonBase} mr-15px color-green-normal border border-solid border-green-normal`}
-              onClick={() =>
-                handleClaimAndReStake({
+              onClick={async () => {
+                const txHash = await handleClaimAndReStake({
                   isActive,
                   keyThatTokenIdIn: position?.whichIncentiveTokenIn,
                   currentIncentiveKey: currentIncentiveKey,
                   tokenId: position.tokenId,
                   pid,
                   accountAddress: account as string,
-                })
-              }
+                });
+                addRecordToHistory({
+                  txHash,
+                  type: 'MyFarms_Claim',
+                });
+              }}
             >
               {i18n.claim}
             </div>
             <div
               className={`${className.buttonBase} ${className.buttonPausedSolid}`}
-              onClick={() =>
-                handleClaimUnStake({
+              onClick={async () => {
+                const txHash = await handleClaimUnStake({
                   isActive,
                   key: currentIncentiveKey,
                   tokenId: position.tokenId,
                   pid,
                   accountAddress: account as string,
-                })
-              }
+                });
+                addRecordToHistory({
+                  txHash,
+                  type: 'MyFarms_Unstake',
+                });
+              }}
             >
               {i18n.unstake}
             </div>
@@ -127,7 +139,13 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number }> = ({
   );
 };
 
-const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: number; isEnded: boolean }> = ({ positionList, pid, isEnded }) => {
+const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: number; isEnded: boolean; token0Pirce: string; token1Pirce: string }> = ({
+  positionList,
+  pid,
+  isEnded,
+  token0Pirce,
+  token1Pirce,
+}) => {
   const i18n = useI18n(transitions);
   const currentIncentive = getCurrentIncentivePeriod();
 
@@ -144,7 +162,7 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
       </div>
       <div>
         {positionList.map((p: any, i) => (
-          <PostionItem position={p} key={p.tokenId} pid={pid} />
+          <PostionItem position={p} key={p.tokenId} pid={pid} token0Pirce={token0Pirce} token1Pirce={token1Pirce} />
         ))}
       </div>
     </div>
