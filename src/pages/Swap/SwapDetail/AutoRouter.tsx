@@ -47,9 +47,9 @@ const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
         </>
       )}
 
-      <p className="flex justify-between items-center leading-18px text-14px font-medium">
+      <div className="flex justify-between items-center leading-18px text-14px font-medium">
         <RoutingDiagram sourceToken={sourceToken} destinationToken={destinationToken} routes={routes} />
-      </p>
+      </div>
 
       <div className="my-16px h-2px bg-#FFF5E7" />
 

@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { uniqueId } from 'lodash-es';
 import { type Token, getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { targetChainId } from '@service/account';
+import { useRoutingApi } from '@service/settings';
 import { FeeAmount, createPool } from '..';
 import { getRouter, getClientSideQuote, Protocol } from '../clientSideSmartOrderRouter';
-import { targetChainId } from '@service/account';
 
 export enum TradeType {
   EXACT_INPUT,
@@ -175,6 +176,59 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
 };
 
 export const useBestTrade = useServerBestTrade;
+
+
+export const useBt = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+  const serverFirst = useRoutingApi();
+  const uniqueIdFetchId = useRef<string>('init');
+  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
+
+  useEffect(() => {
+    const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
+    const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
+
+    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
+      setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
+      return;
+    }
+
+    uniqueIdFetchId.current = uniqueId('useServerBestTrade');
+    const currentUniqueId = uniqueIdFetchId.current;
+    const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
+
+    setBestTrade({ state: TradeState.LOADING });
+    fetch(
+      `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+        tokenOutWrappered.address
+      }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        if (currentUniqueId !== uniqueIdFetchId.current) {
+          return;
+        }
+        if (res?.errorCode) {
+          setBestTrade({
+            state: TradeState.ERROR,
+            error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
+          });
+        } else {
+          setBestTrade({
+            state: TradeState.VALID,
+            trade: calcTradeFromData({
+              tradeType,
+              amount,
+              tokenIn: tokenInWrappered,
+              amountUnit,
+              res,
+            }),
+          });
+        }
+      });
+  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
+
+  return bestTrade;
+}
 
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
