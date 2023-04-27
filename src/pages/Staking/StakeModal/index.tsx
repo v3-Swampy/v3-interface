@@ -103,7 +103,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
       const extendDuration = data['VST-stake-duration'];
       const extendDurationText = data['VST-stake-duration-text'];
       const addAmount = data['VST-stake-amount'];
-      let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams;
+      let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams: any;
       let unlockTime = dayjs(currentUnlockTime ? currentUnlockTime * 1000 : undefined).unix() + extendDuration;
       let amount = '0x0';
       switch (modalMode) {
@@ -123,13 +123,11 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
           break;
       }
       try {
-        const txHash = await handleStakingVST({
-          methodName,
-          methodParams,
-        });
-
         setNextInfo({
-          txHash,
+          sendTranscation: () => handleStakingVST({
+            methodName,
+            methodParams,
+          }),
           recordParams: {
             type: methodName === 'createLock' ? 'Stake_CreateLock' : methodName === 'increaseUnlockTime' ? 'Stake_IncreaseUnlockTime' : 'Stake_IncreaseAmount',
             tokenA_Value: methodName !== 'increaseUnlockTime' ? addAmount : extendDurationText,

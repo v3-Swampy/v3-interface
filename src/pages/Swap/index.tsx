@@ -37,7 +37,7 @@ const transitions = {
 
 const SwapPage: React.FC = () => {
   const i18n = useI18n(transitions);
-  const { register, handleSubmit: withForm, setValue, watch, getValues } = useForm();
+  const { register, handleSubmit: withForm, setValue, watch } = useForm();
   const sourceTokenAmount = watch('sourceToken-amount') as string;
   const destinationTokenAmount = watch('destinationToken-amount') as string;
   const sourceToken = useSourceToken();
@@ -115,6 +115,7 @@ const SwapPage: React.FC = () => {
         bestTrade,
         sourceTokenUSDPrice,
         destinationTokenUSDPrice,
+        setValue
       });
     }),
     [bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact]

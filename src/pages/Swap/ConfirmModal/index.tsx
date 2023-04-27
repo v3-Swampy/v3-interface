@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import useI18n, { toI18n } from '@hooks/useI18n';
 import Button from '@components/Button';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
@@ -40,9 +41,10 @@ interface Props {
     tokenB_Address: string;
     tokenB_Value: string;
   };
+  setValue: UseFormSetValue<FieldValues>;
 }
 
-const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
+const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   sourceTokenAmount,
   destinationTokenAmount,
   sourceToken,
@@ -57,13 +59,7 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleSwap } = useInTransaction(_handleSwap);
   const handleClickConfirm = useCallback(async () => {
-    try {
-      const txHash = await handleSwap(transactionParams);
-
-      setNextInfo({ txHash, recordParams });
-    } catch (err) {
-      console.error(`${recordParams?.type} transaction failed: `, err);
-    }
+    setNextInfo({ sendTranscation: () => handleSwap(transactionParams), recordParams });
   }, []);
 
   return (
@@ -91,7 +87,11 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
       <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} fromPreview />
 
       <p className="my-16px px-24px text-14px leading-18px text-gray-normal font-medium">
-        Input is estimated. You will sell at most<span className='mx-6px text-black-normal'>{trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}</span>or the transaction will revert.
+        Input is estimated. You will sell at most
+        <span className="mx-6px text-black-normal">
+          {trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}
+        </span>
+        or the transaction will revert.
       </p>
 
       <Button color="orange" fullWidth className="mt-auto h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
@@ -101,12 +101,17 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   );
 };
 
-const showStakeConfirmModal = (props: Props) => {
+const showSwapConfirmModal = (props: Props) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).confirm_swap,
-    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeConfirmModal {...confirmModalInnerProps} {...props} />,
+    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <SwapConfirmModal {...confirmModalInnerProps} {...props} />,
+    tokenNeededAdd: props?.destinationToken,
     className: '!max-w-572px !min-h-540px flex flex-col',
+    onSuccess: () => {
+      props?.setValue?.('sourceToken-amount', '');
+      props?.setValue?.('destinationToken-amount', '');
+    }
   });
 };
 
-export default showStakeConfirmModal;
+export default showSwapConfirmModal;
