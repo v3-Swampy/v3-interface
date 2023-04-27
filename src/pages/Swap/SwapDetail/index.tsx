@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useMemo } from 'react';
+import React, { memo, useState, useCallback, useMemo, useEffect } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import Tooltip from '@components/Tooltip';
@@ -104,32 +104,31 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
-      expand={fromPreview || (bestTrade.state !== TradeState.VALID ? false : undefined)}
       disabled={bestTrade.state !== TradeState.VALID}
     >
       {(expand) =>
         bestTrade.state !== TradeState.VALID ? (
           <>
             {bestTrade.state === TradeState.INVALID && (
-              <p className="ml-24px flex items-center leading-18px text-14px text-gray-normal font-medium">
+              <div className="ml-24px flex items-center leading-18px text-14px text-gray-normal font-medium">
                 Enter the target amount in any input box to get the best price automatically
-              </p>
+              </div>
             )}
             {bestTrade.state === TradeState.LOADING && (
-              <p className="ml-24px flex items-center leading-18px text-14px text-black-normal font-medium">
+              <div className="ml-24px flex items-center leading-18px text-14px text-black-normal font-medium">
                 <Spin className="mr-10px" />
                 Fetching best price...
-              </p>
+              </div>
             )}
             {bestTrade.state === TradeState.ERROR && (
-              <p className="ml-24px flex items-center leading-18px text-14px text-error-normal font-medium cursor-pointer underline">
+              <div className="ml-24px flex items-center leading-18px text-14px text-error-normal font-medium cursor-pointer underline">
                 {bestTrade.error ?? 'Fetching best price Failed, please wait a moment and try again.'}
-              </p>
+              </div>
             )}
           </>
         ) : (
           <>
-            <p className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
+            <div className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
               {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
               {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
               <Tooltip>
@@ -137,7 +136,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
                   <InfoIcon className="w-12px h-12px" />
                 </span>
               </Tooltip>
-            </p>
+            </div>
             {networkFee && (
               <span
                 className={cx(
@@ -155,7 +154,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
         )
       }
 
-      <p className="flex justify-between items-center leading-18px text-14px font-medium">
+      <div className="flex justify-between items-center leading-18px text-14px font-medium">
         <Tooltip text={i18n.expected_output_tooltip}>
           <span className="flex items-center text-gray-normal">
             {i18n.expected_output}
@@ -165,9 +164,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
         <span className="text-black-normal">
           {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
         </span>
-      </p>
+      </div>
 
-      <p className="mt-8px flex justify-between items-center leading-18px text-14px font-medium">
+      <div className="mt-8px flex justify-between items-center leading-18px text-14px font-medium">
         <Tooltip text={i18n.price_impact_tooltip}>
           <span className="flex items-center text-gray-normal">
             {i18n.price_impact}
@@ -175,10 +174,10 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
           </span>
         </Tooltip>
         <span className="text-gray-normal">{bestTrade?.trade?.priceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
-      </p>
+      </div>
 
       {tradeType !== undefined && (
-        <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
+        <div className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
           <div className="w-full">
             <Tooltip text={tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received_tooltip : i18n.maximum_send_tooltip}>
               <div className="flex justify-between items-center">
@@ -192,10 +191,10 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
               </div>
             </Tooltip>
           </div>
-        </p>
+        </div>
       )}
 
-      <p className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
+      <div className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
         <Tooltip text={i18n.network_fee_tooltip}>
           <span className="flex items-center">
             {i18n.network_fee}
@@ -203,7 +202,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
           </span>
         </Tooltip>
         <span>{networkFee}</span>
-      </p>
+      </div>
 
       {!fromPreview && (
         <>

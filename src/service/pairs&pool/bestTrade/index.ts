@@ -73,39 +73,75 @@ const CLIENT_PARAMS = {
   protocols: [Protocol.V3],
 };
 
-export const getClientSmartOrderRouter = async (args: GetQuoteArgs) => {
+interface FetchTradeParams {
+  amountUnit: Unit;
+  tokenInWrappered: Token;
+  tokenOutWrappered: Token;
+  tradeType: TradeType;
+}
+
+const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams) => {
   const router = getRouter();
-  return await getClientSideQuote(args, router, CLIENT_PARAMS);
+  const args: GetQuoteArgs = {
+    tokenInAddress: tokenInWrappered.address,
+    tokenInChainId: Number(targetChainId),
+    tokenInDecimals: tokenInWrappered.decimals,
+    tokenInSymbol: tokenInWrappered.symbol,
+    tokenOutAddress: tokenOutWrappered.address,
+    tokenOutChainId: Number(targetChainId),
+    tokenOutDecimals: tokenOutWrappered.decimals,
+    tokenOutSymbol: tokenOutWrappered.symbol,
+    amount: amountUnit.toDecimalMinUnit(),
+    type: tradeType,
+  };
+  return getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
+    if (res.error) {
+      throw new Error(res as any);
+    } else return res.data;
+  });
 };
 
-export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams) =>
+  fetch(
+    `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+      tokenOutWrappered.address
+    }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
+  ).then((res) => res.json());
+
+export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+  const [serverFirst] = useRoutingApi();
+  const uniqueIdFetchId = useRef<string>('init');
   const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
+
   useEffect(() => {
     const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
     const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
-    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null) {
+
+    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
       setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
       return;
     }
+
+    uniqueIdFetchId.current = uniqueId('useServerBestTrade');
+    const currentUniqueId = uniqueIdFetchId.current;
     const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
-    const router = getRouter();
-    const args: GetQuoteArgs = {
-      tokenInAddress: tokenInWrappered.address,
-      tokenInChainId: Number(targetChainId),
-      tokenInDecimals: tokenInWrappered.decimals,
-      tokenInSymbol: tokenInWrappered.symbol,
-      tokenOutAddress: tokenOutWrappered.address,
-      tokenOutChainId: Number(targetChainId),
-      tokenOutDecimals: tokenOutWrappered.decimals,
-      tokenOutSymbol: tokenOutWrappered.symbol,
-      amount: amountUnit.toDecimalMinUnit(),
-      type: tradeType,
-    };
+
     setBestTrade({ state: TradeState.LOADING });
-    getClientSideQuote(args, router, CLIENT_PARAMS).then((_res) => {
-      if (_res?.error) {
+    let fetchTradePromise: Promise<any>;
+
+    if (serverFirst) {
+      fetchTradePromise = fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+    } else {
+      fetchTradePromise = fetchTradeWithClient({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+    }
+    fetchTradePromise.then((res) => {
+      if (currentUniqueId !== uniqueIdFetchId.current) {
+        return;
+      }
+      if (res?.errorCode) {
         setBestTrade({
           state: TradeState.ERROR,
+          error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
         });
       } else {
         setBestTrade({
@@ -115,120 +151,15 @@ export const useClientBestTrade = (tradeType: TradeType | null, amount: string, 
             amount,
             tokenIn: tokenInWrappered,
             amountUnit,
-            res: _res?.data,
+            res,
           }),
         });
       }
     });
-  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
-  return bestTrade;
-};
-
-export const useServerBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
-  const uniqueIdFetchId = useRef<string>('init');
-  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
-
-  useEffect(() => {
-    const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
-    const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
-
-    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
-      setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
-      return;
-    }
-
-    uniqueIdFetchId.current = uniqueId('useServerBestTrade');
-    const currentUniqueId = uniqueIdFetchId.current;
-    const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
-
-    setBestTrade({ state: TradeState.LOADING });
-    fetch(
-      `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
-        tokenOutWrappered.address
-      }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
-    )
-      .then((res) => res.json())
-      .then((res) => {
-        if (currentUniqueId !== uniqueIdFetchId.current) {
-          return;
-        }
-        if (res?.errorCode) {
-          setBestTrade({
-            state: TradeState.ERROR,
-            error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
-          });
-        } else {
-          setBestTrade({
-            state: TradeState.VALID,
-            trade: calcTradeFromData({
-              tradeType,
-              amount,
-              tokenIn: tokenInWrappered,
-              amountUnit,
-              res,
-            }),
-          });
-        }
-      });
-  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
+  }, [serverFirst, tradeType, amount, tokenIn?.address, tokenOut?.address]);
 
   return bestTrade;
 };
-
-export const useBestTrade = useServerBestTrade;
-
-
-export const useBt = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
-  const serverFirst = useRoutingApi();
-  const uniqueIdFetchId = useRef<string>('init');
-  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
-
-  useEffect(() => {
-    const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
-    const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
-
-    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
-      setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
-      return;
-    }
-
-    uniqueIdFetchId.current = uniqueId('useServerBestTrade');
-    const currentUniqueId = uniqueIdFetchId.current;
-    const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
-
-    setBestTrade({ state: TradeState.LOADING });
-    fetch(
-      `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
-        tokenOutWrappered.address
-      }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
-    )
-      .then((res) => res.json())
-      .then((res) => {
-        if (currentUniqueId !== uniqueIdFetchId.current) {
-          return;
-        }
-        if (res?.errorCode) {
-          setBestTrade({
-            state: TradeState.ERROR,
-            error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
-          });
-        } else {
-          setBestTrade({
-            state: TradeState.VALID,
-            trade: calcTradeFromData({
-              tradeType,
-              amount,
-              tokenIn: tokenInWrappered,
-              amountUnit,
-              res,
-            }),
-          });
-        }
-      });
-  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
-
-  return bestTrade;
-}
 
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
