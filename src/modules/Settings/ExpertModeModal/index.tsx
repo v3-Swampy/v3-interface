@@ -37,8 +37,8 @@ const ExpertModeModal: React.FC<CommonProps> = ({ className }) => {
     const confirmWord = i18n.confirm;
     if (window.prompt(compiled(i18n.confirm_prompt, { confirmWord: i18n.confirm })) === confirmWord) {
       setExpertMode(true);
-      hidePopup();
     }
+    hidePopup();
   }
   return <div className="flex flex-col items-center">
     <WarningColorIcon className="w-80px h-68px mt-72px mb-30px" />
