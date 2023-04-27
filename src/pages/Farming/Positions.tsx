@@ -23,7 +23,7 @@ const transitions = {
     paused: 'Paused',
     claim: 'Claim',
     unstake: 'Unstake',
-    claimable: 'Claimable',
+    claimable: 'Est. earned',
     liquidity: 'Liquidity',
   },
   zh: {
@@ -32,7 +32,7 @@ const transitions = {
     paused: 'Paused',
     claim: 'Claim',
     unstake: 'Unstake',
-    claimable: 'Claimable',
+    claimable: 'Est. earned',
     liquidity: 'Liquidity',
   },
 } as const;
