@@ -160,6 +160,8 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
   const i18n = useI18n(transitions);
   const currentIncentive = getCurrentIncentivePeriod();
 
+  const endTime = useMemo(() => (isEnded ? currentIncentive.startTime : currentIncentive.endTime), [isEnded]);
+
   return (
     <div className="rounded-4 bg-white-normal p-6 mt-6">
       <div className="flex items-center">
@@ -168,7 +170,7 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-slight' : 'color-orange-normal bg-orange-normal/10'}`}>
           <ClockIcon className="mr-1 w-12px h-12px" />
-          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(currentIncentive.endTime * 1000).toLocaleString()}</span>
+          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(endTime * 1000).toLocaleString()}</span>
         </span>
       </div>
       <div>
