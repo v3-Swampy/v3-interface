@@ -12,7 +12,7 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
-import { useRefreshStakedPositions } from '@service/farming/myFarms';
+import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 import { useRefreshUserInfo } from '@service/staking';
 import { useRefreshPoolsQuery } from '@service/farming';
 
@@ -71,15 +71,17 @@ export const TransitionsTypeMap = {
  */
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
-  const refreshStakedPositions = useRefreshStakedPositions();
+  const refreshStakedTokenIds = useRefreshStakedTokenIds();
   const refreshUserInfo = useRefreshUserInfo();
   const refreshPoolsQuery = useRefreshPoolsQuery();
+  const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
 
   return {
     refreshPositions,
-    refreshStakedPositions,
+    refreshStakedTokenIds,
     refreshUserInfo,
     refreshPoolsQuery,
+    refreshMyFarmsListQuery,
   } as const;
 };
 
@@ -92,12 +94,12 @@ export const RefreshTypeMap = {
   ['Stake_CreateLock']: 'refreshUserInfo',
   ['Stake_IncreaseUnlockTime']: 'refreshUserInfo',
   ['Stake_IncreaseAmount']: 'refreshUserInfo',
-  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedPositions'],
+  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedTokenIds'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
-  ['MyFarms_ClaimAndUnstake']: 'refreshStakedPositions',
-  ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',
-  ['MyFarms_Claim']: 'refreshStakedPositions',
-  ['MyFarms_Unstake']: 'refreshStakedPositions',
+  ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
+  ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
+  ['MyFarms_Claim']: 'refreshStakedTokenIds',
+  ['MyFarms_Unstake']: 'refreshStakedTokenIds',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 

@@ -11,7 +11,6 @@ import useInTransaction from '@hooks/useInTransaction';
 import { addRecordToHistory } from '@service/history';
 import type { PoolType } from '@service/farming';
 import { PositionForUI } from '@service/position';
-import { hidePopup } from '@components/showPopup';
 
 const transitions = {
   en: {
@@ -46,7 +45,7 @@ interface ModalType {
   position: PositionForUI;
 }
 
-const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey, position }) => {
+const UnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey, position }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
   // @ts-ignore
@@ -82,8 +81,6 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
               accountAddress: account as string,
             });
 
-            hidePopup();
-
             addRecordToHistory({
               txHash,
               type: 'MyFarms_ClaimAndUnstake',
@@ -105,8 +102,6 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
               accountAddress: account as string,
             });
 
-            hidePopup();
-
             addRecordToHistory({
               txHash,
               type: 'MyFarms_ClaimAndStake',
@@ -120,16 +115,16 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
   );
 };
 
-const showClaimAndUnstakeModal = (data: ModalType) => {
+const showUnstakeModal = (data: ModalType) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (props: ConfirmModalInnerProps) => (
       <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>
-        <ClaimAndUnstakeModal {...data} {...props} />
+        <UnstakeModal {...data} {...props} />
       </Suspense>
     ),
     className: '!max-w-572px !min-h-466px',
   });
 };
 
-export default showClaimAndUnstakeModal;
+export default showUnstakeModal;
