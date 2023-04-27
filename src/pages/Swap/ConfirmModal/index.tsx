@@ -88,7 +88,9 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
       </div>
 
-      <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} fromPreview />
+      <SwapDetail
+        bestTrade={bestTrade}
+        sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount} fromPreview />
 
       <p className="my-16px px-24px text-14px leading-18px text-gray-normal font-medium">
         Input is estimated. You will sell at most<span className='mx-6px text-black-normal'>{trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}</span>or the transaction will revert.
