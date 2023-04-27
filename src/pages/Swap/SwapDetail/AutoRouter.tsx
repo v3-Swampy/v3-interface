@@ -1,11 +1,9 @@
-import React, { memo, useState, useCallback } from 'react';
+import React, { memo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import cx from 'clsx';
-import Tooltip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
-import { type useBestTrade, TradeType, FeeAmount, Trade, Route, Protocol } from '@service/pairs&pool';
+import { type useBestTrade, TradeType, Trade, Route, Protocol } from '@service/pairs&pool';
 import { Token, getTokenByAddress } from '@service/tokens';
 import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import RoutingDiagram from './RoutingDiagram';

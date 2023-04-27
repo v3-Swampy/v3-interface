@@ -44,7 +44,6 @@ const MyFarmsItem: React.FC<{
   isActive: boolean;
 }> = ({ data, isActive }) => {
   const i18n = useI18n(transitions);
-
   const { positions, totalClaimable, token0, token1 } = data;
 
   const [isShow, setIsShow] = useState<boolean>(false);
@@ -56,11 +55,10 @@ const MyFarmsItem: React.FC<{
   const handleShow = () => {
     setIsShow(!isShow);
   };
-
   if (Array.isArray(data?.positions) && data?.positions.length == 0) return null;
   const endTime = useMemo(() => {
     // if incentive status is active, we can use the time of incentive, otherwise, we can use any past time to indicate that the current phase is over and that time has passed
-    return isActive ? currentIncentive.endTime : Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+    return isActive ? currentIncentive.endTime : currentIncentive.startTime;
   }, [isActive, currentIncentive]);
 
   const isEnded = useMemo(() => dayjs().isAfter(dayjs.unix(Number(endTime))), [endTime]);

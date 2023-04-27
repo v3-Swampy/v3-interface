@@ -3,7 +3,6 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react-swc';
 import compression from 'vite-plugin-compression';
 import Unocss from 'unocss/vite';
-import presetIcons from '@unocss/preset-icons';
 import presetWind from '@unocss/preset-wind';
 import transformerDirective from '@unocss/transformer-directives';
 import svgr from 'vite-plugin-svgr';
@@ -14,14 +13,7 @@ export default defineConfig({
     Unocss({
       transformers: [transformerDirective()],
       presets: [
-        presetWind(),
-        presetIcons({
-          prefix: 'i-',
-          extraProperties: {
-            display: 'inline-block',
-            'vertical-align': 'middle',
-          },
-        }),
+        presetWind()
       ],
       theme: {
         breakpoints: {

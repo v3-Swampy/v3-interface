@@ -17,7 +17,7 @@ import {
   warningSeverity,
 } from '@service/swap';
 import { useBestTrade, TradeState, useTokenPrice } from '@service/pairs&pool';
-import { TradeType } from '@service/pairs&pool/bestTrade';
+import { TradeType } from '@service/swap/bestTrade';
 import { useExpertMode } from '@service/settings';
 import { computeFiatValuePriceImpact } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
@@ -50,8 +50,8 @@ const SwapPage: React.FC = () => {
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
   const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
 
-  const sourceTokenTradeAmountUSDPrice = useTokenPrice(sourceToken?.address, sourceTokenAmount);
-  const destinationTokenTradeAmountUSDPrice = useTokenPrice(destinationToken?.address, destinationTokenAmount);
+  const sourceTokenTradeAmountUSDPrice = undefined;
+  const destinationTokenTradeAmountUSDPrice = undefined;
 
   const stablecoinPriceImpact = useMemo(
     () => (!bestTrade?.trade ? undefined : computeFiatValuePriceImpact(sourceTokenTradeAmountUSDPrice, destinationTokenTradeAmountUSDPrice)),

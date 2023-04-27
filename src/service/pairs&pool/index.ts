@@ -1,7 +1,7 @@
 import { getWrapperTokenByAddress } from './../tokens/tokens';
 export * from './allRelatedPools';
 export * from './singlePool';
-export * from './bestTrade';
+export * from '../swap/bestTrade';
 export * from './clientSideSmartOrderRouter';
 export { default as computePoolAddress } from './computePoolAddress';
 import { type Token, isTokenEqual } from '@service/tokens';
