@@ -67,7 +67,7 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   }, []);
 
   return (
-    <div className="mt-24px">
+    <div className="mt-24px h-full flex-grow-1 flex flex-col">
       <div className="flex justify-between items-center h-72px px-24px rounded-20px bg-orange-light-hover">
         <span className="text-32px font-medium">{sourceTokenAmount}</span>
         <div className={'flex-shrink-0 ml-14px flex items-center text-14px text-black-normal font-medium'}>
@@ -94,7 +94,7 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
         Input is estimated. You will sell at most<span className='mx-6px text-black-normal'>{trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}</span>or the transaction will revert.
       </p>
 
-      <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
+      <Button color="orange" fullWidth className="mt-auto h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
         {i18n.confirm_swap}
       </Button>
     </div>
@@ -105,7 +105,7 @@ const showStakeConfirmModal = (props: Props) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).confirm_swap,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeConfirmModal {...confirmModalInnerProps} {...props} />,
-    className: '!max-w-572px !min-h-540px',
+    className: '!max-w-572px !min-h-540px flex flex-col',
   });
 };
 

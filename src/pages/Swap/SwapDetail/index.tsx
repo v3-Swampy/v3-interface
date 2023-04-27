@@ -104,6 +104,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
+      expand={fromPreview}
       disabled={bestTrade.state !== TradeState.VALID}
     >
       {(expand) =>
