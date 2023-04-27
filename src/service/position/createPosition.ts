@@ -7,7 +7,7 @@ import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
 import { FeeAmount, getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
-import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance, getExpertModeState } from '@service/settings';
+import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage, getExpertModeState } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import { addRecordToHistory } from '@service/history';
 import { setInvertedState } from '@modules/Position/invertedState';
@@ -26,7 +26,7 @@ export const handleClickSubmitCreatePosition = async ({
   tokenA: _tokenA,
   tokenB: _tokenB,
   priceInit,
-  navigate
+  navigate,
 }: {
   fee: FeeAmount;
   'amount-tokenA': string;
@@ -42,7 +42,7 @@ export const handleClickSubmitCreatePosition = async ({
     const account = getAccount();
     if (!account) return;
     const fee = Number(_fee) as FeeAmount;
-    const slippageTolerance = getSlippageTolerance();
+    const slippageTolerance = getSlippageTolerance() || 0;
     const pool = await getPool({ tokenA: _tokenA, tokenB: _tokenB, fee });
     const tokenA = getWrapperTokenByAddress(_tokenA.address)!;
     const tokenB = getWrapperTokenByAddress(_tokenB.address)!;
@@ -65,6 +65,8 @@ export const handleClickSubmitCreatePosition = async ({
       ? Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0)
       : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
 
+    const currentPrice = priceInit ? priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
+
     const _tickLower = priceLower.equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
     const _tickUpper = !priceUpper.isFinite() ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
     const tickLower = typeof _tickLower === 'number' ? _tickLower : +findClosestValidTick({ fee, searchTick: _tickLower }).toDecimalMinUnit();
@@ -73,24 +75,29 @@ export const handleClickSubmitCreatePosition = async ({
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
-    // const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
-    //   pool: pool ?? {
-    //     tickCurrent: +findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: new Unit(priceInit!), tokenA, tokenB }) })?.toDecimalMinUnit(),
-    //     sqrtPriceX96,
-    //   } as Pool,
-    //   token0,
-    //   token1,
-    //   token0Amount,
-    //   token1Amount,
-    //   fee,
-    //   tickLower,
-    //   tickUpper,
-    //   slippageTolerance,
-    // });
-    // console.log(slippageTolerance, token0Amount, token1Amount);
-    // console.log(amount0Min, amount1Min);
+    // console.log('token0', token0);
+    // console.log('currentPrice', currentPrice);
+    // console.log('pool', pool);
+    // console.log('sqrtPriceX96', sqrtPriceX96);
+    // console.log('slippageTolerance', slippageTolerance);
+    // console.log('tickLower', tickLower);
+    // console.log('tickUpper', tickUpper);
 
-    const { amount0Min, amount1Min } = { amount0Min: 0, amount1Min: 0 };
+    // console.log('token0Amount', token0Amount);
+    // console.log('token1Amount', token1Amount);
+
+    // console.log('token0AmountUnit', token0AmountUnit.toDecimalMinUnit());
+    // console.log('token1AmountUnit', token1AmountUnit.toDecimalMinUnit());
+
+    const { amount0Min, amount1Min } = calcAmountMinWithSlippage(
+      sqrtPriceX96,
+      slippageTolerance,
+      currentPrice,
+      tickLower,
+      tickUpper,
+      token0AmountUnit.toDecimalMinUnit(),
+      token1AmountUnit.toDecimalMinUnit()
+    );
 
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;
@@ -106,8 +113,8 @@ export const handleClickSubmitCreatePosition = async ({
         tickUpper,
         amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
         amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
-        amount0Min: Unit.fromStandardUnit(amount0Min, token0.decimals).toHexMinUnit(),
-        amount1Min: Unit.fromStandardUnit(amount1Min, token1.decimals).toHexMinUnit(),
+        amount0Min: new Unit(amount0Min).toHexMinUnit(),
+        amount1Min: new Unit(amount1Min).toHexMinUnit(),
         recipient: account,
         deadline: getDeadline(),
       },

@@ -45,7 +45,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
-    // const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
+    // const { amount0Min, amount1Min } = calcAmountMinWithSlippage({
     //   pool: pool ?? {
     //     tickCurrent: +findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: new Unit(priceInit!), tokenA, tokenB }) })?.toDecimalMinUnit(),
     //     sqrtPriceX96,

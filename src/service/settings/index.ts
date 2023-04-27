@@ -1,5 +1,5 @@
 export * from './slippageTolerance';
 export * from './transactionDeadline';
-export * from './calcAmountMinWithSlippageTolerance';
+export * from './calcAmountMinWithSlippage';
 export * from './expertMode';
-export * from './routingApi'
+export * from './routingApi';
