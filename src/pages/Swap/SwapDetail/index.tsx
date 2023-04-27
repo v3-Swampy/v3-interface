@@ -47,12 +47,11 @@ const transitions = {
 interface Props {
   bestTrade: ReturnType<typeof useBestTrade>;
   fromPreview?: boolean;
-  largerPriceImpact?: Unit;
   sourceTokenUSDPrice: string | null | undefined;
   destinationTokenUSDPrice: string | null | undefined;
 }
 
-const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview }) => {
+const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview }) => {
   const i18n = useI18n(transitions);
   const slippage = getSlippageTolerance() || 0;
   const { value: slippageForUi } = useSlippageTolerance();
@@ -105,18 +104,18 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
-      expand={fromPreview || (bestTrade.state !== TradeState.VALID || largerPriceImpact === undefined ? false : undefined)}
-      disabled={bestTrade.state !== TradeState.VALID || largerPriceImpact === undefined}
+      expand={fromPreview || (bestTrade.state !== TradeState.VALID ? false : undefined)}
+      disabled={bestTrade.state !== TradeState.VALID}
     >
       {(expand) =>
-        bestTrade.state !== TradeState.VALID || largerPriceImpact === undefined ? (
+        bestTrade.state !== TradeState.VALID ? (
           <>
             {bestTrade.state === TradeState.INVALID && (
               <p className="ml-24px flex items-center leading-18px text-14px text-gray-normal font-medium">
                 Enter the target amount in any input box to get the best price automatically
               </p>
             )}
-            {(bestTrade.state === TradeState.LOADING || (bestTrade.state === TradeState.VALID && largerPriceImpact === undefined)) && (
+            {bestTrade.state === TradeState.LOADING && (
               <p className="ml-24px flex items-center leading-18px text-14px text-black-normal font-medium">
                 <Spin className="mr-10px" />
                 Fetching best price...
@@ -134,10 +133,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
               {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
               {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
               <Tooltip>
-                <span className={cx(
-                  'ml-6px mb-2px transition-opacity duration-125',
-                  expand && 'opacity-0 pointer-events-none'
-                )}>
+                <span className={cx('ml-6px mb-2px transition-opacity duration-125', expand && 'opacity-0 pointer-events-none')}>
                   <InfoIcon className="w-12px h-12px" />
                 </span>
               </Tooltip>
@@ -178,7 +174,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, largerPriceImpact, sourceToken
             <InfoIcon className="w-12px h-12px ml-6px" />
           </span>
         </Tooltip>
-        <span className="text-gray-normal">{largerPriceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
+        <span className="text-gray-normal">{bestTrade?.trade?.priceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
       </p>
 
       {tradeType !== undefined && (

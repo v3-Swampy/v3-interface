@@ -1,11 +1,8 @@
-import React, { memo, useState, useCallback } from 'react';
-import { Currency } from '@uniswap/sdk-core'
 import { Token } from '@service/tokens';
-import { FeeAmount } from '@service/pairs&pool';
 import Tooltip from '@components/Tooltip';
-import { RoutingDiagramEntry } from './AutoRouter'
+import { RoutingDiagramEntry } from './AutoRouter';
 
-const Pool = ({ tokenIn, tokenOut, feeAmount }: { tokenIn: Token | null, tokenOut: Token | null, feeAmount: number }) => {
+const Pool = ({ tokenIn, tokenOut, feeAmount }: { tokenIn: Token | null; tokenOut: Token | null; feeAmount: number }) => {
   return (
     <Tooltip text={`${tokenIn?.symbol}/${tokenOut?.symbol} ${feeAmount / 10000}% pool`}>
       <div className="flex bg-orange-light rounded-10px px-10px py-4px">
@@ -15,32 +12,26 @@ const Pool = ({ tokenIn, tokenOut, feeAmount }: { tokenIn: Token | null, tokenOu
         </div>
         <span className="text-black-normal text-14px leading-20px font-medium">{feeAmount / 10000}%</span>
       </div>
-
-    </Tooltip>)
-}
+    </Tooltip>
+  );
+};
 
 const Route = ({ entry: { percent, path, protocol } }: { entry: RoutingDiagramEntry }) => {
   return (
     <div className="flex flex-1 items-center">
       <div className="flex">
-        <span className="mx-4px">{percent}%</span></div>
+        <span className="mx-4px">{percent}%</span>
+      </div>
       <div className="flex flex-1 justify-between">
         {path.map(([tokenIn, tokenOut, feeAmount], index) => (
           <Pool key={index} tokenIn={tokenIn} tokenOut={tokenOut} feeAmount={feeAmount} />
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-const RoutingDiagram = ({
-  sourceToken,
-  destinationToken,
-  routes, }: {
-    sourceToken: Token | null
-    destinationToken: Token | null
-    routes: RoutingDiagramEntry[]
-  }) => {
+const RoutingDiagram = ({ sourceToken, destinationToken, routes }: { sourceToken: Token | null; destinationToken: Token | null; routes: RoutingDiagramEntry[] }) => {
   return (
     <div className="flex flex-col w-full">
       {routes.map((entry, index) => (
@@ -51,8 +42,7 @@ const RoutingDiagram = ({
         </div>
       ))}
     </div>
-  )
+  );
+};
 
-}
-
-export default RoutingDiagram
+export default RoutingDiagram;
