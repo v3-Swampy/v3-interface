@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import useI18n, { toI18n } from '@hooks/useI18n';
 import Button from '@components/Button';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
@@ -41,7 +40,7 @@ interface Props {
     tokenB_Address: string;
     tokenB_Value: string;
   };
-  setValue: UseFormSetValue<FieldValues>;
+  onSuccess: VoidFunction;
 }
 
 const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
@@ -84,7 +83,9 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
       </div>
 
-      <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} fromPreview />
+      <SwapDetail
+        bestTrade={bestTrade}
+        sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount} fromPreview />
 
       <p className="my-16px px-24px text-14px leading-18px text-gray-normal font-medium">
         Input is estimated. You will sell at most
@@ -107,10 +108,7 @@ const showSwapConfirmModal = (props: Props) => {
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <SwapConfirmModal {...confirmModalInnerProps} {...props} />,
     tokenNeededAdd: props?.destinationToken,
     className: '!max-w-572px !min-h-540px flex flex-col',
-    onSuccess: () => {
-      props?.setValue?.('sourceToken-amount', '');
-      props?.setValue?.('destinationToken-amount', '');
-    }
+    onSuccess: props.onSuccess
   });
 };
 

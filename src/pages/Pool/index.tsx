@@ -13,6 +13,7 @@ import useI18n from '@hooks/useI18n';
 import { type PositionForUI, usePositionsForUI, useRefreshPositions } from '@service/position';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { ReactComponent as AddIcon } from '@assets/icons/add.svg';
+import { cloneDeep } from 'lodash-es';
 
 const transitions = {
   en: {
@@ -47,6 +48,9 @@ const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
 
+  useEffect(() => {
+    console.log(cloneDeep(positions))
+  }, [positions]);
   if (!positions?.length) {
     return (
       <>

@@ -14,7 +14,11 @@
 }
 
 .popper[data-placement^='top'] > .popper-arrow {
-  @apply -bottom-[4px];
+  @apply -bottom-4px;
+}
+
+.popper[data-placement^='top'] > .popper-arrow::before {
+  @apply border-r-gray-normal border-b-gray-normal;
 }
 
 .popper[data-placement^='bottom'] {
@@ -22,7 +26,11 @@
 }
 
 .popper[data-placement^='bottom'] > .popper-arrow {
-  @apply -top-[4px];
+  @apply -top-4px;
+}
+
+.popper[data-placement^='bottom'] > .popper-arrow::before {
+  @apply border-l-gray-normal border-t-gray-normal;
 }
 
 .popper[data-placement^='left'] {
@@ -30,7 +38,11 @@
 }
 
 .popper[data-placement^='left'] > .popper-arrow {
-  @apply -right-[4px];
+  @apply -right-4px;
+}
+
+.popper[data-placement^='left'] > .popper-arrow::before {
+  @apply border-r-gray-normal border-t-gray-normal;
 }
 
 .popper[data-placement^='right'] {
@@ -38,14 +50,18 @@
 }
 
 .popper[data-placement^='right'] > .popper-arrow {
-  @apply -left-[4px];
+  @apply -left-4px;
+}
+
+.popper[data-placement^='right'] > .popper-arrow::before {
+  @apply border-l-gray-normal border-b-gray-normal;
 }
 
 .popper-arrow {
-  @apply absolute w-[8px] h-[8px] bg-inherit -z-10 invisible;
+  @apply absolute w-8px h-8px bg-inherit -z-10 invisible;
 }
 
 .popper-arrow::before {
-  @apply absolute w-[8px] h-[8px] bg-inherit rotate-45 visible border-1px border-solid border-transparent border-b-gray-normal border-r-gray-normal;
+  @apply absolute w-8px h-8px bg-inherit rotate-45 visible border-1px border-solid border-transparent;
   content: '';
 }

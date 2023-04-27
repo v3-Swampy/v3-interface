@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -31,6 +31,7 @@ const transitions = {
 
 const AddLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
+  const navigate = useNavigate();
   const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
 
   const currentFee = useCurrentFee();
@@ -107,6 +108,7 @@ const AddLiquidity: React.FC = () => {
         tokenA,
         tokenB,
         priceInit,
+        navigate
       });
     }),
     [tokenA, tokenB, priceInit, currentFee]

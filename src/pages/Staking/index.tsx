@@ -13,7 +13,7 @@ import { handleUnStake, useBoostFactor } from '@service/staking';
 import { TokenVST, TokenUSDT } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
 import { useTokenPrice } from '@service/pairs&pool';
-import { numberWithCommas } from '@utils/numberUtils';
+import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as StakeCalculate } from '@assets/icons/stake_calculate.svg';
 
 const transitions = {
@@ -99,7 +99,7 @@ const StakingPage: React.FC = () => {
                 <div className="flex w-full flex-1 gap-16px items-stretch text-14px leading-18px text-black-normal">
                   <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between">
                     <p className="font-medium mb-16px">{compiled(i18n.my_staked, { token: TokenVST.symbol })}</p>
-                    <p className="font-bold text-18px leading-24px">{lockedAmount ?? '...'}</p>
+                    <p className="font-bold text-18px leading-24px">{trimDecimalZeros(new Unit(lockedAmount).toDecimalMinUnit(5)) ?? '...'}</p>
                     <p className="text-black-light font-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                     <p className="mt-70px">
                       <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>

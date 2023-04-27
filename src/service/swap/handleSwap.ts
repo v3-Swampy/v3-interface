@@ -4,12 +4,13 @@ import { UniswapV3SwapRouter } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { pack } from '@ethersproject/solidity';
 import { TradeType, type useBestTrade } from '@service/pairs&pool';
-import { getDeadline, getSlippageTolerance } from '@service/settings';
+import { getDeadline, getSlippageTolerance, getExpertModeState } from '@service/settings';
 import { getAccount } from '@service/account';
+import { addRecordToHistory } from '@service/history';
 import { getWrapperTokenByAddress } from '@service/tokens';
-import { getSourceToken, getDestinationToken } from './tokenSelect';
 import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
 import showSwapConfirmModal from '@pages/Swap/ConfirmModal';
+import { getSourceToken, getDestinationToken } from './tokenSelect';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
 export const handleConfirmSwap = async ({
@@ -102,18 +103,34 @@ export const handleConfirmSwap = async ({
     tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5),
   } as const;
 
-  showSwapConfirmModal({
-    sourceToken,
-    destinationToken,
-    sourceTokenAmount,
-    destinationTokenAmount,
-    sourceTokenUSDPrice,
-    destinationTokenUSDPrice,
-    bestTrade,
-    transactionParams,
-    recordParams,
-    setValue
-  });
+  const isInExpertMode = getExpertModeState();
+
+  const onSuccess = () => {
+    setValue?.('sourceToken-amount', '');
+    setValue?.('destinationToken-amount', '');
+  }
+  if (!isInExpertMode) {
+    showSwapConfirmModal({
+      sourceToken,
+      destinationToken,
+      sourceTokenAmount,
+      destinationTokenAmount,
+      sourceTokenUSDPrice,
+      destinationTokenUSDPrice,
+      bestTrade,
+      transactionParams,
+      recordParams,
+      onSuccess
+    });
+  } else {
+    try {
+      const txHash = await sendTransaction(transactionParams);
+      addRecordToHistory({ txHash, ...recordParams });
+      onSuccess();
+    } catch (_) {
+
+    }
+  }
 };
 
 export const handleSwap = async (transactionParams: { to: string; data: string; value: string }) => {
