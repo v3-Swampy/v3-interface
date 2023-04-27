@@ -12,18 +12,24 @@ import Button from '@components/Button';
 const transitions = {
   en: {
     confirm: 'confirm',
-    confirm_prompt: 'Please type the word "{confirmWord}" to enable expert mode.'
+    confirm_prompt: 'Please type the word "{confirmWord}" to enable expert mode.',
+    remind_title: 'ONLY USE THIS MODE IF YOU KNOW WHAT YOU ARE DOING.',
+    remind_desc: 'Expert mode turns off the confirm transaction prompt and allows high slippage trades that often result in bad rates and lost funds.',
+    turn_on_expert_mode: 'Turn On Expert Mode',
   },
   zh: {
     confirm: 'confirm',
-    confirm_prompt: 'Please type the word "{confirmWord}" to enable expert mode.'
+    confirm_prompt: 'Please type the word "{confirmWord}" to enable expert mode.',
+    remind_title: 'ONLY USE THIS MODE IF YOU KNOW WHAT YOU ARE DOING.',
+    remind_desc: 'Expert mode turns off the confirm transaction prompt and allows high slippage trades that often result in bad rates and lost funds.',
+    turn_on_expert_mode: 'Turn On Expert Mode',
   },
 } as const;
 interface CommonProps {
   className?: string;
 }
 
-const ExpertModeModal: React.FC<CommonProps> = () => {
+const ExpertModeModal: React.FC<CommonProps> = ({ className }) => {
   const i18n = useI18n(transitions);
   const [expertMode, setExpertMode] = useExpertMode();
 
@@ -35,12 +41,12 @@ const ExpertModeModal: React.FC<CommonProps> = () => {
     }
   }
   return <div className="flex flex-col items-center">
-    <WarningColorIcon className="w-80px h-68px mt-74px mb-30px" />
-    <p className="text-18px leading-30px text-#000 mb-72px w-270px font-medium">ONLY USE THIS MODE IF YOU KNOW WHAT YOU ARE DOING.</p>
-    <p className="text-16px leading-20px text-#8e8e8e mb-16px font-light">Expert mode turns off the confirm transaction prompt and allows high slippage trades that often result in bad rates and lost funds.</p>
-    <Button className="h-48px rounded-100px text-16px w-full !font-bold bg-#e14e28 flex items-center" onClick={handleConfirm}>
+    <WarningColorIcon className="w-80px h-68px mt-72px mb-30px" />
+    <p className="text-18px leading-30px text-#000 mb-72px w-270px font-medium">{i18n.remind_title}</p>
+    <p className="text-16px leading-20px text-#8e8e8e mb-16px font-light">{i18n.remind_desc}</p>
+    <Button className="h-48px rounded-100px text-16px leading-20px w-full !font-bold flex items-center" onClick={handleConfirm}>
       <WarningWhiteIcon className="w-16px h-16px mr-8px" />
-      Turn On Expert Mode
+      {i18n.turn_on_expert_mode}
     </Button>
   </div>
 };
