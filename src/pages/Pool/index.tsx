@@ -1,5 +1,6 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import dayjs from 'dayjs';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
@@ -9,7 +10,7 @@ import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import PriceRange from '@modules/Position/PriceRange';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePositionsForUI } from '@service/position';
+import { type PositionForUI, usePositionsForUI, useRefreshPositions } from '@service/position';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { ReactComponent as AddIcon } from '@assets/icons/add.svg';
 
@@ -66,12 +67,24 @@ const PoolContent: React.FC = () => {
   );
 };
 
+let lastRefreshTime: dayjs.Dayjs | null = null;
 const PoolPage: React.FC = () => {
   const i18n = useI18n(transitions);
+  const refreshPositions = useRefreshPositions();
+  useEffect(() => {
+    if (lastRefreshTime) {
+      if (dayjs().diff(lastRefreshTime, 'second') > 50) {
+        lastRefreshTime = dayjs();
+        refreshPositions();
+      }
+    } else {
+      lastRefreshTime = dayjs();
+    }
+  }, []);
 
   return (
     <PageWrapper className="pt-56px">
-      <div className="mx-auto max-w-800px ">
+      <div className="mx-auto max-w-800px">
         <div className="flex justify-between items-center pl-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           {i18n.pool}
 
@@ -84,12 +97,12 @@ const PoolPage: React.FC = () => {
         </div>
         <Suspense
           fallback={
-            <Delay>
+            <Delay delay={333}>
               <Spin className="!block mx-auto text-60px" />
             </Delay>
           }
         >
-          <BorderBox className="relative w-full p-16px rounded-28px" variant="gradient-white">
+          <BorderBox className="relative w-full p-16px rounded-28px group" variant="gradient-white">
             <PoolContent />
           </BorderBox>
         </Suspense>

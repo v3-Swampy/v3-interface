@@ -7,6 +7,7 @@ import { ReactComponent as Logo } from '@assets/icons/logo.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
 import { routes } from '@router/index';
+import { useRefreshPositions } from '@service/position';
 import AccountDetailDropdown from './/AccountDetailDropdown';
 import './index.css';
 
@@ -44,20 +45,32 @@ const Navbar: React.FC = () => {
   );
 };
 
-const NavLinks = () => (
-  <>
-    {routes.map((route) => (
-      <NavLink
-        key={route.path}
-        to={route.path}
-        className="text-16px font-medium no-underline"
-        style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined, color: isActive ? '#E14E28' : '#222222' })}
-      >
-        {route.name}
-      </NavLink>
-    ))}
-  </>
-);
+const NavLinks: React.FC = () => {
+  const refreshPositions = useRefreshPositions();
+
+  return (
+    <>
+      {routes.map((route) => (
+        <NavLink
+          key={route.path}
+          to={route.path}
+          className={({ isActive }) => cx('text-16px font-medium no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
+          style={({ isActive }) => ({ color: isActive ? '#E14E28' : '#222222' })}
+        >
+          <span
+            onClick={() => {
+              if (route.path === 'pool') {
+                refreshPositions();
+              }
+            }}
+          >
+            {route.name}
+          </span>
+        </NavLink>
+      ))}
+    </>
+  );
+};
 
 export const FooterBar: React.FC = () => {
   return (

@@ -30,3 +30,11 @@
 .history-record > strong, .history-record > b {
   @apply text-black-normal
 }
+
+.router-link-inactive > span {
+  pointer-events: none;
+}
+
+.router-link-active > span {
+  pointer-events: auto;
+}
