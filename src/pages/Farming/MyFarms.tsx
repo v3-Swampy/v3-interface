@@ -99,7 +99,9 @@ const MyFarmsItem: React.FC<{
           <div className={`${className.title}`}>
             {i18n.claimable}
             <Tooltip text={i18n.tooltipClaimable}>
-              <InfoIcon className="w-12px h-12px ml-6px" />
+              <span className="w-12px h-12px ml-6px">
+                <InfoIcon className="w-12px h-12px" />
+              </span>
             </Tooltip>
           </div>
           <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">

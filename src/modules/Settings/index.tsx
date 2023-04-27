@@ -94,7 +94,9 @@ const SettingsContent: React.FC = () => {
       <p className="flex items-center mb-8px leading-18px text-14px text-black-normal font-medium">
         {i18n.slippage_tolerance}
         <Tooltip text={i18n.slippage_tolerance_tooltip}>
-          <InfoIcon className="w-12px h-12px ml-6px" />
+          <span className="w-12px h-12px ml-6px">
+            <InfoIcon className="w-12px h-12px" />
+          </span>
         </Tooltip>
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
@@ -131,7 +133,9 @@ const SettingsContent: React.FC = () => {
       <p className="flex items-center mt-16px mb-8px leading-18px text-14px text-black-normal font-medium">
         {i18n.transaction_deadline}
         <Tooltip text={i18n.transaction_deadline_tooltip}>
-          <InfoIcon className="w-12px h-12px ml-6px" />
+          <span className="w-12px h-12px ml-6px">
+            <InfoIcon className="w-12px h-12px" />
+          </span>
         </Tooltip>
       </p>
       <div className="flex items-center justify-between gap-8px h-40px">
@@ -155,7 +159,9 @@ const SettingsContent: React.FC = () => {
         <p className="flex items-center leading-18px text-14px text-black-normal font-medium">
           {i18n.auto_router_api}
           <Tooltip text={i18n.auto_router_api_tooltip}>
-            <InfoIcon className="w-12px h-12px ml-6px" />
+            <span className="w-12px h-12px ml-6px">
+              <InfoIcon className="w-12px h-12px" />
+            </span>
           </Tooltip>
         </p>
         <Switch id="switch--auto_router_api" checked={routingApi} onChange={(e) => handleSwitchRoutingApi(e)} />
@@ -165,7 +171,9 @@ const SettingsContent: React.FC = () => {
         <p className="flex items-center leading-18px text-14px text-black-normal font-medium">
           {i18n.expert_mode}
           <Tooltip text={i18n.expert_mode_tooltip}>
-            <InfoIcon className="w-12px h-12px ml-6px" />
+            <span className="w-12px h-12px ml-6px">
+              <InfoIcon className="w-12px h-12px" />
+            </span>
           </Tooltip>
         </p>
         <Switch id="switch--expert_mode" checked={expertMode} onChange={(e) => handleSwitchExpertMode(e)} />

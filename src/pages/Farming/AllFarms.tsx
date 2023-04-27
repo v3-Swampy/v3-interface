@@ -76,7 +76,9 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
         <div className={`${className.title}`}>
           {i18n.allocPoint}
           <Tooltip text={i18n.tooltipMultipier}>
-            <InfoIcon className="w-12px h-12px ml-6px" />
+            <span className="w-12px h-12px ml-6px">
+              <InfoIcon className="w-12px h-12px" />
+            </span>
           </Tooltip>
         </div>
         <div className="text-12px font-500 not-italic leading-15px color-black-normal pl-3">{data.allocPoint}X</div>
