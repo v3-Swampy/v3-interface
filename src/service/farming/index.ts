@@ -13,6 +13,7 @@ import { keccak256 } from '@ethersproject/solidity';
 import { FarmingPosition } from './myFarms';
 import { selector, useRecoilValue, atom, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { RefudeeContractAddress } from '@contracts/index';
+import { useEffect, useState } from 'react';
 
 const poolIdsQuery = atom({
   key: `poolIdsQuery-${import.meta.env.MODE}`,
@@ -264,4 +265,33 @@ export const getLRToken = (token0: Token | null, token1: Token | null) => {
   const leftToken = checkedLR ? unwrapToken0 : unwrapToken1;
   const rightToken = checkedLR ? unwrapToken1 : unwrapToken0;
   return [leftToken, rightToken];
+};
+
+const claimStartTimeQuery = atom({
+  key: `claimStartTime-${import.meta.env.MODE}`,
+  default: 1682843497,
+});
+
+export const useClaimStartTime = () => useRecoilValue(claimStartTimeQuery);
+export const useCanClaim = () => {
+  const claimStartTime = useClaimStartTime();
+  const [canClaim, setCanClaim] = useState<boolean>(false);
+  useEffect(() => {
+    const fn = () => {
+      const diff = dayjs(claimStartTime * 1000).diff(dayjs(), 'second');
+      if (diff <= 0) {
+        setCanClaim(true);
+        clearInterval(intervalId);
+      } else {
+        setCanClaim(false);
+      }
+    };
+
+    const intervalId = setInterval(fn, 1000);
+
+    fn();
+
+    return () => clearInterval(intervalId);
+  }, [claimStartTime]);
+  return canClaim;
 };

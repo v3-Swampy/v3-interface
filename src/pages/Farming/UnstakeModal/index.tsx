@@ -45,7 +45,7 @@ interface ModalType {
   position: PositionForUI;
 }
 
-const UnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey, position }) => {
+const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentiveKey, position }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
   // @ts-ignore
@@ -84,7 +84,7 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, curre
             onClick={async () => {
               const txHash = await handleClaimUnStake({
                 isActive,
-                key: incentive,
+                key: currentIncentiveKey,
                 tokenId: id,
                 pid,
                 accountAddress: account as string,

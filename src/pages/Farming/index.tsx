@@ -5,11 +5,10 @@ import useI18n from '@hooks/useI18n';
 import { Suspense } from 'react';
 import Spin from '@components/Spin';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Tooltip from '@components/Tooltip';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
-
+import { useCanClaim } from '@service/farming';
 import AllFarms from './AllFarms';
 import MyFarms from './MyFarms';
+import CountDown from './CountDown';
 
 const transitions = {
   en: {
@@ -52,6 +51,7 @@ const FarmingPage: React.FC = () => {
   const tab = params.get('tab') as TabKeyType;
   const buttonClass = 'inline-block py-10px leading-18px px-6 rounded-full text-center text-sm font-medium border border-solid text-gray box-border cursor-pointer';
   const buttonClassActive = 'bg-orange-light !text-black-normal border border-solid border-orange-light';
+  const isCanClaim = useCanClaim();
 
   const handleClickTab = useCallback((tab: TabKeyType) => {
     const search = new URLSearchParams(params);
@@ -59,10 +59,6 @@ const FarmingPage: React.FC = () => {
 
     navigate(`${pathname}?${search.toString()}`);
   }, []);
-
-  const classNames = {
-    colon: '-mt-0.5',
-  };
 
   return (
     <PageWrapper className="pt-56px">
@@ -81,33 +77,7 @@ const FarmingPage: React.FC = () => {
                 {i18n.allFarms}
               </div>
             </div>
-            <div className="w-51 h-16 bg-orange-normal rounded-4">
-              <div className="h-6 font-400 text-12px leading-15px color-white-normal flex items-center justify-center">
-                {i18n.claimOpeningAt}
-                <Tooltip text={i18n.tooltipClaim}>
-                  <span className="w-12px h-12px ml-6px">
-                    <InfoIcon className="w-12px h-12px color-white-normal" />
-                  </span>
-                </Tooltip>
-              </div>
-              <div className="bg-white-normal h-10 color-black-normal">
-                <div className="flex justify-around items-center font-700 text-16px leading-20px">
-                  <span>00</span>
-                  <span className={classNames.colon}>&#58;</span>
-                  <span>00</span>
-                  <span className={classNames.colon}>&#58;</span>
-                  <span>00</span>
-                  <span className={classNames.colon}>&#58;</span>
-                  <span>00</span>
-                </div>
-                <div className="font-400 text-10px leading-13px flex justify-around items-center">
-                  <span className="text-10px">{i18n.days}</span>
-                  <span>{i18n.hours}</span>
-                  <span>{i18n.minutes}</span>
-                  <span>{i18n.seconds}</span>
-                </div>
-              </div>
-            </div>
+            <div>{!isCanClaim && <CountDown />}</div>
           </div>
           <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
         </BorderBox>

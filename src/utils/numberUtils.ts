@@ -10,7 +10,7 @@ export const numFormat = (num?: string) => {
     resArr.push(intArr[i]);
   }
   return resArr.reverse().join('') + (dec ? `.${dec}` : '');
-}
+};
 
 export const trimDecimalZeros = (numStr: string) => {
   if (typeof numStr !== 'string') {
@@ -18,14 +18,19 @@ export const trimDecimalZeros = (numStr: string) => {
   }
 
   return numStr.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0*$/, '');
-}
+};
 
 export const numberWithCommas = (x: number | string) => {
-  const idx = x.toString().indexOf('.')
+  const idx = x.toString().indexOf('.');
   return idx !== -1
     ? x
         .toString()
         .slice(0, idx)
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',') + x.toString().slice(idx)
-    : x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
+    : x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+export const addZeroToDay = (x: number | string | undefined) => {
+  if (String(x).length == 1) return '0' + x;
+  return x + '';
+};
