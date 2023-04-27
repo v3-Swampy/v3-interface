@@ -81,9 +81,6 @@ const myTokenIdsQuery = selector({
 
     tokenIds = [...new Set(tokenIds)];
 
-    console.count('tokenIds');
-    console.log(tokenIds);
-
     return tokenIds;
   },
 });

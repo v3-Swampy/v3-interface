@@ -82,7 +82,9 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
               accountAddress: account as string,
             });
 
-            hidePopup();
+            setTimeout(() => {
+              hidePopup();
+            }, 200);
 
             addRecordToHistory({
               txHash,
@@ -105,7 +107,9 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
               accountAddress: account as string,
             });
 
-            hidePopup();
+            setTimeout(() => {
+              hidePopup();
+            }, 200);
 
             addRecordToHistory({
               txHash,
