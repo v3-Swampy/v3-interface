@@ -49,12 +49,7 @@ const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
 }) => {
   const { execTransaction: handleRemoveLiquidity } = useInTransaction(handleSendTransaction);
   const handleClickConfirm = useCallback(async () => {
-    try {
-      const txHash = await handleRemoveLiquidity(transactionParams);
-      txHash && setNextInfo({ txHash, recordParams });
-    } catch (err) {
-      console.error('remove liquidity failed: ', err);
-    }
+    setNextInfo({ sendTranscation: () => handleRemoveLiquidity(transactionParams), recordParams });
   }, []);
   return (
     <>

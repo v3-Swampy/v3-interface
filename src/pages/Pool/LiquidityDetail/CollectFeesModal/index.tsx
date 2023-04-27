@@ -37,16 +37,10 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const refreshPositionFees = useRefreshPositionFees(tokenId);
 
   const onSubmit = useCallback(async () => {
-    try {
-      if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0 === new Unit(0) && fee1 === new Unit(0))) return;
-      const txHash = await handleCollectFees({ tokenId, refreshPositionFees });
-
-      setNextInfo({
-        txHash,
-      });
-    } catch (err) {
-      console.error('Collect fees failed: ', err);
-    }
+    if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0 === new Unit(0) && fee1 === new Unit(0))) return;
+    setNextInfo({
+      sendTranscation: () => handleCollectFees({ tokenId, refreshPositionFees }),
+    });
   }, [refreshPositionFees]);
 
   return (

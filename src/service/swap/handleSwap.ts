@@ -1,3 +1,4 @@
+import { type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import { sendTransaction } from '@service/account';
 import { UniswapV3SwapRouter } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -8,8 +9,7 @@ import { getAccount } from '@service/account';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
 import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
-
-import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
+import showSwapConfirmModal from '@pages/Swap/ConfirmModal';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
 export const handleConfirmSwap = async ({
@@ -18,12 +18,14 @@ export const handleConfirmSwap = async ({
   bestTrade,
   sourceTokenUSDPrice,
   destinationTokenUSDPrice,
+  setValue
 }: {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
   bestTrade: ReturnType<typeof useBestTrade>;
   sourceTokenUSDPrice: string | null | undefined;
   destinationTokenUSDPrice: string | null | undefined;
+  setValue: UseFormSetValue<FieldValues>;
 }) => {
   const sourceToken = getSourceToken();
   const sourceTokenWrapper = getWrapperTokenByAddress(sourceToken?.address);
@@ -100,7 +102,7 @@ export const handleConfirmSwap = async ({
     tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5),
   } as const;
 
-  showStakeConfirmModal({
+  showSwapConfirmModal({
     sourceToken,
     destinationToken,
     sourceTokenAmount,
@@ -110,6 +112,7 @@ export const handleConfirmSwap = async ({
     bestTrade,
     transactionParams,
     recordParams,
+    setValue
   });
 };
 

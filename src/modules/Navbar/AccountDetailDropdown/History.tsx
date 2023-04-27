@@ -103,7 +103,7 @@ export const RefreshTypeMap = {
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 
-export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
+export const RecordAction: React.FC<Omit<HistoryRecord, 'status' | 'txHash'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);
   const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
   const tokenB = getUnwrapperTokenByAddress(tokenB_Address);
