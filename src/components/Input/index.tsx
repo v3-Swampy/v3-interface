@@ -1,5 +1,6 @@
 import { useRef, forwardRef, useCallback, type ReactElement, type ComponentProps } from 'react';
 import composeRef from '@utils/composeRef';
+import { ReactComponent as ClosedFilledIcon } from '@assets/icons/close_filled.svg';
 import cx from 'clsx';
 import './index.css';
 
@@ -29,10 +30,11 @@ const Input = forwardRef<HTMLInputElement, Props>(({ wrapperClassName, className
       {clearIcon && (
         <span className="clear-icon display-none absolute top-1/2 -translate-y-1/2 justify-center items-center right-.5em w-fit h-fit text-gray-normal">
           <span
-            className={cx('i-carbon:close-filled text-1em text-gray-normal-hover', disabled ? 'cursor-default' : 'cursor-pointer')}
+            className={cx(disabled ? 'cursor-default' : 'cursor-pointer')}
             onClick={handleClickClear}
-            onMouseDown={preventBlur}
-          />
+            onMouseDown={preventBlur}>
+            <ClosedFilledIcon className="w-18px h-18px" />
+          </span>
         </span>
       )}
     </div>

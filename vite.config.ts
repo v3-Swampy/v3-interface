@@ -54,7 +54,10 @@ export default defineConfig({
             normal: '#FFFDFA',
           },
           error: {
-            normal: '#E96170',
+            normal: '#B80101',
+          },
+          warning: {
+            normal: '#FFB75D',
           },
           green: {
             normal: '#009595',

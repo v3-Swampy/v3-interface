@@ -1,5 +1,4 @@
 import React, { memo, useState, useCallback } from 'react';
-import { Currency } from '@uniswap/sdk-core'
 import { Token } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
 import Tooltip from '@components/Tooltip';
