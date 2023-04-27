@@ -9,12 +9,14 @@ import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farm
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
+import showUnstakeModal from './UnstakeModal';
 import { TokenVST } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { addRecordToHistory } from '@service/history';
 import useInTransaction from '@hooks/useInTransaction';
 import Button from '@components/Button';
 import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
+import dayjs from 'dayjs';
 
 const transitions = {
   en: {
@@ -64,6 +66,10 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   const liquidity = useMemo(() => {
     return calcPostionLiquidity(position, token0Pirce, token1Pirce);
   }, [position, token0Pirce, token1Pirce]);
+
+  // TODO fake condition, should use real data from contract
+  const fakeBlindEndTime = dayjs().add(7, 'day').unix();
+  const isBlindFarming = dayjs().unix() < fakeBlindEndTime;
 
   return (
     <div key={position.tokenId} className="mt-4 grid grid-cols-18">
@@ -128,17 +134,29 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
               color="white"
               className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid}`}
               onClick={async () => {
-                const txHash = await handleClaimUnStake({
-                  isActive,
-                  key: currentIncentiveKey,
-                  tokenId: position.tokenId,
-                  pid,
-                  accountAddress: account as string,
-                });
-                addRecordToHistory({
-                  txHash,
-                  type: 'MyFarms_Unstake',
-                });
+                if (isBlindFarming) {
+                  showUnstakeModal({
+                    isActive: true,
+                    incentive: position?.whichIncentiveTokenIn,
+                    id: position.tokenId,
+                    pid,
+                    currentIncentiveKey,
+                    position: position.position,
+                  });
+                } else {
+                  const txHash = await handleClaimUnStake({
+                    isActive,
+                    key: currentIncentiveKey,
+                    tokenId: position.tokenId,
+                    pid,
+                    accountAddress: account as string,
+                  });
+
+                  addRecordToHistory({
+                    txHash,
+                    type: 'MyFarms_Unstake',
+                  });
+                }
               }}
             >
               {i18n.unstake}
