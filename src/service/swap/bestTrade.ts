@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { atomFamily, useRecoilState } from 'recoil';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { uniqueId } from 'lodash-es';
 import { type Token, getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { targetChainId } from '@service/account';
 import { useRoutingApi } from '@service/settings';
-import { FeeAmount, createPool } from '..';
-import { getRouter, getClientSideQuote, Protocol } from '../clientSideSmartOrderRouter';
+import { FeeAmount, createPool } from '@service/pairs&pool';
+import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool/clientSideSmartOrderRouter';
 
 export enum TradeType {
   EXACT_INPUT,
@@ -95,31 +96,54 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
     type: tradeType,
   };
   return getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
-    if (res.error) {
-      throw new Error(res as any);
-    } else return res.data;
+    if (res.data) {
+      return res.data;
+    } else {
+      throw new Error('NO_ROUTE');
+    }
   });
 };
 
-const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams) =>
+const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
   fetch(
     `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
       tokenOutWrappered.address
     }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
-  ).then((res) => res.json());
+  )
+    .then((res) => res.json())
+    .then((res) => {
+      if (res?.errorCode) {
+        if (res.errorCode === 'NO_ROUTE') {
+          throw new Error('Failed to generate client side quote');
+        } else {
+          throw new Error(res.detail ?? res.errorCode);
+        }
+      }
+      return res;
+    });
 
+const bestTradeState = atomFamily<BestTrade, string>({
+  default: { state: TradeState.INVALID },
+  key: `bestTradeState-${import.meta.env.MODE}`,
+})
+
+const bestTradeTracker = new Map<string, boolean>();
 export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
   const [serverFirst] = useRoutingApi();
   const uniqueIdFetchId = useRef<string>('init');
-  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
+  const fetchKey = useMemo(() => `${tokenIn?.address}-${tokenIn?.address}-${amount}-${tradeType}`, [tokenIn?.address, tokenOut?.address, amount, tradeType]);
+  const [bestTrade, setBestTrade] = useRecoilState<BestTrade>(bestTradeState(fetchKey));
 
   useEffect(() => {
+    if (bestTradeTracker.has(fetchKey)) return;
+    bestTradeTracker.set(fetchKey, true);
     const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
     const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
-
     if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
       setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
-      return;
+      return () => {
+        bestTradeTracker.delete(fetchKey);
+      };
     }
 
     uniqueIdFetchId.current = uniqueId('useServerBestTrade');
@@ -127,23 +151,18 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
     const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
 
     setBestTrade({ state: TradeState.LOADING });
-    let fetchTradePromise: Promise<any>;
+    const fetchByServer = () => fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+    const fetchByClient = () => fetchTradeWithClient({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+    const priorityMethod = serverFirst ? fetchByServer : fetchByClient;
+    const secondaryMethod = serverFirst ? fetchByClient : fetchByServer;
 
-    if (serverFirst) {
-      fetchTradePromise = fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
-    } else {
-      fetchTradePromise = fetchTradeWithClient({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
-    }
-    fetchTradePromise.then((res) => {
-      if (currentUniqueId !== uniqueIdFetchId.current) {
-        return;
-      }
-      if (res?.errorCode) {
-        setBestTrade({
-          state: TradeState.ERROR,
-          error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
-        });
-      } else {
+    const runFetch = async (fetchMethod: 'priorityMethod' | 'secondaryMethod') => {
+      try {
+        let fetchPromise = (fetchMethod === 'priorityMethod' ? priorityMethod : secondaryMethod)();
+        const res = await fetchPromise;
+        if (currentUniqueId !== uniqueIdFetchId.current) {
+          return;
+        }
         setBestTrade({
           state: TradeState.VALID,
           trade: calcTradeFromData({
@@ -154,9 +173,26 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
             res,
           }),
         });
+      } catch (err) {
+        const errStr = String(err);
+        const isNoRoute = errStr?.includes('Failed to generate client side quote');
+        const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get');
+        if (fetchMethod === 'priorityMethod' && isNetworkError) {
+          runFetch('secondaryMethod');
+        } else {
+          setBestTrade({
+            state: TradeState.ERROR,
+            error: isNoRoute ? 'No Valid Route Found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
+          });
+        }
       }
-    });
-  }, [serverFirst, tradeType, amount, tokenIn?.address, tokenOut?.address]);
+    };
+
+    runFetch('priorityMethod');
+    return () => {
+      bestTradeTracker.delete(fetchKey);
+    }
+  }, [fetchKey]);
 
   return bestTrade;
 };

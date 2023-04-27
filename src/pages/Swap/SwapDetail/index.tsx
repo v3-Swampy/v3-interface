@@ -71,13 +71,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
   const tradeType = bestTrade?.trade?.tradeType;
 
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
-  // const networkFee = useMemo(
-  //   () =>
-  //     destinationTokenUSDPrice && sourceTokenUSDPrice && bestTrade.trade
-  //       ? bestTrade.trade?.networkFeeByAmount.mul(bestTrade.trade.tradeType === TradeType.EXACT_INPUT ? destinationTokenUSDPrice : sourceTokenUSDPrice)
-  //       : undefined,
-  //   [destinationTokenUSDPrice, sourceTokenUSDPrice, bestTrade]
-  // );
+
   const networkFee = bestTrade.trade?.networkFeeByAmount
     ? bestTrade.trade?.networkFeeByAmount.toDecimalMinUnit(5) === '0.00000'
       ? '<$0.00001'

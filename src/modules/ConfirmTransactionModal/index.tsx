@@ -1,5 +1,5 @@
 import React, { useState, useCallback, type ReactNode, useEffect } from 'react';
-import { useNavigate, type NavigateFunction, type To, type NavigateOptions } from 'react-router-dom';
+import { useNavigate, type NavigateFunction } from 'react-router-dom';
 import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import Spin from '@components/Spin';
 import Button from '@components/Button';
