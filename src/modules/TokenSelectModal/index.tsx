@@ -10,6 +10,7 @@ import Balance from '@modules/Balance';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
 import { useTokens, useCommonTokens, setCommonToken, type Token } from '@service/tokens';
+import { ReactComponent as SearchIcon } from '@assets/icons/search.svg';
 
 import { isMobile } from '@utils/is';
 
@@ -82,7 +83,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
     <div className="mt-24px">
       <div className="flex items-center h-40px px-28px rounded-100px bg-orange-light-hover">
         <label className="inline-flex items-center pr-12px" htmlFor="input--token_search">
-          <span className="i-ri:search-line flex-shrink-0 text-16px text-gray-normal font-medium" />
+          <SearchIcon className="flex-shrink-0 w-14px h-14px" />
         </label>
         <Input id="input--token_search" className="text-14px h-40px" clearIcon placeholder={i18n.search_placeholder} onChange={handleFilterChange} />
       </div>

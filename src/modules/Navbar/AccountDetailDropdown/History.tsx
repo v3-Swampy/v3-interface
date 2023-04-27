@@ -12,7 +12,7 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
-import { useRefreshStakedPositions } from '@service/farming/myFarms';
+import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 import { useRefreshUserInfo } from '@service/staking';
 import { useRefreshPoolsQuery } from '@service/farming';
 
@@ -29,6 +29,8 @@ export const transitions = {
     stake_lp_of_all_farms: 'Stake LP',
     claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
     claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
+    claim_lp_of_my_farms: 'Claim Reward',
+    unstake_lp_of_my_farms: 'Unstake',
   },
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
@@ -42,6 +44,8 @@ export const transitions = {
     stake_lp_of_all_farms: 'Stake LP',
     claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
     claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
+    claim_lp_of_my_farms: 'Claim Reward',
+    unstake_lp_of_my_farms: 'Unstake',
   },
 } as const;
 
@@ -57,6 +61,8 @@ export const TransitionsTypeMap = {
   ['AllFarms_StakedLP']: 'stake_lp_of_all_farms',
   ['MyFarms_ClaimAndUnstake']: 'claim_and_unstake_lp_of_my_farms',
   ['MyFarms_ClaimAndStake']: 'claim_and_stake_lp_of_my_farms',
+  ['MyFarms_Claim']: 'claim_lp_of_my_farms',
+  ['MyFarms_Unstake']: 'unstake_lp_of_my_farms',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
 
 /**
@@ -65,15 +71,17 @@ export const TransitionsTypeMap = {
  */
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
-  const refreshStakedPositions = useRefreshStakedPositions();
+  const refreshStakedTokenIds = useRefreshStakedTokenIds();
   const refreshUserInfo = useRefreshUserInfo();
   const refreshPoolsQuery = useRefreshPoolsQuery();
+  const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
 
   return {
     refreshPositions,
-    refreshStakedPositions,
+    refreshStakedTokenIds,
     refreshUserInfo,
     refreshPoolsQuery,
+    refreshMyFarmsListQuery,
   } as const;
 };
 
@@ -86,14 +94,16 @@ export const RefreshTypeMap = {
   ['Stake_CreateLock']: 'refreshUserInfo',
   ['Stake_IncreaseUnlockTime']: 'refreshUserInfo',
   ['Stake_IncreaseAmount']: 'refreshUserInfo',
-  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions'],
+  ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedTokenIds'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
-  ['MyFarms_ClaimAndUnstake']: 'refreshStakedPositions',
-  ['MyFarms_ClaimAndStake']: 'refreshStakedPositions',
+  ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
+  ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
+  ['MyFarms_Claim']: 'refreshStakedTokenIds',
+  ['MyFarms_Unstake']: 'refreshStakedTokenIds',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 
-export const RecordAction: React.FC<Omit<HistoryRecord, 'status'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
+export const RecordAction: React.FC<Omit<HistoryRecord, 'status' | 'txHash'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
   const i18n = useI18n(transitions);
   const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
   const tokenB = getUnwrapperTokenByAddress(tokenB_Address);

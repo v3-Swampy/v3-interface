@@ -30,7 +30,9 @@ export interface HistoryRecord {
     | 'Position_RemoveLiquidity'
     | 'AllFarms_StakedLP'
     | 'MyFarms_ClaimAndUnstake'
-    | 'MyFarms_ClaimAndStake';
+    | 'MyFarms_ClaimAndStake'
+    | 'MyFarms_Claim'
+    | 'MyFarms_Unstake';
   tokenA_Address?: string;
   tokenA_Value?: string;
   tokenB_Address?: string;
@@ -82,7 +84,7 @@ export const useHistory = () => {
           const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value } = record;
           const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
           const tokenB = getUnwrapperTokenByAddress(tokenB_Address);
-
+          console.log(receipt?.status === '0x1', receipt?.status)
           showToast(
             compiled(i18n[TransitionsTypeMap[record.type]], {
               tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : tokenA_Value ?? '',
@@ -91,7 +93,7 @@ export const useHistory = () => {
               tokenBSymbol: tokenB?.symbol ?? '',
             }),
             {
-              type: 'success',
+              type: receipt?.status === '0x1' ? 'success' : 'error',
             }
           );
         });
@@ -114,8 +116,7 @@ export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) 
 
   const [receiptPromise] = waitTransactionReceipt(record.txHash);
   await receiptPromise;
-}
-
+};
 
 export const clearHistory = () => {
   const account = getAccount();

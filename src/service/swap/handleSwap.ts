@@ -1,13 +1,16 @@
+import { type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import { sendTransaction } from '@service/account';
 import { UniswapV3SwapRouter } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { pack } from '@ethersproject/solidity';
 import { TradeType, type useBestTrade } from '@service/pairs&pool';
-import { getDeadline, getSlippageTolerance } from '@service/settings';
+import { getDeadline, getSlippageTolerance, getExpertModeState } from '@service/settings';
 import { getAccount } from '@service/account';
+import { addRecordToHistory } from '@service/history';
 import { getWrapperTokenByAddress } from '@service/tokens';
+import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
+import showSwapConfirmModal from '@pages/Swap/ConfirmModal';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
-import showStakeConfirmModal from '@pages/Swap/ConfirmModal';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
 export const handleConfirmSwap = async ({
@@ -16,12 +19,14 @@ export const handleConfirmSwap = async ({
   bestTrade,
   sourceTokenUSDPrice,
   destinationTokenUSDPrice,
+  setValue
 }: {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
   bestTrade: ReturnType<typeof useBestTrade>;
   sourceTokenUSDPrice: string | null | undefined;
   destinationTokenUSDPrice: string | null | undefined;
+  setValue: UseFormSetValue<FieldValues>;
 }) => {
   const sourceToken = getSourceToken();
   const sourceTokenWrapper = getWrapperTokenByAddress(sourceToken?.address);
@@ -49,20 +54,14 @@ export const handleConfirmSwap = async ({
     };
 
     if (tradeTypeFunctionName === 'exactInput') {
-      // amountOutMinimum = (1/(1+s)) * amountOut
-      const amountOutMinimumDecimal = new Unit(oneRoute.at(-1)?.amountOut ?? '0').mul(new Unit(1).div(new Unit(1).add(slippage))).toDecimalMinUnit(0);
+      const amountOutMinimumDecimal = getAmountOutMinimumDecimal(oneRoute.at(-1)?.amountOut ?? '0', slippage);
       // console.log('amountOutMinimumDecimal', amountOutMinimumDecimal);
       Object.assign(params, {
         amountIn: Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toHexMinUnit(),
         amountOutMinimum: new Unit(amountOutMinimumDecimal).toHexMinUnit(),
       });
     } else {
-      // amountInMaximum = (1+s)*amountIn
-      const amountInMaximumDecimal = new Unit(1)
-        .add(slippage)
-        .mul(oneRoute.at(0)?.amountIn ?? '0')
-        .toDecimalMinUnit(0);
-
+      const amountInMaximumDecimal = getAmountInMaximumDecimal(oneRoute.at(0)?.amountIn ?? '0', slippage);
       // console.log('amountInMaximumDecimal', amountInMaximumDecimal);
       Object.assign(params, {
         amountOut: Unit.fromMinUnit(oneRoute.at(-1)?.amountOut ?? '0').toHexMinUnit(),
@@ -74,10 +73,7 @@ export const handleConfirmSwap = async ({
     return data;
   });
 
-  const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [
-    0,
-    account,
-  ]);
+  const data1 = UniswapV3SwapRouter.func.interface.encodeFunctionData('unwrapWETH9', [0, account]);
 
   const data2 = UniswapV3SwapRouter.func.interface.encodeFunctionData('refundETH');
 
@@ -93,7 +89,7 @@ export const handleConfirmSwap = async ({
     value: isSourceTokenCfx
       ? tradeTypeFunctionName === 'exactInput'
         ? Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals).toHexMinUnit()
-        : new Unit(new Unit(1).add(slippage).mul(Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals)).toDecimalMinUnit(0)).toHexMinUnit()
+        : new Unit(getAmountInMaximumDecimal(Unit.fromStandardUnit(sourceTokenAmount, sourceTokenWrapper.decimals), slippage)).toHexMinUnit()
       : '0x0',
     data: UniswapV3SwapRouter.func.interface.encodeFunctionData('multicall', [data]),
     to: UniswapV3SwapRouter.address,
@@ -107,17 +103,34 @@ export const handleConfirmSwap = async ({
     tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5),
   } as const;
 
-  showStakeConfirmModal({
-    sourceToken,
-    destinationToken,
-    sourceTokenAmount,
-    destinationTokenAmount,
-    sourceTokenUSDPrice,
-    destinationTokenUSDPrice,
-    bestTrade,
-    transactionParams,
-    recordParams,
-  });
+  const isInExpertMode = getExpertModeState();
+
+  const onSuccess = () => {
+    setValue?.('sourceToken-amount', '');
+    setValue?.('destinationToken-amount', '');
+  }
+  if (!isInExpertMode) {
+    showSwapConfirmModal({
+      sourceToken,
+      destinationToken,
+      sourceTokenAmount,
+      destinationTokenAmount,
+      sourceTokenUSDPrice,
+      destinationTokenUSDPrice,
+      bestTrade,
+      transactionParams,
+      recordParams,
+      onSuccess
+    });
+  } else {
+    try {
+      const txHash = await sendTransaction(transactionParams);
+      addRecordToHistory({ txHash, ...recordParams });
+      onSuccess();
+    } catch (_) {
+
+    }
+  }
 };
 
 export const handleSwap = async (transactionParams: { to: string; data: string; value: string }) => {

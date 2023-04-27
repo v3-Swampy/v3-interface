@@ -66,13 +66,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction } = useInTransaction(recordParams?.type === 'Position_AddLiquidity' ? _handleCreatePosition : _handleIncreasePositionLiquidity);
   const handleClickConfirm = useCallback(async () => {
-    try {
-      const txHash = await execTransaction(transactionParams);
-
-      setNextInfo({ txHash, recordParams });
-    } catch (err) {
-      console.error(`${recordParams?.type} transaction failed: `, err);
-    }
+    setNextInfo({ sendTranscation: () => execTransaction(transactionParams), recordParams });
   }, []);
 
   return (

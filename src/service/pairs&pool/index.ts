@@ -1,8 +1,8 @@
 import { getWrapperTokenByAddress } from './../tokens/tokens';
 export * from './allRelatedPools';
 export * from './singlePool';
-export * from './bestTrade';
-export * from './clientSideSmartOrderRouter'
+export * from '../swap/bestTrade';
+export * from './clientSideSmartOrderRouter';
 export { default as computePoolAddress } from './computePoolAddress';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -62,28 +62,29 @@ export class Pool implements PoolProps {
   };
 }
 
-
 export const isPoolEqual = (poolA: Pool | null | undefined, poolB: Pool | null | undefined) => {
-  if ((poolA && !poolB)  || (!poolA && poolB)) return false;
+  if ((poolA && !poolB) || (!poolA && poolB)) return false;
   if ((poolA === null && poolB === undefined) || (poolA === undefined && poolB === null)) return false;
   if (!poolA && !poolB) return true;
   return poolA?.sqrtPriceX96 === poolB?.sqrtPriceX96 && poolA?.liquidity === poolB?.liquidity && poolA?.tickCurrent === poolB?.tickCurrent;
 };
 
-export const calcTickFromPrice = ({ price, tokenA, tokenB }: { price: Unit; tokenA: Token; tokenB: Token }) => {
+export const calcTickFromPrice = ({ price: _price, tokenA, tokenB }: { price: Unit | string | number; tokenA: Token; tokenB: Token }) => {
+  const price = new Unit(_price);
   const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
   const usedPrice = typeof price !== 'object' ? new Unit(price) : price;
   return Unit.log(usedPrice.mul(new Unit(`1e${token1.decimals}`)).div(new Unit(`1e${token0.decimals}`)), new Unit(1.0001));
 };
 
-export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee }: { tick: Unit | number | string; tokenA: Token; tokenB: Token; fee?: FeeAmount }) => {
+export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee, convertLimit = true }: { tick: Unit | number | string; tokenA: Token; tokenB: Token; fee?: FeeAmount; convertLimit?: boolean; }) => {
   const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
   const usedTick = typeof tick !== 'object' ? new Unit(tick) : tick;
 
-  if (!!fee) {
+  if (!!fee && convertLimit) {
     if (usedTick.equals(new Unit(getMinTick(fee)))) return new Unit(0);
     if (usedTick.equals(new Unit(getMaxTick(fee)))) return new Unit('Infinity');
   }
+
   return new Unit(1.0001)
     .pow(usedTick)
     .mul(new Unit(`1e${token0.decimals}`))
@@ -155,14 +156,16 @@ export const calcRatio = (lower: Unit, current: Unit | null | undefined, upper: 
 };
 
 export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; searchTick: Unit | string | number }) => {
-  const usedSearchTick = typeof searchTick !== 'object' ? new Unit(searchTick) : searchTick;
+  const usedSearchTick = (typeof searchTick !== 'object' ? new Unit(searchTick) : searchTick).toDecimal();
+  const atom = new Decimal(fee / 50);
 
-  const atom = new Unit(fee / 50);
-  const r = usedSearchTick.mod(atom);
-  if (r.lessThan(atom.div(new Unit(2)))) {
-    return usedSearchTick.sub(r);
+  const quotient = Decimal.floor(usedSearchTick.abs().div(atom));
+  const candidate1 = quotient.mul(atom);
+  const candidate2 = quotient.add(1).mul(atom);
+  if (Decimal.abs(candidate1.sub(usedSearchTick.abs())).lessThan(Decimal.abs(candidate2.sub(usedSearchTick.abs())))) {
+    return usedSearchTick.greaterThanOrEqualTo(0) ? new Unit(candidate1) : new Unit(-candidate1);
   } else {
-    return usedSearchTick.add(atom).sub(r);
+    return usedSearchTick.greaterThanOrEqualTo(0) ? new Unit(candidate2) : new Unit(-candidate2);
   }
 };
 
@@ -171,6 +174,38 @@ export const findClosestValidPrice = ({ fee, searchPrice, tokenA, tokenB }: { fe
   const tick = calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB });
   const closestValidTick = findClosestValidTick({ fee, searchTick: tick });
   return calcPriceFromTick({ tick: closestValidTick, tokenA, tokenB });
+};
+
+export const findNextPreValidPrice = ({
+  direction,
+  fee,
+  searchPrice,
+  tokenA,
+  tokenB,
+}: {
+  direction: 'pre' | 'next';
+  fee: FeeAmount;
+  searchPrice: Unit | string | number;
+  tokenA: Token;
+  tokenB: Token;
+}) => {
+  let usedSearchPrice = typeof searchPrice !== 'object' ? new Unit(searchPrice) : searchPrice;
+
+  // hack code
+  const searchPriceFixed5 = usedSearchPrice.toDecimalMinUnit(5);
+  if (+searchPriceFixed5 <= 0.00233) {
+    return direction === 'pre' ? new Unit(searchPriceFixed5).sub(0.00001) : new Unit(searchPriceFixed5).add(0.00001);
+  }
+
+  const atom = fee / 50;
+  const currentTick = findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB }) });
+  let searchTick = direction === 'next' ? currentTick.add(atom) : currentTick.sub(atom);
+  let nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
+  while (nextOrPreTickPrice.toDecimalMinUnit(5) === searchPriceFixed5) {
+    searchTick = direction === 'next' ? searchTick.add(atom) : searchTick.sub(atom);
+    nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
+  }
+  return nextOrPreTickPrice;
 };
 
 export const invertPrice = (price: Unit | string | number | undefined) => {
@@ -183,5 +218,12 @@ export const invertPrice = (price: Unit | string | number | undefined) => {
 };
 
 const MIN_TICK_Base = -887272;
-export const getMinTick = (fee: FeeAmount) => +findClosestValidTick({ fee, searchTick: MIN_TICK_Base }).toDecimalMinUnit();
+export const getMinTick = (fee: FeeAmount) => {
+  const minTick = +findClosestValidTick({ fee, searchTick: MIN_TICK_Base }).toDecimalMinUnit();
+  if (minTick < MIN_TICK_Base) {
+    return minTick + fee / 50;
+  } else {
+    return minTick;
+  }
+}
 export const getMaxTick = (fee: FeeAmount) => -getMinTick(fee);

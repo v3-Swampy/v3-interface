@@ -1,2 +1,0 @@
-export const ESPACE_MAINNET_CHAIN_ID = 1030
-export const ESPACE_TESTNET_CHAIN_ID = 71

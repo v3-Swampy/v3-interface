@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import Tooltip from '@components/Tooltip';
 import Corner from './Corner';
 import showStakeLPModal from './StakeLPModal';
@@ -35,7 +36,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 
   const className = useMemo(
     () => ({
-      title: 'color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
+      title: 'flex items-center color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
       content: 'color-black-normal text-14px font-500 not-italic leading-18px',
       authConnectButton: 'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer',
     }),
@@ -43,23 +44,23 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
   );
 
   return (
-    <div className="bg-orange-light-hover rounded-2xl mb-6 last:mb-0 flex justify-between py-4 px-8 relative">
+    <div className="bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 px-8 relative grid grid-cols-17">
       <Corner timestamp={Number(data.currentIncentivePeriod.endTime)}></Corner>
-      <div>
+      <div className="col-span-5">
         <div className={`${className.title}`}>{i18n.poolName}</div>
         <div className={`${className.content} inline-flex justify-center items-center`}>
           <TokenPair
             position={
               {
-                leftToken: data.token0,
-                rightToken: data.token1,
+                leftToken: data.leftToken,
+                rightToken: data.rightToken,
                 fee: data.fee,
               } as any
             }
           />
         </div>
       </div>
-      <div>
+      <div className="col-span-4">
         <div className={`${className.title}`}>
           {i18n.APR} {i18n.range}
         </div>
@@ -67,20 +68,22 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
         {/* <div className={`${className.content}`}>{data.range.length ? `${data.range[0]}% ~ ${data.range[1]}%` : '--'}</div> */}
         <div className={`${className.content}`}>{`Infinity% ~ Infinity%`}</div>
       </div>
-      <div>
+      <div className="col-span-3">
         <div className={`${className.title}`}>{i18n.tvl}</div>
         <div className={`${className.content}`}>{data.tvl ? `$${numFormat(data.tvl)}` : '--'}</div>
       </div>
-      <div>
+      <div className="col-span-2">
         <div className={`${className.title}`}>
           {i18n.allocPoint}
           <Tooltip text={i18n.tooltipMultipier}>
-            <span className="i-fa6-solid:circle-info ml-6px mb-1px text-13px text-gray-normal font-medium" />
+            <span className="w-12px h-12px ml-6px">
+              <InfoIcon className="w-12px h-12px" />
+            </span>
           </Tooltip>
         </div>
-        <div className="text-12px font-500 not-italic leading-15px color-black-normal flex items-center">{data.allocPoint}X</div>
+        <div className="text-12px font-500 not-italic leading-15px color-black-normal pl-3">{data.allocPoint}X</div>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-center justify-end col-span-3">
         <AuthConnectButton className={className.authConnectButton}>
           <div className={className.authConnectButton} onClick={() => showStakeLPModal(data)}>
             {i18n.stakeLP}

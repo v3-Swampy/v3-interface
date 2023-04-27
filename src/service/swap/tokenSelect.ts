@@ -34,6 +34,7 @@ export const sourceTokenAddressState = atom<string | null>({
       const sourceTokenFromSearchParams = getValidTokenBySearchParams('sourceToken');
       if (!sourceTokenFromSearchParams && !getValidTokenBySearchParams('destinationToken')) {
         setSelf('CFX');
+        updateTokenInSearchParams({ type: 'sourceToken', tokenAddress: 'CFX' });
       } else {
         setSelf(sourceTokenFromSearchParams);
       }

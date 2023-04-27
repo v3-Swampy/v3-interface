@@ -3,12 +3,14 @@ import { type UseFormRegister, type UseFormSetValue, type FieldValues, type UseF
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import Input from '@components/Input';
-import { usePool, findClosestValidPrice, FeeAmount, calcTickFromPrice, calcPriceFromTick } from '@service/pairs&pool';
+import { usePool, findClosestValidPrice, findNextPreValidPrice, FeeAmount } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
-import { getSwapLock } from './';
+import { ReactComponent as RoundMinusIcon } from '@assets/icons/round_minus.svg';
+import { ReactComponent as RoundAddIcon } from '@assets/icons/round_add.svg';
 
 const transitions = {
   en: {
@@ -45,13 +47,26 @@ interface Props {
   getValues: UseFormGetValues<FieldValues>;
   isRangeValid: boolean | null;
   priceInit: string;
-  priceUpper?: string;
+  priceLower: string;
+  priceUpper: string;
 }
 
 const RangeInput: React.FC<
-  Pick<Props, 'register' | 'setValue' | 'getValues' | 'priceUpper'> & { type: 'lower' | 'upper'; tokenA: Token | null; tokenB: Token | null; price: Unit | null | undefined; fee: FeeAmount }
-> = ({ type, tokenA, tokenB, price, fee, priceUpper, register, setValue, getValues }) => {
+  Pick<Props, 'register' | 'setValue' | 'getValues' | 'priceLower' | 'priceUpper'> & {
+    type: 'lower' | 'upper';
+    tokenA: Token | null;
+    tokenB: Token | null;
+    priceTokenA: Unit | null | undefined;
+    fee: FeeAmount;
+  }
+> = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues }) => {
   const i18n = useI18n(transitions);
+
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
+    if (evt.target.value === '') {
+      setValue('amount-tokenB', '');
+    }
+  }, []);
 
   const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (evt) => {
@@ -65,40 +80,80 @@ const RangeInput: React.FC<
         setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
         return;
       }
-
       setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
     },
     [fee, tokenA?.address, tokenB?.address]
   );
 
-  const handleClickSub = useCallback(
-    () => {
-      if (!tokenA || !tokenB) return;
-      const value = getValues();
-      const price = new Unit(value[`price-${type}`])
-      const step = fee / 50;
-      if (fee - step < 0) return;
-      const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB })
-      setValue(`price-${type}`, calcPriceFromTick({ tick: Number(tick.toDecimalMinUnit()) - step, tokenA, tokenB, fee }).toDecimalMinUnit(5));
-    },
-    [fee, tokenA?.address, tokenB?.address]
-  );
+  const placeholder = useMemo(() => {
+    const recommendVal = trimDecimalZeros(
+      !priceTokenA || !tokenA || !tokenB
+        ? ''
+        : findClosestValidPrice({
+            fee,
+            tokenA,
+            tokenB,
+            searchPrice: type === 'lower' ? priceTokenA.div(2).toDecimalMinUnit(5) : priceTokenA.mul(2).toDecimalMinUnit(5),
+          })?.toDecimalMinUnit(5)
+    );
+    const priceTokenAFixed5 = priceTokenA?.toDecimalMinUnit(5);
+    if (type === 'lower' && priceTokenA && Number(priceTokenAFixed5) > 0.00001 && recommendVal === '0') {
+      const half = new Unit(priceTokenAFixed5!).div(2).toDecimalMinUnit(5);
+      if (new Unit(half).equals(0)) {
+        return '0.00001';
+      } else return half;
+    }
+    return recommendVal;
+  }, [priceTokenA]);
 
-  const handleClickAdd = useCallback(
-    () => {
-      if (!tokenA || !tokenB) return;
-      const value = getValues();
-      const price = new Unit(value[`price-${type}`])
-      const step = fee / 50;
-      if (fee - step < 0) return;
-      const tick: Unit = calcTickFromPrice({ price, tokenA, tokenB })
-      setValue(`price-${type}`, calcPriceFromTick({ tick: Number(tick.toDecimalMinUnit()) + step, tokenA, tokenB, fee }).toDecimalMinUnit(5));
-    },
-    [fee, tokenA?.address, tokenB?.address]
-  );
+  const handleClickSub = useCallback(() => {
+    if (!tokenA || !tokenB) return;
+    const value = getValues();
+    const priceStr = value[`price-${type}`];
+    if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
+    const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
+    const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit(5));
+    setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
+  }, [fee, tokenA?.address, tokenB?.address]);
+
+  const handleClickAdd = useCallback(() => {
+    if (!tokenA || !tokenB) return;
+    const value = getValues();
+    const priceStr = value[`price-${type}`];
+    if (!priceStr) {
+      setValue(`price-${type}`, placeholder);
+      return;
+    }
+    if (priceStr === '0' || priceStr === 'Infinity') return;
+    const nextPrice = findNextPreValidPrice({ direction: 'next', fee, tokenA, tokenB, searchPrice: priceStr });
+    setValue(`price-${type}`, trimDecimalZeros(nextPrice?.toDecimalMinUnit(5)));
+  }, [placeholder, fee, tokenA?.address, tokenB?.address]);
+
+  const shouldHideSubIcon = useMemo(() => {
+    if (type === 'lower') {
+      return !priceLower || new Unit(priceLower).lessThanOrEqualTo(0);
+    } else {
+      try {
+        return !priceUpper || !new Unit(priceUpper).isFinite();
+      } catch (_) {
+        return true;
+      }
+    }
+  }, [type, priceLower, priceUpper]);
+  const shouldHideAddIcon = useMemo(() => {
+    if (type === 'lower') {
+      return priceLower && new Unit(priceLower).lessThanOrEqualTo(0);
+    } else {
+      try {
+        return priceUpper && !new Unit(priceUpper).isFinite();
+      } catch (_) {
+        return true;
+      }
+    }
+  }, [type, priceLower, priceUpper]);
 
   return (
-    <div className={cx('flex-grow-1 flex-shrink-1', !price && 'opacity-50 pointer-events-none')}>
+    <div className={cx('flex-grow-1 flex-shrink-1', !priceTokenA && 'opacity-50 pointer-events-none')}>
       <div className="mb-6px flex justify-between w-full">
         <p className="leading-18px text-14px text-black-normal font-medium">{type === 'lower' ? i18n.min_price : i18n.max_price}</p>
 
@@ -106,38 +161,51 @@ const RangeInput: React.FC<
       </div>
 
       <div className="add-liquidity-price-input relative flex items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light">
-        <div className="flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer" onClick={handleClickSub}>
-          <span className="i-ic:round-minus" />
+        <div
+          className={cx(
+            'flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer',
+            shouldHideSubIcon && 'opacity-0 pointer-events-none'
+          )}
+          onClick={handleClickSub}
+        >
+          <RoundMinusIcon className="w-24px h-24px" />
         </div>
         <Input
           className="mx-8px h-40px text-14px text-black-normal"
           clearIcon
           id={`input--price-${type}`}
-          placeholder="0"
+          placeholder={placeholder}
           {...register(`price-${type}`, {
             required: true,
             min: 0,
+            onBlur: handlePriceChange,
+            onChange: handleChange
           })}
           min={0}
-          onBlur={handlePriceChange}
           step={0.00001}
-          type="number"
+          type={type === 'upper' ? 'string' : 'number'}
         />
 
         {type === 'upper' && priceUpper === 'Infinity' && (
           <div className="add-liquidity-price-infinity absolute flex justify-center items-center left-36px h-36px w-56px bg-orange-light-hover pointer-events-none">
-            <span className="i-icomoon-free:infinite text-18px text-black-normal font-medium" />
+            <span className="text-24px text-black-normal font-medium">∞</span>
           </div>
         )}
-        <div className="ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer" onClick={handleClickAdd}>
-          <span className="i-material-symbols:add-rounded" />
+        <div
+          className={cx(
+            'ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer',
+            shouldHideAddIcon && 'opacity-0 pointer-events-none'
+          )}
+          onClick={handleClickAdd}
+        >
+          <RoundAddIcon className="w-24px h-24px" />
         </div>
       </div>
     </div>
   );
 };
 
-const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValues, isRangeValid, priceUpper }) => {
+const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValues, isRangeValid, priceUpper, priceLower }) => {
   const i18n = useI18n(transitions);
 
   const tokenA = useTokenA();
@@ -152,12 +220,8 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
   );
 
   useLayoutEffect(() => {
-    if (getSwapLock()) return;
     setValue('price-init', '');
-    if (pool?.token0Price) {
-      setValue('price-lower', pool?.priceOf(tokenA!)?.div(new Unit(2)).toDecimalMinUnit(5));
-      setValue('price-upper', pool?.priceOf(tokenA!)?.mul(new Unit(2)).toDecimalMinUnit(5));
-    } else {
+    if (!pool?.token0Price) {
       setValue('price-lower', '');
       setValue('price-upper', '');
     }
@@ -212,21 +276,45 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
       )}
 
       <div className="mt-10px flex gap-16px">
-        <RangeInput type="lower" register={register} setValue={setValue} getValues={getValues} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} />
-        <RangeInput type="upper" register={register} setValue={setValue} getValues={getValues} tokenA={tokenA} tokenB={tokenB} price={priceTokenA} fee={fee} priceUpper={priceUpper} />
+        <RangeInput
+          type="lower"
+          register={register}
+          setValue={setValue}
+          getValues={getValues}
+          tokenA={tokenA}
+          tokenB={tokenB}
+          priceTokenA={priceTokenA}
+          fee={fee}
+          priceLower={priceLower}
+          priceUpper={priceUpper}
+        />
+        <RangeInput
+          type="upper"
+          register={register}
+          setValue={setValue}
+          getValues={getValues}
+          tokenA={tokenA}
+          tokenB={tokenB}
+          priceTokenA={priceTokenA}
+          fee={fee}
+          priceLower={priceLower}
+          priceUpper={priceUpper}
+        />
       </div>
 
       {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}
 
-      <div
-        className={cx(
-          'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-medium text-black-normal cursor-pointer',
-          !priceTokenA && 'text-gray-normal pointer-events-none'
-        )}
-        onClick={setFullRange}
-      >
-        {i18n.full_range}
-      </div>
+      {pool !== null && (
+        <div
+          className={cx(
+            'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-medium text-black-normal cursor-pointer',
+            !priceTokenA && 'text-gray-normal pointer-events-none'
+          )}
+          onClick={setFullRange}
+        >
+          {i18n.full_range}
+        </div>
+      )}
     </div>
   );
 };

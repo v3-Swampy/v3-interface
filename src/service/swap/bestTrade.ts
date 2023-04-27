@@ -1,17 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { atomFamily, useRecoilState } from 'recoil';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { uniqueId } from 'lodash-es';
 import { type Token, getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { FeeAmount, createPool } from '..';
-import { getRouter, getClientSideQuote, Protocol } from '../clientSideSmartOrderRouter';
 import { targetChainId } from '@service/account';
+import { useRoutingApi } from '@service/settings';
+import { FeeAmount, createPool } from '@service/pairs&pool';
+import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool/clientSideSmartOrderRouter';
 
 export enum TradeType {
   EXACT_INPUT,
   EXACT_OUTPUT,
 }
 
-interface Route {
+export interface Route {
   address: string;
   amountIn: string;
   amountOut: string;
@@ -35,16 +37,18 @@ export enum TradeState {
 export interface BestTrade {
   state: TradeState;
   error?: string;
-  trade?: {
-    route: Route[][];
-    amountIn: Unit;
-    amountOut: Unit;
-    priceIn: Unit;
-    priceOut: Unit;
-    networkFeeByAmount: Unit;
-    priceImpact: Unit;
-    tradeType: TradeType;
-  };
+  trade?: Trade;
+}
+
+export interface Trade {
+  route: Route[][];
+  amountIn: Unit;
+  amountOut: Unit;
+  priceIn: Unit;
+  priceOut: Unit;
+  networkFeeByAmount?: Unit;
+  priceImpact: Unit;
+  tradeType: TradeType;
 }
 
 export enum RouterPreference {
@@ -70,68 +74,76 @@ const CLIENT_PARAMS = {
   protocols: [Protocol.V3],
 };
 
-export const getClientSmartOrderRouter = async (args: GetQuoteArgs) => {
+interface FetchTradeParams {
+  amountUnit: Unit;
+  tokenInWrappered: Token;
+  tokenOutWrappered: Token;
+  tradeType: TradeType;
+}
+
+const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams) => {
   const router = getRouter();
-  return await getClientSideQuote(args, router, CLIENT_PARAMS);
-};
-
-export const useClientBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
-  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
-  useEffect(() => {
-    const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
-    const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
-    if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null) {
-      setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
-      return;
+  const args: GetQuoteArgs = {
+    tokenInAddress: tokenInWrappered.address,
+    tokenInChainId: Number(targetChainId),
+    tokenInDecimals: tokenInWrappered.decimals,
+    tokenInSymbol: tokenInWrappered.symbol,
+    tokenOutAddress: tokenOutWrappered.address,
+    tokenOutChainId: Number(targetChainId),
+    tokenOutDecimals: tokenOutWrappered.decimals,
+    tokenOutSymbol: tokenOutWrappered.symbol,
+    amount: amountUnit.toDecimalMinUnit(),
+    type: tradeType,
+  };
+  return getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
+    if (res.data) {
+      return res.data;
+    } else {
+      throw new Error('NO_ROUTE');
     }
-    const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
-    const router = getRouter();
-    const args: GetQuoteArgs = {
-      tokenInAddress: tokenInWrappered.address,
-      tokenInChainId: Number(targetChainId),
-      tokenInDecimals: tokenInWrappered.decimals,
-      tokenInSymbol: tokenInWrappered.symbol,
-      tokenOutAddress: tokenOutWrappered.address,
-      tokenOutChainId: Number(targetChainId),
-      tokenOutDecimals: tokenOutWrappered.decimals,
-      tokenOutSymbol: tokenOutWrappered.symbol,
-      amount: amountUnit.toDecimalMinUnit(),
-      type: tradeType,
-    };
-    setBestTrade({ state: TradeState.LOADING });
-    getClientSideQuote(args, router, CLIENT_PARAMS).then((_res) => {
-      if (_res?.error) {
-        setBestTrade({
-          state: TradeState.ERROR,
-        });
-      } else {
-        setBestTrade({
-          state: TradeState.VALID,
-          trade: calcTradeFromData({
-            tradeType,
-            amount,
-            tokenIn: tokenInWrappered,
-            amountUnit,
-            res: _res?.data,
-          }),
-        });
-      }
-    });
-  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
-  return bestTrade;
+  });
 };
 
-export const useServerBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
+  fetch(
+    `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+      tokenOutWrappered.address
+    }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
+  )
+    .then((res) => res.json())
+    .then((res) => {
+      if (res?.errorCode) {
+        if (res.errorCode === 'NO_ROUTE') {
+          throw new Error('Failed to generate client side quote');
+        } else {
+          throw new Error(res.detail ?? res.errorCode);
+        }
+      }
+      return res;
+    });
+
+const bestTradeState = atomFamily<BestTrade, string>({
+  default: { state: TradeState.INVALID },
+  key: `bestTradeState-${import.meta.env.MODE}`,
+})
+
+const bestTradeTracker = new Map<string, boolean>();
+export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+  const [serverFirst] = useRoutingApi();
   const uniqueIdFetchId = useRef<string>('init');
-  const [bestTrade, setBestTrade] = useState<BestTrade>({ state: TradeState.INVALID });
+  const fetchKey = useMemo(() => `${tokenIn?.address}-${tokenIn?.address}-${amount}-${tradeType}`, [tokenIn?.address, tokenOut?.address, amount, tradeType]);
+  const [bestTrade, setBestTrade] = useRecoilState<BestTrade>(bestTradeState(fetchKey));
 
   useEffect(() => {
+    if (bestTradeTracker.has(fetchKey)) return;
+    bestTradeTracker.set(fetchKey, true);
     const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
     const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
-
     if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
       setBestTrade((pre) => (pre.state === TradeState.INVALID ? pre : { state: TradeState.INVALID }));
-      return;
+      return () => {
+        bestTradeTracker.delete(fetchKey);
+      };
     }
 
     uniqueIdFetchId.current = uniqueId('useServerBestTrade');
@@ -139,49 +151,57 @@ export const useServerBestTrade = (tradeType: TradeType | null, amount: string, 
     const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
 
     setBestTrade({ state: TradeState.LOADING });
-    fetch(
-      `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
-        tokenInWrappered.chainId
-      }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
-        tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'
-      }`
-    )
-      .then((res) => res.json())
-      .then((res) => {
+    const fetchByServer = () => fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+    const fetchByClient = () => fetchTradeWithClient({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+    const priorityMethod = serverFirst ? fetchByServer : fetchByClient;
+    const secondaryMethod = serverFirst ? fetchByClient : fetchByServer;
+
+    const runFetch = async (fetchMethod: 'priorityMethod' | 'secondaryMethod') => {
+      try {
+        let fetchPromise = (fetchMethod === 'priorityMethod' ? priorityMethod : secondaryMethod)();
+        const res = await fetchPromise;
         if (currentUniqueId !== uniqueIdFetchId.current) {
           return;
         }
-        if (res?.errorCode) {
+        setBestTrade({
+          state: TradeState.VALID,
+          trade: calcTradeFromData({
+            tradeType,
+            amount,
+            tokenIn: tokenInWrappered,
+            amountUnit,
+            res,
+          }),
+        });
+      } catch (err) {
+        const errStr = String(err);
+        const isNoRoute = errStr?.includes('Failed to generate client side quote');
+        const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get');
+        if (fetchMethod === 'priorityMethod' && isNetworkError) {
+          runFetch('secondaryMethod');
+        } else {
           setBestTrade({
             state: TradeState.ERROR,
-            error: res.errorCode === 'NO_ROUTE' ? 'No Valid Route Found, cannot swap. ' : res.errorCode,
-          });
-        } else {
-          console.log('res', res)
-          setBestTrade({
-            state: TradeState.VALID,
-            trade: calcTradeFromData({
-              tradeType,
-              amount,
-              tokenIn: tokenInWrappered,
-              amountUnit,
-              res,
-            }),
+            error: isNoRoute ? 'No Valid Route Found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
           });
         }
-      });
-  }, [tradeType, amount, tokenIn?.address, tokenOut?.address]);
+      }
+    };
+
+    runFetch('priorityMethod');
+    return () => {
+      bestTradeTracker.delete(fetchKey);
+    }
+  }, [fetchKey]);
 
   return bestTrade;
 };
-
-export const useBestTrade = useClientBestTrade;
 
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
   const token = getWrapperTokenByAddress(tokenAddress);
   const result = useBestTrade(TradeType.EXACT_INPUT, amount, token, TokenUSDT);
-  if (tokenAddress == TokenUSDT.address) return amount ? amount : undefined;
+  if (tokenAddress === TokenUSDT.address) return amount ? amount : undefined;
   if (!tokenAddress) return undefined;
   if (!amount) return undefined;
   if (result.state === TradeState.LOADING) return undefined;
@@ -192,19 +212,14 @@ export const useTokenPrice = (tokenAddress: string | undefined, amount: string =
 };
 
 function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; tradeType: TradeType; amount: string; amountUnit: Unit; tokenIn: Token }) {
-  console.log('res', res)
   const route = res.route as Route[][];
   const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
   const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
 
-  const amountInGasAdjusted = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0);
-  const amountOutGasAdjusted = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quoteGasAdjusted ?? 0) : amountUnit;
-
   const priceIn = amountIn.div(amountOut);
   const priceOut = amountOut.div(amountIn);
 
-  // const networkFeeByAmount = tradeType === TradeType.EXACT_INPUT ? amountOut.sub(amountOutGasAdjusted) : amountInGasAdjusted.sub(amountIn);
-  const networkFeeByAmount = new Unit(res?.gasUseEstimateUSD);
+  const networkFeeByAmount = res?.gasUseEstimateUSD ? new Unit(res?.gasUseEstimateUSD) : undefined;
 
   const realizedLpFeePercent = route.reduce((pre, oneRoute) => {
     const overallPercent = new Unit(oneRoute.at(0)?.amountIn || 0).div(amountIn);

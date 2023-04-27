@@ -2,6 +2,7 @@ import React from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Tooltip from '@components/Tooltip';
 import useI18n from '@hooks/useI18n';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 
 
 const transitions = {
@@ -26,10 +27,8 @@ const PriceImpactWarning: React.FC<Props> = ({ largerPriceImpact }) => {
     <Tooltip text={i18n.price_impact_tips} placement="bottom" interactive delay={[888, 333]}>
       <div className="flex items-center">
         <span className="text-black-normal font-bold">{largerPriceImpact ? largerPriceImpact?.mul(100)?.toDecimalMinUnit(2) : '--'}%</span>
-        <span
-          className=
-          "i-fa6-solid:circle-info ml-6px mb-2px text-13px text-gray-normal font-medium transition-opacity duration-125"
-        /> </div>
+        <InfoIcon className="w-12px h-12px ml-6px mb-2px" />
+      </div>
     </Tooltip>
   </div>
 }

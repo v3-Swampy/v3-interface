@@ -38,7 +38,7 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
         href={`${import.meta.env.VITE_ESpaceScanUrl}/address/${account}`}
       >
         <ShareIcon className="absolute left-32px" />
-        View on explorer
+        view on scan
       </a>
 
       <History />

@@ -13,7 +13,7 @@ const ConnectWallet: React.FC<ComponentProps<'div'> & { icon: string; name: stri
     >
       {children}
       <img className="w-30px h-30px mb-8px" src={icon} />
-      <span className="text-14px text-grey-normal">{name}</span>
+      <span className="text-14px text-gray-normal">{name}</span>
     </div>
   );
 };

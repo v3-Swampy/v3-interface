@@ -40,9 +40,10 @@ interface Props {
     tokenB_Address: string;
     tokenB_Value: string;
   };
+  onSuccess: VoidFunction;
 }
 
-const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
+const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   sourceTokenAmount,
   destinationTokenAmount,
   sourceToken,
@@ -57,17 +58,11 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleSwap } = useInTransaction(_handleSwap);
   const handleClickConfirm = useCallback(async () => {
-    try {
-      const txHash = await handleSwap(transactionParams);
-
-      setNextInfo({ txHash, recordParams });
-    } catch (err) {
-      console.error(`${recordParams?.type} transaction failed: `, err);
-    }
+    setNextInfo({ sendTranscation: () => handleSwap(transactionParams), recordParams });
   }, []);
 
   return (
-    <div className="mt-24px">
+    <div className="mt-24px h-full flex-grow-1 flex flex-col">
       <div className="flex justify-between items-center h-72px px-24px rounded-20px bg-orange-light-hover">
         <span className="text-32px font-medium">{sourceTokenAmount}</span>
         <div className={'flex-shrink-0 ml-14px flex items-center text-14px text-black-normal font-medium'}>
@@ -88,25 +83,33 @@ const StakeConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
       </div>
 
-      <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} fromPreview />
+      <SwapDetail
+        bestTrade={bestTrade}
+        sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} sourceTokenAmount={sourceTokenAmount} destinationTokenAmount={destinationTokenAmount} fromPreview />
 
       <p className="my-16px px-24px text-14px leading-18px text-gray-normal font-medium">
-        Input is estimated. You will sell at most<span className='mx-6px text-black-normal'>{trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}</span>or the transaction will revert.
+        Input is estimated. You will sell at most
+        <span className="mx-6px text-black-normal">
+          {trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}
+        </span>
+        or the transaction will revert.
       </p>
 
-      <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
+      <Button color="orange" fullWidth className="mt-auto h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
         {i18n.confirm_swap}
       </Button>
     </div>
   );
 };
 
-const showStakeConfirmModal = (props: Props) => {
+const showSwapConfirmModal = (props: Props) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).confirm_swap,
-    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeConfirmModal {...confirmModalInnerProps} {...props} />,
-    className: '!max-w-572px !min-h-540px',
+    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <SwapConfirmModal {...confirmModalInnerProps} {...props} />,
+    tokenNeededAdd: props?.destinationToken,
+    className: '!max-w-572px !min-h-540px flex flex-col',
+    onSuccess: props.onSuccess
   });
 };
 
-export default showStakeConfirmModal;
+export default showSwapConfirmModal;

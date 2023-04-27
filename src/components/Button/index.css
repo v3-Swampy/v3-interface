@@ -27,8 +27,7 @@ button.absolute {
 
 button.button.is-disabled:not(.is-loading),
 a.button.is-disabled:not(.is-loading) {
-  @apply text-white-normal;
-  @apply bg-gray-normal bg-opacity-50 text-grey-normal border-transparent;
+  @apply bg-gray-normal bg-opacity-50 border-transparent text-white-normal;
 }
 
 a.button--text.is-disabled,
@@ -59,13 +58,15 @@ button.button--text.is-disabled {
   @apply bg-orange-light text-black-normal;
 }
 
-.button--contained.button--gradient:not(.is-disabled) {
+.button--contained.button--gradient:not(.is-disabled), .button--contained.button--gradient.is-loading {
   @apply text-white-normal;
   background: linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
 }
 
 .button--contained.button--gradient:hover:not(.is-disabled),
-.button--contained.button--gradient:focus-visible:not(.is-disabled) {
+.button--contained.button--gradient:hover:not(.is-loading),
+.button--contained.button--gradient:focus-visible:not(.is-disabled),
+.button--contained.button--gradient:focus-visible:not(.is-loading) {
   background: linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
 }
 

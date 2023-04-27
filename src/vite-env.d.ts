@@ -4,6 +4,8 @@
 interface ImportMetaEnv {
   readonly VITE_ESpaceRpcUrl: string;
   readonly VITE_ESpaceScanUrl: string;
+  readonly VITE_FarmingConfigUrl: string;
+  readonly VITE_TokenListConfigUrl: string;
 }
 
 interface ImportMeta {

@@ -9,16 +9,15 @@ import useI18n from '@hooks/useI18n';
 import {
   exchangeTokenDirection,
   handleConfirmSwap,
-  useCalcDetailAndRouter,
   useSourceToken,
   useDestinationToken,
   getSourceToken,
   getDestinationToken,
   confirmPriceImpactWithoutFee,
-  warningSeverity
+  warningSeverity,
 } from '@service/swap';
 import { useBestTrade, TradeState, useTokenPrice } from '@service/pairs&pool';
-import { TradeType } from '@service/pairs&pool/bestTrade';
+import { TradeType } from '@service/swap/bestTrade';
 import { useExpertMode } from '@service/settings';
 import { computeFiatValuePriceImpact } from '@service/swap';
 import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
@@ -51,27 +50,27 @@ const SwapPage: React.FC = () => {
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
   const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
 
-  const sourceTokenTradeAmountUSDPrice = useTokenPrice(sourceToken?.address, sourceTokenAmount);
-  const destinationTokenTradeAmountUSDPrice = useTokenPrice(destinationToken?.address, destinationTokenAmount);
+  const sourceTokenTradeAmountUSDPrice = undefined;
+  const destinationTokenTradeAmountUSDPrice = undefined;
 
   const stablecoinPriceImpact = useMemo(
     () => (!bestTrade?.trade ? undefined : computeFiatValuePriceImpact(sourceTokenTradeAmountUSDPrice, destinationTokenTradeAmountUSDPrice)),
     [sourceTokenTradeAmountUSDPrice, destinationTokenTradeAmountUSDPrice, bestTrade]
   );
+
   const { priceImpactSeverity, largerPriceImpact } = useMemo(() => {
     const marketPriceImpact = bestTrade?.trade?.priceImpact;
-    const largerPriceImpact = stablecoinPriceImpact && marketPriceImpact ? Unit.max(stablecoinPriceImpact, marketPriceImpact) : (marketPriceImpact || stablecoinPriceImpact);
+    const largerPriceImpact = stablecoinPriceImpact && marketPriceImpact ? Unit.max(stablecoinPriceImpact, marketPriceImpact) : marketPriceImpact || stablecoinPriceImpact;
     return {
       priceImpactSeverity: warningSeverity(largerPriceImpact),
       largerPriceImpact,
-    }
-  }, [bestTrade, stablecoinPriceImpact])
+    };
+  }, [bestTrade, stablecoinPriceImpact]);
 
-  console.log('severity', priceImpactSeverity, largerPriceImpact?.toDecimalMinUnit(4));
-  const expertMode = useExpertMode()
+  const [expertMode] = useExpertMode();
 
-  const priceImpactTooHigh = priceImpactSeverity > 3 && !expertMode
-  const showPriceImpactWarning = largerPriceImpact?.toDecimalMinUnit() && priceImpactSeverity > 3
+  const priceImpactTooHigh = largerPriceImpact ? priceImpactSeverity > 3 && !expertMode : undefined;
+  const showPriceImpactWarning = largerPriceImpact?.toDecimalMinUnit() && priceImpactSeverity > 3;
 
   useEffect(() => {
     if (inputedType && bestTrade.state === TradeState.VALID && bestTrade?.trade) {
@@ -91,9 +90,7 @@ const SwapPage: React.FC = () => {
 
   const handleInputTypeChange = useCallback(
     debounce((type: 'sourceToken' | 'destinationToken', amount: string) => {
-      const sourceToken = getSourceToken();
-      const destinationToken = getDestinationToken();
-      if (!sourceToken || !destinationToken || !amount) {
+      if (!amount) {
         setInputedType(null);
         return;
       }
@@ -118,12 +115,11 @@ const SwapPage: React.FC = () => {
         bestTrade,
         sourceTokenUSDPrice,
         destinationTokenUSDPrice,
+        setValue
       });
     }),
     [bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact]
   );
-
-  useCalcDetailAndRouter();
 
   return (
     <PageWrapper className="pt-56px">
@@ -134,7 +130,7 @@ const SwapPage: React.FC = () => {
         </div>
 
         <form onSubmit={onSubmit}>
-          <SelectedToken type="sourceToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
+          <SelectedToken type="sourceToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
           <div
             className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer"
             onClick={() => {
@@ -147,13 +143,25 @@ const SwapPage: React.FC = () => {
               <ExchangeIcon className="w-26px h-26px" />
             </div>
           </div>
-          <SelectedToken type="destinationToken" register={register} setValue={setValue} handleInputChange={handleInputChange} />
+          <SelectedToken type="destinationToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
 
-          <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} />
+          <SwapDetail
+            bestTrade={bestTrade}
+            sourceTokenUSDPrice={sourceTokenUSDPrice}
+            destinationTokenUSDPrice={destinationTokenUSDPrice}
+            sourceTokenAmount={sourceTokenAmount}
+            destinationTokenAmount={destinationTokenAmount}
+          />
 
           {showPriceImpactWarning && <PriceImpactWarning largerPriceImpact={largerPriceImpact} />}
 
-          <SubmitButton sourceTokenAmount={sourceTokenAmount} priceImpactTooHigh={priceImpactTooHigh} priceImpactSeverity={priceImpactSeverity} tradeState={bestTrade.state} />
+          <SubmitButton
+            sourceTokenAmount={sourceTokenAmount}
+            destinationTokenAmount={destinationTokenAmount}
+            priceImpactTooHigh={priceImpactTooHigh}
+            priceImpactSeverity={priceImpactSeverity}
+            tradeState={bestTrade.state}
+          />
         </form>
       </BorderBox>
     </PageWrapper>

@@ -30,7 +30,7 @@ class TopLevelErrorBoundary extends React.Component<{ children: React.ReactNode 
 
           {this.state.error && (
             <>
-              <h3 className="mt-[40px] mb-[12px] text-center text-[18px] text-grey-normal font-semibold">
+              <h3 className="mt-[40px] mb-[12px] text-center text-[18px] text-gray-normal font-semibold">
                 And we hope you can recall the operation steps and send the following error message to the official channel together.
               </h3>
               <CustomScrollbar className="p-[24px] border-4 border-red-300 rounded-lg max-w-[80vw] text-[16px] leading-[18px] text-[#3D3F4C]">

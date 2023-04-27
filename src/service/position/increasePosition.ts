@@ -1,19 +1,15 @@
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { uniqueId } from 'lodash-es';
-import Decimal from 'decimal.js';
 import { NonfungiblePositionManager } from '@contracts/index';
-import { getWrapperTokenByAddress, isTokenEqual } from '@service/tokens';
+import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { getPool, type Pool } from '@service/pairs&pool';
+import { getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
 import { getDeadline, getSlippageTolerance } from '@service/settings';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
-
-const Q192 = new Decimal(2).toPower(192);
-const Zero = new Unit(0);
 
 export const handleClickSubmitIncreasePositionLiquidity = async ({
   tokenId,
@@ -105,8 +101,8 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     showLiquidityPreviewModal({
       leftToken: _tokenA,
       rightToken: _tokenB,
-      leftAmount: Unit.fromStandardUnit(amountTokenA).add((isTokenEqual(token0, _tokenA) ? position.amount0 : position.amount1) ?? 0),
-      rightAmount: Unit.fromStandardUnit(amountTokenB).add((isTokenEqual(token0, _tokenA) ? position.amount1 : position.amount0) ?? 0),
+      leftAmount: Unit.fromStandardUnit(amountTokenA, _tokenA.decimals),
+      rightAmount: Unit.fromStandardUnit(amountTokenB, _tokenB.decimals),
       inverted,
       previewUniqueId,
       previewPosition: createPreviewPositionForUI(

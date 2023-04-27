@@ -18,12 +18,12 @@ const transitions = {
   en: {
     title: 'Stake VST',
     confirm: 'Confirm',
-    current_boosting: 'Your Boosting will be: <b>{boosting}</b>',
+    current_boosting: 'Your estimated boost will be: <b>{boosting}</b>',
   },
   zh: {
     title: '质押 VST',
     confirm: '确认',
-    current_boosting: 'Your Current will be: <b>{boosting}</b>',
+    current_boosting: 'Your estimated boost will be: <b>{boosting}</b>',
   },
 } as const;
 
@@ -71,24 +71,28 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
     //    IncreaseUnlockTime: the amount will be same, because you will not change the amount value.
     let addedStakeAmount: Unit = new Unit(0);
     let duration: number = currentStakeDuration;
+    let addedUserVeVST: Unit = new Unit(0);
     switch (modalMode) {
       case ModalMode.CreateLock:
         addedStakeAmount = new Unit(stakeAmount || 0);
         // in this status, your lockedAmount will be 0.
         duration = currentStakeDuration;
+        addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
         break;
       case ModalMode.IncreaseAmount:
         addedStakeAmount = new Unit(stakeAmount || 0);
         duration = currentUnlockTime - dayjs().unix();
+        addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
         break;
       case ModalMode.IncreaseUnlockTime:
         addedStakeAmount = new Unit(0);
         duration = currentUnlockTime - dayjs().unix() + currentStakeDuration;
+        //in this situation, the unlock time wiil be increased, so the previous and current veVST will be changed.
+        addedUserVeVST = maxTime ? new Unit(lockedAmount).mul(currentStakeDuration).div(maxTime) : new Unit(0);
         break;
     }
     const totalStakeAmount = new Unit(lockedAmount).add(addedStakeAmount);
     const userVeVST = maxTime ? totalStakeAmount.mul(duration).div(maxTime) : new Unit(0);
-    const addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
     const addedUserVeVST_decimals = Unit.fromStandardUnit(addedUserVeVST, TokenVST.decimals);
     const _totalSupply = new Unit(veTotalSupply || 0).add(addedUserVeVST_decimals).toDecimalStandardUnit(undefined, TokenVST.decimals);
     return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1);
@@ -99,7 +103,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
       const extendDuration = data['VST-stake-duration'];
       const extendDurationText = data['VST-stake-duration-text'];
       const addAmount = data['VST-stake-amount'];
-      let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams;
+      let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams: any;
       let unlockTime = dayjs(currentUnlockTime ? currentUnlockTime * 1000 : undefined).unix() + extendDuration;
       let amount = '0x0';
       switch (modalMode) {
@@ -119,13 +123,11 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
           break;
       }
       try {
-        const txHash = await handleStakingVST({
-          methodName,
-          methodParams,
-        });
-
         setNextInfo({
-          txHash,
+          sendTranscation: () => handleStakingVST({
+            methodName,
+            methodParams,
+          }),
           recordParams: {
             type: methodName === 'createLock' ? 'Stake_CreateLock' : methodName === 'increaseUnlockTime' ? 'Stake_IncreaseUnlockTime' : 'Stake_IncreaseAmount',
             tokenA_Value: methodName !== 'increaseUnlockTime' ? addAmount : extendDurationText,

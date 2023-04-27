@@ -1,8 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { atom } from 'recoil';
-import { getRecoil, setRecoil } from 'recoil-nexus';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import PageWrapper from '@components/Layout/PageWrapper';
@@ -14,6 +12,7 @@ import useInTransaction from '@hooks/useInTransaction';
 import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/position';
 import SelectPair, { useTokenA, useTokenB, swapTokenAB, resetToken } from './SelectPair';
 import DepositAmounts from '@modules/Position/DepositAmounts';
+import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import SelectFeeTier, { useCurrentFee } from './SelectFeeTier';
 import SetPriceRange from './SetPriceRange';
 import SubmitButton from './SubmitButton';
@@ -30,12 +29,9 @@ const transitions = {
   },
 } as const;
 
-const swapLockState = atom({ key: 'swapLock', default: false });
-export const getSwapLock = () => getRecoil(swapLockState);
-const setSwapLock = (lock: boolean) => setRecoil(swapLockState, lock);
-
 const AddLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
+  const navigate = useNavigate();
   const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
 
   const currentFee = useCurrentFee();
@@ -46,6 +42,7 @@ const AddLiquidity: React.FC = () => {
 
   const priceLower = watch('price-lower', '') as string;
   const priceUpper = watch('price-upper', '') as string;
+
   /** null means range not input */
   const isRangeValid = useMemo(() => {
     try {
@@ -59,24 +56,8 @@ const AddLiquidity: React.FC = () => {
   const amountTokenB = watch('amount-tokenB', '') as string;
   const priceInit = watch('price-init', '') as string;
 
-  const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitCreatePosition } = useInTransaction(_handleClickSubmitCreatePosition);
-  const onSubmit = useCallback(
-    withForm(async (data) => {
-      if (!tokenA || !tokenB) return;
-      handleClickSubmitCreatePosition({
-        ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
-        fee: currentFee,
-        tokenA,
-        tokenB,
-        priceInit,
-      });
-    }),
-    [tokenA, tokenB, priceInit, currentFee]
-  );
-
   const handleSwapToken = useCallback(() => {
     if (!swapTokenAB()) return;
-    setSwapLock(true);
     const values = getValues();
     const amountTokenA = values['amount-tokenA'];
     const amountTokenB = values['amount-tokenB'];
@@ -96,6 +77,8 @@ const AddLiquidity: React.FC = () => {
         } else {
           setValue('price-upper', 'Infinity');
         }
+      } else {
+        setValue('price-upper', '');
       }
 
       if (priceUpper) {
@@ -105,23 +88,38 @@ const AddLiquidity: React.FC = () => {
         } else {
           setValue('price-lower', '0');
         }
+      } else {
+        setValue('price-lower', '');
       }
-      setValue('amount-tokenB', amountTokenA);
       setTimeout(() => {
+        setValue('amount-tokenB', amountTokenA);
         setValue('amount-tokenA', amountTokenB);
-        setTimeout(() => {
-          setSwapLock(false);
-        }, 100);
       });
     });
   }, []);
 
+  const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitCreatePosition } = useInTransaction(_handleClickSubmitCreatePosition);
+  const onSubmit = useCallback(
+    withForm(async (data) => {
+      if (!tokenA || !tokenB) return;
+      handleClickSubmitCreatePosition({
+        ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
+        fee: currentFee,
+        tokenA,
+        tokenB,
+        priceInit,
+        navigate
+      });
+    }),
+    [tokenA, tokenB, priceInit, currentFee]
+  );
+
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
-        <div className="relative flex items-center pl-16px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline text-orange-normal">
-            <span className="i-material-symbols:keyboard-arrow-left absolute -left-10px translate-y-1px text-24px text-gray-normal" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
             {i18n.add_liquidity}
           </Link>
 
@@ -173,7 +171,15 @@ const AddLiquidity: React.FC = () => {
             </div>
 
             <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between">
-              <SetPriceRange register={register} setValue={setValue} getValues={getValues} isRangeValid={isRangeValid} priceInit={priceInit} priceUpper={priceUpper} />
+              <SetPriceRange
+                register={register}
+                setValue={setValue}
+                getValues={getValues}
+                isRangeValid={isRangeValid}
+                priceInit={priceInit}
+                priceLower={priceLower}
+                priceUpper={priceUpper}
+              />
 
               <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} />
             </div>

@@ -5,6 +5,7 @@ import BorderBox from '@components/Box/BorderBox';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { usePosition } from '@service/position';
 import useI18n from '@hooks/useI18n';
+import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';
@@ -26,9 +27,9 @@ const LiquidityDetail: React.FC = () => {
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center mb-16px gap-8px">
-          <span className="i-material-symbols:keyboard-arrow-left text-24px text-gray-normal" />
+        <div className="flex items-center pl-8px pr-16px mb-16px">
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-18px text-14px text-gray-normal">
+            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
             {i18n.back_to_pools}
           </Link>
         </div>
@@ -44,7 +45,7 @@ const LiquidityDetail: React.FC = () => {
               <UnclaimedFees />
             </div>
           </div>
-          <SelectedPriceRange position={position} tokenId={tokenId}/>
+          <SelectedPriceRange position={position} tokenId={tokenId} />
         </BorderBox>
       </div>
     </PageWrapper>

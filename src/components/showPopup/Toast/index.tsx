@@ -4,6 +4,10 @@ import { useSpring, a } from '@react-spring/web';
 import { PopupClass, PopupProps } from '@components/Popup';
 import { isMobile } from '@utils/is';
 import renderReactNode from '@utils/renderReactNode';
+import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
+import { ReactComponent as ErrorIcon } from '@assets/icons/error_small.svg';
+import { ReactComponent as WarningIcon } from '@assets/icons/warning_small.svg';
+import { ReactComponent as SuccessIcon } from '@assets/icons/success_small.svg';
 import './index.css';
 
 export const Toast = new PopupClass(true);
@@ -13,7 +17,7 @@ Toast.initPromise.then(() => {
   Toast.setAnimatedSize(true);
 });
 
-type Type = 'success' | 'warning';
+type Type = 'success' | 'warning' | 'error' | 'info';
 
 const ToastComponent: React.FC<{ content: string | React.ReactNode | Function; duration: number; hide: () => void; type: Type; showClose?: boolean }> = memo(
   ({ content, duration, type = 'info', showClose = true, hide }) => {
@@ -24,15 +28,14 @@ const ToastComponent: React.FC<{ content: string | React.ReactNode | Function; d
     });
 
     return (
-      <div className="relative bg-orange-light-hover rounded-10px overflow-hidden group lt-mobile:w-[calc(100vw-24px)] lt-tiny:w-[calc(100vw-12px)]">
-        <div className={cx('flex items-center px-24px py-16px', { 'text-#FF9900': type === 'warning', 'text-green-normal': type === 'success' })}>
+      <div className="relative bg-orange-light-hover overflow-hidden group lt-mobile:w-[calc(100vw-24px)] lt-tiny:w-[calc(100vw-12px)] ">
+        <div className={cx('flex items-center px-24px py-16px', { 'text-warning-normal': type === 'warning', 'text-green-normal': type === 'success', 'text-error-normal': type === 'error', 'text-gray-normal': type === 'info' })}>
           {showClose && (
-            <span
-              className={cx('i-ep:close-bold absolute right-6px top-6px text-14px cursor-pointer lt-mobile:opacity-100', !isMobile && 'opacity-0 group-hover:opacity-100 transition-opacity')}
-              onClick={hide}
-            />
+            <CloseBoldIcon className={cx('w-8px h-8px absolute right-8px top-8px cursor-pointer lt-mobile:opacity-100', !isMobile && 'opacity-0 group-hover:opacity-100 transition-opacity')} onClick={hide} />
           )}
-          <span className={cx('text-26px mr-16px flex-shrink-0', { 'i-fa-solid:check-circle': type === 'success', 'i-material-symbols:warning-rounded': type === 'warning' })} />
+          {type === 'success' && <SuccessIcon className="w-24px h-24px mr-16px flex-shrink-0" />}
+          {type === 'warning' && <WarningIcon className="w-24px h-24px mr-16px flex-shrink-0" />}
+          {type === 'error' && <ErrorIcon className="w-24px h-24px mr-16px flex-shrink-0" />}
           {(typeof content === 'string') && <p className="leading-24px text-14px mobile:max-w-282px" dangerouslySetInnerHTML={{ __html: content }}/>}
           {typeof content !== 'string' && <div className='leading-24px text-14px mobile:max-w-282px'>{renderReactNode(content)}</div>}
         </div>
@@ -51,13 +54,13 @@ export const showToast = (content: string | React.ReactNode | Function, config?:
     Content: (
       <ToastComponent
         content={content}
-        duration={config?.duration ?? 5000}
+        duration={config?.duration ?? 6666}
         hide={hide}
         type={config?.type ?? 'success'}
         showClose={config?.showClose}
       />
     ),
-    duration: config?.duration ?? 5000,
+    duration: config?.duration ?? 6666,
     animationType: 'slideRight',
     ...config,
   });

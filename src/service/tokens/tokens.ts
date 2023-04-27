@@ -133,10 +133,7 @@ export const deleteFromCommonTokens = (token: Token) => {
 
 // init tokens data;
 (async function () {
-  const tokensURL =
-    import.meta.env.MODE === 'development'
-      ? 'https://raw.githubusercontent.com/v3-Swampy/token-list/dev/tokenList.testnet.json'
-      : 'https://raw.githubusercontent.com/v3-Swampy/token-list/dev/tokenList.mainnet.json';
+  const tokensURL = `${import.meta.env.VITE_TokenListConfigUrl}`;
   try {
     const [p] = waitAsyncResult({
       fetcher: (): Promise<{ tokens: Array<Token> }> => fetch(tokensURL).then((res) => res.json()),
@@ -162,8 +159,15 @@ export const deleteFromCommonTokens = (token: Token) => {
 export const convertTokenToUniToken = (token: Token) => new UniToken(+targetChainId, token.address, token.decimals, token.symbol, token.name);
 
 export const isTokenEqual = (tokenA: Token | null | undefined, tokenB: Token | null | undefined) => {
-  if ((tokenA && !tokenB)  || (!tokenA && tokenB)) return false;
+  if ((tokenA && !tokenB) || (!tokenA && tokenB)) return false;
   if ((tokenA === null && tokenB === undefined) || (tokenA === undefined && tokenB === null)) return false;
   if (!tokenA && !tokenB) return true;
   return getUnwrapperTokenByAddress(tokenA?.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB?.address)?.address?.toLocaleLowerCase();
+};
+
+export const getToken0And1 = ({ tokenA, tokenB }: { tokenA: Token; tokenB: Token }) => {
+  const tokenAWrappered = getWrapperTokenByAddress(tokenA.address);
+  const tokenBWrappered = getWrapperTokenByAddress(tokenB.address);
+  if (!tokenAWrappered || !tokenBWrappered) return [undefined, undefined];
+  return tokenAWrappered.address.toLocaleLowerCase() < tokenBWrappered.address.toLocaleLowerCase() ? [tokenAWrappered, tokenBWrappered] : [tokenBWrappered, tokenAWrappered];
 };
