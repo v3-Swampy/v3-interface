@@ -10,19 +10,22 @@ import useInTransaction from '@hooks/useInTransaction';
 import { addRecordToHistory } from '@service/history';
 import { PositionForUI } from '@service/position';
 import { hidePopup } from '@components/showPopup';
+import { ReactComponent as WarningIcon } from '@assets/icons/warning_color.svg';
 
 const transitions = {
   en: {
-    title: 'Warning',
-    info: '<span class="text-orange-normal">No rewards</span> if you unstake {symbol0}/{symbol1} now!',
+    title: 'Unstake',
+    info: 'Unstaking LP before the claim time will result in losing all earned rewards.',
     claimAndUnstake: 'Cancel',
     claimAndStake: 'Unstake',
+    confirmInfo: 'Are you sure you want to Unstake?',
   },
   zh: {
-    title: 'Warning',
-    info: '<span class="text-orange-normal">No rewards</span> if you unstake {symbol0}/{symbol1} now!',
+    title: 'Unstake',
+    info: 'Unstaking LP before the claim time will result in losing all earned rewards.',
     claimAndUnstake: 'Cancel',
     claimAndStake: 'Unstake',
+    confirmInfo: 'Are you sure you want to Unstake?',
   },
 } as const;
 
@@ -54,48 +57,52 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, curre
   };
 
   return (
-    <div className="mt-24px min-h-218px !flex flex-col items-center justify-center">
-      {/* <LogoIcon className="-mt-8"></LogoIcon> */}
+    <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
+      <WarningIcon className="-mt-8"></WarningIcon>
       <div
-        className="text-22px leading-28px font-400 font-not-italic -mt-8 w-120 text-center"
+        className="text-18px leading-30px font-500 font-not-italic mt-6 w-76"
         dangerouslySetInnerHTML={{
           __html: compiled(i18n.info, { symbol0: position?.token0?.symbol, symbol1: position?.token1?.symbol }),
         }}
       ></div>
-      <div className="absolute flex bottom-6 left-4 right-4 justify-between">
-        <Button
-          color="gray"
-          className={`${classNames.baseButton} border border-solid bg-white-normal`}
-          onClick={async () => {
-            hidePopup();
-          }}
-        >
-          {i18n.claimAndUnstake}
-        </Button>
-        <Button
-          loading={inTransaction}
-          className={`${classNames.baseButton} ${classNames.activeButton}`}
-          onClick={async () => {
-            const txHash = await handleClaimUnStake({
-              isActive,
-              key: incentive,
-              tokenId: id,
-              pid,
-              accountAddress: account as string,
-            });
 
-            setTimeout(() => {
+      <div className="absolute bottom-6 left-4 right-4">
+        <div className="font-400 text-12px leading-20px color-gray-normal text-center mb-2">{i18n.confirmInfo}</div>
+        <div className="flex justify-between">
+          <Button
+            color="gray"
+            className={`${classNames.baseButton} border border-solid bg-white-normal`}
+            onClick={async () => {
               hidePopup();
-            }, 200);
+            }}
+          >
+            {i18n.claimAndUnstake}
+          </Button>
+          <Button
+            loading={inTransaction}
+            className={`${classNames.baseButton} ${classNames.activeButton}`}
+            onClick={async () => {
+              const txHash = await handleClaimUnStake({
+                isActive,
+                key: incentive,
+                tokenId: id,
+                pid,
+                accountAddress: account as string,
+              });
 
-            addRecordToHistory({
-              txHash,
-              type: 'MyFarms_Unstake',
-            });
-          }}
-        >
-          {i18n.claimAndStake}
-        </Button>
+              setTimeout(() => {
+                hidePopup();
+              }, 200);
+
+              addRecordToHistory({
+                txHash,
+                type: 'MyFarms_Unstake',
+              });
+            }}
+          >
+            {i18n.claimAndStake}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -109,7 +116,7 @@ const showUnstakeModal = (data: ModalType) => {
         <UnstakeModal {...data} {...props} />
       </Suspense>
     ),
-    className: '!max-w-572px !min-h-300px',
+    className: '!max-w-572px !min-h-466px',
   });
 };
 
