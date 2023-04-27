@@ -29,7 +29,7 @@ const Input = forwardRef<HTMLInputElement, Props>(({ wrapperClassName, className
       {clearIcon && (
         <span className="clear-icon display-none absolute top-1/2 -translate-y-1/2 justify-center items-center right-.5em w-fit h-fit text-gray-normal">
           <span
-            className={cx('i-carbon:close-filled text-1em text-grey-normal-hover', disabled ? 'cursor-default' : 'cursor-pointer')}
+            className={cx('i-carbon:close-filled text-1em text-gray-normal-hover', disabled ? 'cursor-default' : 'cursor-pointer')}
             onClick={handleClickClear}
             onMouseDown={preventBlur}
           />

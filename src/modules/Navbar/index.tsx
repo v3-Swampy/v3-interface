@@ -18,7 +18,7 @@ const Navbar: React.FC = () => {
   return (
     <header
       className={cx(
-        'relative flex flex-col justify-center items-center h-80px text-grey-normal whitespace-nowrap z-100 lt-md:h-72px transition-colors',
+        'relative flex flex-col justify-center items-center h-80px text-gray-normal whitespace-nowrap z-100 lt-md:h-72px transition-colors',
         mainScrollerDistance > 1 && 'bg-#FFFDFA'
       )}
     >

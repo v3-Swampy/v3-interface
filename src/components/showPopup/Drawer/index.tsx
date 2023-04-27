@@ -31,7 +31,7 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; subTitle?
 
     return (
       <div className={cx('px-16px p-24px pb-40px h-full', className)}>
-        <div className="flex justify-between items-center text-16px text-grey-normal font-bold">
+        <div className="flex justify-between items-center text-16px text-gray-normal font-bold">
           {title ?? 'title'}
           <CloseBoldIcon className="w-12px h-12px text-gray-normal cursor-pointer" onClick={hidePopup} />
         </div>

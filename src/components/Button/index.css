@@ -27,8 +27,7 @@ button.absolute {
 
 button.button.is-disabled:not(.is-loading),
 a.button.is-disabled:not(.is-loading) {
-  @apply text-white-normal;
-  @apply bg-gray-normal bg-opacity-50 text-grey-normal border-transparent;
+  @apply bg-gray-normal bg-opacity-50 border-transparent text-white-normal;
 }
 
 a.button--text.is-disabled,
