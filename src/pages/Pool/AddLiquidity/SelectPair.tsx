@@ -8,6 +8,7 @@ import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
 import { getRecoil } from 'recoil-nexus';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 
 const transitions = {
   en: {
@@ -96,7 +97,7 @@ const SelectPair: React.FC<{ handleSwapToken: VoidFunction; }> = ({ handleSwapTo
             </>
           )}
           {!tokenA && i18n.select_token}
-          <span className="i-ic:sharp-keyboard-arrow-down ml-auto flex-shrink-0 text-16px font-medium" />
+          <ArrowDownIcon className="w-8px h-5px ml-auto flex-shrink-0" />
         </Button>
 
         <Button
@@ -113,7 +114,7 @@ const SelectPair: React.FC<{ handleSwapToken: VoidFunction; }> = ({ handleSwapTo
             </>
           )}
           {!tokenB && i18n.select_token}
-          <span className="i-ic:sharp-keyboard-arrow-down ml-auto flex-shrink-0 text-16px font-medium" />
+          <ArrowDownIcon className="w-8px h-5px ml-auto flex-shrink-0" />
         </Button>
       </div>
     </>

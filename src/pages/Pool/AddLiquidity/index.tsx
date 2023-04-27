@@ -117,7 +117,7 @@ const AddLiquidity: React.FC = () => {
       <div className="mx-auto max-w-800px">
         <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline text-orange-normal">
-            <ArrowLeftIcon className="w-8px h-12px mr-16px text-gray-normal" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
             {i18n.add_liquidity}
           </Link>
 

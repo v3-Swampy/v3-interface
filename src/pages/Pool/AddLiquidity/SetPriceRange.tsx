@@ -9,6 +9,8 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
+import { ReactComponent as RoundMinusIcon } from '@assets/icons/round_minus.svg';
+import { ReactComponent as RoundAddIcon } from '@assets/icons/round_add.svg';
 
 const transitions = {
   en: {
@@ -60,6 +62,12 @@ const RangeInput: React.FC<
 > = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues }) => {
   const i18n = useI18n(transitions);
 
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
+    if (evt.target.value === '') {
+      setValue('amount-tokenB', '');
+    }
+  }, []);
+
   const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (evt) => {
       if (!tokenA || !tokenB || !evt.target.value) return;
@@ -104,7 +112,8 @@ const RangeInput: React.FC<
     const priceStr = value[`price-${type}`];
     if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
     const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
-    setValue(`price-${type}`, prePrice?.toDecimalMinUnit(5));
+    const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit(5));
+    setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
   }, [fee, tokenA?.address, tokenB?.address]);
 
   const handleClickAdd = useCallback(() => {
@@ -117,7 +126,7 @@ const RangeInput: React.FC<
     }
     if (priceStr === '0' || priceStr === 'Infinity') return;
     const nextPrice = findNextPreValidPrice({ direction: 'next', fee, tokenA, tokenB, searchPrice: priceStr });
-    setValue(`price-${type}`, nextPrice?.toDecimalMinUnit(5));
+    setValue(`price-${type}`, trimDecimalZeros(nextPrice?.toDecimalMinUnit(5)));
   }, [placeholder, fee, tokenA?.address, tokenB?.address]);
 
   const shouldHideSubIcon = useMemo(() => {
@@ -159,7 +168,7 @@ const RangeInput: React.FC<
           )}
           onClick={handleClickSub}
         >
-          <span className="i-ic:round-minus" />
+          <RoundMinusIcon className="w-24px h-24px" />
         </div>
         <Input
           className="mx-8px h-40px text-14px text-black-normal"
@@ -169,16 +178,17 @@ const RangeInput: React.FC<
           {...register(`price-${type}`, {
             required: true,
             min: 0,
+            onBlur: handlePriceChange,
+            onChange: handleChange
           })}
           min={0}
-          onBlur={handlePriceChange}
           step={0.00001}
           type={type === 'upper' ? 'string' : 'number'}
         />
 
         {type === 'upper' && priceUpper === 'Infinity' && (
           <div className="add-liquidity-price-infinity absolute flex justify-center items-center left-36px h-36px w-56px bg-orange-light-hover pointer-events-none">
-            <span className="i-icomoon-free:infinite text-18px text-black-normal font-medium" />
+            <span className="text-24px text-black-normal font-medium">∞</span>
           </div>
         )}
         <div
@@ -188,7 +198,7 @@ const RangeInput: React.FC<
           )}
           onClick={handleClickAdd}
         >
-          <span className="i-material-symbols:add-rounded" />
+          <RoundAddIcon className="w-24px h-24px" />
         </div>
       </div>
     </div>

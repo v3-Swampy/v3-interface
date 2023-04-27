@@ -1,4 +1,4 @@
-import React, {  Suspense } from 'react';
+import React, { Suspense } from 'react';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { ReactComponent as LogoIcon } from '@assets/icons/logo_icon.svg';
@@ -11,6 +11,7 @@ import useInTransaction from '@hooks/useInTransaction';
 import { addRecordToHistory } from '@service/history';
 import type { PoolType } from '@service/farming';
 import { PositionForUI } from '@service/position';
+import { hidePopup } from '@components/showPopup';
 
 const transitions = {
   en: {
@@ -42,10 +43,10 @@ interface ModalType {
   id: number;
   pid: number;
   currentIncentiveKey: IncentiveKey;
-  position:PositionForUI
+  position: PositionForUI;
 }
 
-const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey,position }) => {
+const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pid, currentIncentiveKey, position }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
   // @ts-ignore
@@ -64,7 +65,7 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
       <div
         className="text-22px leading-28px font-400 font-not-italic mt-8 w-90"
         dangerouslySetInnerHTML={{
-          __html:compiled(i18n.info,{symbol0:position?.token0?.symbol,symbol1:position?.token1?.symbol}),
+          __html: compiled(i18n.info, { symbol0: position?.token0?.symbol, symbol1: position?.token1?.symbol }),
         }}
       ></div>
       <div className="absolute flex bottom-6 left-4 right-4 justify-between">
@@ -81,10 +82,12 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
               accountAddress: account as string,
             });
 
-            addRecordToHistory({
+            await addRecordToHistory({
               txHash,
               type: 'MyFarms_ClaimAndUnstake',
             });
+
+            hidePopup();
           }}
         >
           {i18n.claimAndUnstake}
@@ -102,10 +105,12 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
               accountAddress: account as string,
             });
 
-            addRecordToHistory({
+            await addRecordToHistory({
               txHash,
               type: 'MyFarms_ClaimAndStake',
             });
+
+            hidePopup();
           }}
         >
           {i18n.claimAndStake}

@@ -10,6 +10,7 @@ import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
 import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 
 const transitions = {
   en: {
@@ -32,6 +33,7 @@ interface Props {
   handleInputChange: (type: 'sourceToken' | 'destinationToken', amount: string) => void;
 }
 
+const cfxGas = Unit.fromStandardUnit(0.02);
 const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue, handleInputChange }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
@@ -51,7 +53,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
     <div className="h-96px pt-16px pl-24px pr-16px rounded-20px bg-orange-light-hover">
       <div className="flex justify-between items-center">
         <Input
-          className="text-32px"
+          className="text-32px pr-32px"
           clearIcon
           disabled={!currentSelectToken}
           placeholder="0"
@@ -62,7 +64,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           })}
           min={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           step={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
-          type='number'
+          type="number"
         />
 
         <BorderBox
@@ -76,14 +78,14 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           {currentSelectToken && <img className="w-24px h-24px mr-4px" src={currentSelectToken.logoURI} alt={`${currentSelectToken.symbol} logo`} />}
           {currentSelectToken && currentSelectToken.symbol}
           {!currentSelectToken && i18n.select_token}
-          <span className="i-ic:sharp-keyboard-arrow-down ml-24px flex-shrink-0 text-16px font-medium" />
+          <ArrowDownIcon className="w-8px h-5px ml-24px flex-shrink-0" />
         </BorderBox>
       </div>
 
       {account && currentSelectToken && (
         <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">
           {i18n.balance}:{' '}
-          <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals}>
+          <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals} gas={sourceToken?.address === 'CFX' ? cfxGas : undefined}>
             {(balance) => (
               <Button
                 className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"

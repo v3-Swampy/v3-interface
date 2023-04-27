@@ -58,7 +58,7 @@ const FarmingPage: React.FC = () => {
             <div className={`${buttonClass} mr-2 ${tab === TabKey.My ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.My)}>
               {i18n.myFarms}
             </div>
-            <div className={`${buttonClass} ${tab === TabKey.All ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.All)}>
+            <div className={`${buttonClass} ${tab !== TabKey.My ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.All)}>
               {i18n.allFarms}
             </div>
           </div>

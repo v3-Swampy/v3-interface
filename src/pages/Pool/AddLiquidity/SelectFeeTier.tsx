@@ -6,6 +6,7 @@ import { type UseFormRegister, type FieldValues } from 'react-hook-form';
 import Dropdown from '@components/Dropdown';
 import useI18n from '@hooks/useI18n';
 import { FeeAmount } from '@service/pairs&pool';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import { useIsBothTokenSelected } from './SelectPair';
 
 const transitions = {
@@ -86,7 +87,9 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
             <span className="text-18px text-black-normal font-medium mr-auto">{currentFee / 10000}% fee tier</span>
             {/* TODO hide temporary */}
             {/* <span className="px-8px h-20px leading-20px rounded-4px bg-orange-light-hover text-12px text-black-light font-light">93% select</span> */}
-            <span className={cx('i-ic:sharp-keyboard-arrow-down ml-12px flex-shrink-0 text-16px font-medium transition-transform', visible && 'rotate-180deg')} />
+            <span className={cx('ml-12px flex-shrink-0 transition-transform', visible && 'rotate-180deg')}>
+              <ArrowDownIcon className="w-8px h-5px" />
+            </span>
           </div>
         </div>
       </Dropdown>

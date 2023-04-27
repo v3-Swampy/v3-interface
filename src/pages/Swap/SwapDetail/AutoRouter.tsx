@@ -7,6 +7,7 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { type useBestTrade, TradeType, FeeAmount, Trade, Route, Protocol } from '@service/pairs&pool';
 import { Token, getTokenByAddress } from '@service/tokens';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import RoutingDiagram from './RoutingDiagram';
 
 const transitions = {
@@ -42,7 +43,7 @@ const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
       {(expand) => (
         <>
           <p className="ml-24px relative leading-18px text-14px text-black-normal font-medium">{i18n.auto_router}</p>
-          <span className="accordion-arrow i-ic:sharp-keyboard-arrow-down absolute right-16px top-1/2 -translate-y-[calc(50%-2.5px)] text-16px font-medium" />
+          <ArrowDownIcon className="w-8px h-5px absolute right-16px accordion-arrow top-1/2 -translate-y-[calc(50%-2.5px)]" />
         </>
       )}
 

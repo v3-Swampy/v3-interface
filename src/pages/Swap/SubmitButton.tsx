@@ -30,7 +30,7 @@ const transitions = {
 interface Props {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
-  priceImpactTooHigh: boolean;
+  priceImpactTooHigh: boolean | undefined;
   priceImpactSeverity: WarningSeverity;
   tradeState: TradeState;
 }
@@ -44,16 +44,21 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount, destinationTokenAmou
   const buttonText = useMemo(() => {
     if (!isBothTokenSelected) return i18n.please_select_token;
     if (!sourceTokenAmount && !destinationTokenAmount) return i18n.enter_an_amount;
-    if(tradeState === TradeState.NO_ROUTE_FOUND) return i18n.no_liquidity;
+    if (tradeState === TradeState.NO_ROUTE_FOUND) return i18n.no_liquidity;
     if (priceImpactTooHigh) return i18n.price_impact_too_high;
     if (priceImpactSeverity > 2) return i18n.swap_anyway;
     return i18n.swap;
-  }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity, sourceTokenAmount, destinationTokenAmount, tradeState])
+  }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity, sourceTokenAmount, destinationTokenAmount, tradeState]);
 
   return (
     <AuthConnectButton {...buttonProps}>
       <AuthTokenButton {...buttonProps} tokenAddress={sourceToken?.address} contractAddress={UniswapV3SwapRouter.address} amount={sourceTokenAmount}>
-        <Button {...buttonProps} className={cx(buttonProps.className, !isBothTokenSelected && 'pointer-events-none')} disabled={!isBothTokenSelected || priceImpactTooHigh || tradeState !== TradeState.VALID || (!sourceTokenAmount && !destinationTokenAmount)}>
+        <Button
+          {...buttonProps}
+          className={cx(buttonProps.className, !isBothTokenSelected && 'pointer-events-none')}
+          loading={tradeState === TradeState.LOADING || (tradeState === TradeState.VALID && priceImpactTooHigh === undefined)}
+          disabled={!isBothTokenSelected || priceImpactTooHigh || tradeState !== TradeState.VALID || (!sourceTokenAmount && !destinationTokenAmount)}
+        >
           {buttonText}
         </Button>
       </AuthTokenButton>

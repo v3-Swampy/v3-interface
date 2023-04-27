@@ -3,6 +3,7 @@ import cx from 'clsx';
 import { useAccount } from '@service/account';
 import { DrawerClass } from '@components/Drawer';
 import renderReactNode from '@utils/renderReactNode';
+import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
 import { recordCurrentPopup, hidePopup } from '../';
 
@@ -32,7 +33,7 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; subTitle?
       <div className={cx('px-16px p-24px pb-40px h-full', className)}>
         <div className="flex justify-between items-center text-16px text-grey-normal font-bold">
           {title ?? 'title'}
-          <span className="i-ep:close-bold text-24px text-green-normal cursor-pointer" onClick={hidePopup} />
+          <CloseBoldIcon className="w-12px h-12px text-gray-normal cursor-pointer" onClick={hidePopup} />
         </div>
         {subTitle && <div className="text-14px font-500 leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
         <div className="mt-16px h-1px bg-#6667ab4c pointer-events-none" />
