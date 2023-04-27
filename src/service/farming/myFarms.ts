@@ -1,8 +1,8 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
-import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';
@@ -15,6 +15,7 @@ import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
 import { type Token } from '@service/tokens';
 import { useTokenPrice } from '@service/pairs&pool';
+import { hidePopup } from '@components/showPopup';
 
 export interface FarmingPosition extends PositionForUI {
   isActive: boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
@@ -80,6 +81,9 @@ const myTokenIdsQuery = selector({
 
     tokenIds = [...new Set(tokenIds)];
 
+    console.count('tokenIds');
+    console.log(tokenIds);
+
     return tokenIds;
   },
 });
@@ -91,7 +95,7 @@ const stakedTokenIdsQuery = selector({
   key: `stakedTokenIdsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const account = get(accountState);
-
+    hidePopup();
     if (!account) return [];
 
     const tokenIds = get(myTokenIdsQuery);
@@ -244,7 +248,6 @@ const myFarmsListQuery = selector({
     const resOfMulticallOfRewards =
       multicallOfRewards?.map((m) => {
         const [reward] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', m);
-        console.info('reward', Number(reward));
         return reward;
       }) || [];
 
@@ -506,7 +509,8 @@ export const getwhichIncentiveTokenIdIn = (tokenId: number) => getRecoil(whichIn
 export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(whichIncentiveTokenIdInState(+tokenId));
 
 export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
-export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedTokenIdsQuery);
+export const useRefreshStakedTokenIds = () => useRecoilRefresher_UNSTABLE(stakedTokenIdsQuery);
+export const useRefreshMyFarmsListQuery = () => useRecoilRefresher_UNSTABLE(myFarmsListQuery);
 
 export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean) => {
   const stakedPostions = useStakedPositions();
