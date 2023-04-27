@@ -71,24 +71,28 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
     //    IncreaseUnlockTime: the amount will be same, because you will not change the amount value.
     let addedStakeAmount: Unit = new Unit(0);
     let duration: number = currentStakeDuration;
+    let addedUserVeVST: Unit = new Unit(0);
     switch (modalMode) {
       case ModalMode.CreateLock:
         addedStakeAmount = new Unit(stakeAmount || 0);
         // in this status, your lockedAmount will be 0.
         duration = currentStakeDuration;
+        addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
         break;
       case ModalMode.IncreaseAmount:
         addedStakeAmount = new Unit(stakeAmount || 0);
         duration = currentUnlockTime - dayjs().unix();
+        addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
         break;
       case ModalMode.IncreaseUnlockTime:
         addedStakeAmount = new Unit(0);
         duration = currentUnlockTime - dayjs().unix() + currentStakeDuration;
+        //in this situation, the unlock time wiil be increased, so the previous and current veVST will be changed.
+        addedUserVeVST = maxTime ? new Unit(lockedAmount).mul(currentStakeDuration).div(maxTime) : new Unit(0);
         break;
     }
     const totalStakeAmount = new Unit(lockedAmount).add(addedStakeAmount);
     const userVeVST = maxTime ? totalStakeAmount.mul(duration).div(maxTime) : new Unit(0);
-    const addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
     const addedUserVeVST_decimals = Unit.fromStandardUnit(addedUserVeVST, TokenVST.decimals);
     const _totalSupply = new Unit(veTotalSupply || 0).add(addedUserVeVST_decimals).toDecimalStandardUnit(undefined, TokenVST.decimals);
     return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1);
