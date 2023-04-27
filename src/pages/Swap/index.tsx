@@ -144,9 +144,13 @@ const SwapPage: React.FC = () => {
           </div>
           <SelectedToken type="destinationToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
 
-          {sourceTokenAmount && destinationTokenAmount && (
-            <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} />
-          )}
+          <SwapDetail
+            bestTrade={bestTrade}
+            sourceTokenUSDPrice={sourceTokenUSDPrice}
+            destinationTokenUSDPrice={destinationTokenUSDPrice}
+            sourceTokenAmount={sourceTokenAmount}
+            destinationTokenAmount={destinationTokenAmount}
+          />
 
           {showPriceImpactWarning && <PriceImpactWarning largerPriceImpact={largerPriceImpact} />}
 

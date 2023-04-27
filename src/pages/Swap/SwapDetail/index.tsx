@@ -49,9 +49,11 @@ interface Props {
   fromPreview?: boolean;
   sourceTokenUSDPrice: string | null | undefined;
   destinationTokenUSDPrice: string | null | undefined;
+  sourceTokenAmount: string | undefined;
+  destinationTokenAmount: string | undefined;
 }
 
-const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview }) => {
+const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview, sourceTokenAmount, destinationTokenAmount }) => {
   const i18n = useI18n(transitions);
   const slippage = getSlippageTolerance() || 0;
   const { value: slippageForUi } = useSlippageTolerance();
@@ -91,10 +93,12 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
     return new Unit(amount).toDecimalStandardUnit(5, decimals);
   }, [tradeType, TradeType, bestTrade, slippage, sourceToken, destinationToken]);
 
+  const isInputedAmount = sourceTokenAmount && destinationTokenAmount
+
   if (!isBothTokenSelected) return null;
   return (
     <Accordion
-      className={cx('rounded-20px border-2px border-solid border-orange-light-hover', fromPreview ? 'mt-8px' : 'mt-6px')}
+      className={cx('rounded-20px border-2px border-solid border-orange-light-hover', fromPreview ? 'mt-8px' : 'mt-6px', !isInputedAmount && bestTrade.state === TradeState.INVALID && 'hidden')}
       titleClassName="pt-16px pb-12px"
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
