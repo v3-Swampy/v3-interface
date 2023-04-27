@@ -80,9 +80,9 @@ const SwapPage: React.FC = () => {
         `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
         inputedAmount
           ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
-              undefined,
-              (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
-            )
+            undefined,
+            (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
+          )
           : ''
       );
     }
@@ -144,7 +144,9 @@ const SwapPage: React.FC = () => {
           </div>
           <SelectedToken type="destinationToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
 
-          <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} />
+          {sourceTokenAmount && destinationTokenAmount && (
+            <SwapDetail bestTrade={bestTrade} sourceTokenUSDPrice={sourceTokenUSDPrice} destinationTokenUSDPrice={destinationTokenUSDPrice} />
+          )}
 
           {showPriceImpactWarning && <PriceImpactWarning largerPriceImpact={largerPriceImpact} />}
 
