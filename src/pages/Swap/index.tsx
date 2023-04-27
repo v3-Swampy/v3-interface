@@ -67,7 +67,7 @@ const SwapPage: React.FC = () => {
     };
   }, [bestTrade, stablecoinPriceImpact]);
 
-  const expertMode = useExpertMode();
+  const [expertMode] = useExpertMode();
 
   const priceImpactTooHigh = largerPriceImpact ? priceImpactSeverity > 3 && !expertMode : undefined;
   const showPriceImpactWarning = largerPriceImpact?.toDecimalMinUnit() && priceImpactSeverity > 3;
