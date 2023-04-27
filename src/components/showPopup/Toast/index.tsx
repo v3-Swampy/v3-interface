@@ -28,10 +28,10 @@ const ToastComponent: React.FC<{ content: string | React.ReactNode | Function; d
     });
 
     return (
-      <div className="relative bg-orange-light-hover rounded-10px overflow-hidden group lt-mobile:w-[calc(100vw-24px)] lt-tiny:w-[calc(100vw-12px)]">
+      <div className="relative bg-orange-light-hover overflow-hidden group lt-mobile:w-[calc(100vw-24px)] lt-tiny:w-[calc(100vw-12px)] ">
         <div className={cx('flex items-center px-24px py-16px', { 'text-warning-normal': type === 'warning', 'text-green-normal': type === 'success', 'text-error-normal': type === 'error', 'text-gray-normal': type === 'info' })}>
           {showClose && (
-            <CloseBoldIcon className={cx('w-12px h-12px absolute right-6px top-6px cursor-pointer lt-mobile:opacity-100', !isMobile && 'opacity-0 group-hover:opacity-100 transition-opacity')} onClick={hide} />
+            <CloseBoldIcon className={cx('w-8px h-8px absolute right-8px top-8px cursor-pointer lt-mobile:opacity-100', !isMobile && 'opacity-0 group-hover:opacity-100 transition-opacity')} onClick={hide} />
           )}
           {type === 'success' && <SuccessIcon className="w-24px h-24px mr-16px flex-shrink-0" />}
           {type === 'warning' && <WarningIcon className="w-24px h-24px mr-16px flex-shrink-0" />}
@@ -54,13 +54,13 @@ export const showToast = (content: string | React.ReactNode | Function, config?:
     Content: (
       <ToastComponent
         content={content}
-        duration={config?.duration ?? 5000}
+        duration={config?.duration ?? 6666}
         hide={hide}
         type={config?.type ?? 'success'}
         showClose={config?.showClose}
       />
     ),
-    duration: config?.duration ?? 5000,
+    duration: config?.duration ?? 6666,
     animationType: 'slideRight',
     ...config,
   });

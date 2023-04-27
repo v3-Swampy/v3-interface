@@ -46,7 +46,6 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 const PoolContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
-
   if (!positions?.length) {
     return (
       <>

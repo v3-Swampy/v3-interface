@@ -1,4 +1,5 @@
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { NavigateFunction } from 'react-router-dom';
 import { uniqueId } from 'lodash-es';
 import Decimal from 'decimal.js';
 import { NonfungiblePositionManager } from '@contracts/index';
@@ -6,8 +7,9 @@ import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
 import { FeeAmount, getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
-import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance } from '@service/settings';
+import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippageTolerance, getExpertModeState } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
+import { addRecordToHistory } from '@service/history';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
@@ -24,6 +26,7 @@ export const handleClickSubmitCreatePosition = async ({
   tokenA: _tokenA,
   tokenB: _tokenB,
   priceInit,
+  navigate
 }: {
   fee: FeeAmount;
   'amount-tokenA': string;
@@ -33,6 +36,7 @@ export const handleClickSubmitCreatePosition = async ({
   tokenA: Token;
   tokenB: Token;
   priceInit?: string;
+  navigate: NavigateFunction;
 }) => {
   try {
     const account = getAccount();
@@ -91,7 +95,7 @@ export const handleClickSubmitCreatePosition = async ({
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;
     setInvertedState(previewUniqueId, inverted);
-    
+
     const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
     const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('mint', [
       {
@@ -125,18 +129,28 @@ export const handleClickSubmitCreatePosition = async ({
       tokenB_Value: Unit.fromStandardUnit(amountTokenB, tokenB.decimals).toDecimalStandardUnit(5),
     } as const;
 
-    showLiquidityPreviewModal({
-      leftToken: _tokenA,
-      rightToken: _tokenB,
-      leftAmount: Unit.fromStandardUnit(amountTokenA),
-      rightAmount: Unit.fromStandardUnit(amountTokenB),
-      inverted,
-      priceInit,
-      previewUniqueId,
-      previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
-      transactionParams,
-      recordParams,
-    });
+    const isInExpertMode = getExpertModeState();
+
+    if (!isInExpertMode) {
+      showLiquidityPreviewModal({
+        leftToken: _tokenA,
+        rightToken: _tokenB,
+        leftAmount: Unit.fromStandardUnit(amountTokenA),
+        rightAmount: Unit.fromStandardUnit(amountTokenB),
+        inverted,
+        priceInit,
+        previewUniqueId,
+        previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
+        transactionParams,
+        recordParams,
+      });
+    } else {
+      try {
+        const txHash = await sendTransaction(transactionParams);
+        addRecordToHistory({ txHash, ...recordParams });
+        navigate('/pool');
+      } catch (_) {}
+    }
   } catch (err) {
     console.error('Submit create position failed:', err);
   }
