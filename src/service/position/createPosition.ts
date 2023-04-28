@@ -75,20 +75,6 @@ export const handleClickSubmitCreatePosition = async ({
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
-    // console.log('token0', token0);
-    // console.log('currentPrice', currentPrice);
-    // console.log('pool', pool);
-    // console.log('sqrtPriceX96', sqrtPriceX96);
-    // console.log('slippageTolerance', slippageTolerance);
-    // console.log('tickLower', tickLower);
-    // console.log('tickUpper', tickUpper);
-
-    // console.log('token0Amount', token0Amount);
-    // console.log('token1Amount', token1Amount);
-
-    // console.log('token0AmountUnit', token0AmountUnit.toDecimalMinUnit());
-    // console.log('token1AmountUnit', token1AmountUnit.toDecimalMinUnit());
-
     const { amount0Min, amount1Min } = calcAmountMinWithSlippage(
       sqrtPriceX96,
       slippageTolerance,
