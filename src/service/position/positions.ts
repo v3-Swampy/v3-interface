@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
+import { selector, useRecoilValue, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
+import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, getPool, Pool } from '@service/pairs&pool';
-import { getTokenByAddress, getWrapperTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
+import { getTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { computePoolAddress, usePool } from '@service/pairs&pool';
 
@@ -200,7 +200,7 @@ export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQu
 
 export const usePositionByTokenId = (tokenId: number) => useRecoilValue(positionQueryByTokenId(+tokenId));
 
-export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
+export const usePositionsForUI = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(PositionsForUISelector);
 
 export const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;

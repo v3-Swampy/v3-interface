@@ -84,7 +84,6 @@ export const useHistory = () => {
           const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value } = record;
           const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
           const tokenB = getUnwrapperTokenByAddress(tokenB_Address);
-          console.log(receipt?.status === '0x1', receipt?.status)
           showToast(
             compiled(i18n[TransitionsTypeMap[record.type]], {
               tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : tokenA_Value ?? '',

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
+import { selector, selectorFamily, useRecoilValue, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
@@ -124,7 +124,7 @@ const myFarmsPoolsQuery = selector({
 });
 
 export const usePools = () => {
-  return useRecoilValue(myFarmsPoolsQuery);
+  return useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myFarmsPoolsQuery);
 };
 
 export interface GroupedPositions extends PositionForUI {
@@ -302,11 +302,12 @@ const usePrice = (tokens: string[]) => {
   return price;
 };
 
+
 export const useMyFarmsList = () => {
   // must get pools first
   usePools();
 
-  const list = useRecoilValue(myFarmsListQuery);
+  const list = useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myFarmsListQuery);
   return list;
   // console.info('list',list)
   // const [listWithPrice, setListWithPrice] = useState<{
