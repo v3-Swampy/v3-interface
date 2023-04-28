@@ -26,21 +26,24 @@ export const poolsInfoQuery = selector({
   get: async ({ get }) => {
     const poolIds = get(poolIdsQuery);
     // get poolinfo list of pids
-    const resOfMulticall: any = await fetchMulticall(poolIds.map((id) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolInfo', [id])]));
+    try {
+      const resOfMulticall: any = await fetchMulticall(poolIds.map((id) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolInfo', [id])]));
+      let pools = resOfMulticall
+        ? poolIds.map((pid, i) => {
+            const r = UniswapV3Staker.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
 
-    let pools = resOfMulticall
-      ? poolIds.map((pid, i) => {
-          const r = UniswapV3Staker.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
+            return {
+              address: r[0], // pool address
+              allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
+              pid,
+            };
+          })
+        : [];
 
-          return {
-            address: r[0], // pool address
-            allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
-            pid,
-          };
-        })
-      : [];
-
-    return pools;
+      return pools;
+    } catch (error) {
+      return [];
+    }
   },
 });
 

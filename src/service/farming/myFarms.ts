@@ -73,11 +73,9 @@ const myTokenIdsQuery = selector({
     const length = Number(await UniswapV3Staker.func.tokenIdsLength(account));
 
     let tokenIds =
-      (
-        await fetchMulticall(
-          Array.from({ length }).map((_, i) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('tokenIds', [account, i])])
-        )
-      )?.map((r) => UniswapV3Staker.func.interface.decodeFunctionResult('tokenIds', r)[0]) || [];
+      (await fetchMulticall(Array.from({ length }).map((_, i) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('tokenIds', [account, i])])))?.map(
+        (r) => UniswapV3Staker.func.interface.decodeFunctionResult('tokenIds', r)[0]
+      ) || [];
 
     tokenIds = [...new Set(tokenIds)];
 
@@ -181,7 +179,7 @@ const myFarmsListQuery = selector({
   key: `myFarmsListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const pools = get(poolsInfoQuery);
-
+    if (pools.length == 0) return { active: [], ended: [] };
     const positions = get(myFarmsPositionsQuery).map((position) => {
       const { token0, token1, fee } = position;
       const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
@@ -233,11 +231,7 @@ const myFarmsListQuery = selector({
       resOfMulticall.map((r) => {
         return [
           UniswapV3Staker.address,
-          UniswapV3Staker.func.interface.encodeFunctionData('getRewardInfo', [
-            r.isActive ? getCurrentIncentiveKey(r.address) : r.incentiveKey,
-            r.tokenId,
-            r.position.pool.pid,
-          ]),
+          UniswapV3Staker.func.interface.encodeFunctionData('getRewardInfo', [r.isActive ? getCurrentIncentiveKey(r.address) : r.incentiveKey, r.tokenId, r.position.pool.pid]),
         ];
       })
     );
@@ -301,7 +295,6 @@ const usePrice = (tokens: string[]) => {
 
   return price;
 };
-
 
 export const useMyFarmsList = () => {
   // must get pools first
