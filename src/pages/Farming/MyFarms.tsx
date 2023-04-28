@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useTransition } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
@@ -120,14 +120,19 @@ const MyFarms = () => {
 
   // then get my farms list
   const myFarmingList = useMyFarmsList();
+  const [_, startTransition] = useTransition();
 
   const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
 
   useEffect(() => {
-    const interval = setInterval(() => refreshMyFarmsListQuery(), 15000);
+    const interval = setInterval(() => {
+      startTransition(() => {
+        refreshMyFarmsListQuery();
+      });
+    }, 15000);
     return () => {
       clearInterval(interval);
-    }
+    };
   }, []);
 
   if (!account || (myFarmingList.active.length == 0 && myFarmingList.ended.length == 0)) {
