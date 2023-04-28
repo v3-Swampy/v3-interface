@@ -55,7 +55,7 @@ export const handleConfirmSwap = async ({
 
     if (tradeTypeFunctionName === 'exactInput') {
       const amountOutMinimumDecimal = getAmountOutMinimumDecimal(oneRoute.at(-1)?.amountOut ?? '0', slippage);
-      // console.log('amountOutMinimumDecimal', amountOutMinimumDecimal);
+      // console.log('amountOutMinimumDecimal', new Unit(amountOutMinimumDecimal).toDecimalStandardUnit());
       Object.assign(params, {
         amountIn: Unit.fromMinUnit(oneRoute.at(0)?.amountIn ?? '0').toHexMinUnit(),
         amountOutMinimum: new Unit(amountOutMinimumDecimal).toHexMinUnit(),

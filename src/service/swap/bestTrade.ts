@@ -131,7 +131,7 @@ const bestTradeTracker = new Map<string, boolean>();
 export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
   const [serverFirst] = useRoutingApi();
   const uniqueIdFetchId = useRef<string>('init');
-  const fetchKey = useMemo(() => `${tokenIn?.address}-${tokenIn?.address}-${amount}-${tradeType}`, [tokenIn?.address, tokenOut?.address, amount, tradeType]);
+  const fetchKey = useMemo(() => `${tokenIn?.address}-${tokenOut?.address}-${amount}-${tradeType}`, [tokenIn?.address, tokenOut?.address, amount, tradeType]);
   const [bestTrade, setBestTrade] = useRecoilState<BestTrade>(bestTradeState(fetchKey));
 
   useEffect(() => {
