@@ -26,9 +26,7 @@ export const poolsInfoQuery = selector({
   get: async ({ get }) => {
     const poolIds = get(poolIdsQuery);
     // get poolinfo list of pids
-    const resOfMulticall: any = await fetchMulticall(
-      poolIds.map((id) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolInfo', [id])])
-    );
+    const resOfMulticall: any = await fetchMulticall(poolIds.map((id) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolInfo', [id])]));
 
     let pools = resOfMulticall
       ? poolIds.map((pid, i) => {
@@ -267,9 +265,12 @@ export const getLRToken = (token0: Token | null, token1: Token | null) => {
   return [leftToken, rightToken];
 };
 
-const claimStartTimeQuery = atom({
+const claimStartTimeQuery = selector({
   key: `claimStartTime-${import.meta.env.MODE}`,
-  default: 1682843497,
+  get: async () => {
+    const response = await UniswapV3Staker.func.unclaimableEndtime();
+    return response ? Number(response) : dayjs().unix();
+  },
 });
 
 export const useClaimStartTime = () => useRecoilValue(claimStartTimeQuery);
