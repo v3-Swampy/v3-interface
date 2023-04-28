@@ -6,7 +6,7 @@ import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';
-import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
+import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3Staker } from '@contracts/index';
 import { type Pool, fetchPools } from '@service/pairs&pool';
 import _ from 'lodash-es';
 import { enhancePositionForUI } from '@service/position';
@@ -70,14 +70,14 @@ const myTokenIdsQuery = selector({
 
     if (!account) return [];
 
-    const length = Number(await UniswapV3StakerFactory.func.tokenIdsLength(account));
+    const length = Number(await UniswapV3Staker.func.tokenIdsLength(account));
 
     let tokenIds =
       (
         await fetchMulticall(
-          Array.from({ length }).map((_, i) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('tokenIds', [account, i])])
+          Array.from({ length }).map((_, i) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('tokenIds', [account, i])])
         )
-      )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('tokenIds', r)[0]) || [];
+      )?.map((r) => UniswapV3Staker.func.interface.decodeFunctionResult('tokenIds', r)[0]) || [];
 
     tokenIds = [...new Set(tokenIds)];
 
@@ -98,8 +98,8 @@ const stakedTokenIdsQuery = selector({
     const tokenIds = get(myTokenIdsQuery);
 
     const stakedTokenIds =
-      (await fetchMulticall(tokenIds.map((tokenId) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('deposits', [tokenId])])))
-        ?.map((d, i) => (UniswapV3StakerFactory.func.interface.decodeFunctionResult('deposits', d)[1] > 0 ? Number(tokenIds[i]) : null))
+      (await fetchMulticall(tokenIds.map((tokenId) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('deposits', [tokenId])])))
+        ?.map((d, i) => (UniswapV3Staker.func.interface.decodeFunctionResult('deposits', d)[1] > 0 ? Number(tokenIds[i]) : null))
         .filter((d) => d !== null) || [];
 
     return stakedTokenIds as number[];
@@ -210,14 +210,14 @@ const myFarmsListQuery = selector({
 
     const multicallOfStakes = await fetchMulticall(
       incentiveKeysOfAllPositions.map((i) => {
-        return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('stakes', [i.tokenId, i.incentiveId])];
+        return [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('stakes', [i.tokenId, i.incentiveId])];
       })
     );
 
     const resOfMulticall =
       multicallOfStakes
         ?.map((m, i) => {
-          const [, liquidity] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('stakes', m);
+          const [, liquidity] = UniswapV3Staker.func.interface.decodeFunctionResult('stakes', m);
           const position = incentiveKeysOfAllPositions[i];
 
           return {
@@ -232,8 +232,8 @@ const myFarmsListQuery = selector({
     const multicallOfRewards = await fetchMulticall(
       resOfMulticall.map((r) => {
         return [
-          UniswapV3StakerFactory.address,
-          UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [
+          UniswapV3Staker.address,
+          UniswapV3Staker.func.interface.encodeFunctionData('getRewardInfo', [
             r.isActive ? getCurrentIncentiveKey(r.address) : r.incentiveKey,
             r.tokenId,
             r.position.pool.pid,
@@ -244,7 +244,7 @@ const myFarmsListQuery = selector({
 
     const resOfMulticallOfRewards =
       multicallOfRewards?.map((m) => {
-        const [reward] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', m);
+        const [reward] = UniswapV3Staker.func.interface.decodeFunctionResult('getRewardInfo', m);
         return reward;
       }) || [];
 
@@ -398,7 +398,7 @@ const whichIncentiveTokenIdInState = selectorFamily({
       for (let index = 0; index < incentives.length; index++) {
         const incentive = incentives[index];
         const incentiveId = computeIncentiveKey(incentive);
-        const [, liquidity] = await UniswapV3StakerFactory.func.stakes(tokenId, incentiveId);
+        const [, liquidity] = await UniswapV3Staker.func.stakes(tokenId, incentiveId);
         if (Number(liquidity) > 0) {
           res = {
             index,
@@ -458,12 +458,12 @@ export const handleClaimUnStake = async ({
   accountAddress: string;
 }) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
-  const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
-  const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
-  const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
+  const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
+  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
+  const data2 = UniswapV3Staker.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
   return await sendTransaction({
-    to: UniswapV3StakerFactory.address,
-    data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
+    to: UniswapV3Staker.address,
+    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
   });
 };
 
@@ -492,12 +492,12 @@ export const handleClaimAndReStake = async ({
   accountAddress: string;
 }) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
-  const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
-  const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
-  const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
+  const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
+  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
+  const data2 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
   return await sendTransaction({
-    to: UniswapV3StakerFactory.address,
-    data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
+    to: UniswapV3Staker.address,
+    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
   });
 };
 
@@ -533,11 +533,11 @@ export const useIsPositionActive = (tokenId: number) => {
 //         await fetchMulticall(
 //           positions.map((position, i) => {
 //             const key = position.isActive ? getCurrentIncentiveKey(position.address) : position.whichIncentiveTokenIn;
-//             return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id, pid])];
+//             return [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getRewardInfo', [key, position.id, pid])];
 //           })
 //         )
 //       )?.map((r, i) => {
-//         const claimable = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0];
+//         const claimable = UniswapV3Staker.func.interface.decodeFunctionResult('getRewardInfo', r)[0];
 //         rewardList.push(Number(claimable));
 //         rewards += Number(claimable);
 //         positions[i].claimable = claimable;

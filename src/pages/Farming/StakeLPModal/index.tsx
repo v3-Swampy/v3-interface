@@ -9,7 +9,7 @@ import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
 import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
-import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
+import { UniswapV3Staker, NonfungiblePositionManager } from '@contracts/index';
 import { useNavigate } from 'react-router-dom';
 import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
@@ -82,7 +82,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
       <AuthTokenButtonOf721
         className={classNameButton}
         tokenAddress={NonfungiblePositionManager.address}
-        contractAddress={UniswapV3StakerFactory.address}
+        contractAddress={UniswapV3Staker.address}
         tokenId={data.id.toString()}
       >
         {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
