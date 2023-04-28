@@ -101,8 +101,8 @@ export const RefreshTypeMap = {
   ['Position_RemoveLiquidity']: 'refreshPositions',
   ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
   ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
-  ['MyFarms_Claim']: 'refreshStakedTokenIds',
-  ['MyFarms_Unstake']: 'refreshStakedTokenIds',
+  ['MyFarms_Claim']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
+  ['MyFarms_Unstake']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
   ['Stake_Unlock']: 'refreshUserInfo',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
