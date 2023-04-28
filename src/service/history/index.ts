@@ -32,7 +32,8 @@ export interface HistoryRecord {
     | 'MyFarms_ClaimAndUnstake'
     | 'MyFarms_ClaimAndStake'
     | 'MyFarms_Claim'
-    | 'MyFarms_Unstake';
+    | 'MyFarms_Unstake'
+    | 'Stake_Unlock';
   tokenA_Address?: string;
   tokenA_Value?: string;
   tokenB_Address?: string;
