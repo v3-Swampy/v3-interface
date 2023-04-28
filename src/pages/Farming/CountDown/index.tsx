@@ -88,13 +88,13 @@ const CountDown: React.FC = ({}) => {
             <span className={classNames.colon}>&#58;</span>
             <span>{minutes}</span>
             <span className={classNames.colon}>&#58;</span>
-            <span>{seconds}</span>
+            <div className="mr-12px">{seconds}</div>
           </div>
-          <div className="font-400 text-10px leading-13px flex justify-around items-center">
-            <span className="text-10px">{i18n.days}</span>
-            <span>{i18n.hours}</span>
-            <span>{i18n.minutes}</span>
-            <span>{i18n.seconds}</span>
+          <div className="font-400 text-10px leading-13px flex  items-center text-12px text-center mt-2px">
+            <div className="flex-1 ml--5px">{i18n.days}</div>
+            <div className="flex-1">{i18n.hours}</div>
+            <div className="flex-1 mr--5px">{i18n.minutes}</div>
+            <div className="flex-1">{i18n.seconds}</div>
           </div>
         </div>
       </div>
