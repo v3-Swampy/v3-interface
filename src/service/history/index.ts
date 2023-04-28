@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useTransition } from 'react';
 import { atomFamily, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { showToast } from '@components/showPopup';
@@ -48,6 +48,7 @@ const historyState = atomFamily<Array<HistoryRecord>, string>({
 let inHistoryTracking = false;
 const recordTracker = new Map<string, boolean>();
 export const useHistory = () => {
+  const [_, startTransition] = useTransition();
   const account = useAccount();
   const [history, setHistory] = useRecoilState(historyState(account ?? 'not-login-in'));
   const refreshFuncs = useRefreshData();
@@ -78,7 +79,9 @@ export const useHistory = () => {
               }
             });
           }
-          refreshFuncsShouldRun.forEach((func, index) => func(refreshParams[index]));
+          startTransition(() => {
+            refreshFuncsShouldRun.forEach((func, index) => func(refreshParams[index]));
+          });
 
           const i18n = toI18n(transitions);
           const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value } = record;
