@@ -8,6 +8,7 @@ import useI18n from '@hooks/useI18n';
 import { FeeAmount } from '@service/pairs&pool';
 import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import { useIsBothTokenSelected } from './SelectPair';
+import { setRecoil } from 'recoil-nexus';
 
 const transitions = {
   en: {
@@ -27,6 +28,10 @@ const currentFeeState = atom<FeeAmount>({
   effects: [persistAtomWithDefault(FeeAmount.LOW)],
 });
 export const useCurrentFee = () => useRecoilValue(currentFeeState);
+
+export const setCurrentFee = (fee: FeeAmount) => {
+  setRecoil(currentFeeState, fee);
+};
 
 const FeeAmountLengh = Object.values(FeeAmount).length / 2;
 const FeeAmountList = Object.values(FeeAmount).slice(0, FeeAmountLengh) as FeeAmount[];
