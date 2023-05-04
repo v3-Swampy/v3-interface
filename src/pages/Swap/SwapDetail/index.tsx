@@ -130,11 +130,6 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             <div className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
               {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
               {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
-              <Tooltip>
-                <span className={cx('ml-6px mb-2px transition-opacity duration-125', expand && 'opacity-0 pointer-events-none')}>
-                  <InfoIcon className="w-12px h-12px" />
-                </span>
-              </Tooltip>
             </div>
             {networkFee && (
               <span

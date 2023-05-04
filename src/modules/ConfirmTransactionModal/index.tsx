@@ -4,6 +4,7 @@ import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import Spin from '@components/Spin';
 import Button from '@components/Button';
 import { isMobile } from '@utils/is';
+import { watchAsset } from '@service/account';
 import { type Token } from '@service/tokens';
 import { addRecordToHistory, type HistoryRecord } from '@service/history';
 import { RecordAction } from '@modules/Navbar/AccountDetailDropdown/History';
@@ -100,7 +101,20 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
           <SuccessIcon className="mx-auto block w-92px h-70px mb-80px" />
           <p className="leading-28px text-22px text-black-normal">Transaction submitted</p>
           {tokenNeededAdd && (
-            <div className="mt-8px mx-auto w-fit px-24px h-40px leading-40px rounded-100px bg-orange-light-hover text-center text-14px text-black-normal font-medium cursor-pointer">
+            <div
+              className="mt-8px mx-auto w-fit px-24px h-40px leading-40px rounded-100px bg-orange-light-hover text-center text-14px text-black-normal font-medium cursor-pointer"
+              onClick={() =>
+                watchAsset({
+                  type: 'ERC20',
+                  options: {
+                    address: tokenNeededAdd.address,
+                    symbol: tokenNeededAdd.symbol,
+                    decimals: tokenNeededAdd.decimals,
+                    image: tokenNeededAdd.address,
+                  },
+                })
+              }
+            >
               Add {tokenNeededAdd.symbol}
             </div>
           )}
@@ -125,7 +139,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
       <>
         <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center whitespace-nowrap">
           <FailedIcon className="mx-auto block w-70px h-70px mb-80px" />
-          <p className="leading-28px text-22px text-black-normal">Transaction failed</p>
+          <p className="leading-28px text-22px text-black-normal">Transaction Rejected</p>
           <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-medium">You cancel the transcation in wallet</p>
         </div>
         <Button color="orange" className="absolute left-16px bottom-16px right-16px h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>

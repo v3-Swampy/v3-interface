@@ -8,6 +8,7 @@ import {
   disconnect as disconnectFluent,
   switchChain as switchChainFluent,
   sendTransaction as sendTransactionWithFluent,
+  watchAsset as watchAssetFluent,
 } from './fluent';
 import {
   accountState as metamaskAccountState,
@@ -16,6 +17,7 @@ import {
   disconnect as disconnectMetamask,
   switchChain as switchChainMetamask,
   sendTransaction as sendTransactionWithMetamask,
+  watchAsset as watchAssetMetamask,
 } from './metamask';
 import { isProduction } from '@utils/is';
 export const targetChainId = isProduction ? '1030' : '71';
@@ -28,6 +30,7 @@ const methodsMap = {
     switchChain: switchChainFluent,
     sendTransaction: sendTransactionWithFluent,
     disconnect: disconnectFluent,
+    watchAsset: watchAssetFluent,
   },
   metamask: {
     accountState: metamaskAccountState,
@@ -36,6 +39,7 @@ const methodsMap = {
     switchChain: switchChainMetamask,
     sendTransaction: sendTransactionWithMetamask,
     disconnect: disconnectMetamask,
+    watchAsset: watchAssetMetamask,
   },
 } as const;
 
@@ -103,6 +107,12 @@ export const sendTransaction = async (params: Parameters<typeof sendTransactionW
     throw new Error('No account connected');
   }
   return methodsMap[accountMethod].sendTransaction(params);
+};
+
+export const watchAsset = (params: Parameters<typeof watchAssetFluent>[0]) => {
+  const method = getAccountMethod();
+  if (!method) return;
+  return methodsMap[method].watchAsset(params);
 };
 
 export const useAccount = () => useRecoilValue(accountState);
