@@ -36,8 +36,8 @@ const ratiosAfterSlippage = (slippage: number, currentToken0Price: string | Unit
     sqrtRatioX96Lower = MAX_SQRT_RATIO.sub(1).toDecimalMinUnit();
   }
 
-  console.log('sqrtRatioX96Lower', sqrtRatioX96Lower);
-  console.log('sqrtRatioX96Upper', sqrtRatioX96Upper);
+  // console.log('sqrtRatioX96Lower', sqrtRatioX96Lower);
+  // console.log('sqrtRatioX96Upper', sqrtRatioX96Upper);
 
   return {
     sqrtRatioX96Lower: JSBI.BigInt(sqrtRatioX96Lower),
@@ -77,8 +77,8 @@ const getMintAmounts = (
 const calcLiquidity = (sqrtRatioCurrentX96: JSBI, tickLower: number, tickUpper: number, amount0: JSBI | string, amount1: JSBI | string, useFullPrecision: boolean): JSBI => {
   const sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
   const sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-  console.log('sqrtRatioAX96', String(sqrtRatioAX96));
-  console.log('sqrtRatioBX96', String(sqrtRatioBX96));
+  // console.log('sqrtRatioAX96', String(sqrtRatioAX96));
+  // console.log('sqrtRatioBX96', String(sqrtRatioBX96));
   return maxLiquidityForAmounts(sqrtRatioCurrentX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1, useFullPrecision);
 };
 
@@ -100,13 +100,13 @@ export const calcAmountMinWithSlippage = (
   const { sqrtRatioX96Upper, sqrtRatioX96Lower } = ratiosAfterSlippage(slippage, currentToken0Price);
 
   const liquidity = calcLiquidity(JSBI.BigInt(sqrtPriceX96), tickLower, tickUpper, amount0, amount1, false);
-  console.log('liquidity', liquidity.toString());
+  // console.log('liquidity', liquidity.toString());
 
   const { amount0: amount0Min } = getMintAmounts(TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper), tickLower, tickUpper, liquidity, sqrtRatioX96Upper);
   const { amount1: amount1Min } = getMintAmounts(TickMath.getTickAtSqrtRatio(sqrtRatioX96Lower), tickLower, tickUpper, liquidity, sqrtRatioX96Lower);
 
-  console.log('amount0Min', amount0Min.toString());
-  console.log('amount1Min', amount1Min.toString());
+  // console.log('amount0Min', amount0Min.toString());
+  // console.log('amount1Min', amount1Min.toString());
 
   return { amount0Min: amount0Min.toString(), amount1Min: amount1Min.toString() };
 };

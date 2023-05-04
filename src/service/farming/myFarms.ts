@@ -15,7 +15,6 @@ import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
 import { type Token } from '@service/tokens';
 import { useTokenPrice } from '@service/pairs&pool';
-import { hidePopup } from '@components/showPopup';
 
 export interface FarmingPosition extends PositionForUI {
   isActive: boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
@@ -90,7 +89,6 @@ const stakedTokenIdsQuery = selector({
   key: `stakedTokenIdsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const account = get(accountState);
-    hidePopup();
     if (!account) return [];
 
     const tokenIds = get(myTokenIdsQuery);

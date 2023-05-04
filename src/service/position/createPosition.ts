@@ -25,7 +25,7 @@ export const handleClickSubmitCreatePosition = async ({
   'price-upper': _priceUpper,
   tokenA: _tokenA,
   tokenB: _tokenB,
-  priceInit,
+  priceInit: _priceInit,
   navigate,
 }: {
   fee: FeeAmount;
@@ -49,6 +49,8 @@ export const handleClickSubmitCreatePosition = async ({
 
     const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
     const [token0, token1] = notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
+    const priceInit = !_priceInit ? undefined : notNeedSwap ? new Decimal(_priceInit) : new Unit(1).div(_priceInit).toDecimal();
+
     const amountTokenA = !!_amountTokenA ? _amountTokenA : '0';
     const amountTokenB = !!_amountTokenB ? _amountTokenB : '0';
     const [_token0Amount, _token1Amount] = notNeedSwap ? [amountTokenA, amountTokenB] : [amountTokenB, amountTokenA];
@@ -65,7 +67,7 @@ export const handleClickSubmitCreatePosition = async ({
       ? Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0)
       : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
 
-    const currentPrice = priceInit ? priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
+    const currentPrice = _priceInit ? _priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
 
     const _tickLower = priceLower.equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
     const _tickUpper = !priceUpper.isFinite() ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
@@ -99,8 +101,8 @@ export const handleClickSubmitCreatePosition = async ({
         tickUpper,
         amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
         amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
-        amount0Min: new Unit(amount0Min).toHexMinUnit(),
-        amount1Min: new Unit(amount1Min).toHexMinUnit(),
+        amount0Min: new Unit(!_priceInit ? amount0Min : 0).toHexMinUnit(),
+        amount1Min: new Unit(!_priceInit ? amount1Min : 0).toHexMinUnit(),
         recipient: account,
         deadline: getDeadline(),
       },
@@ -131,7 +133,7 @@ export const handleClickSubmitCreatePosition = async ({
         leftAmount: Unit.fromStandardUnit(amountTokenB),
         rightAmount: Unit.fromStandardUnit(amountTokenA),
         inverted,
-        priceInit,
+        priceInit: _priceInit,
         previewUniqueId,
         previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
         transactionParams,
