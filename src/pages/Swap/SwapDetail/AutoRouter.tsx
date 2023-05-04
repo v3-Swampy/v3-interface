@@ -38,9 +38,9 @@ const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
       contentClassName="px-24px"
       contentExpandClassName="pb-16px pt-12px"
     >
-      {(expand) => (
+      {() => (
         <>
-          <p className="ml-24px relative leading-18px text-14px text-black-normal font-medium">{i18n.auto_router}</p>
+          <p className="text-gradient-orange ml-24px relative leading-18px text-14px font-medium">{i18n.auto_router}</p>
           <ArrowDownIcon className="w-8px h-5px absolute right-16px accordion-arrow top-1/2 -translate-y-[calc(50%-2.5px)]" />
         </>
       )}
@@ -59,16 +59,16 @@ const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
 export default memo(AutoRouter);
 
 export interface RoutingDiagramEntry {
-  percent: string
-  path: [Token | null, Token | null, number][]
-  protocol: Protocol
+  percent: string;
+  path: [Token | null, Token | null, number][];
+  protocol: Protocol;
 }
 
 /**
  * Loops through all routes on a trade and returns an array of diagram entries.
  */
 export function getTokenPath(trade?: Trade): RoutingDiagramEntry[] {
-  if (!trade) return []
+  if (!trade) return [];
   return trade.route.map((route: Route[]) => {
     try {
       const routeAmountIn = route[0].amountIn;
@@ -82,11 +82,7 @@ export function getTokenPath(trade?: Trade): RoutingDiagramEntry[] {
         const nextPool = route[i];
         const tokenIn = getTokenByAddress(nextPool.tokenIn.address);
         const tokenOut = getTokenByAddress(nextPool.tokenOut.address);
-        const entry: RoutingDiagramEntry['path'][0] = [
-          tokenIn,
-          tokenOut,
-          Number(nextPool.fee),
-        ];
+        const entry: RoutingDiagramEntry['path'][0] = [tokenIn, tokenOut, Number(nextPool.fee)];
         path.push(entry);
       }
       return {
@@ -99,8 +95,7 @@ export function getTokenPath(trade?: Trade): RoutingDiagramEntry[] {
         percent: '0',
         path: [],
         protocol: Protocol.V3,
-      }
+      };
     }
   });
 }
-
