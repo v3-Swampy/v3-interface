@@ -1,6 +1,6 @@
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
-import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
+import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3Staker } from '@contracts/index';
 import { chunk } from 'lodash-es';
 import dayjs from 'dayjs';
 import { getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens, getTokenByAddress } from '@service/tokens';
@@ -13,6 +13,7 @@ import { keccak256 } from '@ethersproject/solidity';
 import { FarmingPosition } from './myFarms';
 import { selector, useRecoilValue, atom, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { RefudeeContractAddress } from '@contracts/index';
+import { useEffect, useState } from 'react';
 
 const poolIdsQuery = atom({
   key: `poolIdsQuery-${import.meta.env.MODE}`,
@@ -25,23 +26,24 @@ export const poolsInfoQuery = selector({
   get: async ({ get }) => {
     const poolIds = get(poolIdsQuery);
     // get poolinfo list of pids
-    const resOfMulticall: any = await fetchMulticall(
-      poolIds.map((id) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('poolInfo', [id])])
-    );
+    try {
+      const resOfMulticall: any = await fetchMulticall(poolIds.map((id) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolInfo', [id])]));
+      let pools = resOfMulticall
+        ? poolIds.map((pid, i) => {
+            const r = UniswapV3Staker.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
 
-    let pools = resOfMulticall
-      ? poolIds.map((pid, i) => {
-          const r = UniswapV3StakerFactory.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
+            return {
+              address: r[0], // pool address
+              allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
+              pid,
+            };
+          })
+        : [];
 
-          return {
-            address: r[0], // pool address
-            allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
-            pid,
-          };
-        })
-      : [];
-
-    return pools;
+      return pools;
+    } catch (error) {
+      return [];
+    }
   },
 });
 
@@ -146,8 +148,8 @@ const poolsQuery = selector({
             [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
             [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
             [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
-            [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('poolStat', [computeIncentiveKey(getIncentiveKey(pairContract.address))])],
-            [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('totalAllocPoint')],
+            [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolStat', [computeIncentiveKey(getIncentiveKey(pairContract.address))])],
+            [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('totalAllocPoint')],
           ];
         })
         .flat()
@@ -159,8 +161,8 @@ const poolsQuery = selector({
             token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
             token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
             fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
-            totalSupply: UniswapV3StakerFactory.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
-            totalAllocPoint: UniswapV3StakerFactory.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
+            totalSupply: UniswapV3Staker.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
+            totalAllocPoint: UniswapV3Staker.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
           };
         })
       : [];
@@ -231,12 +233,12 @@ export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid 
     refundee: RefudeeContractAddress,
   };
 
-  const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData('depositToken', [tokenId]);
-  const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('stakeToken', [key, tokenId, pid]);
+  const data0 = UniswapV3Staker.func.interface.encodeFunctionData('depositToken', [tokenId]);
+  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [key, tokenId, pid]);
 
   return await sendTransaction({
-    to: UniswapV3StakerFactory.address,
-    data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
+    to: UniswapV3Staker.address,
+    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
   });
 };
 
@@ -264,4 +266,36 @@ export const getLRToken = (token0: Token | null, token1: Token | null) => {
   const leftToken = checkedLR ? unwrapToken0 : unwrapToken1;
   const rightToken = checkedLR ? unwrapToken1 : unwrapToken0;
   return [leftToken, rightToken];
+};
+
+const claimStartTimeQuery = selector({
+  key: `claimStartTime-${import.meta.env.MODE}`,
+  get: async () => {
+    const response = await UniswapV3Staker.func.unclaimableEndtime();
+    return response ? Number(response) : dayjs().unix();
+  },
+});
+
+export const useClaimStartTime = () => useRecoilValue(claimStartTimeQuery);
+export const useCanClaim = () => {
+  const claimStartTime = useClaimStartTime();
+  const [canClaim, setCanClaim] = useState<boolean>(false);
+  useEffect(() => {
+    const fn = () => {
+      const diff = dayjs(claimStartTime * 1000).diff(dayjs(), 'second');
+      if (diff <= 0) {
+        setCanClaim(true);
+        clearInterval(intervalId);
+      } else {
+        setCanClaim(false);
+      }
+    };
+
+    const intervalId = setInterval(fn, 1000);
+
+    fn();
+
+    return () => clearInterval(intervalId);
+  }, [claimStartTime]);
+  return canClaim;
 };

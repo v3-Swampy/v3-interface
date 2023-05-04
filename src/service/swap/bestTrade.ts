@@ -106,7 +106,7 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
 
 const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
   fetch(
-    `https://dhajrqdgke.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+    `https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
       tokenOutWrappered.address
     }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
   )
@@ -131,7 +131,7 @@ const bestTradeTracker = new Map<string, boolean>();
 export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
   const [serverFirst] = useRoutingApi();
   const uniqueIdFetchId = useRef<string>('init');
-  const fetchKey = useMemo(() => `${tokenIn?.address}-${tokenIn?.address}-${amount}-${tradeType}`, [tokenIn?.address, tokenOut?.address, amount, tradeType]);
+  const fetchKey = useMemo(() => `${tokenIn?.address}-${tokenOut?.address}-${amount}-${tradeType}`, [tokenIn?.address, tokenOut?.address, amount, tradeType]);
   const [bestTrade, setBestTrade] = useRecoilState<BestTrade>(bestTradeState(fetchKey));
 
   useEffect(() => {

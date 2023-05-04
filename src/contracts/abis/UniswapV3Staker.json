@@ -678,6 +678,11 @@
         "internalType": "uint256",
         "name": "_k2",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_unclaimableEndtime",
+        "type": "uint256"
       }
     ],
     "name": "initialize",
@@ -951,6 +956,24 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_allocPoint",
+        "type": "uint256"
+      }
+    ],
+    "name": "set",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "components": [
           {
             "internalType": "contract IERC20Minimal",
@@ -1118,6 +1141,19 @@
     "name": "transferDeposit",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unclaimableEndtime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

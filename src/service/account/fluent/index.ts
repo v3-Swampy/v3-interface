@@ -1,7 +1,7 @@
 import { atom } from 'recoil';
 import { store as fluentStore, switchChain as _switchChain } from '@cfxjs/use-wallet-react/ethereum/Fluent';
 import { targetChainId } from '..';
-export { connect, sendTransaction } from '@cfxjs/use-wallet-react/ethereum/Fluent';
+export { connect, sendTransaction, watchAsset } from '@cfxjs/use-wallet-react/ethereum/Fluent';
 
 export const accountState = atom<string | null | undefined>({
   key: 'fluentAccountState-vSwap',

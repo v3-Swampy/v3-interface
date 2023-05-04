@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useTransition } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
@@ -8,7 +8,7 @@ import Tooltip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
-import { useMyFarmsList, GroupedPositions, useCalcTotalLiquidity } from '@service/farming/myFarms';
+import { useMyFarmsList, GroupedPositions, useCalcTotalLiquidity, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 import { getCurrentIncentivePeriod } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { useAccount } from '@service/account';
@@ -120,6 +120,20 @@ const MyFarms = () => {
 
   // then get my farms list
   const myFarmingList = useMyFarmsList();
+  const [_, startTransition] = useTransition();
+
+  const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      startTransition(() => {
+        refreshMyFarmsListQuery();
+      });
+    }, 15000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   if (!account || (myFarmingList.active.length == 0 && myFarmingList.ended.length == 0)) {
     return <div className="mt-4 py-2">Empty List</div>;

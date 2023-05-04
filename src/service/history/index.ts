@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useTransition } from 'react';
 import { atomFamily, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { showToast } from '@components/showPopup';
@@ -32,7 +32,8 @@ export interface HistoryRecord {
     | 'MyFarms_ClaimAndUnstake'
     | 'MyFarms_ClaimAndStake'
     | 'MyFarms_Claim'
-    | 'MyFarms_Unstake';
+    | 'MyFarms_Unstake'
+    | 'Stake_Unlock';
   tokenA_Address?: string;
   tokenA_Value?: string;
   tokenB_Address?: string;
@@ -48,6 +49,7 @@ const historyState = atomFamily<Array<HistoryRecord>, string>({
 let inHistoryTracking = false;
 const recordTracker = new Map<string, boolean>();
 export const useHistory = () => {
+  const [_, startTransition] = useTransition();
   const account = useAccount();
   const [history, setHistory] = useRecoilState(historyState(account ?? 'not-login-in'));
   const refreshFuncs = useRefreshData();
@@ -78,13 +80,14 @@ export const useHistory = () => {
               }
             });
           }
-          refreshFuncsShouldRun.forEach((func, index) => func(refreshParams[index]));
+          startTransition(() => {
+            refreshFuncsShouldRun.forEach((func, index) => func(refreshParams[index]));
+          });
 
           const i18n = toI18n(transitions);
           const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value } = record;
           const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
           const tokenB = getUnwrapperTokenByAddress(tokenB_Address);
-          console.log(receipt?.status === '0x1', receipt?.status)
           showToast(
             compiled(i18n[TransitionsTypeMap[record.type]], {
               tokenAValue: !!Number(tokenA_Value) ? trimDecimalZeros(tokenA_Value ? Number(tokenA_Value).toFixed(4) : '') : tokenA_Value ?? '',

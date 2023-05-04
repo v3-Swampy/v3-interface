@@ -31,6 +31,7 @@ export const transitions = {
     claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
     claim_lp_of_my_farms: 'Claim Reward',
     unstake_lp_of_my_farms: 'Unstake',
+    stake_unlock: 'Unlock {tokenASymbol}',
   },
   zh: {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
@@ -46,6 +47,7 @@ export const transitions = {
     claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
     claim_lp_of_my_farms: 'Claim Reward',
     unstake_lp_of_my_farms: 'Unstake',
+    stake_unlock: 'Unlock {tokenASymbol}',
   },
 } as const;
 
@@ -63,6 +65,7 @@ export const TransitionsTypeMap = {
   ['MyFarms_ClaimAndStake']: 'claim_and_stake_lp_of_my_farms',
   ['MyFarms_Claim']: 'claim_lp_of_my_farms',
   ['MyFarms_Unstake']: 'unstake_lp_of_my_farms',
+  ['Stake_Unlock']: 'stake_unlock',
 } as Record<HistoryRecord['type'], keyof typeof transitions.en>;
 
 /**
@@ -98,12 +101,20 @@ export const RefreshTypeMap = {
   ['Position_RemoveLiquidity']: 'refreshPositions',
   ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
   ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
-  ['MyFarms_Claim']: 'refreshStakedTokenIds',
-  ['MyFarms_Unstake']: 'refreshStakedTokenIds',
+  ['MyFarms_Claim']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
+  ['MyFarms_Unstake']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
+  ['Stake_Unlock']: 'refreshUserInfo',
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 
-export const RecordAction: React.FC<Omit<HistoryRecord, 'status' | 'txHash'> & { className?: string }> = ({ className, type, tokenA_Address, tokenA_Value, tokenB_Address, tokenB_Value }) => {
+export const RecordAction: React.FC<Omit<HistoryRecord, 'status' | 'txHash'> & { className?: string }> = ({
+  className,
+  type,
+  tokenA_Address,
+  tokenA_Value,
+  tokenB_Address,
+  tokenB_Value,
+}) => {
   const i18n = useI18n(transitions);
   const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
   const tokenB = getUnwrapperTokenByAddress(tokenB_Address);

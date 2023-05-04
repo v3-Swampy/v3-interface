@@ -29,9 +29,9 @@ const Accordion: React.FC<Props> = ({ id, titleClassName, titleStyle, contentCla
 
   if (!Array.isArray(children)) return null;
   return (
-    <div className={cx('accordion relative block overflow-hidden', (expand || disabled) && 'pointer-events-none', className)} {...props}>
+    <div className={cx('accordion relative block overflow-hidden', className)} {...props}>
       <input className="accordion-input absolute w-0 h-0 pointer-events-none display-none" type="checkbox" id={checkboxId.current} checked={usedExpand} onChange={handleChange} />
-      <label className={cx('accordion-title relative flex justify-between items-center cursor-ns-resize', titleClassName)} style={titleStyle} htmlFor={checkboxId.current}>
+      <label className={cx('accordion-title relative flex justify-between items-center cursor-ns-resize', (expand || disabled) && 'pointer-events-none', titleClassName)} style={titleStyle} htmlFor={checkboxId.current}>
         {isFunction(children[0]) ? children[0](usedExpand) : children[0]}
       </label>
       <div className={cx('accordion-content cursor-default', contentClassName, usedExpand && contentExpandClassName)} style={contentStyle}>

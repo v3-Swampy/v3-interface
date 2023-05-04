@@ -17,6 +17,7 @@ import useInTransaction from '@hooks/useInTransaction';
 import Button from '@components/Button';
 import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
 import dayjs from 'dayjs';
+import { useCanClaim } from '@service/farming';
 
 const transitions = {
   en: {
@@ -58,6 +59,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   const status = usePositionStatus(position.position);
   const { inTransaction: unstakeInTransaction, execTransaction: handleClaimUnStake } = useInTransaction(_handleClaimUnStake, true);
   const { inTransaction: claimIntransaction, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
+  const isCanClaim=useCanClaim()
 
   const isPaused = useMemo(() => {
     return isActive ? status == PositionStatus.OutOfRange : true;
@@ -66,10 +68,6 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   const liquidity = useMemo(() => {
     return calcPostionLiquidity(position, token0Pirce, token1Pirce);
   }, [position, token0Pirce, token1Pirce]);
-
-  // TODO fake condition, should use real data from contract
-  const fakeBlindEndTime = dayjs().add(7, 'day').unix();
-  const isBlindFarming = dayjs().unix() < fakeBlindEndTime;
 
   return (
     <div key={position.tokenId} className="mt-4 grid grid-cols-18">
@@ -109,6 +107,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
         ) : (
           <>
             <Button
+              disabled={!isCanClaim}
               loading={claimIntransaction}
               color="white"
               className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2`}
@@ -134,7 +133,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
               color="white"
               className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid}`}
               onClick={async () => {
-                if (isBlindFarming) {
+                if (!isCanClaim) {
                   showUnstakeModal({
                     isActive: true,
                     incentive: position?.whichIncentiveTokenIn,

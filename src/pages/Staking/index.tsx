@@ -10,11 +10,12 @@ import showStakeModal, { ModalMode } from './StakeModal';
 import { useUserInfo } from '@service/staking';
 import dayjs from 'dayjs';
 import { handleUnStake, useBoostFactor } from '@service/staking';
-import { TokenVST, TokenUSDT } from '@service/tokens';
+import { TokenVST } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
 import { useTokenPrice } from '@service/pairs&pool';
 import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as StakeCalculate } from '@assets/icons/stake_calculate.svg';
+import { addRecordToHistory } from '@service/history';
 
 const transitions = {
   en: {
@@ -69,7 +70,7 @@ const StakingPage: React.FC = () => {
   }, [unlockTime]);
 
   const lockedBalanceUSD = useMemo(() => {
-    return VSTPrice && lockedAmount ? numberWithCommas(new Unit(lockedAmount).mul(VSTPrice).toDecimalMinUnit(3)) : '-'
+    return VSTPrice && lockedAmount ? numberWithCommas(new Unit(lockedAmount).mul(VSTPrice).toDecimalMinUnit(3)) : '-';
   }, [VSTPrice, lockedAmount]);
 
   return (
@@ -83,7 +84,7 @@ const StakingPage: React.FC = () => {
 
           <div className="flex flex-1 flex-col items-center p-16px rounded-16px bg-orange-light-hover">
             {/* Initial status: Create Lock, thus the user has not staked any token or the staked token has already unlocked */}
-            {(stakingStatus === PersonalStakingStatus.UNLOCKED) && (
+            {stakingStatus === PersonalStakingStatus.UNLOCKED && (
               <div className="flex flex-col items-center w-full">
                 <StakeCalculate className="w-74px h-74px mt-64px mb-32px" />
                 <p className="leading-18px text-14px font-medium text-black-normal mb-50px max-w-315px text-center">{compiled(i18n.stake_tip, { token: TokenVST.symbol })}</p>
@@ -132,7 +133,17 @@ const StakingPage: React.FC = () => {
                   <div className="flex flex-1 flex-col rounded-16px p-16px border-2px border-solid border-orange-light justify-center">
                     <p className="text-orange-normal font-normal" dangerouslySetInnerHTML={{ __html: i18n.unStake_tip }} />
                     <p className="mt-40px">
-                      <Button {...smallButtonProps} onClick={handleUnStake}>
+                      <Button
+                        {...smallButtonProps}
+                        onClick={async () => {
+                          const txHash = await handleUnStake();
+                          addRecordToHistory({
+                            txHash,
+                            type: 'Stake_Unlock',
+                            tokenA_Address: TokenVST.address,
+                          });
+                        }}
+                      >
                         {i18n.unStake}
                       </Button>
                     </p>

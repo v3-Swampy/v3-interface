@@ -118,7 +118,7 @@ export const useBoostFactor = () => {
   const balanceOfVeVst = userBalanceOfveVst();
   let veVSTTotalSupply = useVETotalSupply();
   //boosting factor = (67% * <amount of veVST> /<total supply of veVST> + 33%) / 33%
-  return veVSTTotalSupply && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
+  return veVSTTotalSupply && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(2) : 1;
 };
 
 export const useRefreshUserInfo = () => useRecoilRefresher_UNSTABLE(escrowUserInfoQuery);

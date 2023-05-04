@@ -6,7 +6,7 @@ import { getAccount, sendTransaction } from '@service/account';
 import { getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
-import { getDeadline, getSlippageTolerance } from '@service/settings';
+import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage } from '@service/settings';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
@@ -29,7 +29,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
   try {
     const account = getAccount();
     if (!account) return;
-    const slippageTolerance = getSlippageTolerance();
+    const slippageTolerance = getSlippageTolerance() || 0;
     const pool = await getPool({ tokenA: _tokenA, tokenB: _tokenB, fee: position.fee });
     const tokenA = getWrapperTokenByAddress(_tokenA.address)!;
     const tokenB = getWrapperTokenByAddress(_tokenB.address)!;
@@ -45,36 +45,34 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
-    // const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
-    //   pool: pool ?? {
-    //     tickCurrent: +findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: new Unit(priceInit!), tokenA, tokenB }) })?.toDecimalMinUnit(),
-    //     sqrtPriceX96,
-    //   } as Pool,
-    //   token0,
-    //   token1,
-    //   token0Amount,
-    //   token1Amount,
-    //   fee,
-    //   tickLower,
-    //   tickUpper,
-    //   slippageTolerance,
-    // });
-    // console.log(slippageTolerance, token0Amount, token1Amount);
-    // console.log(amount0Min, amount1Min);
+    const sqrtPriceX96 = pool?.sqrtPriceX96;
+    const currentPrice = pool?.token0Price?.toDecimalMinUnit();
+    const tickLower = position.tickLower;
+    const tickUpper = position.tickUpper;
 
-    const { amount0Min, amount1Min } = { amount0Min: 0, amount1Min: 0 };
+    if (!sqrtPriceX96 || !currentPrice) {
+      return;
+    }
+    const { amount0Min, amount1Min } = calcAmountMinWithSlippage(
+      sqrtPriceX96,
+      slippageTolerance,
+      currentPrice,
+      tickLower,
+      tickUpper,
+      token0AmountUnit.toDecimalMinUnit(),
+      token1AmountUnit.toDecimalMinUnit()
+    );
 
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;
     setInvertedState(previewUniqueId, inverted);
-    // console.log(token0Amount, token1Amount)
     const dataWithoutCFX = NonfungiblePositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
       {
         tokenId,
         amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
         amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
-        amount0Min: Unit.fromStandardUnit(amount0Min, token0.decimals).toHexMinUnit(),
-        amount1Min: Unit.fromStandardUnit(amount1Min, token1.decimals).toHexMinUnit(),
+        amount0Min: new Unit(amount0Min).toHexMinUnit(),
+        amount1Min: new Unit(amount1Min).toHexMinUnit(),
         deadline: getDeadline(),
       },
     ]);

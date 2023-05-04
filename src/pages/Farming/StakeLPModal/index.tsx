@@ -9,7 +9,7 @@ import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
 import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
-import { UniswapV3StakerFactory, NonfungiblePositionManager } from '@contracts/index';
+import { UniswapV3Staker, NonfungiblePositionManager } from '@contracts/index';
 import { useNavigate } from 'react-router-dom';
 import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
@@ -18,6 +18,7 @@ import { useTokenPrice } from '@service/pairs&pool';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
+import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
 
 const transitions = {
   en: {
@@ -53,7 +54,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
-  const { amount0, amount1, leftToken, rightToken } = data ?? {};
+  const { amount0, amount1, leftToken, rightToken, fee } = data ?? {};
 
   const leftTokenPrice = useTokenPrice(leftToken?.address);
   const rightTokenPrice = useTokenPrice(rightToken?.address);
@@ -79,12 +80,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
         </div>
         <PriceRange position={data} />
       </div>
-      <AuthTokenButtonOf721
-        className={classNameButton}
-        tokenAddress={NonfungiblePositionManager.address}
-        contractAddress={UniswapV3StakerFactory.address}
-        tokenId={data.id.toString()}
-      >
+      <AuthTokenButtonOf721 className={classNameButton} tokenAddress={NonfungiblePositionManager.address} contractAddress={UniswapV3Staker.address} tokenId={data.id.toString()}>
         {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
         <Button
           loading={inTransaction}
@@ -115,7 +111,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   );
 };
 
-const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, leftToken, rightToken }) => {
+const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, leftToken, rightToken, fee }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const navigate = useNavigate();
@@ -130,6 +126,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
 
   const handleNavigate = useCallback(() => {
     setTokens(leftToken, rightToken);
+    setCurrentFee(Number(fee));
     hidePopup();
 
     setTimeout(() => {

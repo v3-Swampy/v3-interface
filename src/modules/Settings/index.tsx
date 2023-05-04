@@ -66,8 +66,9 @@ const SettingsContent: React.FC = () => {
   const onTransactionDeadlineChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(({ target: { value } }) => {
     if (value && new Decimal(value).lt(0)) {
       setTransactionDeadline(0);
+    } else {
+      setTransactionDeadline(+value);
     }
-    setTransactionDeadline(+value);
   }, []);
 
   const [expertMode, setExpertMode] = useExpertMode();
