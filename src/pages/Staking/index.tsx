@@ -20,8 +20,8 @@ import { addRecordToHistory } from '@service/history';
 const transitions = {
   en: {
     staking: 'Staking',
-    stake_tip: 'Stake your {token} to boost your LP farming rewards and increase your Launchpad score.',
-    stake_button: 'Stake {token} to boost your farming!',
+    stake_tip: 'Stake your {token} to boost your LP farming rewards.',
+    stake_button: 'Stake {token}',
     my_staked: 'My Staked {token}',
     unstake_time: 'Unstake Time',
     launchpad_score: 'My Launchpad Score',
@@ -34,8 +34,8 @@ const transitions = {
   },
   zh: {
     staking: '质押',
-    stake_tip: '质押你的 {token} 来提高你的LP耕作奖励，并增加你的Launchpad分数。',
-    stake_button: 'Stake {token} to boost your farming!',
+    stake_tip: '质押你的 {token} 来提高你的 LP 耕作奖励。',
+    stake_button: 'Stake {token}',
     my_staked: 'My Staked {token}',
     unstake_time: 'Unstake Time',
     launchpad_score: 'My Launchpad Score',
