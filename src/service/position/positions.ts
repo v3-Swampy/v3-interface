@@ -271,7 +271,7 @@ export const usePositionStatus = (position: PositionForUI) => {
   return useMemo(() => {
     return liquidity === '0'
       ? PositionStatus.Closed
-      : !tickCurrent
+      : tickCurrent == null
       ? undefined
       : tickCurrent < tickLower || tickCurrent > tickUpper
       ? PositionStatus.OutOfRange
