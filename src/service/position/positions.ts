@@ -85,15 +85,15 @@ const tokenIdsQuery = selector<Array<number> | []>({
 });
 
 export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => {
-  let token0 = getTokenByAddress(decodeRes?.[2]);
-  let token1 = getTokenByAddress(decodeRes?.[3]);
+  let token0 = getTokenByAddress(decodeRes?.[2])!;
+  let token1 = getTokenByAddress(decodeRes?.[3])!;
   if (!token0) {
-    token0 = (await fetchTokenInfoByAddress(decodeRes?.[2])) ?? null;
+    token0 = (await fetchTokenInfoByAddress(decodeRes?.[2]))!;
     if (token0) addTokenToList(token0);
   }
 
   if (!token1) {
-    token1 = (await fetchTokenInfoByAddress(decodeRes?.[3])) ?? null;
+    token1 = (await fetchTokenInfoByAddress(decodeRes?.[3]))!;
     if (token1) addTokenToList(token1);
   }
   const fee = Number(decodeRes?.[4]);
