@@ -67,10 +67,10 @@ const SelectPair: React.FC<{ handleSwapToken: VoidFunction; }> = ({ handleSwapTo
   const [tokenB, setTokenB] = useRecoilState(tokenBState);
 
   const handleSetToken = useCallback(
-    ({ token, type }: { token: Token; type: 'tokenA' | 'tokenB' }) => {
+    ({ token, type }: { token: Token | null; type: 'tokenA' | 'tokenB' }) => {
       const anotherToken = type === 'tokenA' ? tokenB : tokenA;
       const setToken = type === 'tokenA' ? setTokenA : setTokenB;
-      if (anotherToken?.address === token.address) {
+      if (anotherToken?.address === token?.address) {
         handleSwapToken();
       } else {
         setToken(token);

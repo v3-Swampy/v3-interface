@@ -95,7 +95,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
     const userVeVST = maxTime ? totalStakeAmount.mul(duration).div(maxTime) : new Unit(0);
     const addedUserVeVST_decimals = Unit.fromStandardUnit(addedUserVeVST, TokenVST.decimals);
     const _totalSupply = new Unit(veTotalSupply || 0).add(addedUserVeVST_decimals).toDecimalStandardUnit(undefined, TokenVST.decimals);
-    return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(2);
+    return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1);
   }, [stakeAmount, maxTime, currentStakeDuration, modalMode, lockedAmount, currentUnlockTime]);
 
   const onSubmit = useCallback(
@@ -124,10 +124,11 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
       }
       try {
         setNextInfo({
-          sendTranscation: () => handleStakingVST({
-            methodName,
-            methodParams,
-          }),
+          sendTranscation: () =>
+            handleStakingVST({
+              methodName,
+              methodParams,
+            }),
           recordParams: {
             type: methodName === 'createLock' ? 'Stake_CreateLock' : methodName === 'increaseUnlockTime' ? 'Stake_IncreaseUnlockTime' : 'Stake_IncreaseAmount',
             tokenA_Value: methodName !== 'increaseUnlockTime' ? addAmount : extendDurationText,
