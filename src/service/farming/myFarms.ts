@@ -4,17 +4,15 @@ import { accountState } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
 import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
-import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
+import { enhancePositionForUI, positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';
-import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3Staker } from '@contracts/index';
-import { type Pool, fetchPools } from '@service/pairs&pool';
+import { fetchMulticall, NonfungiblePositionManager, UniswapV3Staker } from '@contracts/index';
+import { useTokenPrice, type Pool, fetchPools } from '@service/pairs&pool';
 import _ from 'lodash-es';
-import { enhancePositionForUI } from '@service/position';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
-import { type Token } from '@service/tokens';
-import { useTokenPrice } from '@service/pairs&pool';
+import { TokenVST, type Token } from '@service/tokens';
 
 export interface FarmingPosition extends PositionForUI {
   isActive: boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
@@ -455,7 +453,7 @@ export const handleClaimUnStake = async ({
 }) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
   const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
-  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
+  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [TokenVST.address, accountAddress, 0]);
   const data2 = UniswapV3Staker.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
   return await sendTransaction({
     to: UniswapV3Staker.address,
@@ -489,7 +487,7 @@ export const handleClaimAndReStake = async ({
 }) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
   const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
-  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
+  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [TokenVST.address, accountAddress, 0]);
   const data2 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
   return await sendTransaction({
     to: UniswapV3Staker.address,

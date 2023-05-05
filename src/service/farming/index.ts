@@ -1,9 +1,9 @@
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
-import { fetchMulticall, createPairContract, VSTTokenContract, UniswapV3Staker } from '@contracts/index';
+import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
 import { chunk } from 'lodash-es';
 import dayjs from 'dayjs';
-import { getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens, getTokenByAddress } from '@service/tokens';
+import { getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens, getTokenByAddress, TokenVST } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
 import { sendTransaction } from '@service/account';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
@@ -110,7 +110,7 @@ export const getPastIncentivesOfPool = (poolAddress?: string) => {
 const getIncentiveKey = (address: string, startTime?: number, endTime?: number): IncentiveKey => {
   if (startTime && endTime) {
     return {
-      rewardToken: VSTTokenContract.address,
+      rewardToken: TokenVST?.address,
       pool: address,
       startTime: startTime,
       endTime: endTime,
@@ -120,7 +120,7 @@ const getIncentiveKey = (address: string, startTime?: number, endTime?: number):
     const { startTime, endTime } = getCurrentIncentivePeriod();
 
     return {
-      rewardToken: VSTTokenContract.address,
+      rewardToken: TokenVST?.address,
       pool: address,
       startTime: startTime,
       endTime: endTime,
@@ -190,7 +190,7 @@ const poolsQuery = selector({
 
 export const usePoolsQuery = () => {
   const pools = useRecoilValue(poolsQuery);
-  const price = useTokenPrice(VSTTokenContract.address) || 0;
+  const price = useTokenPrice(TokenVST.address) || 0;
 
   if (!price) return pools;
 
@@ -226,7 +226,7 @@ export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery
 
 export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid }: { tokenId: number; address: string; startTime: number; endTime: number; pid: number }) => {
   const key = {
-    rewardToken: VSTTokenContract.address,
+    rewardToken: TokenVST?.address,
     pool: address,
     startTime,
     endTime,

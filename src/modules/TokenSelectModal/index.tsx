@@ -130,7 +130,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
   useLayoutEffect(() => {
     const currentSelectTokenIndex = tokens?.findIndex(token => token.address === currentSelectToken?.address);
     if (typeof currentSelectTokenIndex === 'number' && currentSelectTokenIndex !== -1) {
-      listRef.current?.scrollToItem(currentSelectTokenIndex);
+      listRef.current?.scrollToItem(currentSelectTokenIndex, "center");
     }
   }, []);
 

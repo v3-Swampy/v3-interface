@@ -22,7 +22,15 @@ export interface Token {
 
 const tokensKey = `tokenState-${import.meta.env.MODE}`;
 
+let resolveTokenInit: (value: unknown) => void = null!;
+export const tokenInitPromise = new Promise((resolve) => {
+  resolveTokenInit = resolve;
+});
+
 const cachedTokens = (LocalStorage.getItem(tokensKey, 'tokens') as Array<Token>) ?? [];
+if (cachedTokens?.length) {
+  resolveTokenInit(true);
+}
 
 export let TokenVST: Token = null!;
 export let TokenUSDT: Token = null!;
@@ -53,7 +61,7 @@ const CommonTokensCount = 5;
 const commonTokensCache = new Cache<Token>(CommonTokensCount - 1, 'swap-common-token');
 const commonTokensState = atom<Array<Token>>({
   key: `${tokensKey}-common`,
-  default: [TokenCFX, ...commonTokensCache.toArr()],
+  default: [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()],
 });
 
 export const useCommonTokens = () => useRecoilValue(commonTokensState);
@@ -66,13 +74,13 @@ export const setCommonToken = (token: Token) => {
   }
   if (token.address === 'CFX') return;
   commonTokensCache.set(token.address, token);
-  setRecoil(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
+  setRecoil(commonTokensState, [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()]);
 };
 
 export const deleteFromCommonTokens = (token: Token, setRecoilState?: SetRecoilState) => {
   if (token.address === 'CFX') return;
   if (!commonTokensCache.delete(token.address)) return;
-  (setRecoilState ?? setRecoil)(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
+  (setRecoilState ?? setRecoil)(commonTokensState, [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()]);
 };
 
 const stableSymbols = ['USDT'];
@@ -154,7 +162,7 @@ export const useTokens = () => {
     const innerTokens = cachedTokens.filter((token) => !token.fromSearch);
     const searchedTokens = cachedTokens.filter((token) => token.fromSearch);
     if (isEqual(tokens, innerTokens)) return;
-    const newTokens = [...innerTokens, ...searchedTokens];
+    const newTokens = [...tokens, ...searchedTokens];
     try {
       LocalStorage.setItem({ key: tokensKey, data: newTokens, namespace: 'tokens' });
       handleRecoilInit((set) => {
@@ -164,6 +172,8 @@ export const useTokens = () => {
     } catch (_) {
       setRecoil(tokensState, newTokens);
       resetTokensMap(newTokens);
+    } finally {
+      resolveTokenInit(true);
     }
   } catch (err) {
     console.error('Failed to get the latest token list: ', err);

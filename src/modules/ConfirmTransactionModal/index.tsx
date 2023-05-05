@@ -110,7 +110,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
                     address: tokenNeededAdd.address,
                     symbol: tokenNeededAdd.symbol,
                     decimals: tokenNeededAdd.decimals,
-                    image: tokenNeededAdd.address,
+                    image: tokenNeededAdd.logoURI ?? '',
                   },
                 })
               }
