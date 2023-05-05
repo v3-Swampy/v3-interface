@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback, useTransition } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useTransition, useLayoutEffect } from 'react';
 import cx from 'clsx';
 import { FixedSizeList } from 'react-window';
 import CustomScrollbar from 'custom-react-scrollbar';
@@ -35,6 +35,7 @@ interface Props {
 const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
+  const listRef = useRef<FixedSizeList>(null!);
 
   const tokens = useTokens();
   const [_, startTransition] = useTransition();
@@ -126,6 +127,13 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
     [usedTokens]
   );
 
+  useLayoutEffect(() => {
+    const currentSelectTokenIndex = tokens?.findIndex(token => token.address === currentSelectToken?.address);
+    if (typeof currentSelectTokenIndex === 'number' && currentSelectTokenIndex !== -1) {
+      listRef.current?.scrollToItem(currentSelectTokenIndex);
+    }
+  }, []);
+
   return (
     <div className="mt-24px">
       <div className="flex items-center h-40px px-28px rounded-100px bg-orange-light-hover">
@@ -148,7 +156,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
         {!inSearching && searchTokens && searchTokens.length === 0 && (
           <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-14px text-black-light">No matching token found</p>
         )}
-        <FixedSizeList width="100%" height={264} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
+        <FixedSizeList ref={listRef} width="100%" height={264} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
           {Token}
         </FixedSizeList>
       </div>
