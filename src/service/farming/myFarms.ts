@@ -50,13 +50,17 @@ export const myFarmsPositionsQueryByTokenIds = selectorFamily({
         tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
       );
 
-      if (Array.isArray(positionsResult))
-        return positionsResult?.map((singleRes, index) => {
-          const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-          const position: Position = decodePosition(tokenIds[index], decodeRes);
+      if (Array.isArray(positionsResult)) {
+        return await Promise.all(
+          positionsResult?.map(async (singleRes, index) => {
+            const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+            const position = await decodePosition(tokenIds[index], decodeRes);
 
-          return position;
-        });
+            return position;
+          })
+        );
+      }
+
       return [];
     },
 });

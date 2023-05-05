@@ -1,18 +1,22 @@
-import React, { useState, useMemo, useCallback, useTransition } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useTransition } from 'react';
 import cx from 'clsx';
-import { clamp } from 'lodash-es';
 import { FixedSizeList } from 'react-window';
 import CustomScrollbar from 'custom-react-scrollbar';
 import { escapeRegExp } from 'lodash-es';
 import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import Input from '@components/Input';
+import Spin from '@components/Spin';
+import Delay from '@components/Delay';
 import Balance from '@modules/Balance';
+import ConfirmPopper from '@modules/ConfirmPopper';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
-import { useTokens, useCommonTokens, setCommonToken, type Token } from '@service/tokens';
-import { ReactComponent as SearchIcon } from '@assets/icons/search.svg';
-
+import { validateHexAddress } from '@utils/addressUtils';
+import { useTokens, useCommonTokens, setCommonToken, fetchTokenInfoByAddress, addTokenToList, deleteTokenFromList, isTokenEqual, type Token } from '@service/tokens';
 import { isMobile } from '@utils/is';
+import { ReactComponent as SearchIcon } from '@assets/icons/search.svg';
+import { ReactComponent as DeleteIcon } from '@assets/icons/delete.svg';
+import './index.css';
 
 const transitions = {
   en: {
@@ -25,38 +29,68 @@ const transitions = {
 
 interface Props {
   currentSelectToken: Token | null;
-  onSelect: (token: Token) => void;
+  onSelect: (token: Token | null) => void;
 }
 
 const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
 
-  const [_, startTransition] = useTransition();
-  const [filter, setFilter] = useState('');
-  const handleFilterChange = useCallback<React.FormEventHandler<HTMLInputElement>>((evt) => {
-    startTransition(() => {
-      setFilter((evt.target as HTMLInputElement).value);
-    });
-  }, []);
-
   const tokens = useTokens();
-  const filterTokens = useMemo(() => {
-    if (!filter) return tokens;
-    return tokens?.filter((token) => [token.name, token.symbol, token.address].some((str) => str?.search(new RegExp(escapeRegExp(filter), 'i')) !== -1));
-  }, [filter, tokens]);
+  const [_, startTransition] = useTransition();
+  const [searchTokens, setSearchTokens] = useState<Token[] | null>(null);
+  const [inSearching, setInSearching] = useState(false);
+  const searchUniqueId = useRef(0);
+  const handleFilterChange = useCallback<React.FormEventHandler<HTMLInputElement>>(
+    (evt) => {
+      startTransition(() => {
+        setInSearching(false);
+        searchUniqueId.current += 1;
+        const currentSearchId = searchUniqueId.current;
+        const filterVal = (evt.target as HTMLInputElement).value.trim().toLocaleLowerCase();
+        if (validateHexAddress(filterVal) && !tokens.some((token) => token.address.toLocaleLowerCase() === filterVal)) {
+          setInSearching(true);
+          fetchTokenInfoByAddress(filterVal)
+            .then((searchedToken) => {
+              if (!searchedToken || currentSearchId !== searchUniqueId.current) return;
+              setSearchTokens([searchedToken]);
+            })
+            .finally(() => {
+              if (currentSearchId !== searchUniqueId.current) return;
+              setInSearching(false);
+            });
+        } else {
+          if (!filterVal) {
+            setSearchTokens(null);
+          } else {
+            setSearchTokens(
+              tokens?.filter((token) =>
+                [token.name, token.symbol, token.address].some(
+                  (str) => str?.search(new RegExp(escapeRegExp(filterVal), 'i')) !== -1 || filterVal.search(new RegExp(escapeRegExp(str), 'i')) !== -1
+                )
+              )
+            );
+          }
+        }
+      });
+    },
+    [tokens]
+  );
+
+  const usedTokens = useMemo(() => (inSearching ? [] : searchTokens ?? tokens), [searchTokens, tokens, inSearching]);
 
   const Token = useCallback(
     ({ index, style }: { index: number; style: React.CSSProperties }) => {
-      const token = filterTokens[index];
+      const token = usedTokens[index];
       return (
         <div className="px-16px h-44px flex items-center bg-orange-light-hover" style={style}>
           <div
             className={cx(
-              'flex items-center w-full h-40px pl-8px pr-16px rounded-100px hover:bg-orange-light cursor-pointer transition-colors',
+              'list-token-item flex items-center w-full h-40px pl-8px pr-16px rounded-100px cursor-pointer transition-colors',
               currentSelectToken?.address === token.address && 'bg-orange-light pointer-events-none'
             )}
             onClick={() => {
+              addTokenToList(token);
               onSelect(token);
               hidePopup();
               setTimeout(() => setCommonToken(token), 88);
@@ -69,15 +103,28 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
               <p className="leading-18px text-14px text-black-normal font-medium">{token.symbol}</p>
             </div>
 
+            {token.fromSearch && (
+              <ConfirmPopper
+                title={`Sure to delete ${token.symbol}?`}
+                className="mr-12px w-14px h-14px cursor-pointer pointer-events-auto"
+                onConfirm={() => {
+                  if (isTokenEqual(token, currentSelectToken)) {
+                    onSelect(null);
+                    hidePopup();
+                  }
+                  deleteTokenFromList(token);
+                }}
+              >
+                <DeleteIcon className="w-full h-full hover:scale-120 transition-transform " />
+              </ConfirmPopper>
+            )}
             {account && <Balance className="text-14px text-black-normal" address={token.address} decimals={token.decimals} />}
           </div>
         </div>
       );
     },
-    [filterTokens]
+    [usedTokens]
   );
-
-  const height = useMemo(() => clamp(filterTokens.length, 0, 6) * 44, [history]);
 
   return (
     <div className="mt-24px">
@@ -92,8 +139,16 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
       <div className="my-16px h-2px bg-orange-light-hover" />
 
-      <div className="flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover">
-        <FixedSizeList width="100%" height={height} itemCount={filterTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
+      <div className="relative flex flex-col gap-12px pt-12px pb-4px min-h-264px rounded-20px bg-orange-light-hover">
+        {inSearching && (
+          <Delay>
+            <Spin className="!absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-48px" />
+          </Delay>
+        )}
+        {!inSearching && searchTokens && searchTokens.length === 0 && (
+          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-14px text-black-light">No matching token found</p>
+        )}
+        <FixedSizeList width="100%" height={264} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
           {Token}
         </FixedSizeList>
       </div>
