@@ -1,6 +1,6 @@
 import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { VSTTokenContract, VotingEscrowContract } from '@contracts/index';
+import { createVSTTokenContract, VotingEscrowContract } from '@contracts/index';
 import { accountState } from '@service/account';
 // import { TokenVST } from '@service/tokens';
 
@@ -8,6 +8,7 @@ import { accountState } from '@service/account';
 const totalStakeVSTQuery = selector({
   key: `VSTTotalStateQuery-${import.meta.env.MODE}`,
   get: async () => {
+    const VSTTokenContract = createVSTTokenContract();
     const response = await VSTTokenContract.func.balanceOf(VotingEscrowContract?.address);
     return response ? new Unit(response) : undefined;
   },
@@ -16,6 +17,7 @@ const totalStakeVSTQuery = selector({
 const vstDecimalsQuery = selector({
   key: `VSTDecimals-${import.meta.env.MODE}`,
   get: async () => {
+    const VSTTokenContract = createVSTTokenContract();
     const response = await VSTTokenContract.func.decimals();
     return response ? Number(response) : undefined;
   },
@@ -24,6 +26,7 @@ const vstDecimalsQuery = selector({
 const vstTotalSupplyQuery = selector({
   key: `VSTTotalSupply-${import.meta.env.MODE}`,
   get: async () => {
+    const VSTTokenContract = createVSTTokenContract();
     const response = await VSTTokenContract.func.totalSupply();
     return response ? new Unit(response) : undefined;
   },

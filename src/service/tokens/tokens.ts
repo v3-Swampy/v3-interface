@@ -22,7 +22,15 @@ export interface Token {
 
 const tokensKey = `tokenState-${import.meta.env.MODE}`;
 
+let resolveTokenInit: (value: unknown) => void = null!;
+export const tokenInitPromise = new Promise((resolve) => {
+  resolveTokenInit = resolve;
+});
+
 const cachedTokens = (LocalStorage.getItem(tokensKey, 'tokens') as Array<Token>) ?? [];
+if (cachedTokens?.length) {
+  resolveTokenInit(true);
+}
 
 export let TokenVST: Token = null!;
 export let TokenUSDT: Token = null!;
@@ -164,6 +172,8 @@ export const useTokens = () => {
     } catch (_) {
       setRecoil(tokensState, newTokens);
       resetTokensMap(newTokens);
+    } finally {
+      resolveTokenInit(true);
     }
   } catch (err) {
     console.error('Failed to get the latest token list: ', err);
