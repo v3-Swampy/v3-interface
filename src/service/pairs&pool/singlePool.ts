@@ -64,7 +64,7 @@ export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' |
       address: poolAddress,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
-      tickCurrent: slots?.[1] ? +slots?.[1].toString() : null,
+      tickCurrent: slots?.[1] !== undefined ? +slots?.[1].toString() : null,
     });
 
     const poolKey = generatePoolKey({ tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee });
