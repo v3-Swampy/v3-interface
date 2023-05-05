@@ -192,9 +192,9 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
 
 const showTokenListModal = (props: Props) => {
   if (isMobile) {
-    showDrawer({ Content: <TokenListModalContent {...props} />, title: '选择代币' });
+    showDrawer({ Content: <TokenListModalContent {...props} />, title: 'Select a token' });
   } else {
-    showModal({ Content: <TokenListModalContent {...props} />, className: '!max-w-572px', title: '选择代币' }) as string;
+    showModal({ Content: <TokenListModalContent {...props} />, className: '!max-w-572px', title: 'Select a token' }) as string;
   }
 };
 
