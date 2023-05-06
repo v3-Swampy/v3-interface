@@ -6,7 +6,7 @@ import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
 import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPostionLiquidity } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
-import { useAccount } from '@service/account';
+import { useAccount, useIsChainMatch } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
 import showUnstakeModal from './UnstakeModal';
@@ -16,7 +16,6 @@ import { addRecordToHistory } from '@service/history';
 import useInTransaction from '@hooks/useInTransaction';
 import Button from '@components/Button';
 import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
-import dayjs from 'dayjs';
 import { useCanClaim } from '@service/farming';
 
 const transitions = {
@@ -60,6 +59,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   const { inTransaction: unstakeInTransaction, execTransaction: handleClaimUnStake } = useInTransaction(_handleClaimUnStake, true);
   const { inTransaction: claimIntransaction, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
   const isCanClaim = useCanClaim();
+  const isChainMath = useIsChainMatch();
 
   const isPaused = useMemo(() => {
     return isActive ? status == PositionStatus.OutOfRange : true;
@@ -106,30 +106,33 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
           </AuthConnectButton>
         ) : (
           <>
-            <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 !border-none !px-10px`}>
-              <Button
-                disabled={!isCanClaim}
-                loading={claimIntransaction}
-                color="white"
-                className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2`}
-                onClick={async () => {
-                  const txHash = await handleClaimAndReStake({
-                    isActive,
-                    keyThatTokenIdIn: position?.whichIncentiveTokenIn,
-                    currentIncentiveKey: currentIncentiveKey,
-                    tokenId: position.tokenId,
-                    pid,
-                    accountAddress: account as string,
-                  });
-                  addRecordToHistory({
-                    txHash,
-                    type: 'MyFarms_Claim',
-                  });
-                }}
-              >
-                {i18n.claim}
-              </Button>
-            </AuthConnectButton>
+            {isChainMath && (
+              <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 !border-none !px-10px`}>
+                <Button
+                  disabled={!isCanClaim}
+                  loading={claimIntransaction}
+                  color="white"
+                  className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2`}
+                  onClick={async () => {
+                    const txHash = await handleClaimAndReStake({
+                      isActive,
+                      keyThatTokenIdIn: position?.whichIncentiveTokenIn,
+                      currentIncentiveKey: currentIncentiveKey,
+                      tokenId: position.tokenId,
+                      pid,
+                      accountAddress: account as string,
+                    });
+                    addRecordToHistory({
+                      txHash,
+                      type: 'MyFarms_Claim',
+                    });
+                  }}
+                >
+                  {i18n.claim}
+                </Button>
+              </AuthConnectButton>
+            )}
+
             <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} !border-none !px-10px`}>
               <Button
                 loading={unstakeInTransaction}
