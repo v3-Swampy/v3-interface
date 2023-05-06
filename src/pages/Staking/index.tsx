@@ -103,9 +103,11 @@ const StakingPage: React.FC = () => {
                     <p className="font-bold text-18px leading-24px">{trimDecimalZeros(new Unit(lockedAmount).toDecimalMinUnit(5)) ?? '...'}</p>
                     <p className="text-black-light font-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                     <p className="mt-70px">
-                      <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>
-                        {i18n.stake_more}
-                      </Button>
+                      <AuthConnectButton {...smallButtonProps}>
+                        <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>
+                          {i18n.stake_more}
+                        </Button>
+                      </AuthConnectButton>
                     </p>
                   </div>
                   <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between">
@@ -113,9 +115,11 @@ const StakingPage: React.FC = () => {
                       <p className="font-medium mb-16px">{i18n.unstake_time}</p>
                       <p className="text-black-light font-normal">{displayedUnlockedTime}</p>
                     </div>
-                    <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
-                      {i18n.extend}
-                    </Button>
+                    <AuthConnectButton {...smallButtonProps}>
+                      <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
+                        {i18n.extend}
+                      </Button>
+                    </AuthConnectButton>
                   </div>
                 </div>
                 <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
@@ -133,19 +137,21 @@ const StakingPage: React.FC = () => {
                   <div className="flex flex-1 flex-col rounded-16px p-16px border-2px border-solid border-orange-light justify-center">
                     <p className="text-orange-normal font-normal" dangerouslySetInnerHTML={{ __html: i18n.unStake_tip }} />
                     <p className="mt-40px">
-                      <Button
-                        {...smallButtonProps}
-                        onClick={async () => {
-                          const txHash = await handleUnStake();
-                          addRecordToHistory({
-                            txHash,
-                            type: 'Stake_Unlock',
-                            tokenA_Address: TokenVST.address,
-                          });
-                        }}
-                      >
-                        {i18n.unStake}
-                      </Button>
+                      <AuthConnectButton {...smallButtonProps}>
+                        <Button
+                          {...smallButtonProps}
+                          onClick={async () => {
+                            const txHash = await handleUnStake();
+                            addRecordToHistory({
+                              txHash,
+                              type: 'Stake_Unlock',
+                              tokenA_Address: TokenVST.address,
+                            });
+                          }}
+                        >
+                          {i18n.unStake}
+                        </Button>
+                      </AuthConnectButton>
                     </p>
                   </div>
                 </div>
