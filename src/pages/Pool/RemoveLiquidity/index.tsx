@@ -6,8 +6,7 @@ import 'rc-slider/assets/index.css';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
-import { useTokenPrice } from '@service/pairs&pool';
-import { PositionForUI, usePosition, usePositionFees, handleSubmitRemoveLiquidity } from '@service/position';
+import { PositionForUI, PositionStatus, usePosition, usePositionFees, handleSubmitRemoveLiquidity, usePositionStatus } from '@service/position';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
@@ -16,7 +15,6 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import AmountSlider from './AmountSlider';
 import AmountDetail from './AmountDetail';
-
 
 const transitions = {
   en: {
@@ -66,15 +64,10 @@ const RemoveLiquidity: React.FC = () => {
   const [rightRemoveAmount, setRightRemoveAmount] = useState<Unit>(new Unit(0));
 
   const position = usePosition(Number(tokenId));
-
+  const status = usePositionStatus(position as PositionForUI);
   const { leftToken, rightToken, amount0, amount1, token0, token1 } = position || {};
 
   const [fee0, fee1] = usePositionFees(Number(tokenId));
-  const token0Price = useTokenPrice(token0?.address);
-  const token1Price = useTokenPrice(token1?.address)
-  const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : ''
-  const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : ''
-  const fee = token0Fee && token1Fee ? trimDecimalZeros(new Unit(token0Fee).add(token1Fee).toDecimalMinUnit(5)) : '-'
 
   const invertDirection = useMemo(() => getInvertDirection(position), [position]);
 
@@ -129,14 +122,14 @@ const RemoveLiquidity: React.FC = () => {
     setRightRemoveAmount(rightTotalAmount.mul(removePercent).div(100));
   }, [removePercent, setLeftRemoveAmount, leftTotalAmount, rightTotalAmount]);
 
-  if (!tokenId || !position) return <div />;
+  if (!tokenId || !position || !status || status === PositionStatus.Closed) return <div />;
 
   return (
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
         <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
           <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
-          <ArrowLeftIcon className="w-8px h-12px mr-16px" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
             {i18n.remove_liquidity}
           </Link>
           <Settings />
