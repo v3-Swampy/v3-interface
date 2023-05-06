@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import Status from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePosition, useIsPositionOwner } from '@service/position';
+import { type PositionForUI, PositionStatus, usePosition, useIsPositionOwner, usePositionStatus } from '@service/position';
 import { useInvertedState } from '@modules/Position/invertedState';
 
 const transitions = {
@@ -26,8 +26,10 @@ const DetailHeader: React.FC = () => {
   const navigate = useNavigate();
   const [inverted] = useInvertedState(tokenId);
   const isOwner = useIsPositionOwner(Number(tokenId));
+  const status = usePositionStatus(position as PositionForUI);
 
   if (!position) return null;
+
   return (
     <div className="flex width-full justify-between">
       <div className="flex gap-22px">
@@ -36,12 +38,18 @@ const DetailHeader: React.FC = () => {
       </div>
       {isOwner && (
         <div className="flex justify-end gap-16px">
-          <Button className="px-24px h-40px rounded-100px text-14px font-medium !text-orange-normal" color="orange-light" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
+          <Button
+            className="px-24px h-40px rounded-100px text-14px font-medium !text-orange-normal"
+            color="orange-light"
+            onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}
+          >
             {i18n.increase_liquidity}
           </Button>
-          <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
-            {i18n.remove_liquidity}
-          </Button>
+          {status && status !== PositionStatus.Closed && (
+            <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
+              {i18n.remove_liquidity}
+            </Button>
+          )}
         </div>
       )}
     </div>
