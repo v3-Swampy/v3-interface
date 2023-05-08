@@ -26,13 +26,11 @@ const DataDetailContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const totalStakeVST = useTotalStakeVST();
   const VSTPrice = useTokenPrice(TokenVST.address);
-  console.log('VSTPrice', VSTPrice);
   const percentageOfCulatingtion = useStakePercent();
   const averageStakeDuration = useAverageStakeDuration();
 
   const totalLockedBalanceUSD = useMemo(() => {
-
-    return VSTPrice && totalStakeVST ? numberWithCommas(totalStakeVST.mul(VSTPrice).toDecimalStandardUnit(3, TokenUSDT.decimals)) : '-'
+    return VSTPrice && totalStakeVST ? numberWithCommas(totalStakeVST.mul(VSTPrice).toDecimalStandardUnit(3, TokenUSDT.decimals)) : '-';
     // return VSTPrice && totalStakeVST ? numberWithCommas(parseFloat((+VSTPrice * +totalStakeVST?.toDecimalStandardUnit(3, TokenVST?.decimals)).toString().slice(0, -1))) : '';
   }, [VSTPrice, totalStakeVST?.toDecimalMinUnit()]);
 
@@ -44,7 +42,10 @@ const DataDetailContent: React.FC = () => {
         <p className="font-medium">~ {totalLockedBalanceUSD ? `$${totalLockedBalanceUSD}` : '-'}</p>
       </div>
       <div className="flex flex-col leading-18px text-14px text-black-normal">
-        <p className="font-medium" dangerouslySetInnerHTML={{ __html: compiled(i18n.percentage_of_culatingtion, { token: TokenVST?.symbol, percentage: percentageOfCulatingtion }) }} />
+        <p
+          className="font-medium"
+          dangerouslySetInnerHTML={{ __html: compiled(i18n.percentage_of_culatingtion, { token: TokenVST?.symbol, percentage: percentageOfCulatingtion }) }}
+        />
         <p
           className="leading-21px text-14px text-black-normal font-medium"
           dangerouslySetInnerHTML={{ __html: compiled(i18n.average_stake_duration, { duration: averageStakeDuration }) }}

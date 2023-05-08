@@ -10,7 +10,7 @@ const totalStakeVSTQuery = selector({
   get: async () => {
     const VSTTokenContract = createVSTTokenContract();
     const response = await VSTTokenContract.func.balanceOf(VotingEscrowContract?.address);
-    return response ? new Unit(response) : undefined;
+    return response ? new Unit(response) : new Unit(0);
   },
 });
 
@@ -36,7 +36,7 @@ const escrowTotalSupplyQuery = selector({
   key: `escrowTotalSupply-${import.meta.env.MODE}`,
   get: async () => {
     const response = await VotingEscrowContract.func.totalSupply();
-    return response ? new Unit(response) : undefined;
+    return response ? new Unit(response) : new Unit(0);
   },
 });
 
@@ -74,7 +74,7 @@ const escrowBalanceOfQuery = selector({
     const account = get(accountState);
     if (!account) return undefined;
     const response = await VotingEscrowContract.func.balanceOf(account);
-    return response ? new Unit(response) : undefined;
+    return response ? new Unit(response) : new Unit(0);
   },
 });
 
@@ -98,7 +98,7 @@ export const useAverageStakeDuration = () => {
   const veVSTTotalSupply = useVETotalSupply();
   const maxTime = useVEMaxTime();
   if (!veVSTTotalSupply || !totalLocked || !maxTime) return '-';
-  const avgValue: number = Number(veVSTTotalSupply.mul(maxTime).div(totalLocked).toDecimalMinUnit());
+  const avgValue: number = Number(totalLocked.toDecimalMinUnit() != '0' ? veVSTTotalSupply.mul(maxTime).div(totalLocked).toDecimalMinUnit() : 0);
   const SECONDS_PER_DAY = 86400;
 
   if (avgValue > SECONDS_PER_DAY * 30) return `${(avgValue / (SECONDS_PER_DAY * 30)).toFixed(2)} months`;
@@ -121,7 +121,7 @@ export const useBoostFactor = () => {
   const balanceOfVeVst = userBalanceOfveVst();
   let veVSTTotalSupply = useVETotalSupply();
   //boosting factor = (67% * <amount of veVST> /<total supply of veVST> + 33%) / 33%
-  return veVSTTotalSupply && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
+  return veVSTTotalSupply?.toDecimalMinUnit() != '0' && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
 };
 
 export const useRefreshUserInfo = () => useRecoilRefresher_UNSTABLE(escrowUserInfoQuery);
