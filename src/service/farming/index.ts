@@ -3,7 +3,7 @@ import Decimal from 'decimal.js';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
 import { chunk } from 'lodash-es';
 import dayjs from 'dayjs';
-import { getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens, getTokenByAddress, TokenVST } from '@service/tokens';
+import { getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens, getTokenByAddress, fetchTokenInfoByAddress, addTokenToList, TokenVST } from '@service/tokens';
 import { FeeAmount } from '@service/pairs&pool';
 import { sendTransaction } from '@service/account';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
@@ -166,6 +166,25 @@ const poolsQuery = selector({
           };
         })
       : [];
+    const tokenInfos = await Promise.all(
+      pairsInfo?.map(async (info) => {
+        let token0 = getTokenByAddress(info.token0)!;
+        let token1 = getTokenByAddress(info.token1)!;
+        if (!token0) {
+          token0 = (await fetchTokenInfoByAddress(info.token0))!;
+          if (token0) addTokenToList(token0);
+        }
+
+        if (!token1) {
+          token1 = (await fetchTokenInfoByAddress(info.token1))!;
+          if (token1) addTokenToList(token1);
+        }
+        return {
+          token0,
+          token1
+        }
+      })
+    );
 
     // merge pool info and pair info
     return poolsInfo.map((p, i) => {
@@ -175,8 +194,8 @@ const poolsQuery = selector({
       return {
         ...p,
         ...pairInfo,
-        token0: getTokenByAddress(token0) || DEFAULT_TOKEN,
-        token1: getTokenByAddress(token1) || DEFAULT_TOKEN,
+        token0: tokenInfos[i].token0,
+        token1: tokenInfos[i].token1,
         tvl: 0,
         range: [],
         totalSupply,
