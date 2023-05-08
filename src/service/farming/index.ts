@@ -140,70 +140,75 @@ const poolsQuery = selector({
     // initial pair contract
     const pairContracts = poolsInfo.map((poolInfo) => createPairContract(poolInfo.address));
 
-    // get pair info list
-    const resOfMulticall2 = await fetchMulticall(
-      pairContracts
-        .map((pairContract) => {
-          return [
-            [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
-            [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
-            [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
-            [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolStat', [computeIncentiveKey(getIncentiveKey(pairContract.address))])],
-            [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('totalAllocPoint')],
-          ];
-        })
-        .flat()
-    );
+    try {
+      // get pair info list
+      const resOfMulticall2 = await fetchMulticall(
+        pairContracts
+          .map((pairContract) => {
+            return [
+              [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
+              [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
+              [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
+              [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolStat', [computeIncentiveKey(getIncentiveKey(pairContract.address))])],
+              [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('totalAllocPoint')],
+            ];
+          })
+          .flat()
+      );
 
-    const pairsInfo = resOfMulticall2
-      ? chunk(resOfMulticall2, 5).map((r, i) => {
+      const pairsInfo = resOfMulticall2
+        ? chunk(resOfMulticall2, 5).map((r, i) => {
+            return {
+              token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
+              token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
+              fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
+              totalSupply: UniswapV3Staker.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
+              totalAllocPoint: UniswapV3Staker.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
+            };
+          })
+        : [];
+      const tokenInfos = await Promise.all(
+        pairsInfo?.map(async (info) => {
+          let token0 = getTokenByAddress(info.token0)!;
+          let token1 = getTokenByAddress(info.token1)!;
+          if (!token0) {
+            token0 = (await fetchTokenInfoByAddress(info.token0))!;
+            if (token0) addTokenToList(token0);
+          }
+
+          if (!token1) {
+            token1 = (await fetchTokenInfoByAddress(info.token1))!;
+            if (token1) addTokenToList(token1);
+          }
           return {
-            token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
-            token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
-            fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
-            totalSupply: UniswapV3Staker.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
-            totalAllocPoint: UniswapV3Staker.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
+            token0,
+            token1,
           };
         })
-      : [];
-    const tokenInfos = await Promise.all(
-      pairsInfo?.map(async (info) => {
-        let token0 = getTokenByAddress(info.token0)!;
-        let token1 = getTokenByAddress(info.token1)!;
-        if (!token0) {
-          token0 = (await fetchTokenInfoByAddress(info.token0))!;
-          if (token0) addTokenToList(token0);
-        }
+      );
 
-        if (!token1) {
-          token1 = (await fetchTokenInfoByAddress(info.token1))!;
-          if (token1) addTokenToList(token1);
-        }
+      // merge pool info and pair info
+      return poolsInfo.map((p, i) => {
+        const { totalSupply, ...pairInfo } = pairsInfo[i];
+        const { token0, token1 } = pairInfo;
+        const [leftToken, rightToken] = getLRToken(getTokenByAddress(token0), getTokenByAddress(token1));
         return {
-          token0,
-          token1
-        }
-      })
-    );
-
-    // merge pool info and pair info
-    return poolsInfo.map((p, i) => {
-      const { totalSupply, ...pairInfo } = pairsInfo[i];
-      const { token0, token1 } = pairInfo;
-      const [leftToken, rightToken] = getLRToken(getTokenByAddress(token0), getTokenByAddress(token1));
-      return {
-        ...p,
-        ...pairInfo,
-        token0: tokenInfos[i].token0,
-        token1: tokenInfos[i].token1,
-        tvl: 0,
-        range: [],
-        totalSupply,
-        currentIncentivePeriod: getCurrentIncentivePeriod(),
-        leftToken,
-        rightToken,
-      };
-    });
+          ...p,
+          ...pairInfo,
+          token0: tokenInfos[i].token0,
+          token1: tokenInfos[i].token1,
+          tvl: 0,
+          range: [],
+          totalSupply,
+          currentIncentivePeriod: getCurrentIncentivePeriod(),
+          leftToken,
+          rightToken,
+        };
+      });
+    } catch (error) {
+      console.warn('error', error);
+      return [];
+    }
   },
 });
 
