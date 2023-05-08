@@ -113,7 +113,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
               address: poolAddresses[index],
               sqrtPriceX96: data?.[0]?.[0] ? data?.[0]?.[0].toString() : null,
               liquidity: data?.[1]?.[0] ? data?.[1]?.[0].toString() : null,
-              tickCurrent: data?.[0]?.[1] ? +data?.[0]?.[1].toString() : null,
+              tickCurrent: data?.[0]?.[1] !== undefined ? +data?.[0]?.[1].toString() : null,
             })
         );
 

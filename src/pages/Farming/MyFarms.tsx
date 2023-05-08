@@ -91,7 +91,7 @@ const MyFarmsItem: React.FC<{
         </div>
         <div className="col-span-4">
           <div className={`${className.title}`}>{i18n.stake}</div>
-          <div className={`${className.content}`}>$ {totalLiquidity ? numFormat(totalLiquidity.toFixed(2)) : 0}</div>
+          <div className={`${className.content}`}>${totalLiquidity ? numFormat(totalLiquidity.toFixed(2)) : 0}</div>
         </div>
         <div className="col-span-3">
           <div className={`${className.title}`}>

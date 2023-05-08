@@ -12,6 +12,7 @@ import { addRecordToHistory } from '@service/history';
 import type { PoolType } from '@service/farming';
 import { PositionForUI } from '@service/position';
 import { hidePopup } from '@components/showPopup';
+import AuthConnectButton from '@modules/AuthConnectButton';
 
 const transitions = {
   en: {
@@ -69,56 +70,60 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
         }}
       ></div>
       <div className="absolute flex bottom-6 left-4 right-4 justify-between">
-        <Button
-          loading={inTransaction}
-          color="gray"
-          className={`${classNames.baseButton} border border-solid bg-white-normal`}
-          onClick={async () => {
-            const txHash = await handleClaimUnStake({
-              isActive,
-              key: incentive,
-              tokenId: id,
-              pid,
-              accountAddress: account as string,
-            });
+        <AuthConnectButton className={`${classNames.baseButton} border border-solid bg-white-normal`}>
+          <Button
+            loading={inTransaction}
+            color="gray"
+            className={`${classNames.baseButton} border border-solid bg-white-normal`}
+            onClick={async () => {
+              const txHash = await handleClaimUnStake({
+                isActive,
+                key: incentive,
+                tokenId: id,
+                pid,
+                accountAddress: account as string,
+              });
 
-            setTimeout(() => {
-              hidePopup();
-            }, 200);
+              setTimeout(() => {
+                hidePopup();
+              }, 200);
 
-            addRecordToHistory({
-              txHash,
-              type: 'MyFarms_ClaimAndUnstake',
-            });
-          }}
-        >
-          {i18n.claimAndUnstake}
-        </Button>
-        <Button
-          loading={inTransaction2}
-          className={`${classNames.baseButton} ${classNames.activeButton}`}
-          onClick={async () => {
-            const txHash = await handleClaimAndReStake({
-              isActive,
-              keyThatTokenIdIn: incentive,
-              currentIncentiveKey: currentIncentiveKey,
-              tokenId: id,
-              pid,
-              accountAddress: account as string,
-            });
+              addRecordToHistory({
+                txHash,
+                type: 'MyFarms_ClaimAndUnstake',
+              });
+            }}
+          >
+            {i18n.claimAndUnstake}
+          </Button>
+        </AuthConnectButton>
+        <AuthConnectButton className={`${classNames.baseButton} ${classNames.activeButton}`}>
+          <Button
+            loading={inTransaction2}
+            className={`${classNames.baseButton} ${classNames.activeButton}`}
+            onClick={async () => {
+              const txHash = await handleClaimAndReStake({
+                isActive,
+                keyThatTokenIdIn: incentive,
+                currentIncentiveKey: currentIncentiveKey,
+                tokenId: id,
+                pid,
+                accountAddress: account as string,
+              });
 
-            setTimeout(() => {
-              hidePopup();
-            }, 200);
+              setTimeout(() => {
+                hidePopup();
+              }, 200);
 
-            addRecordToHistory({
-              txHash,
-              type: 'MyFarms_ClaimAndStake',
-            });
-          }}
-        >
-          {i18n.claimAndStake}
-        </Button>
+              addRecordToHistory({
+                txHash,
+                type: 'MyFarms_ClaimAndStake',
+              });
+            }}
+          >
+            {i18n.claimAndStake}
+          </Button>
+        </AuthConnectButton>
       </div>
     </div>
   );

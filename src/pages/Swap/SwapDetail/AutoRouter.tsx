@@ -4,7 +4,7 @@ import Accordion from '@components/Accordion';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { type useBestTrade, TradeType, Trade, Route, Protocol } from '@service/pairs&pool';
-import { Token, getTokenByAddress } from '@service/tokens';
+import { Token, getUnwrapperTokenByAddress } from '@service/tokens';
 import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import RoutingDiagram from './RoutingDiagram';
 
@@ -80,8 +80,8 @@ export function getTokenPath(trade?: Trade): RoutingDiagramEntry[] {
       const path: RoutingDiagramEntry['path'] = [];
       for (let i = 0; i < route.length; i++) {
         const nextPool = route[i];
-        const tokenIn = getTokenByAddress(nextPool.tokenIn.address);
-        const tokenOut = getTokenByAddress(nextPool.tokenOut.address);
+        const tokenIn = getUnwrapperTokenByAddress(nextPool.tokenIn.address);
+        const tokenOut = getUnwrapperTokenByAddress(nextPool.tokenOut.address);
         const entry: RoutingDiagramEntry['path'][0] = [tokenIn, tokenOut, Number(nextPool.fee)];
         path.push(entry);
       }

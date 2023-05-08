@@ -43,14 +43,14 @@ export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
     else return null;
   });
 
-export const VotingEscrowContract = createContract(isProduction ? '0x93c0e274d8ef7e4543ebd838c62f3286cf9c4613' : '0x93c0e274d8ef7e4543ebd838c62f3286cf9c4613', VotingEscrowABI);
+export const VotingEscrowContract = createContract(isProduction ? '0xae50576fd9110674994263e0313260c7e89c1143' : '0xae50576fd9110674994263e0313260c7e89c1143', VotingEscrowABI);
 
 export const createPairContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PairABI);
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
 export const createERC20Contract = (tokenAddress: string) => createContract(tokenAddress, ERC20ABI);
 export const createERC721Contract = (tokenAddress: string) => createContract(tokenAddress, ERC721ABI);
-export const VSTTokenContract = createERC20Contract(TokenVST.address);
+export const createVSTTokenContract = () => createERC20Contract(TokenVST.address);
 
-export const UniswapV3Staker = createContract(isProduction ? '0x33f11ed187e651d6c581a17065f1d2cc90833a90' : '0x33f11ed187e651d6c581a17065f1d2cc90833a90', UniswapV3StakerABI);
+export const UniswapV3Staker = createContract(isProduction ? '0x8a2b815d84da33e270d20cfb2eac26cfb55c1e38' : '0x8a2b815d84da33e270d20cfb2eac26cfb55c1e38', UniswapV3StakerABI);
 
 export const RefudeeContractAddress = isProduction ? '0xad085e56f5673fd994453bbcdfe6828aa659cb0d' : '0xad085e56f5673fd994453bbcdfe6828aa659cb0d';

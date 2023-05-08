@@ -20,8 +20,8 @@ import { addRecordToHistory } from '@service/history';
 const transitions = {
   en: {
     staking: 'Staking',
-    stake_tip: 'Stake your {token} to boost your LP farming rewards and increase your Launchpad score.',
-    stake_button: 'Stake {token} to boost your farming!',
+    stake_tip: 'Stake your {token} to boost your LP farming rewards.',
+    stake_button: 'Stake {token}',
     my_staked: 'My Staked {token}',
     unstake_time: 'Unstake Time',
     launchpad_score: 'My Launchpad Score',
@@ -34,8 +34,8 @@ const transitions = {
   },
   zh: {
     staking: '质押',
-    stake_tip: '质押你的 {token} 来提高你的LP耕作奖励，并增加你的Launchpad分数。',
-    stake_button: 'Stake {token} to boost your farming!',
+    stake_tip: '质押你的 {token} 来提高你的 LP 耕作奖励。',
+    stake_button: 'Stake {token}',
     my_staked: 'My Staked {token}',
     unstake_time: 'Unstake Time',
     launchpad_score: 'My Launchpad Score',
@@ -103,9 +103,11 @@ const StakingPage: React.FC = () => {
                     <p className="font-bold text-18px leading-24px">{trimDecimalZeros(new Unit(lockedAmount).toDecimalMinUnit(5)) ?? '...'}</p>
                     <p className="text-black-light font-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                     <p className="mt-70px">
-                      <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>
-                        {i18n.stake_more}
-                      </Button>
+                      <AuthConnectButton {...smallButtonProps}>
+                        <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>
+                          {i18n.stake_more}
+                        </Button>
+                      </AuthConnectButton>
                     </p>
                   </div>
                   <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between">
@@ -113,9 +115,11 @@ const StakingPage: React.FC = () => {
                       <p className="font-medium mb-16px">{i18n.unstake_time}</p>
                       <p className="text-black-light font-normal">{displayedUnlockedTime}</p>
                     </div>
-                    <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
-                      {i18n.extend}
-                    </Button>
+                    <AuthConnectButton {...smallButtonProps}>
+                      <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
+                        {i18n.extend}
+                      </Button>
+                    </AuthConnectButton>
                   </div>
                 </div>
                 <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
@@ -133,19 +137,21 @@ const StakingPage: React.FC = () => {
                   <div className="flex flex-1 flex-col rounded-16px p-16px border-2px border-solid border-orange-light justify-center">
                     <p className="text-orange-normal font-normal" dangerouslySetInnerHTML={{ __html: i18n.unStake_tip }} />
                     <p className="mt-40px">
-                      <Button
-                        {...smallButtonProps}
-                        onClick={async () => {
-                          const txHash = await handleUnStake();
-                          addRecordToHistory({
-                            txHash,
-                            type: 'Stake_Unlock',
-                            tokenA_Address: TokenVST.address,
-                          });
-                        }}
-                      >
-                        {i18n.unStake}
-                      </Button>
+                      <AuthConnectButton {...smallButtonProps}>
+                        <Button
+                          {...smallButtonProps}
+                          onClick={async () => {
+                            const txHash = await handleUnStake();
+                            addRecordToHistory({
+                              txHash,
+                              type: 'Stake_Unlock',
+                              tokenA_Address: TokenVST.address,
+                            });
+                          }}
+                        >
+                          {i18n.unStake}
+                        </Button>
+                      </AuthConnectButton>
                     </p>
                   </div>
                 </div>

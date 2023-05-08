@@ -11,6 +11,7 @@ import { addRecordToHistory } from '@service/history';
 import { PositionForUI } from '@service/position';
 import { hidePopup } from '@components/showPopup';
 import { ReactComponent as WarningIcon } from '@assets/icons/warning_color.svg';
+import AuthConnectButton from '@modules/AuthConnectButton';
 
 const transitions = {
   en: {
@@ -69,39 +70,43 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentive
       <div className="absolute bottom-6 left-4 right-4">
         <div className="font-400 text-12px leading-20px color-gray-normal text-center mb-2">{i18n.confirmInfo}</div>
         <div className="flex justify-between">
-          <Button
-            color="gray"
-            className={`${classNames.baseButton} border border-solid bg-white-normal`}
-            onClick={async () => {
-              hidePopup();
-            }}
-          >
-            {i18n.claimAndUnstake}
-          </Button>
-          <Button
-            loading={inTransaction}
-            className={`${classNames.baseButton} ${classNames.activeButton}`}
-            onClick={async () => {
-              const txHash = await handleClaimUnStake({
-                isActive,
-                key: currentIncentiveKey,
-                tokenId: id,
-                pid,
-                accountAddress: account as string,
-              });
-
-              setTimeout(() => {
+          <AuthConnectButton className={`${classNames.baseButton} border border-solid bg-white-normal`}>
+            <Button
+              color="gray"
+              className={`${classNames.baseButton} border border-solid bg-white-normal`}
+              onClick={async () => {
                 hidePopup();
-              }, 200);
+              }}
+            >
+              {i18n.claimAndUnstake}
+            </Button>
+          </AuthConnectButton>
+          <AuthConnectButton className={`${classNames.baseButton} ${classNames.activeButton}`}>
+            <Button
+              loading={inTransaction}
+              className={`${classNames.baseButton} ${classNames.activeButton}`}
+              onClick={async () => {
+                const txHash = await handleClaimUnStake({
+                  isActive,
+                  key: currentIncentiveKey,
+                  tokenId: id,
+                  pid,
+                  accountAddress: account as string,
+                });
 
-              addRecordToHistory({
-                txHash,
-                type: 'MyFarms_Unstake',
-              });
-            }}
-          >
-            {i18n.claimAndStake}
-          </Button>
+                setTimeout(() => {
+                  hidePopup();
+                }, 200);
+
+                addRecordToHistory({
+                  txHash,
+                  type: 'MyFarms_Unstake',
+                });
+              }}
+            >
+              {i18n.claimAndStake}
+            </Button>
+          </AuthConnectButton>
         </div>
       </div>
     </div>

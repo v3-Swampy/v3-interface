@@ -1,0 +1,3 @@
+.list-token-item:not(:has(:hover)):hover {
+  @apply hover:bg-orange-light
+}

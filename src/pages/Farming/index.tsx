@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import PageWrapper from '@components/Layout/PageWrapper';
-import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
 import { Suspense } from 'react';
 import Spin from '@components/Spin';
@@ -9,6 +8,8 @@ import { useCanClaim } from '@service/farming';
 import AllFarms from './AllFarms';
 import MyFarms from './MyFarms';
 import CountDown from './CountDown';
+
+import EndIn from './EndIn';
 
 const transitions = {
   en: {
@@ -67,7 +68,7 @@ const FarmingPage: React.FC = () => {
           {i18n.farming}
           <div className="font-500 text-14px leading-18px ml-2 color-#C2C4D0">{i18n.desc}</div>
         </div>
-        <BorderBox className="relative w-full p-16px rounded-28px" variant="gradient-white">
+        <EndIn>
           <div className="flex justify-between">
             <div>
               <div className={`${buttonClass} mr-2 ${tab === TabKey.My ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.My)}>
@@ -80,7 +81,7 @@ const FarmingPage: React.FC = () => {
             <div>{!isCanClaim && <CountDown />}</div>
           </div>
           <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
-        </BorderBox>
+        </EndIn>
       </div>
     </PageWrapper>
   );

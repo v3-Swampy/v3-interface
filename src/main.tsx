@@ -9,6 +9,7 @@ import { initializeRecoil } from '@utils/recoilUtils';
 import { ModalPopup, DrawerPopup, Toast } from '@components/showPopup';
 import { isMobile } from '@utils/is';
 import Router from './router';
+import { tokenInitPromise } from '@service/tokens';
 import 'uno.css';
 import 'reseter.css/css/reseter.css';
 import 'custom-react-scrollbar/dist/style.css';
@@ -21,7 +22,7 @@ if (isMobile) {
   document.styleSheets[0].insertRule('.scrollbar__thumbPlaceholder--vertical { display:none !important; }', 0);
 }
 
-completeDetect().then(() => {
+Promise.all([completeDetect, tokenInitPromise]).then(() => {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <RecoilRoot initializeState={initializeRecoil}>
       <RecoilNexus />

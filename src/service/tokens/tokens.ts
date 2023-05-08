@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
-import { atom, useRecoilValue } from 'recoil';
+import { atom, useRecoilValue, type SetRecoilState } from 'recoil';
 import { getRecoil, setRecoil } from 'recoil-nexus';
 import LocalStorage from 'localstorage-enhance';
 import { isEqual } from 'lodash-es';
-import { Token as UniToken } from '@uniswap/sdk-core';
 import { targetChainId } from '@service/account';
 import waitAsyncResult from '@utils/waitAsyncResult';
 import { handleRecoilInit } from '@utils/recoilUtils';
+import { createERC20Contract, fetchMulticall } from '@contracts/index';
+import TokenDefaultIcon from '@assets/icons/token_default.png';
 import Cache from '@utils/LRUCache';
 
 export interface Token {
@@ -16,22 +17,31 @@ export interface Token {
   address: string;
   logoURI?: string;
   chainId?: number;
+  fromSearch?: true;
 }
 
 const tokensKey = `tokenState-${import.meta.env.MODE}`;
 
-const cachedTokens = (LocalStorage.getItem(tokensKey, 'swap') as Array<Token>) ?? [];
+let resolveTokenInit: (value: unknown) => void = null!;
+export const tokenInitPromise = new Promise((resolve) => {
+  resolveTokenInit = resolve;
+});
+
+const cachedTokens = (LocalStorage.getItem(tokensKey, 'tokens') as Array<Token>) ?? [];
+if (cachedTokens?.length) {
+  resolveTokenInit(true);
+}
 
 export let TokenVST: Token = null!;
 export let TokenUSDT: Token = null!;
 export let TokenETH: Token = null!;
 export let TokenCFX: Token = {
-  chainId: 71,
-  name: 'Conflux',
+  chainId: +targetChainId,
+  name: 'Conflux Network',
   symbol: 'CFX',
   decimals: 18,
   address: 'CFX',
-  logoURI: '',
+  logoURI: TokenDefaultIcon,
 };
 
 const setRegularToken = (tokens: Array<Token>) => {
@@ -42,8 +52,38 @@ const setRegularToken = (tokens: Array<Token>) => {
 };
 setRegularToken(cachedTokens);
 
-const stableSymbols = ['USDT'];
+export const tokensState = atom<Array<Token>>({
+  key: tokensKey,
+  default: cachedTokens,
+});
 
+const CommonTokensCount = 5;
+const commonTokensCache = new Cache<Token>(CommonTokensCount - 1, 'swap-common-token');
+const commonTokensState = atom<Array<Token>>({
+  key: `${tokensKey}-common`,
+  default: [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()],
+});
+
+export const useCommonTokens = () => useRecoilValue(commonTokensState);
+export const getCommonTokens = () => getRecoil(commonTokensState);
+
+export const setCommonToken = (token: Token) => {
+  if (!getTokenByAddress(token.address)) {
+    deleteFromCommonTokens(token);
+    return;
+  }
+  if (token.address === 'CFX') return;
+  commonTokensCache.set(token.address, token);
+  setRecoil(commonTokensState, [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()]);
+};
+
+export const deleteFromCommonTokens = (token: Token, setRecoilState?: SetRecoilState) => {
+  if (token.address === 'CFX') return;
+  if (!commonTokensCache.delete(token.address)) return;
+  (setRecoilState ?? setRecoil)(commonTokensState, [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()]);
+};
+
+const stableSymbols = ['USDT'];
 const baseSymbols = ['WCFX', 'WBTC'];
 
 export const stableTokens = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
@@ -57,7 +97,7 @@ export const getTokenByAddress = (address?: string | null) => (address ? tokensM
 export const getWrapperTokenByAddress = (address?: string | null) => (address ? wrapperTokenMap.get(address.toLowerCase()) ?? null : null);
 export const getUnwrapperTokenByAddress = (address?: string | null) => (address ? unwrapperTokenMap.get(address.toLowerCase()) ?? null : null);
 const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
-const resetTokensMap = (tokens: Array<Token>) => {
+const resetTokensMap = (tokens: Array<Token>, setRecoilState?: SetRecoilState) => {
   tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
   tokensMap.clear();
 
@@ -79,6 +119,15 @@ const resetTokensMap = (tokens: Array<Token>) => {
   }
 
   setRegularToken(tokens);
+
+  try {
+    const commonTokensNow = commonTokensCache.toArr();
+    commonTokensNow.forEach((commonToken) => {
+      if (!tokens?.find((token) => token.address === commonToken.address)) {
+        deleteFromCommonTokens(commonToken, setRecoilState);
+      }
+    });
+  } catch (_) {}
 };
 resetTokensMap(cachedTokens);
 
@@ -95,40 +144,10 @@ export const handleTokensChange = (callback: (tokens: Array<Token>) => void) => 
   }
 };
 
-export const tokensState = atom<Array<Token>>({
-  key: tokensKey,
-  default: cachedTokens,
-});
-
 export const useTokens = () => {
   const tokens = useRecoilValue(tokensState);
   const tokensWithoutWCFX = useMemo(() => tokens?.filter((token) => token.symbol !== 'WCFX'), [tokens]);
   return tokensWithoutWCFX;
-};
-
-const CommonTokensCount = 5;
-const commonTokensCache = new Cache<Token>(CommonTokensCount - 1, 'swap-common-token');
-const commonTokensState = atom<Array<Token>>({
-  key: `${tokensKey}-common`,
-  default: [TokenCFX, ...commonTokensCache.toArr()],
-});
-
-export const useCommonTokens = () => useRecoilValue(commonTokensState);
-
-export const setCommonToken = (token: Token) => {
-  if (!getTokenByAddress(token.address)) {
-    deleteFromCommonTokens(token);
-    return;
-  }
-  if (token.address === 'CFX') return;
-  commonTokensCache.set(token.address, token);
-  setRecoil(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
-};
-
-export const deleteFromCommonTokens = (token: Token) => {
-  if (token.address === 'CFX') return;
-  if (!commonTokensCache.delete(token.address)) return;
-  setRecoil(commonTokensState, [TokenCFX, ...commonTokensCache.toArr()]);
 };
 
 // init tokens data;
@@ -140,34 +159,71 @@ export const deleteFromCommonTokens = (token: Token) => {
     });
     const { tokens } = await p;
 
-    if (isEqual(tokens, cachedTokens)) return;
+    const innerTokens = cachedTokens.filter((token) => !token.fromSearch);
+    const searchedTokens = cachedTokens.filter((token) => token.fromSearch);
+    if (isEqual(tokens, innerTokens)) return;
+    const newTokens = [...tokens, ...searchedTokens];
     try {
-      LocalStorage.setItem({ key: tokensKey, data: tokens, namespace: 'swap' });
+      LocalStorage.setItem({ key: tokensKey, data: newTokens, namespace: 'tokens' });
       handleRecoilInit((set) => {
-        set(tokensState, tokens);
-        resetTokensMap(tokens);
+        set(tokensState, newTokens);
+        resetTokensMap(newTokens, set);
       });
     } catch (_) {
-      setRecoil(tokensState, tokens);
-      resetTokensMap(tokens);
+      setRecoil(tokensState, newTokens);
+      resetTokensMap(newTokens);
+    } finally {
+      resolveTokenInit(true);
     }
   } catch (err) {
     console.error('Failed to get the latest token list: ', err);
   }
 })();
 
-export const convertTokenToUniToken = (token: Token) => new UniToken(+targetChainId, token.address, token.decimals, token.symbol, token.name);
+const fetchTokenInfos = ['name', 'symbol', 'decimals'] as const;
+export const fetchTokenInfoByAddress = async (address: string) => {
+  try {
+    const tokenContract = createERC20Contract(address);
+    const encodedRes = await fetchMulticall(fetchTokenInfos.map((info) => [tokenContract.address, tokenContract.func.interface.encodeFunctionData(info)]));
+
+    if (Array.isArray(encodedRes)) {
+      const decodeRes = encodedRes?.map((encodedInfo, index) => tokenContract.func.interface.decodeFunctionResult(fetchTokenInfos[index], encodedInfo)?.[0]);
+      if (decodeRes[1] === 'WCFX') return null;
+      return {
+        name: decodeRes[0],
+        symbol: decodeRes[1],
+        decimals: Number(decodeRes[2]),
+        address: address,
+        logoURI: TokenDefaultIcon,
+        chainId: +targetChainId,
+      } as Token;
+    }
+  } catch (_) {
+    return null;
+  }
+};
+
+export const addTokenToList = async (targetToken: Token) => {
+  const tokens = getRecoil(tokensState);
+  if (!targetToken || tokens?.find((token) => targetToken.address === token.address)) return;
+  const newTokens = [...tokens, { ...targetToken, fromSearch: true } as Token];
+  LocalStorage.setItem({ key: tokensKey, data: newTokens, namespace: 'tokens' });
+  setRecoil(tokensState, newTokens);
+  resetTokensMap(newTokens);
+};
+
+export const deleteTokenFromList = (targetToken: Token) => {
+  const tokens = getRecoil(tokensState);
+  if (!targetToken || !tokens?.find((token) => targetToken.address === token.address)) return;
+  const newTokens = tokens.filter((token) => token.address !== targetToken.address);
+  LocalStorage.setItem({ key: tokensKey, data: newTokens, namespace: 'tokens' });
+  setRecoil(tokensState, newTokens);
+  resetTokensMap(newTokens);
+};
 
 export const isTokenEqual = (tokenA: Token | null | undefined, tokenB: Token | null | undefined) => {
   if ((tokenA && !tokenB) || (!tokenA && tokenB)) return false;
   if ((tokenA === null && tokenB === undefined) || (tokenA === undefined && tokenB === null)) return false;
   if (!tokenA && !tokenB) return true;
   return getUnwrapperTokenByAddress(tokenA?.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB?.address)?.address?.toLocaleLowerCase();
-};
-
-export const getToken0And1 = ({ tokenA, tokenB }: { tokenA: Token; tokenB: Token }) => {
-  const tokenAWrappered = getWrapperTokenByAddress(tokenA.address);
-  const tokenBWrappered = getWrapperTokenByAddress(tokenB.address);
-  if (!tokenAWrappered || !tokenBWrappered) return [undefined, undefined];
-  return tokenAWrappered.address.toLocaleLowerCase() < tokenBWrappered.address.toLocaleLowerCase() ? [tokenAWrappered, tokenBWrappered] : [tokenBWrappered, tokenAWrappered];
 };

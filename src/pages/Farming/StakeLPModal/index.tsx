@@ -19,6 +19,7 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
+import AuthConnectButton from '@modules/AuthConnectButton';
 
 const transitions = {
   en: {
@@ -80,33 +81,35 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
         </div>
         <PriceRange position={data} />
       </div>
-      <AuthTokenButtonOf721 className={classNameButton} tokenAddress={NonfungiblePositionManager.address} contractAddress={UniswapV3Staker.address} tokenId={data.id.toString()}>
-        {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
-        <Button
-          loading={inTransaction}
-          onClick={async () => {
-            const txHash = await handleStakeLP({
-              tokenId: data.id,
-              address,
-              startTime,
-              endTime,
-              pid: pid,
-            });
+      <AuthConnectButton className={classNameButton}>
+        <AuthTokenButtonOf721 className={classNameButton} tokenAddress={NonfungiblePositionManager.address} contractAddress={UniswapV3Staker.address} tokenId={data.id.toString()}>
+          {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
+          <Button
+            loading={inTransaction}
+            onClick={async () => {
+              const txHash = await handleStakeLP({
+                tokenId: data.id,
+                address,
+                startTime,
+                endTime,
+                pid: pid,
+              });
 
-            addRecordToHistory({
-              txHash,
-              type: 'AllFarms_StakedLP',
-              // tokenA_Address: leftToken.address,
-              // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
-              // tokenB_Address: rightToken.address,
-              // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
-            });
-          }}
-          className={classNameButton}
-        >
-          {i18n.stakeLP}
-        </Button>
-      </AuthTokenButtonOf721>
+              addRecordToHistory({
+                txHash,
+                type: 'AllFarms_StakedLP',
+                // tokenA_Address: leftToken.address,
+                // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
+                // tokenB_Address: rightToken.address,
+                // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
+              });
+            }}
+            className={classNameButton}
+          >
+            {i18n.stakeLP}
+          </Button>
+        </AuthTokenButtonOf721>
+      </AuthConnectButton>
     </div>
   );
 };

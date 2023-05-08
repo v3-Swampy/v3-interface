@@ -18,24 +18,20 @@ const transitions = {
   en: {
     stake_duration: 'Stake Duration',
     stake_until_time: 'Stake until {time}',
-    week: 'week',
-    weeks: 'weeks',
     month: 'month',
     months: 'months',
   },
   zh: {
     stake_duration: '质押时间',
     stake_until_time: '质押至 {time} 结束',
-    week: '周',
-    weeks: '周',
     month: '月',
     months: '月',
   },
 } as const;
 
-const DurationOptions = [duration(1, 'week'), duration(2, 'week'), duration(1, 'month'), duration(2, 'month'), duration(3, 'month'), duration(6, 'month')];
+const DurationOptions = [duration(1, 'month'), duration(2, 'month'), duration(3, 'month'), duration(6, 'month'), duration(12, 'month'), duration(18, 'month')];
 export const defaultDuration = DurationOptions[0].asSeconds();
-export const defaultDurationText = `1 week`;
+export const defaultDurationText = `1 month`;
 
 const DurationSelect: React.FC<Props> = ({ register, setValue, currentStakeDuration, currentUnlockTime }) => {
   const i18n = useI18n(transitions);
@@ -84,10 +80,9 @@ const Duration: React.FC<{
 }> = memo(({ duration, currentStakeDuration, onClick }) => {
   const i18n = useI18n(transitions);
   const isCurrentSelect = duration.asSeconds() === currentStakeDuration;
-  const weeks = duration.weeks();
-  const months = duration.months();
-  const unit = months >= 1 ? (months > 1 ? i18n.months : i18n.month) : weeks > 1 ? i18n.weeks : i18n.week;
-  const value = months >= 1 ? months : weeks;
+  const months = duration.asMonths();
+  const unit = months > 1 ? i18n.months : i18n.month;
+  const value = months;
   return (
     <div
       className={cx(

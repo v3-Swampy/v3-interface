@@ -1,10 +1,8 @@
 import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
-import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import Tooltip from '@components/Tooltip';
-import Corner from './Corner';
 import showStakeLPModal from './StakeLPModal';
 import { type PoolType, usePoolsQuery } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
@@ -45,7 +43,6 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 
   return (
     <div className="bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 px-8 relative grid grid-cols-17">
-      <Corner timestamp={Number(data.currentIncentivePeriod.endTime)}></Corner>
       <div className="col-span-5">
         <div className={`${className.title}`}>{i18n.poolName}</div>
         <div className={`${className.content} inline-flex justify-center items-center`}>
