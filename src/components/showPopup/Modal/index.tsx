@@ -14,6 +14,7 @@ export const ModalPopup = new PopupClass(true);
 ModalPopup.initPromise.then(() => {
   ModalPopup.setListClassName('modal-wrapper');
 });
+ModalPopup.setAnimatedSize(false);
 
 const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?: string; className?: string; onClose?: VoidFunction }> = memo(
   ({ Content, title, subTitle, className, onClose }) => {
@@ -49,13 +50,14 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?:
   }
 );
 
-export const showModal = (props: { Content: Function | ReactNode; title: string; subTitle?: string; className?: string; onClose?: VoidFunction }) => {
+export const showModal = ({ unique, ...props }: { Content: Function | ReactNode; title: string; subTitle?: string; className?: string; onClose?: VoidFunction; unique?: boolean; }) => {
   const popupId = ModalPopup.show({
     Content: <Modal {...props} />,
     duration: 0,
     showMask: true,
     animationType: 'door',
     pressEscToClose: true,
+    unique,
   });
   recordCurrentPopup(popupId);
   return popupId;

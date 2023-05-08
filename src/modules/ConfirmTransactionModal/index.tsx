@@ -10,6 +10,7 @@ import { addRecordToHistory, type HistoryRecord } from '@service/history';
 import { RecordAction } from '@modules/Navbar/AccountDetailDropdown/History';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed.svg';
+import showGasLimitModal from './showGasLimitModal';
 
 export enum Step {
   Confirm = 0,
@@ -55,8 +56,15 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
         }
         setTxHash(txHash);
         setStep(Step.Success);
-      } catch (_) {
-        setStep(Step.Failed);
+      } catch (err: any) {
+        if (err?.code === -32603) {
+          hidePopup();
+          setTimeout(() => {
+            showGasLimitModal();
+          }, 250);
+        } else {
+          setStep(Step.Failed);
+        }
       }
     },
     []
