@@ -19,11 +19,11 @@ import AmountDetail from './AmountDetail';
 const transitions = {
   en: {
     remove_liquidity: 'Remove Liquidity',
-    preview: 'preview',
+    preview: 'Preview',
   },
   zh: {
     remove_liquidity: 'Remove Liquidity',
-    preview: 'preview',
+    preview: '预览',
   },
 } as const;
 
