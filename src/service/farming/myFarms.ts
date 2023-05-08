@@ -550,13 +550,16 @@ export const useIsPositionActive = (tokenId: number) => {
 
 export const useCalcTotalLiquidity = (positions: Array<MyFarmsPositionType>, token0Price: string, token1Price: string) => {
   return useMemo(() => {
-    if (positions.length == 0) return new Decimal(0);
-    let total = new Decimal(0);
-    positions.map((p) => {
-      const positionLiquidity = calcPostionLiquidity(p, token0Price, token1Price);
-      total = total.add(positionLiquidity);
-    });
-    return total;
+    if (!!positions.length && token0Price !== '0' && token1Price !== '0') {
+      let total = new Decimal(0);
+      positions.map((p) => {
+        const positionLiquidity = calcPostionLiquidity(p, token0Price, token1Price);
+        total = total.add(positionLiquidity);
+      });
+      return total;
+    } else {
+      return new Decimal(0);
+    }
   }, [positions, token0Price, token1Price]);
 };
 
