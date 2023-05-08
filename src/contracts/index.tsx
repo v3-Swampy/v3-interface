@@ -24,7 +24,7 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
 };
 
 export const NonfungiblePositionManager = createContract(
-  isProduction ? '0x3c999c00ad36afd659213ed73ee5f112219b0075' : '0x3c999c00ad36afd659213ed73ee5f112219b0075',
+  isProduction ? '0xab4fa0d8a8dc3e2fb713a786248ce782bdae7111' : '0xab4fa0d8a8dc3e2fb713a786248ce782bdae7111',
   NonfungiblePositionManagerABI
 );
 
