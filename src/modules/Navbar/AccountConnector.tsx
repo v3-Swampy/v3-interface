@@ -7,10 +7,7 @@ import { isMobile } from '@utils/is';
 
 const ConnectWallet: React.FC<ComponentProps<'div'> & { icon: string; name: string; connect: () => Promise<void> }> = ({ children, connect, icon, name }) => {
   return (
-    <div
-      onClick={connect}
-      className="flex flex-col items-center justify-center w-100px h-100px rounded-8px hover:bg-#FFEDD5 transition-colors cursor-pointer"
-    >
+    <div onClick={connect} className="flex flex-col items-center justify-center w-100px h-100px rounded-8px hover:bg-#FFEDD5 transition-colors cursor-pointer">
       {children}
       <img className="w-30px h-30px mb-8px" src={icon} />
       <span className="text-14px text-gray-normal">{name}</span>
@@ -31,7 +28,7 @@ const showAccountConnector = () => {
   if (isMobile) {
     showDrawer({ Content: <ConnectModalContent />, title: 'Connect Wallet' });
   } else {
-    showModal({ Content: <ConnectModalContent />, className: '!max-w-370px', title: '连接钱包' }) as string;
+    showModal({ Content: <ConnectModalContent />, className: '!max-w-370px', title: 'Connect Wallet' }) as string;
   }
 };
 
