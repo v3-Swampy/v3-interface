@@ -28,7 +28,7 @@ const showAccountConnector = () => {
   if (isMobile) {
     showDrawer({ Content: <ConnectModalContent />, title: 'Connect Wallet' });
   } else {
-    showModal({ Content: <ConnectModalContent />, className: '!max-w-370px', title: 'Connect Wallet' }) as string;
+    showModal({ Content: <ConnectModalContent />, className: '!max-w-370px', title: 'Connect Wallet' });
   }
 };
 

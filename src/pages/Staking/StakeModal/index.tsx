@@ -124,7 +124,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
       }
       try {
         setNextInfo({
-          sendTranscation: () =>
+          sendTransaction: () =>
             handleStakingVST({
               methodName,
               methodParams,

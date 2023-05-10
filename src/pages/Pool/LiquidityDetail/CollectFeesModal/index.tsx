@@ -39,7 +39,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const onSubmit = useCallback(async () => {
     if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0 === new Unit(0) && fee1 === new Unit(0))) return;
     setNextInfo({
-      sendTranscation: () => handleCollectFees({ tokenId, refreshPositionFees }),
+      sendTransaction: () => handleCollectFees({ tokenId, refreshPositionFees }),
     });
   }, [refreshPositionFees]);
 

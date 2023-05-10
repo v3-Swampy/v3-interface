@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { selector, selectorFamily, useRecoilValue, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE } from 'recoil';
-import { accountState } from '@service/account';
+import { accountState, sendTransaction } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
-import { sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
 import { getRecoil } from 'recoil-nexus';
 import { enhancePositionForUI, positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';

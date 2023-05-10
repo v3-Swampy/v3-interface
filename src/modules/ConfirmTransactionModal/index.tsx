@@ -29,7 +29,7 @@ interface CommonProps {
 }
 
 export interface ConfirmModalInnerProps {
-  setNextInfo: (info: { sendTranscation: () => Promise<string>; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => void;
+  setNextInfo: (info: { sendTransaction: () => Promise<string>; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => void;
 }
 
 const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({
@@ -43,10 +43,10 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   const [recordParams, setRecordParams] = useState<Omit<HistoryRecord, 'txHash' | 'status'> | null>(null);
 
   const setNextInfo = useCallback(
-    async ({ sendTranscation, recordParams }: { sendTranscation: () => Promise<string>; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => {
+    async ({ sendTransaction, recordParams }: { sendTransaction: () => Promise<string>; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => {
       try {
         setStep(Step.WaitReceipt);
-        const txHash = await sendTranscation();
+        const txHash = await sendTransaction();
         if (recordParams) {
           setRecordParams(recordParams);
           addRecordToHistory({
@@ -58,10 +58,11 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
         setStep(Step.Success);
       } catch (err: any) {
         if (err?.code === -32603) {
+          console.log(1)
           hidePopup();
           setTimeout(() => {
             showGasLimitModal();
-          }, 250);
+          }, 500);
         } else {
           setStep(Step.Failed);
         }
