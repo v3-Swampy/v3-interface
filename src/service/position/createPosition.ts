@@ -12,6 +12,8 @@ import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from 
 import { addRecordToHistory } from '@service/history';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
+import { hidePopup } from '@components/showPopup';
+import showGasLimitModal from '@modules/ConfirmTransactionModal/showGasLimitModal';
 import { createPreviewPositionForUI } from './positions';
 
 const Q192 = new Decimal(2).toPower(192);
@@ -144,7 +146,14 @@ export const handleClickSubmitCreatePosition = async ({
         const txHash = await sendTransaction(transactionParams);
         addRecordToHistory({ txHash, ...recordParams });
         navigate('/pool');
-      } catch (_) {}
+      } catch (err: any) {
+        if (err?.code === -32603) {
+          hidePopup();
+          setTimeout(() => {
+            showGasLimitModal();
+          }, 400);
+        }
+      }
     }
   } catch (err) {
     console.error('Submit create position failed:', err);

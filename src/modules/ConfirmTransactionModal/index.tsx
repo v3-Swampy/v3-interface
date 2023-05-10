@@ -58,11 +58,10 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
         setStep(Step.Success);
       } catch (err: any) {
         if (err?.code === -32603) {
-          console.log(1)
           hidePopup();
           setTimeout(() => {
             showGasLimitModal();
-          }, 500);
+          }, 400);
         } else {
           setStep(Step.Failed);
         }

@@ -110,6 +110,7 @@ export const useHistory = () => {
 };
 
 export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) => {
+  if (!record.txHash) return;
   const account = getAccount();
   setRecoil(historyState(account ?? 'not-login-in'), (history) => {
     const hasSame = !!history.some((r) => r.txHash === record.txHash);
