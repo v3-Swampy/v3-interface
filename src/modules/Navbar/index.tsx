@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
           Conflux eSpace
         </div>
 
-        <AuthConnectButton className="flex-shrink-0 min-w-140px h-40px px-8px rounded-100px" color="gradient">
+        <AuthConnectButton className="flex-shrink-0 min-w-144px h-40px px-8px rounded-100px" color="gradient">
           {account && <AccountDetailDropdown account={account} />}
         </AuthConnectButton>
       </nav>

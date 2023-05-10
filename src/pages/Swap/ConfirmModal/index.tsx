@@ -58,7 +58,7 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleSwap } = useInTransaction(_handleSwap);
   const handleClickConfirm = useCallback(async () => {
-    setNextInfo({ sendTranscation: () => handleSwap(transactionParams), recordParams });
+    setNextInfo({ sendTransaction: () => handleSwap(transactionParams), recordParams });
   }, []);
 
   return (

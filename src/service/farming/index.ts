@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { selector, useRecoilValue, atom, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
@@ -10,10 +12,10 @@ import { poolIds, incentiveHistory, Incentive } from './farmingList';
 import { useTokenPrice } from '@service/pairs&pool';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { keccak256 } from '@ethersproject/solidity';
-import { FarmingPosition } from './myFarms';
-import { selector, useRecoilValue, atom, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { RefudeeContractAddress } from '@contracts/index';
-import { useEffect, useState } from 'react';
+import { hidePopup } from '@components/showPopup';
+import showGasLimitModal from '@modules/ConfirmTransactionModal/showGasLimitModal';
+import { FarmingPosition } from './myFarms';
 
 const poolIdsQuery = atom({
   key: `poolIdsQuery-${import.meta.env.MODE}`,
@@ -249,21 +251,30 @@ export const usePoolsQuery = () => {
 export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery);
 
 export const handleStakeLP = async ({ tokenId, address, startTime, endTime, pid }: { tokenId: number; address: string; startTime: number; endTime: number; pid: number }) => {
-  const key = {
-    rewardToken: TokenVST?.address,
-    pool: address,
-    startTime,
-    endTime,
-    refundee: RefudeeContractAddress,
-  };
+  try {
+    const key = {
+      rewardToken: TokenVST?.address,
+      pool: address,
+      startTime,
+      endTime,
+      refundee: RefudeeContractAddress,
+    };
 
-  const data0 = UniswapV3Staker.func.interface.encodeFunctionData('depositToken', [tokenId]);
-  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [key, tokenId, pid]);
+    const data0 = UniswapV3Staker.func.interface.encodeFunctionData('depositToken', [tokenId]);
+    const data1 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [key, tokenId, pid]);
 
-  return await sendTransaction({
-    to: UniswapV3Staker.address,
-    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
-  });
+    return await sendTransaction({
+      to: UniswapV3Staker.address,
+      data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
+    });
+  } catch (err: any) {
+    if (err?.code === -32603) {
+      hidePopup();
+      setTimeout(() => {
+        showGasLimitModal();
+      }, 400);
+    }
+  }
 };
 
 export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {

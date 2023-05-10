@@ -94,15 +94,16 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
                 endTime,
                 pid: pid,
               });
-
-              addRecordToHistory({
-                txHash,
-                type: 'AllFarms_StakedLP',
-                // tokenA_Address: leftToken.address,
-                // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
-                // tokenB_Address: rightToken.address,
-                // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
-              });
+              if (typeof txHash === 'string') {
+                addRecordToHistory({
+                  txHash,
+                  type: 'AllFarms_StakedLP',
+                  // tokenA_Address: leftToken.address,
+                  // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
+                  // tokenB_Address: rightToken.address,
+                  // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
+                });
+              }
             }}
             className={classNameButton}
           >
