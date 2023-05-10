@@ -126,3 +126,4 @@ export const useBoostFactor = () => {
 
 export const useRefreshUserInfo = () => useRecoilRefresher_UNSTABLE(escrowUserInfoQuery);
 export const useRefreshBalanceOfveVST = () => useRecoilRefresher_UNSTABLE(escrowBalanceOfQuery);
+export const useRefreshTotalStakedVST = () => useRecoilRefresher_UNSTABLE(totalStakeVSTQuery);
