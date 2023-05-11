@@ -109,12 +109,13 @@ export const handleClickSubmitCreatePosition = async ({
         deadline: getDeadline(),
       },
     ]);
+    const data2 = NonfungiblePositionManager.func.interface.encodeFunctionData('refundETH');
 
     const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
 
     const transactionParams = {
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
-      data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
+      data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0, data1]]),
       to: NonfungiblePositionManager.address,
     };
 
