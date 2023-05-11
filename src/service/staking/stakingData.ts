@@ -132,3 +132,5 @@ export const useRefreshUserInfo = () => useRecoilRefresher_UNSTABLE(escrowUserIn
 export const useRefreshBalanceOfveVST = () => useRecoilRefresher_UNSTABLE(escrowBalanceOfQuery);
 export const useRefreshTotalStakedVST = () => useRecoilRefresher_UNSTABLE(totalStakeVSTQuery);
 export const useRefreshBoostFactor = () => useRecoilRefresher_UNSTABLE(escrowBoostFactor);
+export const useRefreshVeTotalSuppply = () => useRecoilRefresher_UNSTABLE(escrowTotalSupplyQuery);
+

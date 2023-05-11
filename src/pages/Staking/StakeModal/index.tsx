@@ -43,14 +43,16 @@ type Props = ConfirmModalInnerProps & CommonProps;
 const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
   const i18n = useI18n(transitions);
   const [lockedAmount, currentUnlockTime] = useUserInfo();
-  const disabledAmount = type === ModalMode.IncreaseUnlockTime;
-  const disabledLockTime = type === ModalMode.IncreaseAmount;
-  const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
-  const stakeAmount = watch('VST-stake-amount', 0);
   const maxTime = useVEMaxTime();
   const veTotalSupply = useVETotalSupply();
   const account = useAccount();
+  const { register, handleSubmit: withForm, setValue, watch } = useForm();
+
+  const disabledAmount = type === ModalMode.IncreaseUnlockTime;
+  const disabledLockTime = type === ModalMode.IncreaseAmount;
+  const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
+  const stakeAmount = watch('VST-stake-amount', 0);
+
   const { inTransaction, execTransaction: handleStakingVST } = useInTransaction(_handleStakingVST);
 
   const modalMode = useMemo(() => {
