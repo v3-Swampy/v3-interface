@@ -17,6 +17,7 @@ import useInTransaction from '@hooks/useInTransaction';
 import Button from '@components/Button';
 import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
 import { useCanClaim } from '@service/farming';
+import Tooltip from '@components/Tooltip';
 
 const transitions = {
   en: {
@@ -27,6 +28,8 @@ const transitions = {
     unstake: 'Unstake',
     claimable: 'Est. earned',
     liquidity: 'Liquidity',
+    tooltipPaused: 'Your farming yield is low due to price out of range.',
+    tooltipFarming: 'Your position is farming hard.',
   },
   zh: {
     myPosition: 'My staked positions',
@@ -36,6 +39,8 @@ const transitions = {
     unstake: 'Unstake',
     claimable: 'Est. earned',
     liquidity: 'Liquidity',
+    tooltipPaused: 'Your farming yield is low due to price out of range.',
+    tooltipFarming: 'Your position is farming hard.',
   },
 } as const;
 
@@ -71,11 +76,23 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
 
   return (
     <div key={position.tokenId} className="mt-4 grid grid-cols-18">
-      <div className={`${className.buttonBase} ${isPaused ? className.buttonPaused : className.buttonFarming} ml-15px w-122px col-span-6`}>
-        <span className={`inline-block ${isPaused ? 'bg-orange-dot' : 'bg-green-normal'} w-6px h-6px rounded-full absolute -left-14px`}></span>
-        {isPaused ? <CoffeeCupIcon className="w-6 h-6 mr-1"></CoffeeCupIcon> : <HammerIcon className="w-6 h-6 mr-1"></HammerIcon>}
-        {isPaused ? i18n.paused : i18n.farming}
-      </div>
+      {isPaused ? (
+        <Tooltip text={i18n.tooltipPaused}>
+          <div className={`${className.buttonBase} ${className.buttonPaused} ml-15px w-122px col-span-6`}>
+            <span className={`inline-block bg-orange-dot w-6px h-6px rounded-full absolute -left-14px`}></span>
+            {<CoffeeCupIcon className="w-6 h-6 mr-1"></CoffeeCupIcon>}
+            {i18n.paused}
+          </div>
+        </Tooltip>
+      ) : (
+        <Tooltip text={i18n.tooltipFarming}>
+          <div className={`${className.buttonBase} ${className.buttonFarming} ml-15px w-122px col-span-6`}>
+            <span className={`inline-block bg-green-normal w-6px h-6px rounded-full absolute -left-14px`}></span>
+            {<HammerIcon className="w-6 h-6 mr-1"></HammerIcon>}
+            {i18n.farming}
+          </div>
+        </Tooltip>
+      )}
       <div className="col-span-4">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
         {/* @ts-ignore */}
