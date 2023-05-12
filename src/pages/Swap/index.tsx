@@ -8,13 +8,13 @@ import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import {
   exchangeTokenDirection,
-  handleConfirmSwap,
   useSourceToken,
   useDestinationToken,
   getSourceToken,
   getDestinationToken,
   confirmPriceImpactWithoutFee,
   warningSeverity,
+  handleSwap,
 } from '@service/swap';
 import { useBestTrade, TradeState, useTokenPrice } from '@service/pairs&pool';
 import { TradeType } from '@service/swap/bestTrade';
@@ -25,6 +25,7 @@ import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
 import SwapDetail from './SwapDetail';
 import PriceImpactWarning from './PriceImpactWarning';
+import showSwapConfirmModal from '@pages/Swap/ConfirmModal';
 
 const transitions = {
   en: {
@@ -80,9 +81,9 @@ const SwapPage: React.FC = () => {
         `${inputedType === 'sourceToken' ? 'destinationToken' : 'sourceToken'}-amount`,
         inputedAmount
           ? bestTrade.trade[inputedType === 'sourceToken' ? 'amountOut' : 'amountIn']?.toDecimalStandardUnit(
-            undefined,
-            (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
-          )
+              undefined,
+              (inputedType === 'sourceToken' ? destinationToken : sourceToken)?.decimals
+            )
           : ''
       );
     }
@@ -109,16 +110,48 @@ const SwapPage: React.FC = () => {
       if (stablecoinPriceImpact && !confirmPriceImpactWithoutFee(stablecoinPriceImpact)) {
         return;
       }
-      handleConfirmSwap({
-        sourceTokenAmount: data['sourceToken-amount'],
-        destinationTokenAmount: data['destinationToken-amount'],
-        bestTrade,
-        sourceTokenUSDPrice,
-        destinationTokenUSDPrice,
-        setValue
-      });
+      const onSuccess = () => {
+        setValue?.('sourceToken-amount', '');
+        setValue?.('destinationToken-amount', '');
+      };
+      if (!expertMode) {
+        showSwapConfirmModal({
+          currentTradeType,
+          inputedAmount,
+          sourceToken: sourceToken!,
+          destinationToken: destinationToken!,
+          sourceTokenAmount: data['sourceToken-amount'] as string,
+          destinationTokenAmount: data['destinationToken-amount'] as string,
+          sourceTokenUSDPrice,
+          destinationTokenUSDPrice,
+          bestTrade,
+          onSuccess,
+        });
+      } else {
+        try {
+          handleSwap({
+            sourceTokenAmount: data['sourceToken-amount'] as string,
+            destinationTokenAmount: data['destinationToken-amount'] as string,
+            bestTrade,
+            onSuccess,
+          });
+        } catch (err) {
+          console.error('Swap err: ', err);
+        }
+      }
+
+      // handleConfirmSwap({
+      //   currentTradeType,
+      //   inputedAmount,
+      //   sourceTokenAmount: data['sourceToken-amount'],
+      //   destinationTokenAmount: data['destinationToken-amount'],
+      //   bestTrade,
+      //   sourceTokenUSDPrice,
+      //   destinationTokenUSDPrice,
+      //   setValue
+      // });
     }),
-    [bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact]
+    [expertMode, bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact]
   );
 
   return (

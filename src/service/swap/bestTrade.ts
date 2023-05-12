@@ -1,10 +1,11 @@
+import { useEffect, useRef, useMemo } from 'react';
 import { atomFamily, useRecoilState } from 'recoil';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { setRecoil } from 'recoil-nexus';
 import { uniqueId } from 'lodash-es';
 import { type Token, getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { targetChainId } from '@service/account';
-import { useRoutingApi } from '@service/settings';
+import { useRoutingApi, getRoutingApiState } from '@service/settings';
 import { FeeAmount, createPool } from '@service/pairs&pool';
 import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool/clientSideSmartOrderRouter';
 
@@ -122,10 +123,73 @@ const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
       return res;
     });
 
+export const fetchBestTrade = async ({
+  tradeType,
+  amount,
+  tokenIn,
+  tokenOut,
+}: {
+  tradeType: TradeType | null;
+  amount: string;
+  tokenIn: Token | null;
+  tokenOut: Token | null;
+}): Promise<BestTrade> => {
+  const serverFirst = getRoutingApiState();
+  const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
+  const tokenOutWrappered = getWrapperTokenByAddress(tokenOut?.address);
+  if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
+    return { state: TradeState.INVALID };
+  }
+  const fetchByServer = () => fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+  const fetchByClient = () => fetchTradeWithClient({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+  const priorityMethod = serverFirst ? fetchByServer : fetchByClient;
+  const secondaryMethod = serverFirst ? fetchByClient : fetchByServer;
+
+  const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
+  const runFetch = async (fetchMethod: 'priorityMethod' | 'secondaryMethod'): Promise<BestTrade> => {
+    try {
+      let fetchPromise = (fetchMethod === 'priorityMethod' ? priorityMethod : secondaryMethod)();
+      const res = await fetchPromise;
+
+      return {
+        state: TradeState.VALID,
+        trade: calcTradeFromData({
+          tradeType,
+          amount,
+          tokenIn: tokenInWrappered,
+          amountUnit,
+          res,
+        }),
+      };
+    } catch (err) {
+      const errStr = String(err);
+      const isNoRoute = errStr?.includes('Failed to generate client side quote');
+      const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get');
+      if (fetchMethod === 'priorityMethod' && isNetworkError) {
+        return await runFetch('secondaryMethod');
+      } else {
+        return {
+          state: TradeState.ERROR,
+          error: isNoRoute ? 'No Valid Route Found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
+        };
+      }
+    }
+  };
+  return runFetch('priorityMethod');
+};
+
 const bestTradeState = atomFamily<BestTrade, string>({
   default: { state: TradeState.INVALID },
   key: `bestTradeState-${import.meta.env.MODE}`,
-})
+});
+
+export const setBestTradeState = (
+  { tradeType, amount, tokenIn, tokenOut }: { tradeType: TradeType | null; amount: string; tokenIn: Token | null; tokenOut: Token | null },
+  val: BestTrade
+) => {
+  const fetchKey = `${tokenIn?.address}-${tokenOut?.address}-${amount}-${tradeType}`;
+  setRecoil(bestTradeState(fetchKey), val);
+};
 
 const bestTradeTracker = new Map<string, boolean>();
 export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
@@ -191,7 +255,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
     runFetch('priorityMethod');
     return () => {
       bestTradeTracker.delete(fetchKey);
-    }
+    };
   }, [fetchKey]);
 
   return bestTrade;

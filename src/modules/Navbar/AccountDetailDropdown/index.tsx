@@ -58,7 +58,7 @@ const AccountDetailDropdown: React.FC<{ account: string }> = ({ account }) => {
     <Dropdown placement="bottom" trigger="click" Content={<DetailContent account={account} />}>
       <BorderBox
         variant="gradient-white"
-        className="relative flex-shrink-0 min-w-140px h-40px px-8px rounded-100px inline-flex justify-center items-center cursor-pointer overflow-hidden"
+        className="relative flex-shrink-0 min-w-144px h-40px px-8px rounded-100px inline-flex justify-center items-center cursor-pointer overflow-hidden"
       >
         {!pendingCount ? (
           <>
