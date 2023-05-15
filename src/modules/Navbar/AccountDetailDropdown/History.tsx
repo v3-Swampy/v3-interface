@@ -13,7 +13,7 @@ import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
 import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
-import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST } from '@service/staking';
+import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST, useRefreshBoostFactor, useRefreshVeTotalSuppply } from '@service/staking';
 import { useRefreshPoolsQuery } from '@service/farming';
 
 export const transitions = {
@@ -80,6 +80,9 @@ export const useRefreshData = () => {
   const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
   const refreshBalaceOfveVST = useRefreshBalanceOfveVST();
   const refreshTotalStakedVST = useRefreshTotalStakedVST();
+  const refreshBoostFactor = useRefreshBoostFactor();
+  const refreshVeTotalSuppply = useRefreshVeTotalSuppply();
+
   return {
     refreshPositions,
     refreshStakedTokenIds,
@@ -88,6 +91,8 @@ export const useRefreshData = () => {
     refreshMyFarmsListQuery,
     refreshBalaceOfveVST,
     refreshTotalStakedVST,
+    refreshBoostFactor,
+    refreshVeTotalSuppply,
   } as const;
 };
 
@@ -97,16 +102,16 @@ export const RefreshTypeMap = {
   ['Swap']: 'refreshPositions',
   ['Position_AddLiquidity']: 'refreshPositions',
   ['Position_IncreaseLiquidity']: 'refreshPositions',
-  ['Stake_CreateLock']: ['refreshUserInfo', 'refreshTotalStakedVST'],
-  ['Stake_IncreaseUnlockTime']: ['refreshUserInfo', 'refreshBalaceOfveVST', 'refreshTotalStakedVST'],
-  ['Stake_IncreaseAmount']: ['refreshUserInfo', 'refreshBalaceOfveVST', 'refreshTotalStakedVST'],
+  ['Stake_CreateLock']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
+  ['Stake_IncreaseUnlockTime']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
+  ['Stake_IncreaseAmount']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
   ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedTokenIds'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
   ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
   ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
   ['MyFarms_Claim']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
   ['MyFarms_Unstake']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
-  ['Stake_Unlock']: ['refreshUserInfo', 'refreshBalaceOfveVST', 'refreshTotalStakedVST'],
+  ['Stake_Unlock']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
 

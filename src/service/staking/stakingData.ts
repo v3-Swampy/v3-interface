@@ -78,6 +78,19 @@ const escrowBalanceOfQuery = selector({
   },
 });
 
+const escrowBoostFactor = selector({
+  key: `escrowBoostFactor-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const account = get(accountState);
+    if (!account) return undefined;
+    const responseBalance = await VotingEscrowContract.func.balanceOf(account);
+    const balance = responseBalance ? new Unit(responseBalance) : new Unit(0);
+    const responseTs = await VotingEscrowContract.func.totalSupply();
+    const totalSupply = responseTs ? new Unit(responseTs) : new Unit(0);
+    return totalSupply?.toDecimalMinUnit() != '0' && balance ? balance.mul(0.67).div(totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
+  },
+});
+
 export const useTotalStakeVST = () => useRecoilValue(totalStakeVSTQuery);
 export const useVstDecimals = () => useRecoilValue(vstDecimalsQuery);
 export const useVstTotalSupply = () => useRecoilValue(vstTotalSupplyQuery);
@@ -85,7 +98,8 @@ export const useVETotalSupply = () => useRecoilValue(escrowTotalSupplyQuery);
 export const useVEMaxTime = () => useRecoilValue(escrowTotalMaxTimeQuery);
 export const useEscrowDecimals = () => useRecoilValue(escrowDecimalsQuery);
 export const useEscrowUserInfo = () => useRecoilValue(escrowUserInfoQuery);
-export const userBalanceOfveVst = () => useRecoilValue(escrowBalanceOfQuery);
+export const useBalanceOfveVst = () => useRecoilValue(escrowBalanceOfQuery);
+export const useBoostFactor = () => useRecoilValue(escrowBoostFactor);
 
 export const useStakePercent = () => {
   const totalStakeVST = useTotalStakeVST();
@@ -114,16 +128,9 @@ export const useUserInfo = () => {
   return result;
 };
 
-/**
- * calculate the boosting factor
- */
-export const useBoostFactor = () => {
-  const balanceOfVeVst = userBalanceOfveVst();
-  let veVSTTotalSupply = useVETotalSupply();
-  //boosting factor = (67% * <amount of veVST> /<total supply of veVST> + 33%) / 33%
-  return veVSTTotalSupply?.toDecimalMinUnit() != '0' && balanceOfVeVst ? balanceOfVeVst.mul(0.67).div(veVSTTotalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1;
-};
-
 export const useRefreshUserInfo = () => useRecoilRefresher_UNSTABLE(escrowUserInfoQuery);
 export const useRefreshBalanceOfveVST = () => useRecoilRefresher_UNSTABLE(escrowBalanceOfQuery);
 export const useRefreshTotalStakedVST = () => useRecoilRefresher_UNSTABLE(totalStakeVSTQuery);
+export const useRefreshBoostFactor = () => useRecoilRefresher_UNSTABLE(escrowBoostFactor);
+export const useRefreshVeTotalSuppply = () => useRecoilRefresher_UNSTABLE(escrowTotalSupplyQuery);
+

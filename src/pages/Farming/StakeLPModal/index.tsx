@@ -141,7 +141,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   if (fPositions.length === 0) {
     return (
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
-        <LogoIcon className="-mt-8"></LogoIcon>
+        <LogoIcon className="-mt-8 w-120px h-120px"></LogoIcon>
         <div className="text-22px leading-28px font-400 font-not-italic mt-8">{i18n.null}</div>
         {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
         <div className={classNameLink} onClick={handleNavigate}>

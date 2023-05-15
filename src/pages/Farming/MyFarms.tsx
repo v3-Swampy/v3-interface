@@ -64,7 +64,7 @@ const MyFarmsItem: React.FC<{
   const isEnded = useMemo(() => dayjs().isAfter(dayjs.unix(Number(endTime))), [endTime]);
 
   return (
-    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${!isActive ? 'bg-gray-light/30' : 'bg-orange-light-hover'}`}>
+    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${!isActive ? 'bg-gray-light/30' : 'bg-orange-light-hover'} lt-mobile:mb-4 lt-mobile:rounded-14px`}>
       <Corner timestamp={endTime}></Corner>
       <div className="relative px-4 grid grid-cols-18">
         <div className="ml-20px col-span-6">
@@ -141,7 +141,7 @@ const MyFarms = () => {
 
   if (!account) return <></>;
   return (
-    <div className="mt-6">
+    <div className="mt-6 lt-mobile:mt-4">
       {myFarmingList?.active.map((item) => (
         <MyFarmsItem key={`${item.address}-active`} data={item} isActive={true} />
       ))}

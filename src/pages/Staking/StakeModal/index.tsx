@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, Suspense } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useForm } from 'react-hook-form';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
@@ -13,6 +13,7 @@ import AmountInput from './AmountInput';
 import DurationSelect, { defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
 import dayjs from 'dayjs';
+import Spin from '@components/Spin';
 
 const transitions = {
   en: {
@@ -43,14 +44,16 @@ type Props = ConfirmModalInnerProps & CommonProps;
 const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
   const i18n = useI18n(transitions);
   const [lockedAmount, currentUnlockTime] = useUserInfo();
-  const disabledAmount = type === ModalMode.IncreaseUnlockTime;
-  const disabledLockTime = type === ModalMode.IncreaseAmount;
-  const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
-  const stakeAmount = watch('VST-stake-amount', 0);
   const maxTime = useVEMaxTime();
   const veTotalSupply = useVETotalSupply();
   const account = useAccount();
+  const { register, handleSubmit: withForm, setValue, watch } = useForm();
+
+  const disabledAmount = type === ModalMode.IncreaseUnlockTime;
+  const disabledLockTime = type === ModalMode.IncreaseAmount;
+  const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
+  const stakeAmount = watch('VST-stake-amount', 0);
+
   const { inTransaction, execTransaction: handleStakingVST } = useInTransaction(_handleStakingVST);
 
   const modalMode = useMemo(() => {
@@ -170,7 +173,11 @@ const buttonProps = {
 const showStakeModal = (type: ModalMode) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
-    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeModal type={type} {...confirmModalInnerProps} />,
+    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => (
+      <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>
+        <StakeModal type={type} {...confirmModalInnerProps} />
+      </Suspense>
+    ),
     className: '!max-w-572px !min-h-466px flex flex-col',
   });
 };

@@ -1,32 +1,26 @@
-import { type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import { sendTransaction } from '@service/account';
 import { UniswapV3SwapRouter } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { pack } from '@ethersproject/solidity';
 import { TradeType, type useBestTrade } from '@service/pairs&pool';
-import { getDeadline, getSlippageTolerance, getExpertModeState } from '@service/settings';
+import { getDeadline, getSlippageTolerance } from '@service/settings';
 import { getAccount } from '@service/account';
 import { addRecordToHistory } from '@service/history';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
-import showSwapConfirmModal from '@pages/Swap/ConfirmModal';
 import { getSourceToken, getDestinationToken } from './tokenSelect';
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000';
-export const handleConfirmSwap = async ({
+export const handleSwap = async ({
   sourceTokenAmount,
   destinationTokenAmount,
   bestTrade,
-  sourceTokenUSDPrice,
-  destinationTokenUSDPrice,
-  setValue
+  onSuccess,
 }: {
   sourceTokenAmount: string;
   destinationTokenAmount: string;
   bestTrade: ReturnType<typeof useBestTrade>;
-  sourceTokenUSDPrice: string | null | undefined;
-  destinationTokenUSDPrice: string | null | undefined;
-  setValue: UseFormSetValue<FieldValues>;
+  onSuccess: VoidFunction;
 }) => {
   const sourceToken = getSourceToken();
   const sourceTokenWrapper = getWrapperTokenByAddress(sourceToken?.address);
@@ -34,11 +28,11 @@ export const handleConfirmSwap = async ({
   const destinationTokenWrpper = getWrapperTokenByAddress(destinationToken?.address);
   const account = getAccount();
   const slippage = getSlippageTolerance() || 0;
-  if (!sourceTokenWrapper || !destinationTokenWrpper || !sourceTokenAmount || !destinationTokenAmount || !bestTrade?.trade || !account || !sourceToken || !destinationToken) return;
+  if (!sourceTokenWrapper || !destinationTokenWrpper || !sourceTokenAmount || !destinationTokenAmount || !bestTrade?.trade || !account || !sourceToken || !destinationToken)
+    return '';
 
   const { route, tradeType } = bestTrade.trade;
-  // console.log('bestTrade', bestTrade);
-  if (!route.length) return;
+  if (!route.length) return '';
   const isSourceTokenCfx = sourceToken?.address === 'CFX';
   const isDestinationTokenTokenCfx = destinationToken?.address === 'CFX';
   const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'exactInput' : 'exactOutput';
@@ -103,37 +97,8 @@ export const handleConfirmSwap = async ({
     tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5),
   } as const;
 
-  const isInExpertMode = getExpertModeState();
-
-  const onSuccess = () => {
-    setValue?.('sourceToken-amount', '');
-    setValue?.('destinationToken-amount', '');
-  }
-  if (!isInExpertMode) {
-    showSwapConfirmModal({
-      sourceToken,
-      destinationToken,
-      sourceTokenAmount,
-      destinationTokenAmount,
-      sourceTokenUSDPrice,
-      destinationTokenUSDPrice,
-      bestTrade,
-      transactionParams,
-      recordParams,
-      onSuccess
-    });
-  } else {
-    try {
-      const txHash = await sendTransaction(transactionParams);
-      addRecordToHistory({ txHash, ...recordParams });
-      onSuccess();
-    } catch (_) {
-
-    }
-  }
-};
-
-export const handleSwap = async (transactionParams: { to: string; data: string; value: string }) => {
   const txHash = await sendTransaction(transactionParams);
+  addRecordToHistory({ txHash, ...recordParams });
+  onSuccess();
   return txHash;
 };
