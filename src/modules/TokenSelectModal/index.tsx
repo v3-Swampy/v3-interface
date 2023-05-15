@@ -128,9 +128,9 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
   );
 
   useLayoutEffect(() => {
-    const currentSelectTokenIndex = tokens?.findIndex(token => token.address === currentSelectToken?.address);
+    const currentSelectTokenIndex = tokens?.findIndex((token) => token.address === currentSelectToken?.address);
     if (typeof currentSelectTokenIndex === 'number' && currentSelectTokenIndex !== -1) {
-      listRef.current?.scrollToItem(currentSelectTokenIndex, "center");
+      listRef.current?.scrollToItem(currentSelectTokenIndex, 'center');
     }
   }, []);
 
@@ -192,7 +192,7 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
 
 const showTokenListModal = (props: Props) => {
   if (isMobile) {
-    showDrawer({ Content: <TokenListModalContent {...props} />, title: 'Select a token' });
+    showDrawer({ Content: <TokenListModalContent {...props} />, height: 'full', title: 'Select a token' });
   } else {
     showModal({ Content: <TokenListModalContent {...props} />, className: '!max-w-572px', title: 'Select a token' }) as string;
   }

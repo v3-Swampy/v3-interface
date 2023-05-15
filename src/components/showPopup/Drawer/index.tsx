@@ -30,13 +30,12 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; subTitle?
     useCloseOnRouterBack(handleClose);
 
     return (
-      <div className={cx('px-16px p-24px pb-40px h-full', className)}>
-        <div className="flex justify-between items-center text-16px text-gray-normal font-bold">
-          {title ?? 'title'}
-          <CloseBoldIcon className="w-12px h-12px text-gray-normal cursor-pointer" onClick={hidePopup} />
+      <div className={cx('px-16px p-24px pb-40px h-full rounded-tl-16px rounded-tr-16px bg-white-normal', className)}>
+        <div className="flex justify-between items-center leading-18px text-14px text-black-normal font-medium">
+          {title}
+          <CloseBoldIcon className="w-12px h-12px cursor-pointer" onClick={hidePopup} />
         </div>
         {subTitle && <div className="text-14px font-500 leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
-        <div className="mt-16px h-1px bg-#6667ab4c pointer-events-none" />
 
         {renderReactNode(Content)}
       </div>
@@ -44,8 +43,8 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; subTitle?
   }
 );
 
-export const showDrawer = (props: { Content: React.ReactNode; title: string; subTitle?: string; onClose?: VoidFunction }) => {
-  const popupId = DrawerPopup.show(<Drawer {...props} />);
+export const showDrawer = ({ height, ...props }: { Content: React.ReactNode; title: string; subTitle?: string; onClose?: VoidFunction; height?: number | 'full' | 'half' }) => {
+  const popupId = DrawerPopup.show(<Drawer {...props} />, { height });
   recordCurrentPopup(popupId);
   return popupId;
 };

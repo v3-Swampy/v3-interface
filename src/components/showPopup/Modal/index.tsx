@@ -39,11 +39,11 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?:
 
     return (
       <BorderBox variant="gradient-white" className={cx('relative w-90vw max-w-400px px-16px py-24px rounded-24px overflow-hidden shadow-popper', className)}>
-        <div className="px-8px flex justify-between items-center text-14px text-black-normal">
+        <div className="px-8px flex justify-between items-center text-14px text-black-normal font-medium">
           {title}
-          <CloseBoldIcon className="w-12px h-12px text-gray-normal cursor-pointer" onClick={hidePopup} />
+          <CloseBoldIcon className="w-12px h-12px cursor-pointer" onClick={hidePopup} />
         </div>
-        {subTitle && <div className="px-8px text-14px font-500 leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
+        {subTitle && <div className="px-8px text-14px font-medium leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
         {renderReactNode(Content)}
       </BorderBox>
     );

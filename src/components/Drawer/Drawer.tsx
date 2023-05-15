@@ -6,18 +6,27 @@ import Mask from '@components/Mask';
 import renderReactNode from '@utils/renderReactNode';
 
 export interface DrawerMethod {
-  show: (Content: React.ReactNode) => string;
+  show: (Content: React.ReactNode, params: { canceled?: boolean; height?: number | 'full' | 'half' }) => string;
   hide: VoidFunction;
 }
 
 const Drawer = forwardRef<DrawerMethod>((_, ref) => {
-  const [height] = useState(() => 410);
+  const [height, setHeight] = useState(() => window.screen.availHeight - 48 ?? 720);
   const [Content, setContent] = useState<React.ReactNode>(null);
 
   const [maskOpen, setModalOpen] = useState(false);
   const [{ y }, api] = useSpring(() => ({ y: height }));
 
-  const show = useCallback((Content: React.ReactNode, params?: { canceled: boolean }) => {
+  const show = useCallback((Content: React.ReactNode, params?: { canceled?: boolean; height?: number | 'full' | 'half' }) => {
+    if (params?.height) {
+      if (params.height === 'full') {
+        setHeight((globalThis.screen.availHeight + 100) - 120);
+      } else if (params.height === 'half') {
+        setHeight((globalThis.screen.availHeight + 100) * 1.2 / 2);
+      } else {
+        setHeight(params.height + 100);
+      }
+    }
     const key = uniqueId('drawer');
     const { canceled } = params || {};
     api.start({ y: 0, immediate: false, config: canceled ? config.wobbly : config.stiff });
@@ -56,7 +65,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     <>
       <Mask open={maskOpen} onClick={() => history.back()} />
       <a.div
-        className="fixed left-0 w-100vw h-[calc(100vh+100px)] rounded-t-24px bg-purple-dark-active touch-none z-8888 dropdown-shadow"
+        className="fixed left-0 w-100vw h-[calc(100vh+100px)] rounded-t-24px bg-purple-dark-active touch-none z-8888 shadow-popper"
         {...bind()}
         style={{ display, bottom: `calc(-100vh + ${height - 100}px)`, y }}
       >
