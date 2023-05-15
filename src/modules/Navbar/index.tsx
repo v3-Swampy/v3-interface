@@ -77,7 +77,7 @@ const NavLinks: React.FC = () => {
 export const FooterBar: React.FC = () => {
   return (
     <footer className="md:display-none fixed bottom-0 w-full h-60px border-0px border-t-1px border-solid border-gray-normal">
-      <div className="w-full h-full inline-flex justify-evenly items-center">
+      <div className="w-full h-full inline-flex justify-evenly items-center bg-white-normal">
         <NavLinks />
       </div>
     </footer>
