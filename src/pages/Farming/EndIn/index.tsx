@@ -90,7 +90,7 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
   const fTimeLeft = timeLeft.replace(/(\d+)/g, '<span style="font-family: Helvetica Neue;">$1</span>');
 
   return (
-    <div className={`relative w-full p-0.5 rounded-7 gradient-orange-light-hover`}>
+    <div className={`relative w-full p-0.5 rounded-7 gradient-orange-light-hover lt-mobile:p-1px lt-mobile:rounded-4`}>
       {(state === 'urgent' || state === 'normal') && (
         <div className="flex items-center p-4 text-14px leading-24px font-400 font-normal color-white-normal">
           <span className="inline-flex">
@@ -100,7 +100,7 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
           {state === 'urgent' && <span>{i18n.claim}</span>}
         </div>
       )}
-      <div className={`bg-white-normal rounded-6.5 p-4`}>{children}</div>
+      <div className={`bg-white-normal rounded-6.5 p-4 lt-mobile:rounded-3.75`}>{children}</div>
     </div>
   );
 };
