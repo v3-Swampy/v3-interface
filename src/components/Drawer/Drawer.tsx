@@ -12,7 +12,7 @@ export interface DrawerMethod {
 }
 
 const Drawer = forwardRef<DrawerMethod>((_, ref) => {
-  const [height, setHeight] = useState(() => globalThis.screen.availHeight + 100 - 300);
+  const [height, setHeight] = useState(() => globalThis.screen.availHeight + 100 - 200);
   const [renderContent, setRenderContent] = useState<React.ReactNode>(null);
 
   const [maskOpen, setModalOpen] = useState(false);
@@ -20,11 +20,11 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
 
   const show = useCallback<DrawerMethod['show']>((Content, params) => {
     if (params?.height === 'full') {
-      setHeight(globalThis.screen.availHeight + 100 - 300);
-    } else if (params?.height === 'half' || !params?.height) {
+      setHeight(globalThis.screen.availHeight + 100 - 200);
+    } else if (params?.height === 'half') {
       setHeight((globalThis.screen.availHeight + 100) / 2);
-    } else {
-      setHeight(params?.height + 100);
+    } else if (typeof params?.height === 'number') {
+      setHeight(params.height + 100);
     }
 
     const key = uniqueId('drawer');
@@ -48,16 +48,21 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
 
   const bind = useDrag(
     ({ last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
-      if (my < -70) cancel();
+      if (my < -70) {
+        console.log(0)
+        cancel();
+      }
 
       if (last) {
         my > height * 0.5 || (vy > 0.5 && dy > 0) ? hide(vy) : show(null, { canceled });
-      } else api.start({ y: my, immediate: true });
+      } else {
+        api.start({ y: my, immediate: true });
+      }
     },
-    { from: () => [0, y.get()], filterTaps: true, bounds: { top: 0 }, rubberband: true }
+    { from: () => [0, y.get()], filterTaps: true, bounds: { top: 0 }, rubberband: true },
   );
 
-  const display = y.to((y) => (y < height ? 'block' : 'display-none'));
+  const display = y.to((y) => (y < height ? 'block' : 'none'));
 
   useImperativeHandle(ref, () => ({
     show,

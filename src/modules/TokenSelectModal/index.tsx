@@ -32,7 +32,7 @@ interface Props {
   onSelect: (token: Token | null) => void;
 }
 
-const mobileListHeight = Math.floor(globalThis.screen.availHeight - 300);
+const mobileListHeight = Math.floor(globalThis.screen.availHeight - 340);
 
 const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const i18n = useI18n(transitions);
