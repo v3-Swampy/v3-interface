@@ -82,7 +82,7 @@ const FarmingPage: React.FC = () => {
             </div>
             <div>{!isCanClaim && <CountDown />}</div>
           </div>
-          <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
+          <Suspense fallback={<Spin className="!block mx-auto text-60px mt-4" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
         </EndIn>
       </div>
     </PageWrapper>

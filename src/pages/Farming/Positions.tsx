@@ -45,14 +45,15 @@ const transitions = {
 } as const;
 
 const className = {
-  title: 'color-gray-normal text-xs font-500 not-italic leading-15px mb-2',
+  title: 'color-gray-normal text-xs font-500 not-italic leading-15px mb-2 lt-mobile:mb-1',
   content: 'color-black-normal text-12px font-500 not-italic leading-15px',
-  buttonBase: 'flex items-center h-8 rounded-full py-7px px-20.5px relative cursor-pointer',
+  buttonBase: 'flex items-center h-8 rounded-full py-7px px-20.5px relative cursor-pointer lt-mobile:ml-0 lt-mobile:mt-2 lt-mobile:mb-2',
   buttonFarming: 'bg-green-normal/10 color-green-normal',
   buttonFarmingSolid: 'color-green-normal border border-solid border-green-normal bg-white-normal',
   buttonPaused: 'bg-orange-dot/10 color-orange-dot',
   buttonPausedSolid: 'color-orange-dot border border-solid border-orange-dot bg-white-normal',
-  incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center',
+  incentiveHit: 'h-6 rounded-full px-10px ml-1 flex items-center lt-mobile:mt-2 lt-mobile:ml-0',
+  buttonFamingAndPauseMobile: 'lt-mobile:w-[fit-content] lt-mobile:h-24px lt-mobile:px-2 lt-mobile:text-12px lt-mobile:leading-15px lt-mobile:py-0 lt-mobile:!mt-0',
 };
 
 const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0Pirce: string; token1Pirce: string }> = ({ position, pid, token0Pirce, token1Pirce }) => {
@@ -75,38 +76,45 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   }, [position, token0Pirce, token1Pirce]);
 
   return (
-    <div key={position.tokenId} className="mt-4 grid grid-cols-18">
-      {isPaused ? (
-        <Tooltip text={i18n.tooltipPaused}>
-          <div className={`${className.buttonBase} ${className.buttonPaused} ml-15px w-122px col-span-6`}>
-            <span className={`inline-block bg-orange-dot w-6px h-6px rounded-full absolute -left-14px`}></span>
-            {<CoffeeCupIcon className="w-6 h-6 mr-1"></CoffeeCupIcon>}
-            {i18n.paused}
-          </div>
-        </Tooltip>
-      ) : (
-        <Tooltip text={i18n.tooltipFarming}>
-          <div className={`${className.buttonBase} ${className.buttonFarming} ml-15px w-122px col-span-6`}>
-            <span className={`inline-block bg-green-normal w-6px h-6px rounded-full absolute -left-14px`}></span>
-            {<HammerIcon className="w-6 h-6 mr-1"></HammerIcon>}
-            {i18n.farming}
-          </div>
-        </Tooltip>
-      )}
-      <div className="col-span-4">
+    <div
+      key={position.tokenId}
+      className={`mt-4 grid grid-cols-18 lt-mobile:border-b-1 lt-mobile:border-b-solid lt-mobile:pb-2 lt-mobile:last:border-none lt-mobile:last:pb-0 lt-mobile:last:-mb-2 ${
+        isActive ? 'lt-mobile:border-b-orange-lightHover' : 'lt-mobile:border-b-gray-light/30'
+      }`}
+    >
+      <div className="col-span-6 lt-mobile:col-span-18">
+        {isPaused ? (
+          <Tooltip text={i18n.tooltipPaused}>
+            <div className={`${className.buttonBase} ${className.buttonPaused} ml-15px w-122px ${className.buttonFamingAndPauseMobile}`}>
+              <span className={`inline-block bg-orange-dot w-6px h-6px rounded-full absolute -left-14px`}></span>
+              {<CoffeeCupIcon className="w-6 h-6 mr-1 lt-mobile:w-18px lt-mobile:h-18px"></CoffeeCupIcon>}
+              {i18n.paused}
+            </div>
+          </Tooltip>
+        ) : (
+          <Tooltip text={i18n.tooltipFarming}>
+            <div className={`${className.buttonBase} ${className.buttonFarming} ml-15px w-122px ${className.buttonFamingAndPauseMobile}`}>
+              <span className={`inline-block bg-green-normal w-6px h-6px rounded-full absolute -left-14px`}></span>
+              {<HammerIcon className="w-6 h-6 mr-1 lt-mobile:w-18px lt-mobile:h-18px"></HammerIcon>}
+              {i18n.farming}
+            </div>
+          </Tooltip>
+        )}
+      </div>
+      <div className="col-span-4 lt-mobile:col-span-9">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
         {/* @ts-ignore */}
         <div className={`${className.content} flex items-center`}>${liquidity ? numFormat(liquidity.toFixed(2)) : 0}</div>
       </div>
-      <div className="col-span-3">
+      <div className="col-span-3 lt-mobile:col-span-9">
         <div className={`${className.title}`}>{i18n.claimable}</div>
         <div className={`${className.content} flex items-center`}>{claimable ? numFormat(new Unit(claimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
       </div>
-      <div className="flex items-center justify-end col-span-5">
+      <div className="flex items-center justify-end col-span-5 lt-mobile:col-span-18 lt-mobile:mt-2 lt-mobile:justify-between">
         {!isActive ? (
-          <AuthConnectButton className={`${className.buttonBase} ${className.buttonPausedSolid} !border-none !px-10px`}>
+          <AuthConnectButton className={`${className.buttonBase} ${className.buttonPausedSolid} !border-none !px-10px lt-mobile:!w-full lt-mobile:justify-center`}>
             <div
-              className={`${className.buttonBase} ${className.buttonPausedSolid}`}
+              className={`${className.buttonBase} ${className.buttonPausedSolid} lt-mobile:!w-full lt-mobile:justify-center`}
               onClick={() =>
                 showClaimAndUnstakeModal({
                   isActive,
@@ -118,18 +126,24 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
                 })
               }
             >
-              {i18n.claim} & {i18n.unstake}
+              <span>
+                {i18n.claim} & {i18n.unstake}
+              </span>
             </div>
           </AuthConnectButton>
         ) : (
           <>
             {isChainMath && (
-              <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 !border-none !px-10px`}>
+              <AuthConnectButton
+                className={`${className.buttonBase} ${
+                  isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid
+                } mr-2 !border-none !px-10px lt-mobile:w-48% lt-mobile:mr-0`}
+              >
                 <Button
                   disabled={!isCanClaim}
                   loading={claimIntransaction}
                   color="white"
-                  className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2`}
+                  className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 lt-mobile:w-48% lt-mobile:mr-0`}
                   onClick={async () => {
                     const txHash = await handleClaimAndReStake({
                       isActive,
@@ -150,11 +164,11 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
               </AuthConnectButton>
             )}
 
-            <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} !border-none !px-10px`}>
+            <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} !border-none !px-10px lt-mobile:w-48%`}>
               <Button
                 loading={unstakeInTransaction}
                 color="white"
-                className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid}`}
+                className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} lt-mobile:w-48%`}
                 onClick={async () => {
                   if (!isCanClaim) {
                     showUnstakeModal({
@@ -204,8 +218,8 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
   const endTime = useMemo(() => (isEnded ? currentIncentive.startTime : currentIncentive.endTime), [isEnded]);
 
   return (
-    <div className="rounded-4 bg-white-normal p-6 mt-6">
-      <div className="flex items-center">
+    <div className="rounded-4 bg-white-normal p-6 mt-6 lt-mobile:-mx-2 lt-mobile:-mb-4">
+      <div className="flex items-center lt-mobile:flex-col lt-mobile:items-start">
         <span className="text-14px font-500 font-not-italic leading-18px color-gray-normal">
           {i18n.myPosition} ({positionList.length})
         </span>

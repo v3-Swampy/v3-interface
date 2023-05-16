@@ -26,6 +26,7 @@ const Corner: React.FC<CornerProps> = ({ timestamp }) => {
         px-14px rounded-2 rounded-lb-0 font-400 text-12px 
         items-center justify-between 
         ${isEnd ? 'flex bg-gray-slight color-white-normal' : 'hidden'}
+        lt-mobile:-ml-1px
       `}
     >
       <span className="inline-flex">

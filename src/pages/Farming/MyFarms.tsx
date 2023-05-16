@@ -60,7 +60,11 @@ const MyFarmsItem: React.FC<{
   const isEnded = useMemo(() => dayjs().isAfter(dayjs.unix(Number(endTime))), [endTime]);
 
   return (
-    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${!isActive ? 'bg-gray-light/30' : 'bg-orange-light-hover'} ${classNames.poolWrapper}`}>
+    <div
+      className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${
+        !isActive ? 'bg-gray-light/30 lt-mobile:!border-gray-slight' : 'bg-orange-light-hover lt-mobile:border-orange-light'
+      } ${classNames.poolWrapper}`}
+    >
       <Corner timestamp={endTime}></Corner>
       <div className="relative px-4 grid grid-cols-18 lt-mobile:px-0">
         <div className="ml-20px col-span-6 lt-mobile:ml-0 lt-mobile:col-span-18 lt-mobile:mb-18px">
@@ -81,10 +85,15 @@ const MyFarmsItem: React.FC<{
         </div>
         <div className="col-span-4 lt-mobile:col-span-7">
           <div className={`${classNames.title}`}>{i18n.APR}</div>
+          {/* <div className={`${classNames.content} flex items-center lt-mobile:flex-col lt-mobile:items-start`}> */}
           <div className={`${classNames.content} flex items-center`}>
             {/* TODO: hardcode the APR in first stage */}
-            Infinity% <LightningIcon className="w-5 h-5 mx-0.5 ml-2" />
-            <span className="font-normal font-500 text-12px leading-15px text-green-normal">{boosting}X</span>
+            <span className="block">Infinity%</span>
+            <span className="flex items-center">
+              {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
+              <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:w-4" />
+              <span className="font-normal font-500 text-12px leading-15px text-green-normal">{boosting}X</span>
+            </span>
           </div>
         </div>
         <div className={`col-span-4 lt-mobile:col-span-5 ${classNames.splitLine}`}>
@@ -102,7 +111,9 @@ const MyFarmsItem: React.FC<{
           </div>
           <div className={`${classNames.content}`}>{totalClaimable ? numFormat(new Unit(totalClaimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
         </div>
-        <div className="flex items-center justify-end col-span-1 lt-mobile:hidden">
+        {/* TODO should use first one */}
+        {/* <div className="flex items-center justify-end col-span-1 lt-mobile:hidden"> */}
+        <div className="flex items-center justify-end col-span-1">
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
