@@ -11,22 +11,21 @@ export interface DrawerMethod {
 }
 
 const Drawer = forwardRef<DrawerMethod>((_, ref) => {
-  const [height, setHeight] = useState(() => window.screen.availHeight - 48 ?? 720);
+  const [height, setHeight] = useState(() => globalThis.screen.availHeight + 100 - 160);
   const [Content, setContent] = useState<React.ReactNode>(null);
 
   const [maskOpen, setModalOpen] = useState(false);
-  const [{ y }, api] = useSpring(() => ({ y: height }));
+  const [{ y }, api] = useSpring(() => ({ y: height }), [height]);
 
   const show = useCallback((Content: React.ReactNode, params?: { canceled?: boolean; height?: number | 'full' | 'half' }) => {
-    if (params?.height) {
-      if (params.height === 'full') {
-        setHeight((globalThis.screen.availHeight + 100) - 120);
-      } else if (params.height === 'half') {
-        setHeight((globalThis.screen.availHeight + 100) * 1.2 / 2);
-      } else {
-        setHeight(params.height + 100);
-      }
+    if (params?.height === 'full') {
+      setHeight(globalThis.screen.availHeight + 100 - 160);
+    } else if (params?.height === 'half' || !params?.height) {
+      setHeight(((globalThis.screen.availHeight + 100) * 1.2) / 2);
+    } else {
+      setHeight(params?.height + 100);
     }
+
     const key = uniqueId('drawer');
     const { canceled } = params || {};
     api.start({ y: 0, immediate: false, config: canceled ? config.wobbly : config.stiff });
@@ -41,7 +40,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     api.start({ y: height, immediate: false, config: { ...config.stiff, velocity } });
     setModalOpen(false);
     setContent(null);
-  }, []);
+  }, [height]);
 
   const bind = useDrag(
     ({ last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
