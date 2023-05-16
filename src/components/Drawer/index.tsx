@@ -21,12 +21,10 @@ export class DrawerClass implements DrawerMethod {
     this.show = () => this.judgeInit();
     this.hide = () => this.judgeInit();
     this.initPromise = new Promise((resolve) => (this.completeInit = resolve));
-    this.useProvider = useProvider; 
+    this.useProvider = useProvider;
   }
 
-  judgeInit(): any {
-
-  }
+  judgeInit(): any {}
 
   resetMethod = () => {
     this.show = this.drawerRef.current!.show;

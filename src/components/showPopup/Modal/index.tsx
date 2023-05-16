@@ -7,7 +7,7 @@ import renderReactNode from '@utils/renderReactNode';
 import usePressEsc from '@hooks/usePressEsc';
 import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
-import { recordCurrentPopup, hidePopup } from '../';
+import { recordCurrentPopup, hidePopup, recordHideCurrentPopup } from '../';
 import './index.css';
 
 export const ModalPopup = new PopupClass(true);
@@ -32,6 +32,9 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?:
     const handleClose = useCallback(() => {
       ModalPopup.hideAll();
       onClose?.();
+      // setTimeout(() => {
+      //   recordHideCurrentPopup();
+      // }, 64);
     }, [onClose]);
 
     usePressEsc(hidePopup);
@@ -50,7 +53,17 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?:
   }
 );
 
-export const showModal = ({ unique, ...props }: { Content: Function | ReactNode; title: string; subTitle?: string; className?: string; onClose?: VoidFunction; unique?: boolean; }) => {
+export const showModal = ({
+  unique,
+  ...props
+}: {
+  Content: Function | ReactNode;
+  title: string;
+  subTitle?: string;
+  className?: string;
+  onClose?: VoidFunction;
+  unique?: boolean;
+}) => {
   const popupId = ModalPopup.show({
     Content: <Modal {...props} />,
     duration: 0,

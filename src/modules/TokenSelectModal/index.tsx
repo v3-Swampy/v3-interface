@@ -32,6 +32,8 @@ interface Props {
   onSelect: (token: Token | null) => void;
 }
 
+const mobileListHeight = Math.floor(globalThis.screen.availHeight - 300);
+
 const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
@@ -147,7 +149,10 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
       <div className="my-16px h-2px bg-orange-light-hover" />
 
-      <div className="relative flex flex-col gap-12px pt-12px pb-4px min-h-264px rounded-20px bg-orange-light-hover">
+      <div
+        className={cx('relative flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover', !isMobile && 'min-h-264px')}
+        style={{ minHeight: !isMobile ? undefined : mobileListHeight }}
+      >
         {inSearching && (
           <Delay>
             <Spin className="!absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-48px" />
@@ -156,7 +161,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
         {!inSearching && searchTokens && searchTokens.length === 0 && (
           <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-14px text-black-light">No matching token found</p>
         )}
-        <FixedSizeList ref={listRef} width="100%" height={264} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
+        <FixedSizeList ref={listRef} width="100%" height={isMobile ? mobileListHeight : 264} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
           {Token}
         </FixedSizeList>
       </div>

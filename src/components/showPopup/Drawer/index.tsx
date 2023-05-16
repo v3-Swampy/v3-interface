@@ -5,7 +5,7 @@ import { DrawerClass } from '@components/Drawer';
 import renderReactNode from '@utils/renderReactNode';
 import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
-import { recordCurrentPopup, hidePopup } from '../';
+import { recordCurrentPopup, hidePopup, recordHideCurrentPopup, currentPopup } from '../';
 
 export const DrawerPopup = new DrawerClass(true);
 
@@ -25,12 +25,13 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; subTitle?
     const handleClose = useCallback(() => {
       DrawerPopup.hide();
       onClose?.();
+      recordHideCurrentPopup();
     }, [onClose]);
 
     useCloseOnRouterBack(handleClose);
 
     return (
-      <div className={cx('px-16px p-24px pb-40px h-full rounded-tl-16px rounded-tr-16px bg-white-normal', className)}>
+      <div className={cx('px-16px p-24px pb-40px h-full rounded-tl-16px rounded-tr-16px', className)}>
         <div className="flex justify-between items-center leading-18px text-14px text-black-normal font-medium">
           {title}
           <CloseBoldIcon className="w-12px h-12px cursor-pointer" onClick={hidePopup} />
@@ -44,7 +45,9 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; subTitle?
 );
 
 export const showDrawer = ({ height, ...props }: { Content: React.ReactNode; title: string; subTitle?: string; onClose?: VoidFunction; height?: number | 'full' | 'half' }) => {
+  if (currentPopup !== null) return;
   const popupId = DrawerPopup.show(<Drawer {...props} />, { height });
+  if (popupId === null) return;
   recordCurrentPopup(popupId);
   return popupId;
 };

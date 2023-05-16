@@ -13,7 +13,7 @@ const AuthConnectButton: React.FC<ComponentProps<typeof Button>> = ({ children, 
   const chainId = useChainId();
   const chainMatch = chainId === targetChainId;
 
-  const handleClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>(() => {
+  const handleClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>((evt) => {
     if (!account) {
       showAccountConnector();
     } else {
