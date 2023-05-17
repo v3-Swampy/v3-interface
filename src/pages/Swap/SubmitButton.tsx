@@ -67,7 +67,7 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount, destinationTokenAmou
 };
 
 const buttonProps = {
-  className: 'mt-24px h-40px text-18px rounded-100px',
+  className: 'mt-24px lt-mobile:mt-40px h-40px text-18px rounded-100px',
   color: 'gradient',
   fullWidth: true,
 } as const;

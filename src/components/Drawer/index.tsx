@@ -61,6 +61,7 @@ export class DrawerClass implements DrawerMethod {
       container = document.createElement('div');
       container.setAttribute('id', 'drawer-container-' + uniqueId());
       container.style.position = 'absolute';
+      container.style.zIndex = '10000';
       document.body.appendChild(container);
     }
     const component = createPortal(React.createElement(DrawerComponent, { ref: this.drawerRef }), container);

@@ -58,6 +58,7 @@ const showExpertModeModal = ({ className, title, subTitle, onClose, ...props }: 
       title,
       subTitle,
       onClose,
+      height: 'half'
     });
   } else {
     showModal({ Content: <ExpertModeModal {...props} />, className, title, subTitle, onClose });

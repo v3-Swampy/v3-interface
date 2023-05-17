@@ -11,8 +11,9 @@ export interface DrawerMethod {
   hide: VoidFunction;
 }
 
+const innerHeight = globalThis.innerHeight;
 const Drawer = forwardRef<DrawerMethod>((_, ref) => {
-  const [height, setHeight] = useState(() => globalThis.screen.availHeight + 100 - 200);
+  const [height, setHeight] = useState(() => innerHeight + 100 - 200);
   const [renderContent, setRenderContent] = useState<React.ReactNode>(null);
 
   const [maskOpen, setModalOpen] = useState(false);
@@ -20,9 +21,9 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
 
   const show = useCallback<DrawerMethod['show']>((Content, params) => {
     if (params?.height === 'full') {
-      setHeight(globalThis.screen.availHeight + 100 - 200);
+      setHeight(innerHeight + 100 - 200);
     } else if (params?.height === 'half') {
-      setHeight((globalThis.screen.availHeight + 100) / 2);
+      setHeight((innerHeight + 100) / 2 + 60);
     } else if (typeof params?.height === 'number') {
       setHeight(params.height + 100);
     }
@@ -79,9 +80,9 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     <>
       <Mask open={maskOpen} onClick={() => hide()} />
       <a.div
-        className="fixed left-0 w-100vw h-[calc(100vh+100px)] rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
+        className="fixed left-0 w-100vw rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
         {...bind()}
-        style={{ display, bottom: `calc(-100vh + ${height - 100}px)`, y }}
+        style={{ display, height: height + 100, bottom: -100, y }}
       >
         {renderReactNode(renderContent)}
       </a.div>
