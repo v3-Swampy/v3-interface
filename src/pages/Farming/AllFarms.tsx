@@ -34,7 +34,9 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
   const i18n = useI18n(transitions);
 
   return (
-    <div className={`bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 px-8 relative grid grid-cols-17 ${classNames.poolWrapper}`}>
+    <div
+      className={`bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 px-8 relative grid grid-cols-17 lt-mobile:px-2 lt-mobile:border-orange-light lt-mobile:border-solid lt-mobile:border-1px ${classNames.poolWrapper}`}
+    >
       <div className="col-span-5 lt-mobile:col-span-17 lt-mobile:mb-18px">
         <div className={`${classNames.title}`}>{i18n.poolName}</div>
         <div className={`${classNames.content} inline-flex justify-center items-center`}>

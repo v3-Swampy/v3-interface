@@ -82,7 +82,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
         isActive ? 'lt-mobile:border-b-orange-lightHover' : 'lt-mobile:border-b-gray-light/30'
       }`}
     >
-      <div className="col-span-6 lt-mobile:col-span-18">
+      <div className="col-span-6 lt-mobile:col-span-18 lt-mobile:pl-16px">
         {isPaused ? (
           <Tooltip text={i18n.tooltipPaused}>
             <div className={`${className.buttonBase} ${className.buttonPaused} ml-15px w-122px ${className.buttonFamingAndPauseMobile}`}>
@@ -110,7 +110,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
         <div className={`${className.title}`}>{i18n.claimable}</div>
         <div className={`${className.content} flex items-center`}>{claimable ? numFormat(new Unit(claimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
       </div>
-      <div className="flex items-center justify-end col-span-5 lt-mobile:col-span-18 lt-mobile:mt-2 lt-mobile:justify-between">
+      <div className="flex items-center justify-end col-span-5 lt-mobile:col-span-18 lt-mobile:mt-2 lt-mobile:justify-around">
         {!isActive ? (
           <AuthConnectButton className={`${className.buttonBase} ${className.buttonPausedSolid} !border-none !px-10px lt-mobile:!w-full lt-mobile:justify-center`}>
             <div
@@ -137,13 +137,13 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
               <AuthConnectButton
                 className={`${className.buttonBase} ${
                   isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid
-                } mr-2 !border-none !px-10px lt-mobile:w-48% lt-mobile:mr-0`}
+                } mr-2 !border-none !px-10px lt-mobile:w-46% lt-mobile:mr-0`}
               >
                 <Button
                   disabled={!isCanClaim}
                   loading={claimIntransaction}
                   color="white"
-                  className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 lt-mobile:w-48% lt-mobile:mr-0`}
+                  className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 lt-mobile:w-46% lt-mobile:mr-0`}
                   onClick={async () => {
                     const txHash = await handleClaimAndReStake({
                       isActive,
@@ -164,11 +164,11 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
               </AuthConnectButton>
             )}
 
-            <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} !border-none !px-10px lt-mobile:w-48%`}>
+            <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} !border-none !px-10px lt-mobile:w-46%`}>
               <Button
                 loading={unstakeInTransaction}
                 color="white"
-                className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} lt-mobile:w-48%`}
+                className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} lt-mobile:w-46%`}
                 onClick={async () => {
                   if (!isCanClaim) {
                     showUnstakeModal({
@@ -218,13 +218,13 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
   const endTime = useMemo(() => (isEnded ? currentIncentive.startTime : currentIncentive.endTime), [isEnded]);
 
   return (
-    <div className="rounded-4 bg-white-normal p-6 mt-6 lt-mobile:-mx-2 lt-mobile:-mb-4">
+    <div className="rounded-4 bg-white-normal p-6 mt-6 lt-mobile:pt-8 lt-mobile:px-2 lt-mobile:pb-2 lt-mobile:-mt-4">
       <div className="flex items-center lt-mobile:flex-col lt-mobile:items-start">
         <span className="text-14px font-500 font-not-italic leading-18px color-gray-normal">
           {i18n.myPosition} ({positionList.length})
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-slight' : 'color-orange-normal bg-orange-normal/10'}`}>
-          <ClockIcon className="mr-1 w-12px h-12px" />
+          {isEnded ? null : <ClockIcon className="mr-1 w-12px h-12px" />}
           <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(endTime * 1000).toLocaleString()}</span>
         </span>
       </div>

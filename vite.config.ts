@@ -12,9 +12,7 @@ export default defineConfig({
     svgr(),
     Unocss({
       transformers: [transformerDirective()],
-      presets: [
-        presetWind()
-      ],
+      presets: [presetWind()],
       theme: {
         breakpoints: {
           tiny: '350px',
@@ -41,6 +39,7 @@ export default defineConfig({
             normal: '#8E8E8E',
             light: '#E1E1E7',
             slight: '#DDDDDD',
+            end: '#F5F3F1',
           },
           white: {
             normal: '#FFFDFA',

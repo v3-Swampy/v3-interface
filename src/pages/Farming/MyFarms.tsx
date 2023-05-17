@@ -4,6 +4,7 @@ import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import { ReactComponent as DoublechevrondownIcon } from '@assets/icons/doublechevrondown.svg';
 import Tooltip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
@@ -62,11 +63,16 @@ const MyFarmsItem: React.FC<{
   return (
     <div
       className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${
-        !isActive ? 'bg-gray-light/30 lt-mobile:!border-gray-slight' : 'bg-orange-light-hover lt-mobile:border-orange-light'
-      } ${classNames.poolWrapper}`}
+        !isActive ? 'bg-gray-end lt-mobile:border-gray-slight' : 'bg-orange-light-hover lt-mobile:border-orange-light'
+      } lt-mobile:p-0 lt-mobile:border-solid lt-mobile:border-1px ${classNames.poolWrapper}`}
     >
       <Corner timestamp={endTime}></Corner>
-      <div className="relative px-4 grid grid-cols-18 lt-mobile:px-0">
+      <div
+        className={`relative px-4 grid grid-cols-18 lt-mobile:px-0 
+          lt-mobile:rounded-14px lt-mobile:border-b-solid lt-mobile:border-1px lt-mobile:px-2 lt-mobile:py-4
+          ${!isActive ? 'bg-gray-end lt-mobile:border-gray-slight' : 'bg-orange-light-hover lt-mobile:border-orange-light'}
+        `}
+      >
         <div className="ml-20px col-span-6 lt-mobile:ml-0 lt-mobile:col-span-18 lt-mobile:mb-18px">
           <div className={`${classNames.title}`}>{i18n.poolName}</div>
           <div className={`${classNames.content} inline-flex justify-center items-center`}>
@@ -88,7 +94,7 @@ const MyFarmsItem: React.FC<{
           {/* <div className={`${classNames.content} flex items-center lt-mobile:flex-col lt-mobile:items-start`}> */}
           <div className={`${classNames.content} flex items-center`}>
             {/* TODO: hardcode the APR in first stage */}
-            <span className="block">Infinity%</span>
+            <span className="">Infinity%</span>
             <span className="flex items-center">
               {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
               <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:w-4" />
@@ -112,12 +118,16 @@ const MyFarmsItem: React.FC<{
           <div className={`${classNames.content}`}>{totalClaimable ? numFormat(new Unit(totalClaimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
         </div>
         {/* TODO should use first one */}
-        {/* <div className="flex items-center justify-end col-span-1 lt-mobile:hidden"> */}
-        <div className="flex items-center justify-end col-span-1">
+        <div className="flex items-center justify-end col-span-1 lt-mobile:hidden">
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
       {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Pirce={token0Pirce || ''} token1Pirce={token1Pirce || ''}></Positions>}
+      <div className={`hidden lt-mobile:block lt-mobile:bg-white-normal lt-mobile:-mb-0 lt-mobile:rounded-2xl lt-mobile:-mt-4 lt-mobile:pt-4`}>
+        <div className="h-28px flex items-center justify-center">
+          <DoublechevrondownIcon onClick={handleShow} className={`cursor-pointer w-24px h-24px ${isShow ? 'rotate-180' : 'rotate-0'}`}></DoublechevrondownIcon>
+        </div>
+      </div>
     </div>
   );
 };

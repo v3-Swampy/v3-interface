@@ -4,7 +4,7 @@ export default {
   authConnectButton:
     'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer lt-mobile:border-1 lt-mobile:text-14px',
   splitLine: `lt-mobile:before:content-[''] lt-mobile:before:border-0 lt-mobile:before:border-l-1px lt-mobile:before:border-solid lt-mobile:before:absolute lt-mobile:before:top-2px lt-mobile:before:bottom-2px lt-mobile:relative lt-mobile:before:-left-2 lt-mobile:before:border-color-orange-light`,
-  poolWrapper: 'lt-mobile:mb-4 lt-mobile:rounded-14px lt-mobile:border-solid lt-mobile:border-orange-light lt-mobile:border-1px lt-mobile:px-2',
+  poolWrapper: 'lt-mobile:mb-4 lt-mobile:rounded-14px',
   symbol: 'lt-mobile:font-500 lt-mobile:text-14px lt-mobile:leading-18px',
   fee: 'lt-mobile:h-18px lt-mobile:text-12px lt-mobile:leading-18px',
 };
