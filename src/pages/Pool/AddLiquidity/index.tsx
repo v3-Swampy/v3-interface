@@ -13,6 +13,7 @@ import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } f
 import SelectPair, { useTokenA, useTokenB, swapTokenAB, resetToken } from './SelectPair';
 import DepositAmounts from '@modules/Position/DepositAmounts';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
+import { ReactComponent as ClearIcon } from '@assets/icons/clear.svg';
 import SelectFeeTier, { useCurrentFee } from './SelectFeeTier';
 import SetPriceRange from './SetPriceRange';
 import SubmitButton from './SubmitButton';
@@ -117,7 +118,7 @@ const AddLiquidity: React.FC = () => {
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-16px lt-mobile:pb-40px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px lt-mobile:leading-24px text-24px lt-mobile:text-18px text-orange-normal font-medium whitespace-nowrap">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px lt-mobile:leading-28px text-24px lt-mobile:text-18px text-orange-normal font-medium whitespace-nowrap">
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline text-orange-normal">
             <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.add_liquidity}
@@ -127,7 +128,7 @@ const AddLiquidity: React.FC = () => {
             {i18n.clear_all}
           </Button>
           {token0 && token1 && (
-            <div className="ml-4px mr-8px flex items-center h-28px px-2px rounded-4px bg-orange-light text-14px font-medium">
+            <div className="mobile:ml-4px mr-8px lt-mobile:mr-14px flex items-center h-28px px-2px rounded-4px bg-orange-light text-14px font-medium">
               <span
                 className={cx(
                   'inline-block px-10px h-24px leading-24px cursor-pointer rounded-4px',
@@ -149,11 +150,12 @@ const AddLiquidity: React.FC = () => {
             </div>
           )}
 
+          <ClearIcon className='mobile:display-none mr-12px w-16px h-16px cursor-pointer flex-shrink-0' onClick={resetToken} />
           <Settings />
         </div>
         <form onSubmit={onSubmit}>
-          <BorderBox className="relative w-full p-16px rounded-28px flex gap-32px lt-md:gap-16px" variant="gradient-white">
-            <div className="w-310px flex-grow-1 flex-shrink-1">
+          <BorderBox className="relative w-full p-16px rounded-28px flex lt-md:flex-wrap gap-32px lt-md:gap-16px" variant="gradient-white">
+            <div className="w-310px lt-md:w-full flex-grow-1 flex-shrink-1">
               <SelectPair handleSwapToken={handleSwapToken} />
               <SelectFeeTier register={register} />
               <DepositAmounts
@@ -170,7 +172,7 @@ const AddLiquidity: React.FC = () => {
               />
             </div>
 
-            <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between">
+            <div className="w-426px lt-md:w-full flex-grow-1 flex-shrink-1 flex flex-col justify-between">
               <SetPriceRange
                 register={register}
                 setValue={setValue}
