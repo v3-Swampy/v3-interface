@@ -1,4 +1,5 @@
 import React, { useCallback, Suspense } from 'react';
+import cx from 'clsx';
 import { type Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n, { toI18n } from '@hooks/useI18n';
 import Button from '@components/Button';
@@ -11,6 +12,7 @@ import { type PositionForUI } from '@service/position';
 import { type Token } from '@service/tokens';
 import { handleCreatePosition as _handleCreatePosition, handleIncreasePositionLiquidity as _handleIncreasePositionLiquidity } from '@service/position';
 import useInTransaction from '@hooks/useInTransaction';
+import { isMobile } from '@utils/is';
 
 const transitions = {
   en: {
@@ -70,7 +72,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   }, []);
 
   return (
-    <div className="mt-24px">
+    <div className={cx("mt-24px", isMobile && 'max-h-[calc(100vh-200px)] overflow-scroll')}>
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
           <TokenPair className="!text-18px" position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />

@@ -53,7 +53,7 @@ const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null
   }, [tokenA?.address, tokenB?.address, price]);
 
   return (
-    <div className="flex flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px p-10px">
+    <div className="lt-md:w-full flex md:flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px p-10px">
       <p className="font-medium">{type === PriceType.Min ? i18n.min_price : i18n.max_price}</p>
       <p className="text-24px leading-30px font-medium">{displayPrice}</p>
       <p className="text-gray-normal text-12px leading-15px font-normal">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</p>
@@ -102,10 +102,10 @@ const SelectedPriceRange: React.FC<{
           </div>
         )}
       </div>
-      <div className="flex items-stretch mb-16px">
+      <div className="flex lt-md:flex-wrap items-stretch mb-16px">
         <PriceItem type={PriceType.Min} price={isLeftTokenEqualToken1 ? priceLower : invertPrice(priceUpper)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
-        <div className="flex items-center">
-          <ExchangeIcon className="w-24px h-24px text-gray-normal mx-8px" />
+        <div className="lt-md:w-full flex items-center justify-center">
+          <ExchangeIcon className="w-24px h-24px lt-md:w-20px lt-md:h-20px text-gray-normal md:mx-8px lt-md:my-4px lt-md:rotate-90deg" />
         </div>
         <PriceItem type={PriceType.Max} price={isLeftTokenEqualToken1 ? priceUpper : invertPrice(priceLower)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
       </div>
