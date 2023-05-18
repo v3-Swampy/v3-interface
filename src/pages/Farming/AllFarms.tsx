@@ -15,18 +15,18 @@ const transitions = {
     APR: 'APR',
     range: 'Range',
     tvl: 'TVL',
-    allocPoint: 'Multipier',
+    allocPoint: 'Multiplier',
     stakeLP: 'Stake LP',
-    tooltipMultipier: 'The allocPoint is the number of times your rewards will be multiplied.',
+    tooltipMultiplier: 'The allocPoint is the number of times your rewards will be multiplied.',
   },
   zh: {
     poolName: 'Pool Name',
     APR: 'APR',
     range: 'Range',
     tvl: 'TVL',
-    allocPoint: 'Multipier',
+    allocPoint: 'Multiplier',
     stakeLP: 'Stake LP',
-    tooltipMultipier: 'The allocPoint is the number of times your rewards will be multiplied.',
+    tooltipMultiplier: 'The allocPoint is the number of times your rewards will be multiplied.',
   },
 } as const;
 
@@ -68,7 +68,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
       <div className={`col-span-2 lt-mobile:col-span-4 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>
           {i18n.allocPoint}
-          <Tooltip text={i18n.tooltipMultipier}>
+          <Tooltip text={i18n.tooltipMultiplier}>
             <span className="w-12px h-12px ml-6px">
               <InfoIcon className="w-12px h-12px" />
             </span>
