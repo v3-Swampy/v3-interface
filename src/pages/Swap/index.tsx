@@ -139,41 +139,32 @@ const SwapPage: React.FC = () => {
           console.error('Swap err: ', err);
         }
       }
-
-      // handleConfirmSwap({
-      //   currentTradeType,
-      //   inputedAmount,
-      //   sourceTokenAmount: data['sourceToken-amount'],
-      //   destinationTokenAmount: data['destinationToken-amount'],
-      //   bestTrade,
-      //   sourceTokenUSDPrice,
-      //   destinationTokenUSDPrice,
-      //   setValue
-      // });
     }),
     [expertMode, bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, stablecoinPriceImpact]
   );
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-16px lt-mobile:pb-40px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">
-        <div className="mb-16px flex justify-between items-center pr-8px">
-          <span className="w-84px h-40px leading-40px rounded-100px text-center text-14px text-black-normal font-medium bg-orange-light-hover">{i18n.swap}</span>
+        <div className="mb-16px flex justify-between items-center mobile:pr-8px lt-mobile:px-4px">
+          <span className="mobile:w-84px h-40px leading-40px lt-mobile:h-18px lt-mobile:leading-18px mobile:rounded-100px text-center text-14px text-black-normal font-medium mobile:bg-orange-light-hover">
+            {i18n.swap}
+          </span>
           <Settings />
         </div>
 
         <form onSubmit={onSubmit}>
           <SelectedToken type="sourceToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
           <div
-            className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer"
+            className="mx-auto -my-21.5px lt-mobile:-my-13px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer"
             onClick={() => {
               exchangeTokenDirection();
               setValue('sourceToken-amount', '');
               setValue('destinationToken-amount', '');
             }}
           >
-            <div className="w-40px h-40px flex justify-center items-center rounded-full bg-orange-light">
-              <ExchangeIcon className="w-26px h-26px" />
+            <div className="w-40px h-40px lt-mobile:w-28px lt-mobile:h-28px flex justify-center items-center rounded-full bg-orange-light">
+              <ExchangeIcon className="w-26px h-26px lt-mobile:w-18px lt-mobile:h-18px" />
             </div>
           </div>
           <SelectedToken type="destinationToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />

@@ -21,12 +21,10 @@ export class DrawerClass implements DrawerMethod {
     this.show = () => this.judgeInit();
     this.hide = () => this.judgeInit();
     this.initPromise = new Promise((resolve) => (this.completeInit = resolve));
-    this.useProvider = useProvider; 
+    this.useProvider = useProvider;
   }
 
-  judgeInit(): any {
-
-  }
+  judgeInit(): any {}
 
   resetMethod = () => {
     this.show = this.drawerRef.current!.show;
@@ -63,6 +61,7 @@ export class DrawerClass implements DrawerMethod {
       container = document.createElement('div');
       container.setAttribute('id', 'drawer-container-' + uniqueId());
       container.style.position = 'absolute';
+      container.style.zIndex = '10000';
       document.body.appendChild(container);
     }
     const component = createPortal(React.createElement(DrawerComponent, { ref: this.drawerRef }), container);

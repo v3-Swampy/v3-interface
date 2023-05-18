@@ -89,7 +89,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
 
   if (step === Step.WaitReceipt) {
     return (
-      <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center whitespace-nowrap">
+      <div className="absolute left-0 w-full top-1/2 lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
         <Spin className="mb-62px mx-auto block text-88px text-black-normal" />
         <p className="leading-28px text-center text-22px text-black-normal">Waiting for confirmation</p>
         {recordParams && (
@@ -105,7 +105,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   if (step === Step.Success) {
     return (
       <>
-        <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center whitespace-nowrap">
+        <div className="absolute left-0 w-full top-1/2 lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
           <SuccessIcon className="mx-auto block w-92px h-70px mb-80px" />
           <p className="leading-28px text-22px text-black-normal">Transaction submitted</p>
           {tokenNeededAdd && (
@@ -145,7 +145,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   if (step === Step.Failed) {
     return (
       <>
-        <div className="absolute left-0 w-full top-1/2 -translate-y-1/2 text-center whitespace-nowrap">
+        <div className="absolute left-0 w-full top-1/2 lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
           <FailedIcon className="mx-auto block w-70px h-70px mb-80px" />
           <p className="leading-28px text-22px text-black-normal">Transaction Rejected</p>
           <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-medium opacity-0 pointer-events-none">placeHolder</p>
@@ -160,13 +160,14 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   return null;
 };
 
-const showConfirmTransactionModal = ({ className, title, subTitle, onClose, ...props }: CommonProps & { title: string; subTitle?: string; onClose?: VoidFunction }) => {
+const showConfirmTransactionModal = ({ className, title, subTitle, onClose, height, ...props }: CommonProps & { title: string; subTitle?: string; onClose?: VoidFunction; height?: 'full' | 'half' | number; }) => {
   if (isMobile) {
     showDrawer({
       Content: <ConfirmTransactionModal {...props} />,
       title,
       subTitle,
       onClose,
+      height: height || 'half'
     });
   } else {
     showModal({ Content: <ConfirmTransactionModal {...props} />, className, title, subTitle, onClose });

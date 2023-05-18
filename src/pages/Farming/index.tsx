@@ -62,7 +62,7 @@ const FarmingPage: React.FC = () => {
   }, []);
 
   return (
-    <PageWrapper className="pt-56px lt-mobile:pt-4">
+    <PageWrapper className="pt-56px lt-mobile:pt-4 lt-mobile:mb-6">
       <div className="mx-auto max-w-800px">
         <div className="flex justify-start items-end pl-16px mb-16px lt-mobile:pl-0 lt-mobile:flex-col lt-mobile:items-start">
           <div className="leading-30px text-24px text-orange-normal font-medium lt-mobile:text-18px lt-mobile:leading-23px">{i18n.farming}</div>
@@ -82,7 +82,7 @@ const FarmingPage: React.FC = () => {
             </div>
             <div>{!isCanClaim && <CountDown />}</div>
           </div>
-          <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
+          <Suspense fallback={<Spin className="!block mx-auto text-60px mt-4" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
         </EndIn>
       </div>
     </PageWrapper>

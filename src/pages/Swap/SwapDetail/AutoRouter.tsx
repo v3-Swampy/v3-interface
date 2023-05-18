@@ -35,12 +35,12 @@ const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
     <Accordion
       className="mt-6px rounded-20px border-2px border-solid border-orange-light-hover"
       titleClassName="pt-16px pb-12px"
-      contentClassName="px-24px"
+      contentClassName="px-24px lt-mobile:px-16px"
       contentExpandClassName="pb-16px pt-12px"
     >
       {() => (
         <>
-          <p className="text-gradient-orange ml-24px relative leading-18px text-14px font-medium">{i18n.auto_router}</p>
+          <p className="text-gradient-orange ml-24px lt-mobile:ml-16px relative leading-18px text-14px font-medium">{i18n.auto_router}</p>
           <ArrowDownIcon className="w-8px h-5px absolute right-16px accordion-arrow top-1/2 -translate-y-[calc(50%-2.5px)]" />
         </>
       )}
@@ -51,7 +51,7 @@ const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
 
       <div className="my-16px h-2px bg-#FFF5E7" />
 
-      <p className="flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">{compiled(i18n.auto_router_tip, { dollar_price: networkFee || '$' })}</p>
+      <p className="flex justify-between items-center leading-18px text-14px text-gray-normal">{compiled(i18n.auto_router_tip, { dollar_price: networkFee || '$' })}</p>
     </Accordion>
   );
 };

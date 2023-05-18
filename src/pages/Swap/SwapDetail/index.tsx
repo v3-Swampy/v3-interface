@@ -15,6 +15,7 @@ import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/sl
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import { ReactComponent as StationIcon } from '@assets/icons/station.svg';
+import { isMobile } from '@utils/is';
 
 const transitions = {
   en: {
@@ -100,7 +101,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
     <Accordion
       className={cx('rounded-20px border-2px border-solid border-orange-light-hover', fromPreview ? 'mt-8px' : 'mt-6px', !isInputedAmount && bestTrade.state === TradeState.INVALID && 'hidden')}
       titleClassName="pt-16px pb-12px"
-      contentClassName="px-24px"
+      contentClassName="px-24px lt-mobile:px-16px"
       contentExpandClassName="pb-16px pt-12px"
       expand={fromPreview}
       disabled={bestTrade.state !== TradeState.VALID}
@@ -109,29 +110,29 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
         bestTrade.state !== TradeState.VALID ? (
           <>
             {bestTrade.state === TradeState.INVALID && (
-              <div className="ml-24px flex items-center leading-18px text-14px text-gray-normal font-medium">
+              <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-gray-normal font-medium">
                 Enter the target amount in any input box to get the best price automatically
               </div>
             )}
             {bestTrade.state === TradeState.LOADING && (
-              <div className="ml-24px flex items-center leading-18px text-14px text-black-normal font-medium">
+              <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-black-normal font-medium">
                 <Spin className="mr-10px" />
                 Fetching best price...
               </div>
             )}
             {bestTrade.state === TradeState.ERROR && (
-              <div className="ml-24px flex items-center leading-18px text-14px text-error-normal font-medium cursor-pointer underline">
+              <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-error-normal font-medium cursor-pointer underline">
                 {bestTrade.error ?? 'Fetching best price Failed, please wait a moment and try again.'}
               </div>
             )}
           </>
         ) : (
           <>
-            <div className="ml-24px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
+            <div className="ml-24px lt-mobile:ml-16px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
               {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
               {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
             </div>
-            {networkFee && (
+            {!isMobile && networkFee && (
               <span
                 className={cx(
                   'absolute top-1/2 right-38px -translate-y-[calc(50%-2.5px)] inline-flex items-center text-14px text-gray-normal transition-opacity duration-125',
@@ -148,38 +149,38 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
         )
       }
 
-      <div className="flex justify-between items-center leading-18px text-14px font-medium">
+      <div className="flex justify-between items-center leading-18px text-14px">
         <Tooltip text={i18n.expected_output_tooltip}>
           <span className="flex items-center text-gray-normal">
             {i18n.expected_output}
-            <InfoIcon className="w-12px h-12px ml-6px" />
+            <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
           </span>
         </Tooltip>
-        <span className="text-black-normal">
+        <span className="font-medium text-black-normal">
           {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
         </span>
       </div>
 
-      <div className="mt-8px flex justify-between items-center leading-18px text-14px font-medium">
+      <div className="mt-8px flex justify-between items-center leading-18px text-14px whitespace-nowrap">
         <Tooltip text={i18n.price_impact_tooltip}>
           <span className="flex items-center text-gray-normal">
             {i18n.price_impact}
-            <InfoIcon className="w-12px h-12px ml-6px" />
+            <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
           </span>
         </Tooltip>
-        <span className="text-gray-normal">{bestTrade?.trade?.priceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
+        <span className="font-medium text-gray-normal">{bestTrade?.trade?.priceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
       </div>
 
       {tradeType !== undefined && (
-        <div className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
+        <div className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal whitespace-nowrap">
           <div className="w-full">
             <Tooltip text={tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received_tooltip : i18n.maximum_send_tooltip}>
-              <div className="flex justify-between items-center">
-                <span className="flex items-center">
+              <div className="flex justify-between items-center whitespace-nowrap">
+                <span className="flex items-center max-w-60% whitespace-normal">
                   {tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received : i18n.maximum_send} ({slippageForUi} %)
-                  <InfoIcon className="w-12px h-12px ml-6px" />
+                  <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
                 </span>
-                <span>
+                <span className='font-medium'>
                   {slippageAmount} {tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}
                 </span>
               </div>
@@ -188,14 +189,14 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
         </div>
       )}
 
-      <div className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal font-medium">
+      <div className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal whitespace-nowrap">
         <Tooltip text={i18n.network_fee_tooltip}>
           <span className="flex items-center">
             {i18n.network_fee}
-            <InfoIcon className="w-12px h-12px ml-6px" />
+            <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
           </span>
         </Tooltip>
-        <span>{networkFee}</span>
+        <span className='font-medium '>{networkFee}</span>
       </div>
 
       {!fromPreview && (

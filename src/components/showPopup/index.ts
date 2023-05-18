@@ -4,7 +4,7 @@ export * from './Toast';
 import { hideAllModal } from './Modal';
 import { hideAllDrawer } from './Drawer';
 
-let currentPopup: string | number | null = null;
+export let currentPopup: string | number | null = null;
 
 export const hidePopup = () => {
   setTimeout(() => {
@@ -16,16 +16,17 @@ export const hidePopup = () => {
     }
     url.hash = '';
     const newUrl = url.toString();
-
     history.back();
     setTimeout(() => {
       history.replaceState(null, '', newUrl);
+      recordHideCurrentPopup();
     }, 16);
   }, 16);
 };
 
 
 export const recordCurrentPopup = (popupId: string | number) => (currentPopup = popupId);
+export const recordHideCurrentPopup = () => currentPopup = null;
 export const recordToHidePopup = () => {
   const currentPopupNow = currentPopup;
   return () => {

@@ -32,6 +32,8 @@ interface Props {
   onSelect: (token: Token | null) => void;
 }
 
+const listHeight = isMobile ? Math.floor(globalThis.innerHeight - 340) : 264;
+
 const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
@@ -128,9 +130,9 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
   );
 
   useLayoutEffect(() => {
-    const currentSelectTokenIndex = tokens?.findIndex(token => token.address === currentSelectToken?.address);
+    const currentSelectTokenIndex = tokens?.findIndex((token) => token.address === currentSelectToken?.address);
     if (typeof currentSelectTokenIndex === 'number' && currentSelectTokenIndex !== -1) {
-      listRef.current?.scrollToItem(currentSelectTokenIndex, "center");
+      listRef.current?.scrollToItem(currentSelectTokenIndex, 'center');
     }
   }, []);
 
@@ -145,9 +147,9 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
       <CommonTokens currentSelectToken={currentSelectToken} onSelect={onSelect} />
 
-      <div className="my-16px h-2px bg-orange-light-hover" />
+      <div className="my-16px lt-mobile:mt-12px h-2px bg-orange-light-hover" />
 
-      <div className="relative flex flex-col gap-12px pt-12px pb-4px min-h-264px rounded-20px bg-orange-light-hover">
+      <div className={cx('relative flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover', isMobile && 'touch-none')} style={{ minHeight: listHeight }}>
         {inSearching && (
           <Delay>
             <Spin className="!absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-48px" />
@@ -156,7 +158,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
         {!inSearching && searchTokens && searchTokens.length === 0 && (
           <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-14px text-black-light">No matching token found</p>
         )}
-        <FixedSizeList ref={listRef} width="100%" height={264} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
+        <FixedSizeList ref={listRef} width="100%" height={listHeight} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
           {Token}
         </FixedSizeList>
       </div>
@@ -168,12 +170,12 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
   const commonTokens = useCommonTokens();
 
   return (
-    <div className="mt-8px flex items-center gap-10px">
+    <div className="mt-8px flex items-center gap-10px lt-mobile:gap-6px">
       {commonTokens?.map((token) => (
         <div
           key={token.address}
           className={cx(
-            'inline-flex items-center p-8px pr-12px rounded-100px border-2px border-solid  border-orange-light text-14px text-black-normal font-medium cursor-pointer transition-colors',
+            'inline-flex items-center p-8px pr-12px lt-mobile:p-6px rounded-100px border-2px border-solid  border-orange-light text-14px lt-mobile:text-12px text-black-normal font-medium cursor-pointer transition-colors',
             currentSelectToken?.address === token.address ? 'bg-orange-light-hover pointer-events-none' : 'bg-transparent hover:bg-orange-light-hover'
           )}
           onClick={() => {
@@ -182,7 +184,7 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
             setTimeout(() => setCommonToken(token), 88);
           }}
         >
-          <img className="w-24px h-24px mr-6px" src={token.logoURI} alt={`${token.symbol} logo`} />
+          <img className="mr-6px w-24px h-24px lt-mobile:w-20px lt-mobile:h-20px" src={token.logoURI} alt={`${token.symbol} logo`} />
           {token.symbol}
         </div>
       ))}
@@ -192,7 +194,7 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
 
 const showTokenListModal = (props: Props) => {
   if (isMobile) {
-    showDrawer({ Content: <TokenListModalContent {...props} />, title: 'Select a token' });
+    showDrawer({ Content: <TokenListModalContent {...props} />, height: 'full', title: 'Select a token' });
   } else {
     showModal({ Content: <TokenListModalContent {...props} />, className: '!max-w-572px', title: 'Select a token' }) as string;
   }

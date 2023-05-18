@@ -7,7 +7,7 @@ import renderReactNode from '@utils/renderReactNode';
 import usePressEsc from '@hooks/usePressEsc';
 import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
-import { recordCurrentPopup, hidePopup } from '../';
+import { recordCurrentPopup, hidePopup, recordHideCurrentPopup } from '../';
 import './index.css';
 
 export const ModalPopup = new PopupClass(true);
@@ -32,6 +32,9 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?:
     const handleClose = useCallback(() => {
       ModalPopup.hideAll();
       onClose?.();
+      // setTimeout(() => {
+      //   recordHideCurrentPopup();
+      // }, 64);
     }, [onClose]);
 
     usePressEsc(hidePopup);
@@ -39,18 +42,28 @@ const Modal: React.FC<{ Content: ReactNode | Function; title: string; subTitle?:
 
     return (
       <BorderBox variant="gradient-white" className={cx('relative w-90vw max-w-400px px-16px py-24px rounded-24px overflow-hidden shadow-popper', className)}>
-        <div className="px-8px flex justify-between items-center text-14px text-black-normal">
+        <div className="px-8px flex justify-between items-center text-14px text-black-normal font-medium">
           {title}
-          <CloseBoldIcon className="w-12px h-12px text-gray-normal cursor-pointer" onClick={hidePopup} />
+          <CloseBoldIcon className="w-12px h-12px cursor-pointer" onClick={hidePopup} />
         </div>
-        {subTitle && <div className="px-8px text-14px font-500 leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
+        {subTitle && <div className="px-8px text-14px font-medium leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
         {renderReactNode(Content)}
       </BorderBox>
     );
   }
 );
 
-export const showModal = ({ unique, ...props }: { Content: Function | ReactNode; title: string; subTitle?: string; className?: string; onClose?: VoidFunction; unique?: boolean; }) => {
+export const showModal = ({
+  unique,
+  ...props
+}: {
+  Content: Function | ReactNode;
+  title: string;
+  subTitle?: string;
+  className?: string;
+  onClose?: VoidFunction;
+  unique?: boolean;
+}) => {
   const popupId = ModalPopup.show({
     Content: <Modal {...props} />,
     duration: 0,

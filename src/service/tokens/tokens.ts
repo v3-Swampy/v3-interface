@@ -9,6 +9,7 @@ import { handleRecoilInit } from '@utils/recoilUtils';
 import { createERC20Contract, fetchMulticall } from '@contracts/index';
 import TokenDefaultIcon from '@assets/icons/token_default.png';
 import Cache from '@utils/LRUCache';
+import { isMobile } from '@utils/is';
 
 export interface Token {
   name: string;
@@ -57,7 +58,7 @@ export const tokensState = atom<Array<Token>>({
   default: cachedTokens,
 });
 
-const CommonTokensCount = 5;
+const CommonTokensCount = isMobile ? 4 : 5;
 const commonTokensCache = new Cache<Token>(CommonTokensCount - 1, 'swap-common-token');
 const commonTokensState = atom<Array<Token>>({
   key: `${tokensKey}-common`,

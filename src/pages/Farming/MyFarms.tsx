@@ -4,6 +4,7 @@ import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import { ReactComponent as DoublechevrondownIcon } from '@assets/icons/doublechevrondown.svg';
 import Tooltip from '@components/Tooltip';
 import Positions from './Positions';
 import dayjs from 'dayjs';
@@ -16,6 +17,7 @@ import { TokenVST } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useBoostFactor } from '@service/staking';
 import { useTokenPrice } from '@service/pairs&pool';
+import classNames from './classNames';
 
 const transitions = {
   en: {
@@ -33,11 +35,6 @@ const transitions = {
     tooltipClaimable: 'Your estimated earned rewards, affected by Ending Time and Boosting Coefficient.',
   },
 } as const;
-
-const className = {
-  title: 'flex items-center color-gray-normal text-xs font-400 not-italic leading-15px mb-2',
-  content: 'color-black-normal text-14px font-500 not-italic leading-18px color-black-normal',
-};
 
 const MyFarmsItem: React.FC<{
   data: GroupedPositions;
@@ -64,12 +61,21 @@ const MyFarmsItem: React.FC<{
   const isEnded = useMemo(() => dayjs().isAfter(dayjs.unix(Number(endTime))), [endTime]);
 
   return (
-    <div className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${!isActive ? 'bg-gray-light/30' : 'bg-orange-light-hover'} lt-mobile:mb-4 lt-mobile:rounded-14px`}>
+    <div
+      className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative ${
+        !isActive ? 'bg-gray-end lt-mobile:border-gray-slight' : 'bg-orange-light-hover lt-mobile:border-orange-light'
+      } lt-mobile:p-0 lt-mobile:border-solid lt-mobile:border-1px ${classNames.poolWrapper}`}
+    >
       <Corner timestamp={endTime}></Corner>
-      <div className="relative px-4 grid grid-cols-18">
-        <div className="ml-20px col-span-6">
-          <div className={`${className.title}`}>{i18n.poolName}</div>
-          <div className={`${className.content} inline-flex justify-center items-center`}>
+      <div
+        className={`relative px-4 grid grid-cols-18 lt-mobile:px-0 
+          lt-mobile:rounded-14px lt-mobile:border-b-solid lt-mobile:border-1px lt-mobile:px-2 lt-mobile:py-4
+          ${!isActive ? 'bg-gray-end lt-mobile:border-gray-slight' : 'bg-orange-light-hover lt-mobile:border-orange-light'}
+        `}
+      >
+        <div className="ml-20px col-span-6 lt-mobile:ml-0 lt-mobile:col-span-18 lt-mobile:mb-18px">
+          <div className={`${classNames.title}`}>{i18n.poolName}</div>
+          <div className={`${classNames.content} inline-flex justify-center items-center`}>
             <TokenPair
               position={
                 {
@@ -78,23 +84,30 @@ const MyFarmsItem: React.FC<{
                   fee: data.fee,
                 } as any
               }
+              symbolClassName={classNames.symbol}
+              feeClassName={classNames.fee}
             />
           </div>
         </div>
-        <div className="col-span-4">
-          <div className={`${className.title}`}>{i18n.APR}</div>
-          <div className={`${className.content} flex items-center`}>
+        <div className="col-span-4 lt-mobile:col-span-7">
+          <div className={`${classNames.title}`}>{i18n.APR}</div>
+          {/* <div className={`${classNames.content} flex items-center lt-mobile:flex-col lt-mobile:items-start`}> */}
+          <div className={`${classNames.content} flex items-center`}>
             {/* TODO: hardcode the APR in first stage */}
-            Infinity% <LightningIcon className="w-5 h-5 mx-0.5 ml-2" />
-            <span className="font-normal font-500 text-12px leading-15px text-green-normal">{boosting}X</span>
+            <span className="">Infinity%</span>
+            <span className="flex items-center">
+              {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
+              <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:w-4" />
+              <span className="font-normal font-500 text-12px leading-15px text-green-normal">{boosting}X</span>
+            </span>
           </div>
         </div>
-        <div className="col-span-4">
-          <div className={`${className.title}`}>{i18n.stake}</div>
-          <div className={`${className.content}`}>${totalLiquidity ? numFormat(totalLiquidity.toFixed(2)) : 0}</div>
+        <div className={`col-span-4 lt-mobile:col-span-5 ${classNames.splitLine}`}>
+          <div className={`${classNames.title}`}>{i18n.stake}</div>
+          <div className={`${classNames.content}`}>${totalLiquidity ? numFormat(totalLiquidity.toFixed(2)) : 0}</div>
         </div>
-        <div className="col-span-3">
-          <div className={`${className.title}`}>
+        <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
+          <div className={`${classNames.title}`}>
             {i18n.claimable}
             <Tooltip text={i18n.tooltipClaimable}>
               <span className="w-12px h-12px ml-6px">
@@ -102,15 +115,19 @@ const MyFarmsItem: React.FC<{
               </span>
             </Tooltip>
           </div>
-          <div className="text-14px font-500 not-italic leading-15px flex items-center color-black-normal">
-            {totalClaimable ? numFormat(new Unit(totalClaimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST
-          </div>
+          <div className={`${classNames.content}`}>{totalClaimable ? numFormat(new Unit(totalClaimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
         </div>
-        <div className="flex items-center justify-end col-span-1">
+        {/* TODO should use first one */}
+        <div className="flex items-center justify-end col-span-1 lt-mobile:hidden">
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
       {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Pirce={token0Pirce || ''} token1Pirce={token1Pirce || ''}></Positions>}
+      <div className={`hidden lt-mobile:block lt-mobile:bg-white-normal lt-mobile:-mb-0 lt-mobile:rounded-2xl lt-mobile:-mt-4 lt-mobile:pt-4`}>
+        <div className="h-28px flex items-center justify-center">
+          <DoublechevrondownIcon onClick={handleShow} className={`cursor-pointer w-24px h-24px ${isShow ? 'rotate-180' : 'rotate-0'}`}></DoublechevrondownIcon>
+        </div>
+      </div>
     </div>
   );
 };

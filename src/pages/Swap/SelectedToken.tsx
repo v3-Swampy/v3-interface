@@ -50,10 +50,10 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
   }, [currentSelectToken?.address]);
 
   return (
-    <div className="h-96px pt-16px pl-24px pr-16px rounded-20px bg-orange-light-hover">
+    <div className="h-96px lt-mobile:h-74px pt-16px pl-24px pr-16px lt-mobile:pt-8px lt-mobile:pl-16px lt-mobile:pr-8px rounded-20px lt-mobile:rounded-14px bg-orange-light-hover">
       <div className="flex justify-between items-center">
         <Input
-          className="text-32px pr-32px"
+          className="text-32px pr-32px lt-mobile:text-24px"
           clearIcon
           disabled={!currentSelectToken}
           placeholder="0"
@@ -69,21 +69,24 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
 
         <BorderBox
           className={cx(
-            'flex-shrink-0 ml-14px flex items-center min-w-120px h-40px px-16px rounded-10px text-14px text-black-normal font-medium cursor-pointer !transition-none',
+            'flex-shrink-0 ml-14px lt-mobile:ml-4px flex items-center min-w-120px lt-mobile:min-w-102px h-40px lt-mobile:h-32px px-16px lt-mobile:pl-8px lt-mobile:pr-12px rounded-10px lt-mobile:rounded-8px',
+            'text-14px text-black-normal font-medium cursor-pointer !transition-none',
             currentSelectToken ? 'bg-orange-light' : 'bg-transparent'
           )}
           variant={!currentSelectToken ? 'gradient-orange-light-hover' : 'transparent'}
           onClick={() => showTokenSelectModal({ currentSelectToken, onSelect: (token) => setToken({ type, token }) })}
         >
-          {currentSelectToken && <img className="w-24px h-24px mr-4px" src={currentSelectToken.logoURI} alt={`${currentSelectToken.symbol} logo`} />}
+          {currentSelectToken && (
+            <img className="mr-4px w-24px h-24px lt-mobile:w-20px lt-mobile:h-20px" src={currentSelectToken.logoURI} alt={`${currentSelectToken.symbol} logo`} />
+          )}
           {currentSelectToken && currentSelectToken.symbol}
           {!currentSelectToken && i18n.select_token}
-          <ArrowDownIcon className="w-8px h-5px ml-24px flex-shrink-0" />
+          <ArrowDownIcon className="w-8px h-5px ml-24px lt-mobile:ml-16px flex-shrink-0" />
         </BorderBox>
       </div>
 
       {account && currentSelectToken && (
-        <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">
+        <div className="mt-8px lt-mobile:mt-6px ml-auto flex items-center w-fit h-20px text-14px lt-mobile:text-13px text-gray-normal">
           {i18n.balance}:{' '}
           <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals} gas={sourceToken?.address === 'CFX' ? cfxGas : undefined}>
             {(balance) => (

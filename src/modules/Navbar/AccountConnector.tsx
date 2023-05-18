@@ -26,7 +26,7 @@ const ConnectModalContent: React.FC = () => {
 
 const showAccountConnector = () => {
   if (isMobile) {
-    showDrawer({ Content: <ConnectModalContent />, title: 'Connect Wallet' });
+    showDrawer({ Content: <ConnectModalContent />, height: 'half', title: 'Connect Wallet' });
   } else {
     showModal({ Content: <ConnectModalContent />, className: '!max-w-370px', title: 'Connect Wallet' });
   }
