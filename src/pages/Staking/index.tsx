@@ -77,9 +77,9 @@ const StakingPage: React.FC = () => {
     <PageWrapper className="pt-56px">
       <div className="mx-auto max-w-800px">
         <div className="flex items-center mb-16px">
-          <span className="ml-16px leading-30px text-24px text-orange-normal font-medium">{i18n.staking}</span>
+          <span className="ml-16px leading-30px text-24px text-orange-normal font-medium lt-mobile:text-18px lt-mobile:leading-24px">{i18n.staking}</span>
         </div>
-        <BorderBox className="w-full p-16px rounded-28px flex items-stretch gap-32px" variant="gradient-white">
+        <BorderBox className="w-full p-16px rounded-28px flex items-stretch gap-32px lt-mobile:flex-col lt-mobile:gap-16px lt-mobile:rounded-14px" variant="gradient-white">
           <DataDetail />
 
           <div className="flex flex-1 flex-col items-center p-16px rounded-16px bg-orange-light-hover">
