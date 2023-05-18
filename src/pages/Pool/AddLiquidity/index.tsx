@@ -115,15 +115,15 @@ const AddLiquidity: React.FC = () => {
   );
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-16px lt-mobile:pb-40px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px lt-mobile:leading-24px text-24px lt-mobile:text-18px text-orange-normal font-medium whitespace-nowrap">
           <Link to="/pool" className="mr-auto inline-flex items-center no-underline text-orange-normal">
-            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.add_liquidity}
           </Link>
 
-          <Button color="orange" variant="text" className="mr-4px px-10px h-40px rounded-100px" onClick={resetToken}>
+          <Button color="orange" variant="text" className="lt-mobile:display-none mr-4px px-10px h-40px rounded-100px" onClick={resetToken}>
             {i18n.clear_all}
           </Button>
           {token0 && token1 && (

@@ -108,9 +108,9 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
           {sourceToken.symbol}
         </div>
       </div>
-      <div className="mx-auto -my-21.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0">
-        <div className="w-40px h-40px flex justify-center items-center rounded-full bg-orange-light-hover">
-          <ExchangeIcon className="w-26px h-26px" />
+      <div className="mx-auto -my-21.5px lt-mobile:-my-17.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0">
+        <div className="w-40px h-40px lt-mobile:w-32px lt-mobile:h-32px flex justify-center items-center rounded-full bg-orange-light-hover">
+          <ExchangeIcon className="w-26px h-26px lt-mobile:w-20px lt-mobile:h-20px" />
         </div>
       </div>
       <div className="flex justify-between items-center h-74px px-24px lt-mobile:px-16px rounded-20px bg-orange-light-hover">
