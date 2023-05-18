@@ -10,6 +10,7 @@
     "build:prod": "tsc && vite build"
   },
   "dependencies": {
+    "@cfx-kit/wallet-avatar": "^0.0.3",
     "@cfxjs/use-wallet-react": "0.0.1-50",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/address": "^5.7.0",
@@ -31,7 +32,6 @@
     "jsbi": "3.2.5",
     "localstorage-enhance": "1.0.1",
     "lodash-es": "^4.17.21",
-    "mersenne-twister": "^1.1.0",
     "rc-slider": "^10.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
