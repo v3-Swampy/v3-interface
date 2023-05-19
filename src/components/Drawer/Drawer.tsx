@@ -47,21 +47,20 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     [height]
   );
 
-  // const bind = useDrag(
-  //   ({ last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
-  //     if (my < -70) {
-  //       console.log(0)
-  //       cancel();
-  //     }
+  const bind = useDrag(
+    ({ last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
+      if (my < -70) {
+        cancel();
+      }
 
-  //     if (last) {
-  //       my > height * 0.5 || (vy > 0.5 && dy > 0) ? hide(vy) : show(null, { canceled });
-  //     } else {
-  //       api.start({ y: my, immediate: true });
-  //     }
-  //   },
-  //   { from: () => [0, y.get()], filterTaps: true, bounds: { top: 0 }, rubberband: true },
-  // );
+      if (last) {
+        my > height * 0.5 || (vy > 0.5 && dy > 0) ? hide(vy) : show(null, { canceled });
+      } else {
+        api.start({ y: my, immediate: true });
+      }
+    },
+    { from: () => [0, y.get()], filterTaps: true, bounds: { top: 0 }, rubberband: true },
+  );
 
   const display = y.to((y) => (y < height ? 'block' : 'none'));
 
@@ -80,8 +79,8 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     <>
       <Mask open={maskOpen} onClick={() => hide()} />
       <a.div
-        className="mobile-drawer fixed left-0 w-100vw rounded-t-24px bg-white-normal z-8888 shadow-popper"
-        // {...bind()}
+        className="mobile-drawer fixed left-0 w-100vw rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
+        {...bind()}
         style={{ display, height: height + 100, bottom: -100, y }}
       >
         {renderReactNode(renderContent)}
