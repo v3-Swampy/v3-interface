@@ -57,7 +57,7 @@ const DataDetailContent: React.FC = () => {
 
 const DataDetail: React.FC = () => {
   return (
-    <div className="max-w-310px flex rounded-16px bg-white-normal border-2px border-solid border-orange-light-hover lt-mobile:max-w-full lt-mobile:flex-1 lt-mobile:min-h-310px lt-mobile:rounded-14px">
+    <div className="max-w-310px flex rounded-16px bg-white-normal border-2px border-solid border-orange-light-hover lt-mobile:max-w-full lt-mobile:flex-1 lt-mobile:min-h-310px lt-mobile:rounded-14px lt-mobile:border-1px">
       <Suspense fallback={<Spin className="!absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-60px" />}>
         <DataDetailContent />
       </Suspense>
