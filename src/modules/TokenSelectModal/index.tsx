@@ -149,7 +149,10 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
       <div className="my-16px lt-mobile:mt-12px h-2px bg-orange-light-hover" />
 
-      <div className={cx('relative flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover overflow-hidden', isMobile && 'touch-none')} style={{ minHeight: listHeight }}>
+      <div
+        className={cx('relative flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover overflow-hidden', isMobile && 'drawer-inner-scroller touch-none')}
+        style={{ minHeight: listHeight }}
+      >
         {inSearching && (
           <Delay>
             <Spin className="!absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-48px" />

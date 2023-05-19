@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import cx from 'clsx';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { ReactComponent as LogoIcon } from '@assets/icons/logo_icon.svg';
@@ -13,6 +14,7 @@ import type { PoolType } from '@service/farming';
 import { PositionForUI } from '@service/position';
 import { hidePopup } from '@components/showPopup';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import { isMobile } from '@utils/is';
 
 const transitions = {
   en: {
@@ -56,21 +58,23 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
   const { inTransaction: inTransaction2, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
 
   const classNames = {
-    baseButton:
-      'w-258px h-48px text-gray-normal font-normal font-not-italic text-16px flex items-center justify-center color-gray-normal rounded-full cursor-pointer lt-mobile:w-164px lt-mobile:h-40px lt-mobile:text-14px lt-mobile:leading-18px',
+    baseButton: cx(
+      'w-258px h-48px text-gray-normal font-normal font-not-italic text-16px flex items-center justify-center color-gray-normal rounded-full cursor-pointer',
+      isMobile && 'lt-mobile:w-164px lt-mobile:h-40px lt-mobile:text-14px lt-mobile:leading-18px'
+    ),
     activeButton: 'color-white-normal bg-orange-normal',
   };
 
   return (
-    <div className="mt-24px min-h-318px !flex flex-col items-center justify-center lt-mobile:relative lt-mobile:min-h-400px">
-      <LogoIcon className="-mt-8 w-120px h-120px lt-mobile:w-100px lt-mobile:h-100px"></LogoIcon>
+    <div className={cx('mt-24px min-h-318px !flex flex-col items-center justify-center', isMobile && 'lt-mobile:relative lt-mobile:min-h-400px')}>
+      <LogoIcon className={cx('-mt-8 w-120px h-120px', isMobile && 'lt-mobile:w-100px lt-mobile:h-100px')} />
       <div
-        className="text-22px leading-28px font-400 font-not-italic mt-8 w-90 lt-mobile:text-14px lt-mobile:leading-18px lt-mobile:w-240px"
+        className={cx("text-22px leading-28px font-400 font-not-italic mt-8 w-90", isMobile && 'lt-mobile:text-14px lt-mobile:leading-18px lt-mobile:w-240px')}
         dangerouslySetInnerHTML={{
           __html: compiled(i18n.info, { symbol0: position?.token0?.symbol, symbol1: position?.token1?.symbol }),
         }}
       ></div>
-      <div className="absolute flex bottom-6 left-4 right-4 justify-between lt-mobile:left-0 lt-mobile:right-0 lt-mobile:justify-around">
+      <div className={cx("absolute flex bottom-6 left-4 right-4 justify-between", isMobile && 'lt-mobile:left-0 lt-mobile:right-0 lt-mobile:justify-around')}>
         <AuthConnectButton className={`${classNames.baseButton} border border-solid bg-white-normal`}>
           <Button
             loading={inTransaction}

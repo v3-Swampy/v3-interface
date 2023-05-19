@@ -48,11 +48,13 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
   );
 
   const bind = useDrag(
-    ({ last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
+    ({ event, last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
+      if ((event?.target as HTMLElement)?.closest?.('.drawer-inner-scroller')) {
+        return;
+      }
       if (my < -70) {
         cancel();
       }
-
       if (last) {
         my > height * 0.5 || (vy > 0.5 && dy > 0) ? hide(vy) : show(null, { canceled });
       } else {
