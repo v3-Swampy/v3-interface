@@ -31,22 +31,26 @@ const DetailHeader: React.FC = () => {
   if (!position) return null;
 
   return (
-    <div className="flex width-full justify-between">
-      <div className="flex gap-22px">
+    <div className="flex lt-md:flex-wrap justify-between">
+      <div className="flex md:gap-22px lt-md:w-full lt-md:justify-between">
         <TokenPair position={position} inverted={inverted} />
         <Status position={position} />
       </div>
       {isOwner && (
-        <div className="flex justify-end gap-16px">
+        <div className="flex md:justify-end gap-16px lt-mobile:gap-12px lt-mini:gap-8px lt-md:w-full lt-md:mt-24px">
           <Button
-            className="px-24px h-40px rounded-100px text-14px font-medium !text-orange-normal"
+            className="px-24px h-40px rounded-100px text-14px font-medium !text-orange-normal lt-md:max-w-50%"
             color="orange-light"
             onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}
           >
             {i18n.increase_liquidity}
           </Button>
           {status && status !== PositionStatus.Closed && (
-            <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
+            <Button
+              className="px-24px h-40px rounded-100px text-14px font-medium lt-md:max-w-50%"
+              color="gradient"
+              onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}
+            >
               {i18n.remove_liquidity}
             </Button>
           )}

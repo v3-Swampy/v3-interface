@@ -25,25 +25,21 @@ const LiquidityDetail: React.FC = () => {
   const position = usePosition(Number(tokenId));
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-16px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
         <div className="flex items-center pl-8px pr-16px mb-16px">
-          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-18px text-14px text-gray-normal">
-            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
+          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-40px text-18px text-gray-normal">
+            <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.back_to_pools}
           </Link>
         </div>
-        <BorderBox className="w-full p-16px rounded-28px flex flex-col gap-16px lt-md:gap-12px" variant="gradient-white">
-          <div className="ml-16px">
+        <BorderBox className="w-full p-16px rounded-28px flex flex-col gap-16px" variant="gradient-white">
+          <div className="md:ml-16px">
             <DetailHeader />
           </div>
-          <div className="flex gap-16px lt-md:gap-12px">
-            <div className="flex flex-1 min-w-0">
-              <Liquidity />
-            </div>
-            <div className="flex flex-1 min-w-0">
-              <UnclaimedFees />
-            </div>
+          <div className="flex gap-16px lt-md:flex-wrap">
+            <Liquidity />
+            <UnclaimedFees />
           </div>
           <SelectedPriceRange position={position} tokenId={tokenId} />
         </BorderBox>

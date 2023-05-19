@@ -31,6 +31,7 @@ const ConfirmPopper: React.FC<Omit<Props, 'Content' | 'trigger'> & { onConfirm: 
   interactive = true,
   className,
   title,
+  zIndex = 10001,
   ...props
 }) => {
   const [visible, setVisible] = useState(false);
@@ -44,6 +45,7 @@ const ConfirmPopper: React.FC<Omit<Props, 'Content' | 'trigger'> & { onConfirm: 
       Content={<ConfirmContent title={title} onConfirm={onConfirm} onCancel={() => setVisible(false)} />}
       interactive={interactive}
       useDefaultStyle
+      zIndex={zIndex}
       {...props}
     >
       <span

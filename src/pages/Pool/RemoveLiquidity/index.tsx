@@ -125,11 +125,11 @@ const RemoveLiquidity: React.FC = () => {
   if (!tokenId || !position || !status || status === PositionStatus.Closed) return <div />;
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-16px lt-mobile:pb-40px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-40px text-24px text-orange-normal font-medium">
           <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
-            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.remove_liquidity}
           </Link>
           <Settings />

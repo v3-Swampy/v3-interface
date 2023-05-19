@@ -60,9 +60,9 @@ const IncreaseLiquidity: React.FC = () => {
   );
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px pt-56px lt-mobile:pt-16px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px lt-mobile:leading-28px text-24px lt-mobile:text-18px text-orange-normal font-medium whitespace-nowrap">
           <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
             <ArrowLeftIcon className="w-8px h-12px mr-16px" />
             {i18n.increase_liquidity}
@@ -70,7 +70,7 @@ const IncreaseLiquidity: React.FC = () => {
           <Settings />
         </div>
         <form onSubmit={onSubmit}>
-          <BorderBox className="w-full p-16px rounded-28px flex justify-between gap-32px lt-md:gap-12px" variant="gradient-white">
+          <BorderBox className="relative w-full p-16px rounded-28px flex lt-md:flex-wrap gap-32px lt-md:gap-16px" variant="gradient-white">
             <div className="max-w-310px mt-8px">
               <PairInfo position={position} />
               <DepositAmounts

@@ -1,7 +1,7 @@
 import React, { type ComponentProps } from 'react';
 import cx from 'clsx';
 import useI18n from '@hooks/useI18n';
-import { PositionStatus, type PositionForUI,usePositionStatus } from '@service/position';
+import { PositionStatus, type PositionForUI, usePositionStatus } from '@service/position';
 import { usePool } from '@service/pairs&pool';
 import { ReactComponent as SuccessIcon } from '@assets/icons/pool_success.svg';
 import { ReactComponent as WarningIcon } from '@assets/icons/pool_warning.svg';
@@ -44,12 +44,15 @@ interface Props extends ComponentProps<'div'> {
 
 const PositionStatusFC: React.FC<Props> = ({ position, className, style, ...props }) => {
   const i18n = useI18n(transitions);
-  const status =usePositionStatus(position)
-  if (typeof status !== 'string') return null;
+  const status = usePositionStatus(position);
   return (
-    <div className={cx('inline-flex items-center text-12px font-medium', className)} style={{ color: PositionStatusMap[status].color, ...style }} {...props}>
-      {i18n[PositionStatusMap[status].text]}
-      {PositionStatusMap[status].Icon}
+    <div
+      className={cx('inline-flex items-center leading-18px text-12px font-medium', !status && 'opacity-0', className)}
+      style={{ color: status ? PositionStatusMap[status].color : undefined, ...style }}
+      {...props}
+    >
+      {status ? i18n[PositionStatusMap[status].text] : 'loading'}
+      {status && PositionStatusMap[status].Icon}
     </div>
   );
 };
