@@ -5,6 +5,7 @@ import { uniqueId } from 'lodash-es';
 import Mask from '@components/Mask';
 import renderReactNode from '@utils/renderReactNode';
 import { recordHideCurrentPopup } from '@components/showPopup';
+import './index.css';
 
 export interface DrawerMethod {
   show: (Content: React.ReactNode, params?: { canceled?: boolean; height?: number | 'full' | 'half' }) => string | null;
@@ -80,7 +81,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     <>
       <Mask open={maskOpen} onClick={() => hide()} />
       <a.div
-        className="fixed left-0 w-100vw rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
+        className="mobile-drawer fixed left-0 w-100vw rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
         // {...bind()}
         style={{ display, height: height + 100, bottom: -100, y }}
       >
