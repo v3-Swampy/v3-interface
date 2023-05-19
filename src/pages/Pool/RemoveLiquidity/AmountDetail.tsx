@@ -1,7 +1,8 @@
 import React from 'react';
+import cx from 'clsx';
 import useI18n from '@hooks/useI18n';
-import { useParams } from 'react-router-dom';
-import { type PositionForUI, usePosition } from '@service/position';
+import { usePosition } from '@service/position';
+import { trimDecimalZeros } from '@utils/numberUtils';
 
 const transitions = {
   en: {
@@ -14,19 +15,18 @@ const transitions = {
   },
 } as const;
 
-const AmountItem: React.FC<{ className?: string; tokenSymbol: string; amount: string; logoURI: string; title: string; amountWidthStyle?: string }> = ({
+const AmountItem: React.FC<{ className?: string; tokenSymbol: string; amount: string; logoURI: string; title: string; }> = ({
   tokenSymbol,
   amount,
   logoURI,
   title,
   className = '',
-  amountWidthStyle = 'w-480px',
 }) => {
   return (
-    <div className={`font-medium text-xs flex items-center justify-between ${className}`}>
-      <div>{title}</div>
+    <div className={cx('font-medium text-xs flex items-center justify-between lt-tiny:flex-wrap', className)}>
+      <span className='whitespace-nowrap'>{title}</span>
       <div className="flex items-center">
-        <div className={`mr-8px text-ellipsis whitespace-nowrap ${amountWidthStyle} overflow-hidden text-right`}>{amount}</div>
+        <div className='mr-8px text-ellipsis whitespace-nowrap overflow-hidden text-right'>{trimDecimalZeros(amount)}</div>
         <img className="w-24px h-24px" src={logoURI} alt={`${tokenSymbol} icon`} />
       </div>
     </div>
@@ -39,8 +39,7 @@ const AmountDetail: React.FC<{
   rightRemoveAmount: string;
   leftEarnedFees: string;
   rightEarnedFees: string;
-  amountWidthStyle?: string;
-}> = ({ leftRemoveAmount, rightRemoveAmount, leftEarnedFees, rightEarnedFees, tokenId, amountWidthStyle }) => {
+}> = ({ leftRemoveAmount, rightRemoveAmount, leftEarnedFees, rightEarnedFees, tokenId }) => {
   const position = usePosition(Number(tokenId));
   const { leftToken, rightToken } = position || {};
   const i18n = useI18n(transitions);
@@ -48,14 +47,12 @@ const AmountDetail: React.FC<{
   return (
     <div className="bg-orange-light-hover  rounded-20px px-16px py-18px mt-16px">
       <AmountItem
-        amountWidthStyle={amountWidthStyle}
         title={`${i18n.pooled} ${leftToken?.symbol || ''}`}
         tokenSymbol={leftToken?.symbol || ''}
         amount={leftRemoveAmount}
         logoURI={leftToken?.logoURI || ''}
       />
       <AmountItem
-        amountWidthStyle={amountWidthStyle}
         title={`${i18n.pooled} ${rightToken?.symbol || ''}`}
         tokenSymbol={rightToken?.symbol || ''}
         amount={rightRemoveAmount}
@@ -63,7 +60,6 @@ const AmountDetail: React.FC<{
         className="mt-8px"
       />
       <AmountItem
-        amountWidthStyle={amountWidthStyle}
         title={`${i18n.earnedFees.replace('$1', leftToken?.symbol || '')}`}
         tokenSymbol={leftToken?.symbol || ''}
         amount={leftEarnedFees}
@@ -71,7 +67,6 @@ const AmountDetail: React.FC<{
         className="mt-16px"
       />
       <AmountItem
-        amountWidthStyle={amountWidthStyle}
         title={`${i18n.earnedFees.replace('$1', rightToken?.symbol || '')}`}
         tokenSymbol={rightToken?.symbol || ''}
         amount={rightEarnedFees}

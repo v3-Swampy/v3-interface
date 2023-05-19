@@ -62,7 +62,7 @@ const FarmingPage: React.FC = () => {
   }, []);
 
   return (
-    <PageWrapper className="pt-56px lt-mobile:pt-4 lt-mobile:mb-6">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
         <div className="flex justify-start items-end pl-16px mb-16px lt-mobile:pl-0 lt-mobile:flex-col lt-mobile:items-start">
           <div className="leading-30px text-24px text-orange-normal font-medium lt-mobile:text-18px lt-mobile:leading-23px">{i18n.farming}</div>

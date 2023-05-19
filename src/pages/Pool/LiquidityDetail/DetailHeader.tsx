@@ -32,7 +32,7 @@ const DetailHeader: React.FC = () => {
 
   return (
     <div className="flex lt-md:flex-wrap justify-between">
-      <div className="flex md:gap-22px lt-md:w-full lt-md:justify-between">
+      <div className="ml-16p flex mobile:gap-22px lt-mobile:w-full lt-mobile:justify-between">
         <TokenPair position={position} inverted={inverted} />
         <Status position={position} />
       </div>

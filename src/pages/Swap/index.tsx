@@ -144,7 +144,7 @@ const SwapPage: React.FC = () => {
   );
 
   return (
-    <PageWrapper className="pt-56px lt-mobile:pt-16px lt-mobile:pb-40px">
+    <PageWrapper className="pt-56px lt-mobile:pt-16px pb-40px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px" variant="gradient-white">
         <div className="mb-16px flex justify-between items-center mobile:pr-8px lt-mobile:px-4px">
           <span className="mobile:w-84px h-40px leading-40px lt-mobile:h-18px lt-mobile:leading-18px mobile:rounded-100px text-center text-14px text-black-normal font-medium mobile:bg-orange-light-hover">

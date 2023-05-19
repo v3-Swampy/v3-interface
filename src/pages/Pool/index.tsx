@@ -87,7 +87,7 @@ const PoolPage: React.FC = () => {
   }, []);
 
   return (
-    <PageWrapper className="pt-56px lt-mobile:pt-16px lt-mobile:pb-40px">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
         <div className="mb-16px lt-mobile:mb-12px flex justify-between items-center pl-16px leading-30px text-24px lt-mobile:text-18px text-orange-normal font-medium">
           {i18n.pool}
@@ -106,7 +106,7 @@ const PoolPage: React.FC = () => {
             </Delay>
           }
         >
-          <BorderBox className="relative w-full p-16px rounded-28px group" variant="gradient-white">
+          <BorderBox className="relative w-full p-16px pt-24px rounded-28px group" variant="gradient-white">
             <PoolContent />
           </BorderBox>
         </Suspense>

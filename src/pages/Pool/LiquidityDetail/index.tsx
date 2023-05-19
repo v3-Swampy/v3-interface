@@ -25,18 +25,16 @@ const LiquidityDetail: React.FC = () => {
   const position = usePosition(Number(tokenId));
 
   return (
-    <PageWrapper className="pt-56px lt-mobile:pt-16px lt-md:pb-60px">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center pl-8px pr-16px mb-16px">
-          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-40px text-18px text-gray-normal">
+        <div className="mb-16px lt-mobile:mb-12px flex items-center pl-8px pr-16px">
+          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-40px text-24px lt-mobile:text-18px text-gray-normal font-medium">
             <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.back_to_pools}
           </Link>
         </div>
-        <BorderBox className="w-full p-16px rounded-28px flex flex-col gap-16px" variant="gradient-white">
-          <div className="md:ml-16px">
-            <DetailHeader />
-          </div>
+        <BorderBox className="w-full p-16px pt-24px rounded-28px flex flex-col gap-16px" variant="gradient-white">
+          <DetailHeader />
           <div className="flex gap-16px lt-md:flex-wrap">
             <Liquidity />
             <UnclaimedFees />

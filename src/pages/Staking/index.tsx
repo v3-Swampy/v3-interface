@@ -74,7 +74,7 @@ const StakingPage: React.FC = () => {
   }, [VSTPrice, lockedAmount]);
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
         <div className="flex items-center mb-16px">
           <span className="ml-16px leading-30px text-24px text-orange-normal font-medium lt-mobile:text-18px lt-mobile:leading-24px">{i18n.staking}</span>

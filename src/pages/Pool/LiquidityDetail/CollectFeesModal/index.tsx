@@ -61,14 +61,14 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 const buttonProps = {
   color: 'orange',
   fullWidth: true,
-  className: 'mt-24px h-48px rounded-100px text-16px font-bold',
+  className: 'mt-40px h-48px rounded-100px text-16px font-bold',
 } as const;
 
 const showCollectFeesModal = (props: CommonProps) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <CollectFeesModal {...props} {...confirmModalInnerProps} />,
-    className: '!max-w-572px !min-h-260px',
+    className: '!max-w-572px !min-h-300px',
   });
 };
 

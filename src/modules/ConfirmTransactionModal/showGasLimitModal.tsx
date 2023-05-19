@@ -1,4 +1,5 @@
 import React from 'react';
+import cx from 'clsx';
 import { showModal, showDrawer, hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
 import { isMobile } from '@utils/is';
@@ -9,7 +10,7 @@ const GasLimitModal: React.FC = () => {
     <>
       <div className="mt-12px text-center">
         <img className="w-780px max-w-85vw aspect-780/314" src={FailedGasLimitImage} alt="Failed Reach Metamask gaslimit tip" />
-        <div className="mt-6px flex justify-center gap-228px">
+        <div className={cx("mt-6px flex justify-center", isMobile ? 'flex-col gap-24px' : 'gap-228px')}>
           <div className="flex flex-col items-center font-medium">
             <div className="w-72px h-22px leading-22px rounded-22px text-14px text-white-normal bg-gradient-orange">STEP 01</div>
             <p className="mt-6px text-12px leading-16px text-black-normal font-medium">Click the "Edit"</p>
@@ -44,6 +45,7 @@ const showGasLimitModal = () => {
     showDrawer({
       Content: <GasLimitModal />,
       title,
+      height: 'full'
     });
   } else {
     showModal({ Content: <GasLimitModal />, className, title, unique: true });
