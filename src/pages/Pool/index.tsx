@@ -32,8 +32,8 @@ const transitions = {
 const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
   return (
     <Link to={String(position.id)} className="no-underline">
-      <div className="mt-6px px-24px h-80px rounded-16px flex justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
-        <div>
+      <div className="mt-6px lt-sm:mt-8px sm:px-24px lt-sm:py-8px sm:h-80px rounded-16px flex lt-sm:flex-wrap-reverse justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
+        <div className="lt-sm:w-full lt-sm:mt-8px">
           <TokenPair position={position} />
           <PriceRange position={position} />
         </div>
@@ -50,16 +50,20 @@ const PoolContent: React.FC = () => {
   if (!positions?.length) {
     return (
       <>
-        <PoolHandIcon className="mt-116px block mx-auto w-50.5px h-32px" />
-        <p className="mt-12px mb-132px leading-28px text-center text-22px text-black-normal">{i18n.positions_appear_here}</p>
+        <PoolHandIcon className="mt-116px lt-sm:mt-52px block mx-auto w-50.5px h-32px" />
+        <p className="mt-12px lt-sm:mt-20px mb-132px lt-sm:mb-60px leading-28px text-center text-22px lt-sm:text-14px text-black-normal font-medium">
+          {i18n.positions_appear_here}
+        </p>
       </>
     );
   }
   return (
     <>
-      <div className="inline-block mb-10px px-24px h-40px leading-40px rounded-100px text-center text-14px text-black-normal font-medium bg-orange-light-hover ">
+      <div className="inline-block mb-10px lt-sm:mb-16px sm:px-24px h-40px leading-40px lt-sm:h-18px lt-sm:leading-18px rounded-100px text-center text-14px text-black-normal font-medium sm:bg-orange-light-hover ">
         {i18n.your_positions} ({positions.length})
       </div>
+      <div className="sm:display-none h-1px bg-orange-light" />
+
       {positions.map((position) => (
         <PositionItem key={position.id} position={position} />
       ))}
@@ -83,9 +87,9 @@ const PoolPage: React.FC = () => {
   }, []);
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
-        <div className="flex justify-between items-center pl-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="mb-16px lt-mobile:mb-12px flex justify-between items-center pl-16px leading-30px text-24px lt-mobile:text-18px text-orange-normal font-medium">
           {i18n.pool}
 
           <Link to="/pool/add_liquidity" className="no-underline">
@@ -102,7 +106,7 @@ const PoolPage: React.FC = () => {
             </Delay>
           }
         >
-          <BorderBox className="relative w-full p-16px rounded-28px group" variant="gradient-white">
+          <BorderBox className="relative w-full p-16px pt-24px rounded-28px group" variant="gradient-white">
             <PoolContent />
           </BorderBox>
         </Suspense>

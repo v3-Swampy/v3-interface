@@ -179,6 +179,7 @@ const showStakeModal = (type: ModalMode) => {
       </Suspense>
     ),
     className: '!max-w-572px !min-h-466px flex flex-col',
+    height: 'full'
   });
 };
 

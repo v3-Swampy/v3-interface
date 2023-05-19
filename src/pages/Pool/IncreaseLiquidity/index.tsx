@@ -60,18 +60,18 @@ const IncreaseLiquidity: React.FC = () => {
   );
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center pl-8px pr-16px mb-16px leading-30px text-24px text-orange-normal font-medium">
+        <div className="mb-16px lt-mobile:mb-12px flex items-center h-40px pl-8px pr-16px text-24px lt-mobile:text-18px text-orange-normal font-medium whitespace-nowrap">
           <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
-            <ArrowLeftIcon className="w-8px h-12px mr-16px" />
+            <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.increase_liquidity}
           </Link>
           <Settings />
         </div>
         <form onSubmit={onSubmit}>
-          <BorderBox className="w-full p-16px rounded-28px flex justify-between gap-32px lt-md:gap-12px" variant="gradient-white">
-            <div className="max-w-310px mt-8px">
+          <BorderBox className="relative w-full p-16px pt-24px rounded-28px flex lt-md:flex-wrap gap-32px lt-md:gap-16px" variant="gradient-white">
+            <div className="w-310px lt-md:w-full flex-grow-1 flex-shrink-1">
               <PairInfo position={position} />
               <DepositAmounts
                 title={i18n.add_more_Liquidity}
@@ -86,7 +86,7 @@ const IncreaseLiquidity: React.FC = () => {
                 isRangeValid={true}
               />
             </div>
-            <div className="mt-8px flex-1 flex flex-col justify-between">
+            <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between lt-md:w-full">
               <SelectedPriceRange position={position} tokenId={tokenId} />
               <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
             </div>

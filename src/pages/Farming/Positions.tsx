@@ -28,8 +28,8 @@ const transitions = {
     unstake: 'Unstake',
     claimable: 'Est. earned',
     liquidity: 'Liquidity',
-    tooltipPaused: 'Your farming yield is low due to price out of range.',
-    tooltipFarming: 'Your position is farming hard.',
+    tooltipPaused: 'Inactive Liquidity, the current price is outside the range of this position.',
+    tooltipFarming: 'Active Liquidity, the current price is within the range of this position.',
   },
   zh: {
     myPosition: 'My staked positions',
@@ -39,8 +39,8 @@ const transitions = {
     unstake: 'Unstake',
     claimable: 'Est. earned',
     liquidity: 'Liquidity',
-    tooltipPaused: 'Your farming yield is low due to price out of range.',
-    tooltipFarming: 'Your position is farming hard.',
+    tooltipPaused: 'Inactive Liquidity, the current price is outside the range of this position.',
+    tooltipFarming: 'Active Liquidity, the current price is within the range of this position.',
   },
 } as const;
 
@@ -101,7 +101,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
           </Tooltip>
         )}
       </div>
-      <div className="col-span-4 lt-mobile:col-span-9">
+      <div className="col-span-4 lt-mobile:col-span-9 lt-mobile:px-2">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
         {/* @ts-ignore */}
         <div className={`${className.content} flex items-center`}>${liquidity ? numFormat(liquidity.toFixed(2)) : 0}</div>
@@ -170,7 +170,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
                 color="white"
                 className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} lt-mobile:w-46%`}
                 onClick={async () => {
-                  if (!isCanClaim) {
+                  if (isCanClaim) {
                     showUnstakeModal({
                       isActive: true,
                       incentive: position?.whichIncentiveTokenIn,

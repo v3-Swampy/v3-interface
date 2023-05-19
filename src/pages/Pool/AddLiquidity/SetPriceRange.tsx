@@ -275,7 +275,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
         </>
       )}
 
-      <div className="mt-10px flex gap-16px">
+      <div className="mt-10px flex lt-md:flex-wrap gap-16px">
         <RangeInput
           type="lower"
           register={register}

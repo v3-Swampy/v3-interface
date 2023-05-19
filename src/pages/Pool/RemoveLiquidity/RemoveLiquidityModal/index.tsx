@@ -1,4 +1,5 @@
 import React, { Suspense, useCallback } from 'react';
+import cx from 'clsx';
 import Button from '@components/Button';
 import AmountDetail from '../AmountDetail';
 import AuthConnectButton from '@modules/AuthConnectButton';
@@ -6,6 +7,7 @@ import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modul
 import { toI18n } from '@hooks/useI18n';
 import useInTransaction from '@hooks/useInTransaction';
 import { handleSendTransaction } from '@service/position';
+import { isMobile } from '@utils/is';
 
 const buttonProps = {
   className: 'mt-16px h-40px rounded-100px',
@@ -56,7 +58,6 @@ const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
       <Suspense fallback={'...'}>
         <div className="flex flex-col justify-between flex-1">
           <AmountDetail
-            amountWidthStyle="w-120px"
             leftRemoveAmount={leftRemoveAmount}
             rightRemoveAmount={rightRemoveAmount}
             tokenId={tokenId}
@@ -64,7 +65,7 @@ const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
             rightEarnedFees={rightEarnedFees}
           />
           <AuthConnectButton {...buttonProps}>
-            <Button onClick={handleClickConfirm} type="button" color="orange" fullWidth className="h-48px rounded-100px mt-16px">
+            <Button onClick={handleClickConfirm} type="button" color="orange" fullWidth className={cx("h-48px rounded-100px", isMobile ? 'mt-40px' : 'mt-16px')}>
               Submit
             </Button>
           </AuthConnectButton>
@@ -78,7 +79,7 @@ const showRemoveLiquidityModal = (props: Props) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <RemoveLiquidityModal {...confirmModalInnerProps} {...props} />,
-    className: '!max-w-458px !min-h-400px flex flex-col',
+    className: '!max-w-458px !min-h-372px flex flex-col',
   });
 };
 export default showRemoveLiquidityModal;

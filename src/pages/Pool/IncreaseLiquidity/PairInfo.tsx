@@ -25,7 +25,7 @@ const PairInfo: React.FC<{ position: PositionForUI | undefined }> = ({ position 
   if (!position) return null;
   return (
     <div>
-      <div className="flex p-x-16px justify-between">
+      <div className="flex md:px-16px mobile:gap-22px lt-mobile:justify-between">
         <TokenPair position={position} showFee={false} />
         <Status position={position} />
       </div>
