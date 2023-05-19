@@ -26,7 +26,7 @@ class TopLevelErrorBoundary extends React.Component<{ children: React.ReactNode 
       return (
         <div className="pt-[80px]">
           <h1 className="text-center text-[28px] text-[#E15C56] font-semibold">Unfortunately, some unexpected errors occurred!</h1>
-          <h2 className="text-center text-[20px] text-[#808BE7] font-semibold">You can resume using confluxhub by refreshing the page.</h2>
+          <h2 className="text-center text-[20px] text-[#808BE7] font-semibold">You can resume using vSwap by refreshing the page.</h2>
 
           {this.state.error && (
             <>

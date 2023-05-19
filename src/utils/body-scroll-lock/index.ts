@@ -116,10 +116,10 @@ const lock = (targetElement?: Nullable<HTMLElement>) => {
       });
     }
 
-    if (!documentListenerAdded) {
-      document.addEventListener('touchmove', preventDefault, eventListenerOptions);
-      documentListenerAdded = true;
-    }
+    // if (!documentListenerAdded) {
+    //   document.addEventListener('touchmove', preventDefault, eventListenerOptions);
+    //   documentListenerAdded = true;
+    // }
   } else if (lockedNum <= 0) {
     unLockCallback = detectOS().android ? setOverflowHiddenMobile() : setOverflowHiddenPc();
   }

@@ -13,7 +13,7 @@ export interface DrawerMethod {
 
 const innerHeight = globalThis.innerHeight;
 const Drawer = forwardRef<DrawerMethod>((_, ref) => {
-  const [height, setHeight] = useState(() => innerHeight + 100 - 200);
+  const [height, setHeight] = useState(() => innerHeight + 100 - 166);
   const [renderContent, setRenderContent] = useState<React.ReactNode>(null);
 
   const [maskOpen, setModalOpen] = useState(false);
@@ -21,7 +21,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
 
   const show = useCallback<DrawerMethod['show']>((Content, params) => {
     if (params?.height === 'full') {
-      setHeight(innerHeight + 100 - 200);
+      setHeight(innerHeight + 100 - 166);
     } else if (params?.height === 'half') {
       setHeight((innerHeight + 100) / 2 + 60);
     } else if (typeof params?.height === 'number') {
@@ -48,12 +48,13 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
   );
 
   const bind = useDrag(
-    ({ last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
+    ({ event, last, velocity: [, vy], direction: [, dy], movement: [, my], cancel, canceled }) => {
+      if ((event?.target as HTMLElement)?.closest?.('.drawer-inner-scroller')) {
+        return;
+      }
       if (my < -70) {
-        console.log(0)
         cancel();
       }
-
       if (last) {
         my > height * 0.5 || (vy > 0.5 && dy > 0) ? hide(vy) : show(null, { canceled });
       } else {
@@ -80,7 +81,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     <>
       <Mask open={maskOpen} onClick={() => hide()} />
       <a.div
-        className="fixed left-0 w-100vw rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
+        className="mobile-drawer fixed left-0 w-100vw rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
         {...bind()}
         style={{ display, height: height + 100, bottom: -100, y }}
       >

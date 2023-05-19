@@ -1,4 +1,5 @@
 import React, { useMemo, Suspense, useCallback } from 'react';
+import cx from 'clsx';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import useInTransaction from '@hooks/useInTransaction';
@@ -20,6 +21,7 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import { isMobile } from '@utils/is';
 
 const transitions = {
   en: {
@@ -68,18 +70,18 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   }, [leftTokenPrice, rightTokenPrice, data.amount0, data.amount1]);
 
   const classNameButton = useMemo(() => {
-    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer';
+    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer lt-mobile:mt-20px lt-mobile:w-full lt-mobile:!bg-transparent lt-mobile:!color-orange-normal lt-mobile:border-1';
   }, []);
 
   return (
-    <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4" key={data.id}>
-      <div>
+    <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4 lt-mobile:flex-col" key={data.id}>
+      <div className="lt-mobile:w-full">
         <div>
           <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
           <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">{liquidity}</span>
           <PositionStatus position={data} />
         </div>
-        <PriceRange position={data} />
+        <PriceRange position={data} type="horizontal" />
       </div>
       <AuthConnectButton className={classNameButton}>
         <AuthTokenButtonOf721 className={classNameButton} tokenAddress={NonfungiblePositionManager.address} contractAddress={UniswapV3Staker.address} tokenId={data.id.toString()}>
@@ -141,10 +143,10 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   if (fPositions.length === 0) {
     return (
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
-        <LogoIcon className="-mt-8 w-120px h-120px"></LogoIcon>
-        <div className="text-22px leading-28px font-400 font-not-italic mt-8">{i18n.null}</div>
+        <LogoIcon className={cx("-mt-8 w-120px h-120px", isMobile && 'lt-mobile:w-100px lt-mobile:h-100px')}></LogoIcon>
+        <div className="text-22px leading-28px font-400 font-not-italic mt-8 lt-mobile:text-14px lt-mobile:font-500 lt-mobile:leading-18px">{i18n.null}</div>
         {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
-        <div className={classNameLink} onClick={handleNavigate}>
+        <div className={cx(classNameLink, isMobile && 'lt-mobile:mt-36px')} onClick={handleNavigate}>
           <span>
             {compiled(i18n.provide, {
               leftToken: leftToken.symbol,
@@ -156,15 +158,15 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
     );
   } else {
     return (
-      <div className="mt-24px">
-        <div className="max-h-454px min-h-318px overflow-y-auto">
+      <div className={cx("mt-24px", isMobile && 'lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto drawer-inner-scroller')}>
+        <div className={cx("max-h-454px min-h-318px overflow-y-auto", isMobile && 'lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto')}>
           {fPositions.map((p) => {
             return <Position data={p} address={address} startTime={startTime} endTime={endTime} pid={pid}></Position>;
           })}
         </div>
         <div className="text-center">
           {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
-          <div className={classNameLink} onClick={handleNavigate}>
+          <div className={cx(classNameLink, isMobile && 'lt-mobile:mt-24px lt-mobile:mb-4')} onClick={handleNavigate}>
             {compiled(i18n.more, {
               leftToken: leftToken.symbol,
               rightToken: rightToken.symbol,
@@ -184,11 +186,12 @@ const showStakeLPModal = (pool: PoolType) => {
       rightToken: pool.rightToken.symbol,
     }),
     ConfirmContent: (props: ConfirmModalInnerProps) => (
-      <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>
+      <Suspense fallback={<Spin className="!block mx-auto text-60px mt-6" />}>
         <StakeModal {...pool} {...props} />
       </Suspense>
     ),
     className: '!max-w-572px !min-h-466px',
+    height: 'full',
   });
 };
 

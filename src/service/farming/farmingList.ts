@@ -14,8 +14,16 @@ export interface Incentive {
 const farmingsKey = `farmingState-${import.meta.env.MODE}`;
 const incentiveHistoryKey = `farmingIncentiveState-${import.meta.env.MODE}`;
 
+let resolveFarmingInit: (value: unknown) => void = null!;
+export const farmingInitPromise = new Promise((resolve) => {
+  resolveFarmingInit = resolve;
+});
+
 const cachedFarmings = (LocalStorage.getItem(farmingsKey, 'farming') as { pids: Array<number> }) ?? { pids: [] };
 const cachedIncentiveHistory = (LocalStorage.getItem(incentiveHistoryKey, 'farming') as Array<Incentive>) ?? [];
+if (cachedFarmings?.pids?.length) {
+  resolveFarmingInit(true);
+}
 
 export const farmingsState = atom<{ pids: Array<number> }>({
   key: farmingsKey,
@@ -59,6 +67,8 @@ export const incentiveHistory = cachedIncentiveHistory;
     } catch (_) {
       setRecoil(farmingsState, farmings);
       setRecoil(incentiveHistoryState, incentive_history);
+    } finally {
+      resolveFarmingInit(true);
     }
   } catch (err) {
     console.error('Failed to get the latest farming data: ', err);

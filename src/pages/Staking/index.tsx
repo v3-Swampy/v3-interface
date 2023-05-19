@@ -74,18 +74,18 @@ const StakingPage: React.FC = () => {
   }, [VSTPrice, lockedAmount]);
 
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
         <div className="flex items-center mb-16px">
-          <span className="ml-16px leading-30px text-24px text-orange-normal font-medium">{i18n.staking}</span>
+          <span className="ml-16px leading-30px text-24px text-orange-normal font-medium lt-mobile:text-18px lt-mobile:leading-24px">{i18n.staking}</span>
         </div>
-        <BorderBox className="w-full p-16px rounded-28px flex items-stretch gap-32px" variant="gradient-white">
+        <BorderBox className="w-full p-16px rounded-28px flex items-stretch gap-32px lt-mobile:flex-col lt-mobile:gap-16px lt-mobile:rounded-14px" variant="gradient-white">
           <DataDetail />
 
-          <div className="flex flex-1 flex-col items-center p-16px rounded-16px bg-orange-light-hover">
+          <div className="flex flex-1 flex-col items-center p-16px rounded-16px bg-orange-light-hover lt-mobile:rounded-14px lt-mobile:p-0px">
             {/* Initial status: Create Lock, thus the user has not staked any token or the staked token has already unlocked */}
             {stakingStatus === PersonalStakingStatus.UNLOCKED && (
-              <div className="flex flex-col items-center w-full">
+              <div className="flex flex-col items-center w-full lt-mobile:p-16px">
                 <StakeCalculate className="w-74px h-74px mt-64px mb-32px" />
                 <p className="leading-18px text-14px font-medium text-black-normal mb-50px max-w-315px text-center">{compiled(i18n.stake_tip, { token: TokenVST.symbol })}</p>
                 <AuthConnectButton {...bigButtonProps}>
@@ -96,13 +96,13 @@ const StakingPage: React.FC = () => {
               </div>
             )}
             {stakingStatus === PersonalStakingStatus.LOCKED && (
-              <div className="flex flex-col w-full">
-                <div className="flex w-full flex-1 gap-16px items-stretch text-14px leading-18px text-black-normal">
-                  <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between">
+              <div className="flex flex-col w-full lt-mobile:p-8px">
+                <div className="flex w-full flex-1 gap-16px items-stretch text-14px leading-18px text-black-normal lt-mobile:flex-col lt-mobile:gap-8px">
+                  <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between lt-mobile:rounded-8px">
                     <p className="font-medium mb-16px">{compiled(i18n.my_staked, { token: TokenVST.symbol })}</p>
                     <p className="font-bold text-18px leading-24px">{trimDecimalZeros(new Unit(lockedAmount).toDecimalMinUnit(5)) ?? '...'}</p>
                     <p className="text-black-light font-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
-                    <p className="mt-70px">
+                    <p className="mt-70px lt-mobile:mt-24px">
                       <AuthConnectButton {...smallButtonProps}>
                         <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>
                           {i18n.stake_more}
@@ -110,8 +110,8 @@ const StakingPage: React.FC = () => {
                       </AuthConnectButton>
                     </p>
                   </div>
-                  <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between">
-                    <div>
+                  <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-between lt-mobile:rounded-8px">
+                    <div className="lt-mobile:mb-24px">
                       <p className="font-medium mb-16px">{i18n.unstake_time}</p>
                       <p className="text-black-light font-normal">{displayedUnlockedTime}</p>
                     </div>
@@ -122,21 +122,21 @@ const StakingPage: React.FC = () => {
                     </AuthConnectButton>
                   </div>
                 </div>
-                <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
+                <p className="pl-16px mt-20px w-full font-normal lt-mobile:pl-0px lt-mobile:mt-8px" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
               </div>
             )}
             {stakingStatus === PersonalStakingStatus.TO_UNLOCK && (
-              <div className="flex flex-col w-full">
-                <div className="flex w-full flex-1 gap-16px items-stretch text-14px leading-18px">
-                  <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-start">
+              <div className="flex flex-col w-full lt-mobile:p-8px">
+                <div className="flex w-full flex-1 gap-16px items-stretch text-14px leading-18px lt-mobile:flex-col lt-mobile:gap-8px">
+                  <div className="flex flex-1 flex-col bg-orange-light rounded-16px p-16px justify-start lt-mobile:rounded-8px lt-mobile:pb-80px">
                     <p className="text-black-normal font-medium mb-16px">{compiled(i18n.my_staked, { token: TokenVST.symbol })}</p>
                     <p className="text-black-normal font-bold text-18px leading-24px mb-4px">{lockedAmount ?? '...'}</p>
                     <p className="text-black-light">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                   </div>
 
-                  <div className="flex flex-1 flex-col rounded-16px p-16px border-2px border-solid border-orange-light justify-center">
+                  <div className="flex flex-1 flex-col rounded-16px p-16px border-2px border-solid border-orange-light justify-center lt-mobile:border-none lt-mobile:bg-orange-light lt-mobile:rounded-8px">
                     <p className="text-orange-normal font-normal" dangerouslySetInnerHTML={{ __html: i18n.unStake_tip }} />
-                    <p className="mt-40px">
+                    <p className="mt-40px lt-mobile:mt-24px">
                       <AuthConnectButton {...smallButtonProps}>
                         <Button
                           {...smallButtonProps}
@@ -155,7 +155,7 @@ const StakingPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <p className="pl-16px mt-20px w-full font-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
+                <p className="pl-16px mt-20px w-full font-normal lt-mobile:pl-0px lt-mobile:mt-8px" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
               </div>
             )}
           </div>

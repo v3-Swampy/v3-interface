@@ -15,7 +15,6 @@ import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
 const transitions = {
   en: {
     deposit_amounts: 'Deposit Amounts',
-    select_token: 'Select a token',
     balance: 'Balance',
     max: 'MAX',
     outof_range: 'The market price is outside your specified price range. Single-asset deposit only.',
@@ -23,7 +22,6 @@ const transitions = {
   },
   zh: {
     deposit_amounts: '存入金额',
-    select_token: '选择代币',
     balance: '余额',
     max: '最大值',
     outof_range: '市场兑换率超出您指定的范围。将只注入单项代币。',
@@ -54,8 +52,8 @@ interface Props {
 
 const DepositAmount: React.FC<
   Pick<Props, 'register' | 'setValue' | 'isRangeValid' | 'fee' | 'tokenA' | 'getValues'> & {
-    token: Token | null;
-    pairToken: Token | null;
+    token: Token | null | undefined;
+    pairToken: Token | null | undefined;
     type: 'tokenA' | 'tokenB';
     priceTokenA: Unit | null | undefined;
     priceLower: Unit | undefined;
@@ -114,7 +112,6 @@ const DepositAmount: React.FC<
       if (!priceTokenA) return;
       changePairAmount.current(currentAmount);
     }
-    
   }, [isPairTokenOutOfRange]);
 
   useLayoutEffect(() => {
@@ -142,11 +139,12 @@ const DepositAmount: React.FC<
               onBlur={(evt) => changePairAmount.current(evt.target.value)}
             />
 
-            <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium cursor-pointer">
-              {token && <img className="w-24px h-24px mr-4px" src={token.logoURI} alt={`${token.symbol} logo`} />}
-              {token && token.symbol}
-              {!token && i18n.select_token}
-            </div>
+            {token && (
+              <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium">
+                {<img className="w-24px h-24px mr-4px" src={token.logoURI} alt={`${token.symbol} logo`} />}
+                {token.symbol}
+              </div>
+            )}
           </div>
 
           {account && token && (
@@ -229,7 +227,6 @@ const DepositAmounts: React.FC<Props> = ({
     setValue('amount-tokenB', '');
   }, [tokenA?.address, tokenB?.address, account]);
 
-  if (!tokenA || !tokenB || !fee) return null;
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-medium">{title || i18n.deposit_amounts}</p>

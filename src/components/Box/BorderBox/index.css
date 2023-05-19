@@ -1,5 +1,5 @@
 .border-box {
-  @apply border-2px border-solid transition-colors;
+  @apply border-2px border-solid transition-colors lt-mobile:border-1px;
 }
 
 .border-box--none {

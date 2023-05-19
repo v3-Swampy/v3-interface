@@ -4,6 +4,7 @@ import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
 import { ReactComponent as AlarmClockIcon } from '@assets/icons/alarm-clock.svg';
 import { getCurrentIncentivePeriod } from '@service/farming';
+import BorderBox from '@components/Box/BorderBox';
 
 interface EndInProps {
   children: React.ReactNode;
@@ -13,14 +14,14 @@ const transitions = {
   en: {
     end: 'End',
     endIn: 'The next round of rewards will start in {timeLeftStr}',
-    claim: ' , claim rewards earlier is recommended.',
+    claim: ', claim rewards earlier is recommended.',
     claimTooltip: 'Claim your rewards early',
     daysStr: '{days} days ',
   },
   zh: {
     end: 'End',
     endIn: 'The next round of rewards will start in {timeLeftStr}',
-    claim: ' , claim rewards earlier is recommended.',
+    claim: ', claim rewards earlier is recommended.',
     claimTooltip: 'Claim your rewards early',
     daysStr: '{days} days ',
   },
@@ -33,7 +34,7 @@ const ONE_WEEK = 7 * ONE_DAY;
 type StateType = 'default' | 'normal' | 'urgent';
 
 const EndIn: React.FC<EndInProps> = ({ children }) => {
-  const timestamp = getCurrentIncentivePeriod().endTime;
+  const timestamp = getCurrentIncentivePeriod()?.endTime ?? 0;
   const i18n = useI18n(transitions);
   const [timeLeft, setTimeLeft] = useState('');
 
@@ -87,21 +88,21 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
     return () => clearInterval(intervalId);
   }, [timestamp]);
 
-  const fTimeLeft = timeLeft.replace(/(\d+)/g, '<span style="font-family: Helvetica Neue;">$1</span>');
+  let fTimeLeft = timeLeft.replace(/(\d+)/g, '<span style="font-family: Helvetica Neue;">$1</span>');
+  if (state === 'urgent') {
+    fTimeLeft += `<span>${i18n.claim}</span>`;
+  }
 
   return (
-    <div className={`relative w-full p-0.5 rounded-7 gradient-orange-light-hover lt-mobile:p-1px lt-mobile:rounded-4`}>
+    <BorderBox className="rounded-7 lt-mobile:rounded-4" variant="gradient-white">
       {(state === 'urgent' || state === 'normal') && (
-        <div className="flex items-center p-4 text-14px leading-24px font-400 font-normal color-white-normal">
-          <span className="inline-flex">
-            <AlarmClockIcon className="mr-2 w-6 h-6" />
-            <span dangerouslySetInnerHTML={{ __html: fTimeLeft }}></span>
-          </span>
-          {state === 'urgent' && <span>{i18n.claim}</span>}
+        <div className="flex items-center p-4 text-14px leading-24px font-400 font-normal color-white-normal lt-mobile:px-4 lt-mobile:py-3">
+          <AlarmClockIcon className="mr-2 w-6 h-6 flex-shrink-0" />
+          <span dangerouslySetInnerHTML={{ __html: fTimeLeft }}></span>
         </div>
       )}
-      <div className={`bg-white-normal rounded-6.5 p-4 lt-mobile:rounded-3.75`}>{children}</div>
-    </div>
+      <div className={`bg-white-normal rounded-7 lt-mobile:rounded-4 p-4`}>{children}</div>
+    </BorderBox>
   );
 };
 
