@@ -4,6 +4,7 @@ import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
 import { ReactComponent as AlarmClockIcon } from '@assets/icons/alarm-clock.svg';
 import { getCurrentIncentivePeriod } from '@service/farming';
+import BorderBox from '@components/Box/BorderBox';
 
 interface EndInProps {
   children: React.ReactNode;
@@ -93,15 +94,15 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
   }
 
   return (
-    <div className={`relative w-full p-0.5 rounded-7 gradient-orange-light-hover lt-mobile:p-1px lt-mobile:rounded-4`}>
+    <BorderBox className="rounded-7" variant="gradient-white">
       {(state === 'urgent' || state === 'normal') && (
         <div className="flex items-center p-4 text-14px leading-24px font-400 font-normal color-white-normal lt-mobile:px-4 lt-mobile:py-3">
           <AlarmClockIcon className="mr-2 w-6 h-6 flex-shrink-0" />
           <span dangerouslySetInnerHTML={{ __html: fTimeLeft }}></span>
         </div>
       )}
-      <div className={`bg-white-normal rounded-6.5 p-4 lt-mobile:rounded-3.75`}>{children}</div>
-    </div>
+      <div className={`bg-white-normal rounded-7 p-4`}>{children}</div>
+    </BorderBox>
   );
 };
 
