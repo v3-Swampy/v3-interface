@@ -5,7 +5,6 @@ import { uniqueId } from 'lodash-es';
 import Mask from '@components/Mask';
 import renderReactNode from '@utils/renderReactNode';
 import { recordHideCurrentPopup } from '@components/showPopup';
-import './index.css';
 
 export interface DrawerMethod {
   show: (Content: React.ReactNode, params?: { canceled?: boolean; height?: number | 'full' | 'half' }) => string | null;
@@ -14,7 +13,7 @@ export interface DrawerMethod {
 
 const innerHeight = globalThis.innerHeight;
 const Drawer = forwardRef<DrawerMethod>((_, ref) => {
-  const [height, setHeight] = useState(() => innerHeight + 100 - 154);
+  const [height, setHeight] = useState(() => innerHeight + 100 - 166);
   const [renderContent, setRenderContent] = useState<React.ReactNode>(null);
 
   const [maskOpen, setModalOpen] = useState(false);
@@ -22,7 +21,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
 
   const show = useCallback<DrawerMethod['show']>((Content, params) => {
     if (params?.height === 'full') {
-      setHeight(innerHeight + 100 - 154);
+      setHeight(innerHeight + 100 - 166);
     } else if (params?.height === 'half') {
       setHeight((innerHeight + 100) / 2 + 60);
     } else if (typeof params?.height === 'number') {
@@ -81,7 +80,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
     <>
       <Mask open={maskOpen} onClick={() => hide()} />
       <a.div
-        className="mobile-drawer fixed left-0 w-100vw rounded-t-24px bg-white-normal touch-none z-8888 shadow-popper"
+        className="mobile-drawer fixed left-0 w-100vw rounded-t-24px bg-white-normal z-8888 shadow-popper"
         // {...bind()}
         style={{ display, height: height + 100, bottom: -100, y }}
       >
