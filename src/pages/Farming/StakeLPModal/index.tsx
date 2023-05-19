@@ -68,7 +68,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   }, [leftTokenPrice, rightTokenPrice, data.amount0, data.amount1]);
 
   const classNameButton = useMemo(() => {
-    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer lt-mobile:mt-20px lt-mobile:w-full lt-mobile:!bg-transparent lt-mobile:!color-orange-normal';
+    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer lt-mobile:mt-20px lt-mobile:w-full lt-mobile:!bg-transparent lt-mobile:!color-orange-normal lt-mobile:border-1';
   }, []);
 
   return (
@@ -79,7 +79,7 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
           <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">{liquidity}</span>
           <PositionStatus position={data} />
         </div>
-        <PriceRange position={data} />
+        <PriceRange position={data} type="horizontal" />
       </div>
       <AuthConnectButton className={classNameButton}>
         <AuthTokenButtonOf721 className={classNameButton} tokenAddress={NonfungiblePositionManager.address} contractAddress={UniswapV3Staker.address} tokenId={data.id.toString()}>
