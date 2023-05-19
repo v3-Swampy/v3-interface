@@ -7,6 +7,7 @@ import {
   connect as connectFluent,
   disconnect as disconnectFluent,
   switchChain as switchChainFluent,
+  addChain as addChainFluent,
   sendTransaction as sendTransactionWithFluent,
   watchAsset as watchAssetFluent,
 } from './fluent';
@@ -16,11 +17,25 @@ import {
   connect as connectMetamask,
   disconnect as disconnectMetamask,
   switchChain as switchChainMetamask,
+  addChain as addChainMetamask,
   sendTransaction as sendTransactionWithMetamask,
   watchAsset as watchAssetMetamask,
 } from './metamask';
 import { isProduction } from '@utils/is';
-export const targetChainId = isProduction ? '1030' : '71';
+import { showToast } from '@components/showPopup';
+
+export const Network = {
+  chainId: isProduction ? '1030' : '71',
+  chainName: isProduction ? 'Conflux eSpace' : 'Conflux eSpace (Testnet)',
+  rpcUrls: [isProduction ? 'https://evm.confluxrpc.com' : 'https://evmtestnet.confluxrpc.com'],
+  blockExplorerUrls: [isProduction ? 'https://evm.confluxscan.net' : 'https://evmtestnet.confluxscan.net'],
+  nativeCurrency: {
+    name: 'Conflux',
+    symbol: 'CFX',
+    decimals: 18,
+  },
+};
+export const targetChainId = Network.chainId;
 
 const methodsMap = {
   fluent: {
@@ -28,6 +43,7 @@ const methodsMap = {
     chainIdState: fluentChainIdState,
     connect: connectFluent,
     switchChain: switchChainFluent,
+    addChain: addChainFluent,
     sendTransaction: sendTransactionWithFluent,
     disconnect: disconnectFluent,
     watchAsset: watchAssetFluent,
@@ -37,6 +53,7 @@ const methodsMap = {
     chainIdState: metamaskChainIdState,
     connect: connectMetamask,
     switchChain: switchChainMetamask,
+    addChain: addChainMetamask,
     sendTransaction: sendTransactionWithMetamask,
     disconnect: disconnectMetamask,
     watchAsset: watchAssetMetamask,
@@ -95,10 +112,31 @@ export const disconnect = async () => {
   } catch (_) {}
 };
 
-export const switchChain = () => {
+export const switchChain = async () => {
   const method = getAccountMethod();
   if (!method) return;
-  methodsMap[method].switchChain();
+  try {
+    await methodsMap[method].switchChain('0x' + Number(Network.chainId).toString(16));
+  } catch (switchError) {
+    console.log(11)
+    console.log(switchError)
+    // This error code indicates that the chain has not been added to MetaMask.
+    if ((switchError as any)?.code === 4902) {
+      try {
+        await methodsMap[method].addChain({
+          ...Network,
+          chainId: '0x' + Number(Network.chainId).toString(16),
+        });
+        showToast(`Add ${Network.chainName} to ${method.charAt(0).toUpperCase() + method.slice(1)} Success!`, { type: 'success' });
+      } catch (addError) {
+        if ((addError as any)?.code === 4001) {
+          showToast('You cancel the add chain reqeust.', { type: 'error' });
+        }
+      }
+    } else if ((switchError as any)?.code === 4001) {
+      showToast('You cancel the switch chain reqeust.', { type: 'error' });
+    }
+  }
 };
 
 export const sendTransaction = async (params: Parameters<typeof sendTransactionWithFluent>[0]) => {
