@@ -71,7 +71,7 @@ const FarmingPage: React.FC = () => {
           </div>
         </div>
         <EndIn>
-          <div className="flex justify-between">
+          <div className="flex justify-between lt-mobile:flex-col">
             <div>
               <div className={`${buttonClass} mr-2 ${tab === TabKey.My ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.My)}>
                 {i18n.myFarms}
