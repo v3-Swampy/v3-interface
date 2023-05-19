@@ -106,7 +106,7 @@ const PoolPage: React.FC = () => {
             </Delay>
           }
         >
-          <BorderBox className="relative w-full p-16px pt-24px rounded-28px group" variant="gradient-white">
+          <BorderBox className="relative w-full p-16px pt-24px rounded-28px group lt-mobile:rounded-4" variant="gradient-white">
             <PoolContent />
           </BorderBox>
         </Suspense>
