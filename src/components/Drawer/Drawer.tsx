@@ -13,7 +13,7 @@ export interface DrawerMethod {
 
 const innerHeight = globalThis.innerHeight;
 const Drawer = forwardRef<DrawerMethod>((_, ref) => {
-  const [height, setHeight] = useState(() => innerHeight + 100 - 200);
+  const [height, setHeight] = useState(() => innerHeight + 100 - 154);
   const [renderContent, setRenderContent] = useState<React.ReactNode>(null);
 
   const [maskOpen, setModalOpen] = useState(false);
@@ -21,7 +21,7 @@ const Drawer = forwardRef<DrawerMethod>((_, ref) => {
 
   const show = useCallback<DrawerMethod['show']>((Content, params) => {
     if (params?.height === 'full') {
-      setHeight(innerHeight + 100 - 200);
+      setHeight(innerHeight + 100 - 154);
     } else if (params?.height === 'half') {
       setHeight((innerHeight + 100) / 2 + 60);
     } else if (typeof params?.height === 'number') {
