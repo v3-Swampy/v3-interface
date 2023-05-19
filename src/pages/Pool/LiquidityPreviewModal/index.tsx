@@ -72,7 +72,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   }, []);
 
   return (
-    <div className={cx("mt-24px", isMobile && 'max-h-[calc(100vh-200px)] overflow-scroll')}>
+    <div className={cx(isMobile ? 'mt-12px max-h-[calc(100vh-200px)] overflow-scroll' : 'mt-24px')}>
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
           <TokenPair className="!text-18px" position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />

@@ -118,8 +118,6 @@ export const switchChain = async () => {
   try {
     await methodsMap[method].switchChain('0x' + Number(Network.chainId).toString(16));
   } catch (switchError) {
-    console.log(11)
-    console.log(switchError)
     // This error code indicates that the chain has not been added to MetaMask.
     if ((switchError as any)?.code === 4902) {
       try {
