@@ -28,8 +28,8 @@ const transitions = {
     unstake: 'Unstake',
     claimable: 'Est. earned',
     liquidity: 'Liquidity',
-    tooltipPaused: 'Your farming yield is low due to price out of range.',
-    tooltipFarming: 'Your position is farming hard.',
+    tooltipPaused: 'Inactive Liquidity, the current price is outside the range of this position.',
+    tooltipFarming: 'Active Liquidity, the current price is within the range of this position.',
   },
   zh: {
     myPosition: 'My staked positions',
@@ -39,8 +39,8 @@ const transitions = {
     unstake: 'Unstake',
     claimable: 'Est. earned',
     liquidity: 'Liquidity',
-    tooltipPaused: 'Your farming yield is low due to price out of range.',
-    tooltipFarming: 'Your position is farming hard.',
+    tooltipPaused: 'Inactive Liquidity, the current price is outside the range of this position.',
+    tooltipFarming: 'Active Liquidity, the current price is within the range of this position.',
   },
 } as const;
 
