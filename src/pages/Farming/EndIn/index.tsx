@@ -34,7 +34,7 @@ const ONE_WEEK = 7 * ONE_DAY;
 type StateType = 'default' | 'normal' | 'urgent';
 
 const EndIn: React.FC<EndInProps> = ({ children }) => {
-  const timestamp = getCurrentIncentivePeriod().endTime;
+  const timestamp = getCurrentIncentivePeriod()?.endTime ?? 0;
   const i18n = useI18n(transitions);
   const [timeLeft, setTimeLeft] = useState('');
 
