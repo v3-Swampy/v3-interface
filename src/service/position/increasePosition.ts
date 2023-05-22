@@ -46,7 +46,9 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
     const sqrtPriceX96 = pool?.sqrtPriceX96;
-    const currentPrice = pool?.token0Price?.toDecimalMinUnit();
+    let currentPrice = pool?.token0Price?.toDecimalMinUnit();
+    currentPrice = new Unit(currentPrice!).mul(`1e${token1.decimals-token0.decimals}`).toDecimalMinUnit();
+
     const tickLower = position.tickLower;
     const tickUpper = position.tickUpper;
 
@@ -90,17 +92,17 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
 
     const recordParams = {
       type: 'Position_IncreaseLiquidity',
-      tokenA_Address: tokenA.address,
-      tokenA_Value: Unit.fromStandardUnit(amountTokenA, tokenA.decimals).toDecimalStandardUnit(5),
-      tokenB_Address: tokenB.address,
-      tokenB_Value: Unit.fromStandardUnit(amountTokenB, tokenB.decimals).toDecimalStandardUnit(5),
+      tokenA_Address: _tokenA.address,
+      tokenA_Value: amountTokenA,
+      tokenB_Address: _tokenB.address,
+      tokenB_Value: amountTokenB,
     } as const;
 
     showLiquidityPreviewModal({
       leftToken: _tokenA,
       rightToken: _tokenB,
-      leftAmount: Unit.fromStandardUnit(amountTokenA, _tokenA.decimals),
-      rightAmount: Unit.fromStandardUnit(amountTokenB, _tokenB.decimals),
+      leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
+      rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
       inverted,
       previewUniqueId,
       previewPosition: createPreviewPositionForUI(
