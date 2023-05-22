@@ -33,6 +33,7 @@ const DataDetailContent: React.FC = () => {
     return VSTPrice && totalStakeVST ? numberWithCommas(totalStakeVST.mul(VSTPrice).toDecimalStandardUnit(3, TokenUSDT.decimals)) : '-';
     // return VSTPrice && totalStakeVST ? numberWithCommas(parseFloat((+VSTPrice * +totalStakeVST?.toDecimalStandardUnit(3, TokenVST?.decimals)).toString().slice(0, -1))) : '';
   }, [VSTPrice, totalStakeVST?.toDecimalMinUnit()]);
+  
 
   return (
     <div className="flex flex-col p-16px pb-24px leading-18px text-14px text-black-normal justify-between">
