@@ -162,7 +162,7 @@ const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] =>
       };
     }
 
-    const [leftToken, rightToken] = getLRToken(groupedData[p.address].token0, groupedData[p.address].token1);
+    const [leftToken, rightToken] = getLRToken(groupedData[p.address]?.token0, groupedData[p.address].token1);
 
     groupedData[p.address].totalAmount0 = groupedData[p.address].totalAmount0.add(p.position.amount0?.toDecimal() || 0);
     groupedData[p.address].totalAmount1 = groupedData[p.address].totalAmount1.add(p.position.amount1?.toDecimal() || 0);

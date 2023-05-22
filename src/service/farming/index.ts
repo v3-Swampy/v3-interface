@@ -171,15 +171,15 @@ const poolsQuery = selector({
         : [];
       const tokenInfos = await Promise.all(
         pairsInfo?.map(async (info) => {
-          let token0 = getTokenByAddress(info.token0)!;
-          let token1 = getTokenByAddress(info.token1)!;
+          let token0 = getTokenByAddress(info?.token0)!;
+          let token1 = getTokenByAddress(info?.token1)!;
           if (!token0) {
-            token0 = (await fetchTokenInfoByAddress(info.token0))!;
+            token0 = (await fetchTokenInfoByAddress(info?.token0))!;
             if (token0) addTokenToList(token0);
           }
 
           if (!token1) {
-            token1 = (await fetchTokenInfoByAddress(info.token1))!;
+            token1 = (await fetchTokenInfoByAddress(info?.token1))!;
             if (token1) addTokenToList(token1);
           }
           return {
@@ -197,8 +197,8 @@ const poolsQuery = selector({
         return {
           ...p,
           ...pairInfo,
-          token0: tokenInfos[i].token0,
-          token1: tokenInfos[i].token1,
+          token0: tokenInfos[i]?.token0,
+          token1: tokenInfos[i]?.token1,
           tvl: 0,
           range: [],
           totalSupply,
