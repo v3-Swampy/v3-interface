@@ -218,8 +218,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
   const upper = new Unit(1.0001).pow(new Unit(tickUpper));
-
-  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : [undefined, undefined];
+  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool.token0Price.mul(`1e${token1.decimals-token0.decimals}`), upper }) : [undefined, undefined];
   const ratio = lower && pool && upper ? calcRatio(lower, pool.token0Price, upper) : undefined;
 
   const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);

@@ -66,7 +66,12 @@ export const handleClickSubmitCreatePosition = async ({
       : [isPriceUpperInfinity ? new Unit('0') : new Unit(1).div(_priceUpper), isPriceLowerZero ? new Unit('Infinity') : new Unit(1).div(_priceLower)];
 
     const sqrtPriceX96 = priceInit
-      ? Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0)
+      ? Decimal.sqrt(
+          new Decimal(priceInit)
+            .mul(new Decimal(`1e${token1.decimals}`))
+            .div(new Decimal(`1e${token0.decimals}`))
+            .mul(Q192)
+        ).toFixed(0)
       : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
 
     const currentPrice = _priceInit ? _priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
@@ -133,8 +138,8 @@ export const handleClickSubmitCreatePosition = async ({
       showLiquidityPreviewModal({
         leftToken: _tokenB,
         rightToken: _tokenA,
-        leftAmount: Unit.fromStandardUnit(amountTokenB),
-        rightAmount: Unit.fromStandardUnit(amountTokenA),
+        leftAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
+        rightAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
         inverted,
         priceInit: _priceInit,
         previewUniqueId,

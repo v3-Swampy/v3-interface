@@ -45,7 +45,13 @@ export class Pool implements PoolProps {
     this.sqrtPriceX96 = sqrtPriceX96;
     this.liquidity = liquidity;
     this.tickCurrent = tickCurrent;
-    this.token0Price = !sqrtPriceX96 ? null : new Unit(sqrtPriceX96).mul(new Unit(sqrtPriceX96)).div(Q192Unit);
+    this.token0Price = !sqrtPriceX96
+      ? null
+      : new Unit(sqrtPriceX96)
+          .mul(new Unit(sqrtPriceX96))
+          .mul(new Unit(`1e${token0.decimals}`))
+          .div(new Unit(`1e${token1.decimals}`))
+          .div(Q192Unit);
     this.token1Price = !sqrtPriceX96 ? null : new Unit(1).div(this.token0Price!);
   }
 
@@ -76,7 +82,19 @@ export const calcTickFromPrice = ({ price: _price, tokenA, tokenB }: { price: Un
   return Unit.log(usedPrice.mul(new Unit(`1e${token1.decimals}`)).div(new Unit(`1e${token0.decimals}`)), new Unit(1.0001));
 };
 
-export const calcPriceFromTick = ({ tick, tokenA, tokenB, fee, convertLimit = true }: { tick: Unit | number | string; tokenA: Token; tokenB: Token; fee?: FeeAmount; convertLimit?: boolean; }) => {
+export const calcPriceFromTick = ({
+  tick,
+  tokenA,
+  tokenB,
+  fee,
+  convertLimit = true,
+}: {
+  tick: Unit | number | string;
+  tokenA: Token;
+  tokenB: Token;
+  fee?: FeeAmount;
+  convertLimit?: boolean;
+}) => {
   const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA];
   const usedTick = typeof tick !== 'object' ? new Unit(tick) : tick;
 
@@ -225,5 +243,5 @@ export const getMinTick = (fee: FeeAmount) => {
   } else {
     return minTick;
   }
-}
+};
 export const getMaxTick = (fee: FeeAmount) => -getMinTick(fee);
