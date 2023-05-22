@@ -126,7 +126,16 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null | undefi
   const poolKey = generatePoolKey({ tokenA, tokenB, fee });
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
   const fetchAndSetPool = useCallback(
-    throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => !isPoolEqual(pool, getRecoil(poolState(poolKey))) && setPool(pool)), 2000),
+    throttle(
+      () =>
+        tokenA &&
+        tokenB &&
+        fee &&
+        fetchPool({ tokenA, tokenB, fee })
+          .then((pool) => !isPoolEqual(pool, getRecoil(poolState(poolKey))) && setPool(pool))
+          .catch((error) => console.log('usePool error: ', error)),
+      2000
+    ),
     [tokenA?.address, tokenB?.address, fee]
   );
 
