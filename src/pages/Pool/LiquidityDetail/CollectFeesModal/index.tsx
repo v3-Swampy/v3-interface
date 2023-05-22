@@ -68,7 +68,7 @@ const showCollectFeesModal = (props: CommonProps) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <CollectFeesModal {...props} {...confirmModalInnerProps} />,
-    className: '!max-w-572px !min-h-300px',
+    className: '!max-w-572px !min-h-466px',
   });
 };
 
