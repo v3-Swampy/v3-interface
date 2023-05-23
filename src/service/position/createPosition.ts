@@ -74,7 +74,8 @@ export const handleClickSubmitCreatePosition = async ({
         ).toFixed(0)
       : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
 
-    const currentPrice = _priceInit ? _priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
+    let currentPrice = _priceInit ? _priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
+    currentPrice = new Unit(currentPrice).mul(`1e${token1.decimals-token0.decimals}`).toDecimalMinUnit();
 
     const _tickLower = priceLower.equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
     const _tickUpper = !priceUpper.isFinite() ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
@@ -93,7 +94,6 @@ export const handleClickSubmitCreatePosition = async ({
       token0AmountUnit.toDecimalMinUnit(),
       token1AmountUnit.toDecimalMinUnit()
     );
-
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;
     setInvertedState(previewUniqueId, inverted);
@@ -106,8 +106,8 @@ export const handleClickSubmitCreatePosition = async ({
         fee,
         tickLower,
         tickUpper,
-        amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
-        amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
+        amount0Desired: token0AmountUnit.toHexMinUnit(),
+        amount1Desired: token1AmountUnit.toHexMinUnit(),
         amount0Min: new Unit(!_priceInit ? amount0Min : 0).toHexMinUnit(),
         amount1Min: new Unit(!_priceInit ? amount1Min : 0).toHexMinUnit(),
         recipient: account,
@@ -127,9 +127,9 @@ export const handleClickSubmitCreatePosition = async ({
     const recordParams = {
       type: 'Position_AddLiquidity',
       tokenA_Address: tokenA.address,
-      tokenA_Value: Unit.fromStandardUnit(amountTokenA, tokenA.decimals).toDecimalStandardUnit(5),
+      tokenA_Value: amountTokenA,
       tokenB_Address: tokenB.address,
-      tokenB_Value: Unit.fromStandardUnit(amountTokenB, tokenB.decimals).toDecimalStandardUnit(5),
+      tokenB_Value: amountTokenB,
     } as const;
 
     const isInExpertMode = getExpertModeState();

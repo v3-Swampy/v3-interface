@@ -228,3 +228,10 @@ export const isTokenEqual = (tokenA: Token | null | undefined, tokenB: Token | n
   if (!tokenA && !tokenB) return true;
   return getUnwrapperTokenByAddress(tokenA?.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB?.address)?.address?.toLocaleLowerCase();
 };
+
+
+export const getToken0And1 = (tokenA: Token | null | undefined, tokenB: Token | null | undefined) => {
+  if (!tokenA || !tokenB) return [tokenA, tokenB];
+  const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
+  return notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA];
+}

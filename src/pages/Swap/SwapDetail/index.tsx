@@ -15,7 +15,6 @@ import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/sl
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import { ReactComponent as StationIcon } from '@assets/icons/station.svg';
-import { isMobile } from '@utils/is';
 
 const transitions = {
   en: {
@@ -70,7 +69,11 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
 
   const fromToken = direction === 'SourceToDestination' ? sourceToken : destinationToken;
   const toToken = direction === 'SourceToDestination' ? destinationToken : sourceToken;
-  const toTokenPrice = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
+  const toTokenPrice = useMemo(() => {
+    const price = bestTrade?.trade?.[isTokenEqual(fromToken, sourceToken) ? 'priceOut' : 'priceIn'];
+    if (!price) return undefined; 
+    return price.mul(`1e${fromToken!.decimals-toToken!.decimals}`);
+  }, [bestTrade, fromToken, toToken]);
   const tradeType = bestTrade?.trade?.tradeType;
 
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
