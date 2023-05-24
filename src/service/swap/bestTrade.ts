@@ -2,12 +2,13 @@ import { useEffect, useRef, useMemo } from 'react';
 import { atomFamily, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { uniqueId } from 'lodash-es';
-import { type Token, getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual } from '@service/tokens';
+import { getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual, type Token } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { targetChainId } from '@service/account';
 import { useRoutingApi, getRoutingApiState } from '@service/settings';
 import { FeeAmount, createPool } from '@service/pairs&pool';
 import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool/clientSideSmartOrderRouter';
+import { isLocalDev } from '@utils/is';
 
 export enum TradeType {
   EXACT_INPUT,
@@ -107,7 +108,7 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
 
 const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
   fetch(
-    `https://api.vswap.finance/v1/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+    `${isLocalDev ? 'v1' : 'https://api.vswap.finance/v1'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
       tokenOutWrappered.address
     }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
   )
