@@ -2,12 +2,13 @@ import { useEffect, useRef, useMemo } from 'react';
 import { atomFamily, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { uniqueId } from 'lodash-es';
-import { type Token, getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual } from '@service/tokens';
+import { getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual, type Token } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { targetChainId } from '@service/account';
 import { useRoutingApi, getRoutingApiState } from '@service/settings';
 import { FeeAmount, createPool } from '@service/pairs&pool';
 import { getRouter, getClientSideQuote, Protocol } from '@service/pairs&pool/clientSideSmartOrderRouter';
+import { isLocalDev } from '@utils/is';
 
 export enum TradeType {
   EXACT_INPUT,
@@ -107,7 +108,7 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
 
 const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
   fetch(
-    `https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
+    `${isLocalDev ? 'v1' : 'https://api.vswap.finance/v1'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
       tokenOutWrappered.address
     }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
   )
@@ -157,6 +158,7 @@ export const fetchBestTrade = async ({
           tradeType,
           amount,
           tokenIn: tokenInWrappered,
+          tokenOut: tokenOutWrappered,
           amountUnit,
           res,
         }),
@@ -233,6 +235,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
             tradeType,
             amount,
             tokenIn: tokenInWrappered,
+            tokenOut: tokenOutWrappered,
             amountUnit,
             res,
           }),
@@ -275,7 +278,20 @@ export const useTokenPrice = (tokenAddress: string | undefined, amount: string =
   return null;
 };
 
-function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; tradeType: TradeType; amount: string; amountUnit: Unit; tokenIn: Token }) {
+function calcTradeFromData({
+  res,
+  tradeType,
+  amountUnit,
+  tokenIn,
+  tokenOut,
+}: {
+  res: any;
+  tradeType: TradeType;
+  amount: string;
+  amountUnit: Unit;
+  tokenIn: Token;
+  tokenOut: Token;
+}) {
   const route = res.route as Route[][];
   const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
   const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
@@ -325,7 +341,7 @@ function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; 
             price: thisRoutePools[0].token1Price!,
           }
     ).price;
-    spotOutputAmount = spotOutputAmount.add(new Unit(oneRoute.at(0)!.amountIn).mul(midPrice));
+    spotOutputAmount = spotOutputAmount.add(new Unit(oneRoute.at(0)!.amountIn).mul(midPrice.mul(`1e${tokenOut.decimals - tokenIn.decimals}`)));
   });
   const _priceImpact = spotOutputAmount.sub(amountOut).div(spotOutputAmount);
   const priceImpact = _priceImpact.sub(realizedLpFeePercent);

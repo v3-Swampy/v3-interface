@@ -20,3 +20,5 @@ export const isDOMElement = (obj: HTMLElement): obj is HTMLElement => {
 export const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 export const isProduction = import.meta.env.MODE === 'production';
+
+export const isLocalDev = location.host.startsWith('localhost') || location.host.startsWith('1');

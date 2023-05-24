@@ -21,6 +21,16 @@ import {
   sendTransaction as sendTransactionWithMetamask,
   watchAsset as watchAssetMetamask,
 } from './metamask';
+import {
+  accountState as walletConnectAccountState,
+  chainIdState as walletConnectChainIdState,
+  connect as connectWalletConnect,
+  disconnect as disconnectWalletConnect,
+  // switchChain as switchChainWalletConnect,
+  // addChain as addChainWalletConnect,
+  // sendTransaction as sendTransactionWithWalletConnect,
+  // watchAsset as watchAssetWalletConnect,
+} from './wallet-connect';
 import { isProduction } from '@utils/is';
 import { showToast } from '@components/showPopup';
 
@@ -56,6 +66,16 @@ const methodsMap = {
     addChain: addChainMetamask,
     sendTransaction: sendTransactionWithMetamask,
     disconnect: disconnectMetamask,
+    watchAsset: watchAssetMetamask,
+  },
+  walletConnect: {
+    accountState: walletConnectAccountState,
+    chainIdState: walletConnectChainIdState,
+    connect: connectWalletConnect,
+    switchChain: switchChainMetamask,
+    addChain: addChainMetamask,
+    sendTransaction: sendTransactionWithMetamask,
+    disconnect: disconnectWalletConnect,
     watchAsset: watchAssetMetamask,
   },
 } as const;

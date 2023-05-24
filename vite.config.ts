@@ -100,4 +100,16 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    proxy: {
+      '/v1': {
+        target: 'https://api.vswap.finance',
+        changeOrigin: true,
+        secure: false,
+        headers: {
+          Referer: 'https://api.vswap.finance',
+        },
+      },
+    },
+  },
 });
