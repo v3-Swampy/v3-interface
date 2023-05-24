@@ -2,6 +2,7 @@ import React, { type ComponentProps } from 'react';
 import { showModal, showDrawer } from '@components/showPopup';
 import fluentIcon from '@assets/icons/fluent.svg';
 import metamaskIcon from '@assets/icons/metamask.svg';
+import walletConnectIcon from '@assets/icons/wallet_connect.svg';
 import { connect } from '@service/account';
 import { isMobile } from '@utils/is';
 
@@ -20,6 +21,7 @@ const ConnectModalContent: React.FC = () => {
     <div className="flex justify-center items-center gap-20px pt-20px pb-22px lt-md:justify-center">
       <ConnectWallet connect={() => connect('fluent')} icon={fluentIcon} name="Fluent" />
       <ConnectWallet connect={() => connect('metamask')} icon={metamaskIcon} name="MetaMask" />
+      {/* <ConnectWallet connect={() => connect('walletConnect')} icon={walletConnectIcon} name="WalletConnect" /> */}
     </div>
   );
 };

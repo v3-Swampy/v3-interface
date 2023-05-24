@@ -157,6 +157,7 @@ export const fetchBestTrade = async ({
           tradeType,
           amount,
           tokenIn: tokenInWrappered,
+          tokenOut: tokenOutWrappered,
           amountUnit,
           res,
         }),
@@ -233,6 +234,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
             tradeType,
             amount,
             tokenIn: tokenInWrappered,
+            tokenOut: tokenOutWrappered,
             amountUnit,
             res,
           }),
@@ -275,7 +277,20 @@ export const useTokenPrice = (tokenAddress: string | undefined, amount: string =
   return null;
 };
 
-function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; tradeType: TradeType; amount: string; amountUnit: Unit; tokenIn: Token }) {
+function calcTradeFromData({
+  res,
+  tradeType,
+  amountUnit,
+  tokenIn,
+  tokenOut,
+}: {
+  res: any;
+  tradeType: TradeType;
+  amount: string;
+  amountUnit: Unit;
+  tokenIn: Token;
+  tokenOut: Token;
+}) {
   const route = res.route as Route[][];
   const amountIn = tradeType === TradeType.EXACT_INPUT ? amountUnit : Unit.fromMinUnit(res?.quote ?? 0);
   const amountOut = tradeType === TradeType.EXACT_INPUT ? Unit.fromMinUnit(res?.quote ?? 0) : amountUnit;
@@ -325,7 +340,7 @@ function calcTradeFromData({ res, tradeType, amountUnit, tokenIn }: { res: any; 
             price: thisRoutePools[0].token1Price!,
           }
     ).price;
-    spotOutputAmount = spotOutputAmount.add(new Unit(oneRoute.at(0)!.amountIn).mul(midPrice));
+    spotOutputAmount = spotOutputAmount.add(new Unit(oneRoute.at(0)!.amountIn).mul(midPrice.mul(`1e${tokenOut.decimals - tokenIn.decimals}`)));
   });
   const _priceImpact = spotOutputAmount.sub(amountOut).div(spotOutputAmount);
   const priceImpact = _priceImpact.sub(realizedLpFeePercent);
