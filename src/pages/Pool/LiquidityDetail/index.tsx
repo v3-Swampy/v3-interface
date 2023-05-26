@@ -1,9 +1,10 @@
-import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { usePosition } from '@service/position';
+import { useAccount } from '@service/account';
 import useI18n from '@hooks/useI18n';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import DetailHeader from './DetailHeader';
@@ -23,6 +24,14 @@ const LiquidityDetail: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
+
+  const navigate = useNavigate();
+  const account = useAccount();
+  useEffect(() => {
+    if (!account) {
+      navigate('/pool')
+    }
+  }, [account]);
 
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">

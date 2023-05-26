@@ -21,7 +21,7 @@ const ConnectModalContent: React.FC = () => {
     <div className="flex justify-center items-center gap-20px pt-20px pb-22px lt-md:justify-center">
       <ConnectWallet connect={() => connect('fluent')} icon={fluentIcon} name="Fluent" />
       <ConnectWallet connect={() => connect('metamask')} icon={metamaskIcon} name="MetaMask" />
-      {/* <ConnectWallet connect={() => connect('walletConnect')} icon={walletConnectIcon} name="WalletConnect" /> */}
+      <ConnectWallet connect={() => connect('walletConnect')} icon={walletConnectIcon} name="WalletConnect" />
     </div>
   );
 };

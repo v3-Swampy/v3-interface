@@ -129,15 +129,17 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
         </div>
         <a
           href={`${import.meta.env.VITE_ESpaceScanUrl}/tx/${txHash}`}
-          className="absolute left-16px bottom-72px right-16px leading-18px text-center text-14px text-orange-normal font-medium"
+          className="absolute left-16px bottom-80px right-16px leading-18px text-center text-14px text-orange-normal font-medium"
           target="_blank"
           rel="noopener noreferrer"
         >
           View on Block Explorer
         </a>
-        <Button color="orange" className="absolute left-16px bottom-16px right-16px h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>
-          Close
-        </Button>
+        {!isMobile && (
+          <Button color="orange" className="absolute left-16px bottom-24px right-16px h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>
+            Close
+          </Button>
+        )}
       </>
     );
   }
@@ -150,9 +152,11 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
           <p className="leading-28px text-22px text-black-normal">Transaction Rejected</p>
           <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-medium opacity-0 pointer-events-none">placeHolder</p>
         </div>
-        <Button color="orange" className="absolute left-16px bottom-16px right-16px h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>
-          Close
-        </Button>
+        {!isMobile && (
+          <Button color="orange" className="absolute left-16px bottom-24px right-16px h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>
+            Close
+          </Button>
+        )}
       </>
     );
   }
@@ -160,14 +164,21 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   return null;
 };
 
-const showConfirmTransactionModal = ({ className, title, subTitle, onClose, height, ...props }: CommonProps & { title: string; subTitle?: string; onClose?: VoidFunction; height?: 'full' | 'half' | number; }) => {
+const showConfirmTransactionModal = ({
+  className,
+  title,
+  subTitle,
+  onClose,
+  height,
+  ...props
+}: CommonProps & { title: string; subTitle?: string; onClose?: VoidFunction; height?: 'full' | 'half' | number }) => {
   if (isMobile) {
     showDrawer({
       Content: <ConfirmTransactionModal {...props} />,
       title,
       subTitle,
       onClose,
-      height: height || 'half'
+      height: height || 'half',
     });
   } else {
     showModal({ Content: <ConfirmTransactionModal {...props} />, className, title, subTitle, onClose });

@@ -263,7 +263,7 @@ export const createPreviewPositionForUI = (
 ) => enhancePositionForUI(position as Position, pool);
 
 export const usePositionStatus = (position: PositionForUI) => {
-  const { token0, token1, fee, liquidity, tickLower, tickUpper } = position;
+  const { token0, token1, fee, liquidity, tickLower, tickUpper } = position ?? {};
 
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
   const tickCurrent = pool?.tickCurrent;

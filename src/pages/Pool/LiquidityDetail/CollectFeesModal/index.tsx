@@ -44,7 +44,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   }, [refreshPositionFees]);
 
   return (
-    <div className="mt-24px">
+    <div className="mt-24px flex flex-col h-full flex-grow-1">
       <div className="flex p-16px bg-orange-light-hover rounded-20px mb-16px">
         <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} tokenId={tokenId} />
       </div>
@@ -61,14 +61,14 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 const buttonProps = {
   color: 'orange',
   fullWidth: true,
-  className: 'mt-40px h-48px rounded-100px text-16px font-bold',
+  className: 'mt-auto h-48px rounded-100px text-16px font-bold',
 } as const;
 
 const showCollectFeesModal = (props: CommonProps) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <CollectFeesModal {...props} {...confirmModalInnerProps} />,
-    className: '!max-w-572px !min-h-466px',
+    className: '!max-w-572px !min-h-388px !flex !flex-col',
   });
 };
 

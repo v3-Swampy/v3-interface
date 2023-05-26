@@ -26,26 +26,14 @@ import {
   chainIdState as walletConnectChainIdState,
   connect as connectWalletConnect,
   disconnect as disconnectWalletConnect,
-  // switchChain as switchChainWalletConnect,
-  // addChain as addChainWalletConnect,
-  // sendTransaction as sendTransactionWithWalletConnect,
-  // watchAsset as watchAssetWalletConnect,
+  switchChain as switchChainWalletConnect,
+  addChain as addChainWalletConnect,
+  sendTransaction as sendTransactionWithWalletConnect,
+  watchAsset as watchAssetWalletConnect,
 } from './wallet-connect';
-import { isProduction } from '@utils/is';
 import { showToast } from '@components/showPopup';
-
-export const Network = {
-  chainId: isProduction ? '1030' : '71',
-  chainName: isProduction ? 'Conflux eSpace' : 'Conflux eSpace (Testnet)',
-  rpcUrls: [isProduction ? 'https://evm.confluxrpc.com' : 'https://evmtestnet.confluxrpc.com'],
-  blockExplorerUrls: [isProduction ? 'https://evm.confluxscan.net' : 'https://evmtestnet.confluxscan.net'],
-  nativeCurrency: {
-    name: 'Conflux',
-    symbol: 'CFX',
-    decimals: 18,
-  },
-};
-export const targetChainId = Network.chainId;
+import { Network, targetChainId } from './Network';
+export * from './Network';
 
 const methodsMap = {
   fluent: {
@@ -72,11 +60,11 @@ const methodsMap = {
     accountState: walletConnectAccountState,
     chainIdState: walletConnectChainIdState,
     connect: connectWalletConnect,
-    switchChain: switchChainMetamask,
-    addChain: addChainMetamask,
-    sendTransaction: sendTransactionWithMetamask,
+    switchChain: switchChainWalletConnect,
+    addChain: addChainWalletConnect,
+    sendTransaction: sendTransactionWithWalletConnect,
     disconnect: disconnectWalletConnect,
-    watchAsset: watchAssetMetamask,
+    watchAsset: watchAssetWalletConnect,
   },
 } as const;
 
