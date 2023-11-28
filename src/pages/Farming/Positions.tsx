@@ -8,6 +8,7 @@ import { usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount, useIsChainMatch } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import Spin from '@components/Spin';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
 import showUnstakeModal from './UnstakeModal';
 import { TokenVST } from '@service/tokens';
@@ -66,6 +67,7 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   const { inTransaction: claimIntransaction, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
   const isCanClaim = useCanClaim();
   const isChainMath = useIsChainMatch();
+  const inFetchingTokenPrice = token0Pirce === '' || token1Pirce === '';
 
   const isPaused = useMemo(() => {
     return isActive ? status == PositionStatus.OutOfRange : true;
@@ -104,7 +106,9 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
       <div className="col-span-4 lt-mobile:col-span-9 lt-mobile:px-2">
         <div className={`${className.title}`}>{i18n.liquidity}</div>
         {/* @ts-ignore */}
-        <div className={`${className.content} flex items-center`}>${liquidity ? numFormat(liquidity.toFixed(2)) : 0}</div>
+        <div className={`${className.content} flex items-center leading-16px`}>
+          {inFetchingTokenPrice ? <Spin className='ml-8px text-16px' /> : `$${liquidity ? numFormat(liquidity.toFixed(2)) : 0}`}
+        </div>
       </div>
       <div className="col-span-3 lt-mobile:col-span-9">
         <div className={`${className.title}`}>{i18n.claimable}</div>

@@ -6,6 +6,7 @@ import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.sv
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import { ReactComponent as DoublechevrondownIcon } from '@assets/icons/doublechevrondown.svg';
 import Tooltip from '@components/Tooltip';
+import Spin from '@components/Spin';
 import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
@@ -49,6 +50,8 @@ const MyFarmsItem: React.FC<{
   const token0Pirce = useTokenPrice(token0.address);
   const token1Pirce = useTokenPrice(token1.address);
   const totalLiquidity = useCalcTotalLiquidity(positions, token0Pirce || '0', token1Pirce || '0');
+  const inFetchingTokenPrice = token0Pirce === undefined || token1Pirce === undefined;
+
   const handleShow = () => {
     setIsShow(!isShow);
   };
@@ -104,7 +107,9 @@ const MyFarmsItem: React.FC<{
         </div>
         <div className={`col-span-4 lt-mobile:col-span-5 ${classNames.splitLine}`}>
           <div className={`${classNames.title}`}>{i18n.stake}</div>
-          <div className={`${classNames.content}`}>${totalLiquidity ? numFormat(totalLiquidity.toFixed(2)) : 0}</div>
+          <div className={`${classNames.content} leading-20px`}>
+            {inFetchingTokenPrice ? <Spin className='ml-8px text-20px' /> : `$${totalLiquidity ? numFormat(totalLiquidity.toFixed(2)) : 0}`}
+          </div>
         </div>
         <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
           <div className={`${classNames.title}`}>
