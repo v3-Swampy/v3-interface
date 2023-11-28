@@ -6,7 +6,7 @@ import Tippy, { type TippyProps } from '@tippyjs/react/headless';
 import './index.css';
 
 interface PropsEnhance {
-  Content: React.ReactNode | Function;
+  Content: React.ReactNode | (() => JSX.Element);
   children?: React.ReactElement<any>;
   className?: string;
   style?: CSSProperties;

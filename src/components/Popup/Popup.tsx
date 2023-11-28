@@ -6,7 +6,7 @@ import Mask from '@components/Mask';
 import List, { type ItemProps } from '../List';
 
 export interface PopupProps extends ItemProps {
-  Content: React.ReactNode | Function;
+  Content: React.ReactNode | (() => JSX.Element);
   duration?: number;
   preventDuplicate?: boolean;
   maximum?: number;
