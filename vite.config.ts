@@ -102,12 +102,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/v1': {
-        target: 'https://api.vswap.finance',
+      '/prod': {
+        target: 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com',
         changeOrigin: true,
         secure: false,
         headers: {
-          Referer: 'https://api.vswap.finance',
+          Referer: 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com',
         },
       },
     },
