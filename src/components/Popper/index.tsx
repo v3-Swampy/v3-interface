@@ -6,7 +6,7 @@ import Tippy, { type TippyProps } from '@tippyjs/react/headless';
 import './index.css';
 
 interface PropsEnhance {
-  Content: React.ReactNode | Function;
+  Content: React.ReactNode | (() => JSX.Element);
   children?: React.ReactElement<any>;
   className?: string;
   style?: CSSProperties;
@@ -14,6 +14,7 @@ interface PropsEnhance {
   animationType?: TransitionAnimationType;
   animationDuration?: number | { enter: number; leave: number };
   sameWidth?: boolean;
+  useDefaultStyle?: boolean;
 }
 
 export type Props = PropsEnhance & TippyProps;
@@ -29,6 +30,7 @@ const Popper: React.FC<Props> = ({
   animationType = 'zoom',
   animationDuration,
   appendTo = document.body,
+  useDefaultStyle,
   ...props
 }) => {
   const [styles, api] = useSpring(() => transitionAnimation[animationType].from);
@@ -71,7 +73,7 @@ const Popper: React.FC<Props> = ({
           className={
             className
               ? cx(className, 'popper')
-              : typeof Content !== 'string' && typeof Content !== 'number' && typeof Content !== 'boolean'
+              : typeof Content !== 'string' && typeof Content !== 'number' && typeof Content !== 'boolean' && !useDefaultStyle
               ? 'popper popper--custom'
               : 'popper popper--default'
           }

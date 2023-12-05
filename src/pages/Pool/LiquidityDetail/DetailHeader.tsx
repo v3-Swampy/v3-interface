@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import Status from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePosition, useIsPositionOwner } from '@service/position';
+import { type PositionForUI, PositionStatus, usePosition, useIsPositionOwner, usePositionStatus } from '@service/position';
 import { useInvertedState } from '@modules/Position/invertedState';
 
 const transitions = {
@@ -26,22 +26,34 @@ const DetailHeader: React.FC = () => {
   const navigate = useNavigate();
   const [inverted] = useInvertedState(tokenId);
   const isOwner = useIsPositionOwner(Number(tokenId));
+  const status = usePositionStatus(position as PositionForUI);
 
   if (!position) return null;
+
   return (
-    <div className="flex width-full justify-between">
-      <div className="flex gap-22px">
+    <div className="flex lt-md:flex-wrap justify-between">
+      <div className="ml-16p flex mobile:gap-22px lt-mobile:w-full lt-mobile:justify-between">
         <TokenPair position={position} inverted={inverted} />
         <Status position={position} />
       </div>
       {isOwner && (
-        <div className="flex justify-end gap-16px">
-          <Button className="px-24px h-40px rounded-100px text-14px font-medium !text-orange-normal" color="orange-light" onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}>
+        <div className="flex md:justify-end gap-16px lt-mobile:gap-12px lt-mini:gap-8px lt-md:w-full lt-md:mt-24px">
+          <Button
+            className="px-24px h-40px rounded-100px text-14px font-medium !text-orange-normal lt-md:max-w-50%"
+            color="orange-light"
+            onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}
+          >
             {i18n.increase_liquidity}
           </Button>
-          <Button className="px-24px h-40px rounded-100px text-14px font-medium" color="gradient" onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}>
-            {i18n.remove_liquidity}
-          </Button>
+          {status && status !== PositionStatus.Closed && (
+            <Button
+              className="px-24px h-40px rounded-100px text-14px font-medium lt-md:max-w-50%"
+              color="gradient"
+              onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}
+            >
+              {i18n.remove_liquidity}
+            </Button>
+          )}
         </div>
       )}
     </div>

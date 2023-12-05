@@ -1,20 +1,17 @@
-import { useMemo, useState, useEffect } from 'react';
-import { selector, selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
-import { accountState } from '@service/account';
-import { getPastIncentivesOfPool, computeIncentiveKey } from './';
-import { Unit, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { useMemo, useState } from 'react';
+import { selector, selectorFamily, useRecoilValue, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE } from 'recoil';
+import { accountState, sendTransaction } from '@service/account';
+import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
 import { getRecoil } from 'recoil-nexus';
-import { positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI, type Position } from '@service/position';
+import { enhancePositionForUI, positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI } from '@service/position';
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';
-import { fetchMulticall, NonfungiblePositionManager, VSTTokenContract, UniswapV3StakerFactory } from '@contracts/index';
-import { type Pool, fetchPools } from '@service/pairs&pool';
+import { fetchMulticall, NonfungiblePositionManager, UniswapV3Staker } from '@contracts/index';
+import { useTokenPrice, type Pool, fetchPools } from '@service/pairs&pool';
 import _ from 'lodash-es';
-import { enhancePositionForUI } from '@service/position';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
-import { type Token } from '@service/tokens';
-import { useTokenPrice } from '@service/pairs&pool';
+import { TokenVST, type Token } from '@service/tokens';
 
 export interface FarmingPosition extends PositionForUI {
   isActive: boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
@@ -35,6 +32,8 @@ export interface MyFarmsPositionType {
   claimable: string; // position claimable
   token0: Token;
   token1: Token;
+  totalAmount0: Decimal;
+  totalAmount1: Decimal;
 }
 
 export const myFarmsPositionsQueryByTokenIds = selectorFamily({
@@ -48,13 +47,17 @@ export const myFarmsPositionsQueryByTokenIds = selectorFamily({
         tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
       );
 
-      if (Array.isArray(positionsResult))
-        return positionsResult?.map((singleRes, index) => {
-          const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-          const position: Position = decodePosition(tokenIds[index], decodeRes);
+      if (Array.isArray(positionsResult)) {
+        return await Promise.all(
+          positionsResult?.map(async (singleRes, index) => {
+            const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+            const position = await decodePosition(tokenIds[index], decodeRes);
 
-          return position;
-        });
+            return position;
+          })
+        );
+      }
+
       return [];
     },
 });
@@ -67,14 +70,12 @@ const myTokenIdsQuery = selector({
 
     if (!account) return [];
 
-    const length = Number(await UniswapV3StakerFactory.func.tokenIdsLength(account));
+    const length = Number(await UniswapV3Staker.func.tokenIdsLength(account));
 
     let tokenIds =
-      (
-        await fetchMulticall(
-          Array.from({ length }).map((_, i) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('tokenIds', [account, i])])
-        )
-      )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('tokenIds', r)[0]) || [];
+      (await fetchMulticall(Array.from({ length }).map((_, i) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('tokenIds', [account, i])])))?.map(
+        (r) => UniswapV3Staker.func.interface.decodeFunctionResult('tokenIds', r)[0]
+      ) || [];
 
     tokenIds = [...new Set(tokenIds)];
 
@@ -89,14 +90,13 @@ const stakedTokenIdsQuery = selector({
   key: `stakedTokenIdsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const account = get(accountState);
-
     if (!account) return [];
 
     const tokenIds = get(myTokenIdsQuery);
 
     const stakedTokenIds =
-      (await fetchMulticall(tokenIds.map((tokenId) => [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('deposits', [tokenId])])))
-        ?.map((d, i) => (UniswapV3StakerFactory.func.interface.decodeFunctionResult('deposits', d)[1] > 0 ? Number(tokenIds[i]) : null))
+      (await fetchMulticall(tokenIds.map((tokenId) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('deposits', [tokenId])])))
+        ?.map((d, i) => (UniswapV3Staker.func.interface.decodeFunctionResult('deposits', d)[1] > 0 ? Number(tokenIds[i]) : null))
         .filter((d) => d !== null) || [];
 
     return stakedTokenIds as number[];
@@ -121,7 +121,7 @@ const myFarmsPoolsQuery = selector({
 });
 
 export const usePools = () => {
-  return useRecoilValue(myFarmsPoolsQuery);
+  return useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myFarmsPoolsQuery);
 };
 
 export interface GroupedPositions extends PositionForUI {
@@ -162,9 +162,13 @@ const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] =>
       };
     }
 
+    const [leftToken, rightToken] = getLRToken(groupedData[p.address]?.token0, groupedData[p.address].token1);
+
     groupedData[p.address].totalAmount0 = groupedData[p.address].totalAmount0.add(p.position.amount0?.toDecimal() || 0);
     groupedData[p.address].totalAmount1 = groupedData[p.address].totalAmount1.add(p.position.amount1?.toDecimal() || 0);
     groupedData[p.address].totalClaimable = groupedData[p.address].totalClaimable.add(p.claimable || 0);
+    groupedData[p.address].leftToken = leftToken;
+    groupedData[p.address].rightToken = rightToken;
   }
 
   return Object.values(groupedData);
@@ -174,13 +178,12 @@ const myFarmsListQuery = selector({
   key: `myFarmsListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const pools = get(poolsInfoQuery);
-
+    if (pools.length == 0) return { active: [], ended: [] };
     const positions = get(myFarmsPositionsQuery).map((position) => {
       const { token0, token1, fee } = position;
       const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
       return enhancePositionForUI(position, pool);
     });
-
     const currentIndex = getCurrentIncentiveIndex();
 
     const incentiveKeysOfAllPositions = positions
@@ -204,14 +207,14 @@ const myFarmsListQuery = selector({
 
     const multicallOfStakes = await fetchMulticall(
       incentiveKeysOfAllPositions.map((i) => {
-        return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('stakes', [i.tokenId, i.incentiveId])];
+        return [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('stakes', [i.tokenId, i.incentiveId])];
       })
     );
 
     const resOfMulticall =
       multicallOfStakes
         ?.map((m, i) => {
-          const [, liquidity] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('stakes', m);
+          const [, liquidity] = UniswapV3Staker.func.interface.decodeFunctionResult('stakes', m);
           const position = incentiveKeysOfAllPositions[i];
 
           return {
@@ -226,19 +229,15 @@ const myFarmsListQuery = selector({
     const multicallOfRewards = await fetchMulticall(
       resOfMulticall.map((r) => {
         return [
-          UniswapV3StakerFactory.address,
-          UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [
-            r.isActive ? getCurrentIncentiveKey(r.address) : r.incentiveKey,
-            r.tokenId,
-            r.position.pool.pid,
-          ]),
+          UniswapV3Staker.address,
+          UniswapV3Staker.func.interface.encodeFunctionData('getRewardInfo', [r.isActive ? getCurrentIncentiveKey(r.address) : r.incentiveKey, r.tokenId, r.position.pool.pid]),
         ];
       })
     );
 
     const resOfMulticallOfRewards =
       multicallOfRewards?.map((m) => {
-        const [reward] = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', m);
+        const [reward] = UniswapV3Staker.func.interface.decodeFunctionResult('getRewardInfo', m);
         return reward;
       }) || [];
 
@@ -300,80 +299,82 @@ export const useMyFarmsList = () => {
   // must get pools first
   usePools();
 
-  const list = useRecoilValue(myFarmsListQuery);
-  const [listWithPrice, setListWithPrice] = useState<{
-    active: GroupedPositions[];
-    ended: GroupedPositions[];
-  } | null>(null);
+  const list = useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myFarmsListQuery);
+  return list;
+  // console.info('list',list)
+  // const [listWithPrice, setListWithPrice] = useState<{
+  //   active: GroupedPositions[];
+  //   ended: GroupedPositions[];
+  // } | null>(null);
 
-  const tokensMap: {
-    [key: string]: true;
-  } = {
-    [VSTTokenContract.address]: true,
-  };
+  // const tokensMap: {
+  //   [key: string]: true;
+  // } = {
+  //   [VSTTokenContract.address]: true,
+  // };
 
-  list.active.concat(list.ended).forEach((p) => {
-    tokensMap[p.token0.address] = true;
-    tokensMap[p.token1.address] = true;
-  });
+  // list.active.concat(list.ended).forEach((p) => {
+  //   tokensMap[p.token0.address] = true;
+  //   tokensMap[p.token1.address] = true;
+  // });
 
-  const tokensArr = Object.keys(tokensMap);
+  // const tokensArr = Object.keys(tokensMap);
 
-  const priceMap = usePrice(tokensArr);
-  if (priceMap) {
-    const l = {
-      active: list.active.map((p) => {
-        const token0Price = priceMap[p.token0.address];
-        const token1Price = priceMap[p.token1.address];
+  // const priceMap = usePrice(tokensArr);
+  // if (priceMap) {
+  //   const l = {
+  //     active: list.active.map((p) => {
+  //       const token0Price = priceMap[p.token0.address];
+  //       const token1Price = priceMap[p.token1.address];
 
-        return {
-          ...p,
-          totalLiquidity: p.totalAmount0
-            .div(10 ** p.token0.decimals)
-            .mul(token0Price || 0)
-            .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
-          claimableValue: p.totalClaimable.mul(token0Price || 0),
-          // @ts-ignore
-          positions: p.positions.map((p) => {
-            return {
-              ...p,
-              totalLiquidity: p?.position?.amount0
-                ?.div(10 ** p?.position.token0?.decimals)
-                .mul(token0Price)
-                .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(10 ** p.position.token1?.decimals).mul(token1Price)),
-            };
-          }),
-        };
-      }),
-      ended: list.ended.map((p) => {
-        const token0Price = priceMap[p.token0.address];
-        const token1Price = priceMap[p.token1.address];
+  //       return {
+  //         ...p,
+  //         totalLiquidity: p.totalAmount0
+  //           .div(10 ** p.token0.decimals)
+  //           .mul(token0Price || 0)
+  //           .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
+  //         claimableValue: p.totalClaimable.mul(token0Price || 0),
+  //         // @ts-ignore
+  //         positions: p.positions.map((p) => {
+  //           return {
+  //             ...p,
+  //             totalLiquidity: p?.position?.amount0
+  //               ?.div(10 ** p?.position.token0?.decimals)
+  //               .mul(token0Price)
+  //               .add((p.position.amount1 ? p.position.amount1 : new Unit(0)).div(10 ** p.position.token1?.decimals).mul(token1Price)),
+  //           };
+  //         }),
+  //       };
+  //     }),
+  //     ended: list.ended.map((p) => {
+  //       const token0Price = priceMap[p.token0.address];
+  //       const token1Price = priceMap[p.token1.address];
 
-        return {
-          ...p,
-          totalLiquidity: p.totalAmount0
-            .div(10 ** p.token0.decimals)
-            .mul(token0Price || 0)
-            .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
-          claimableValue: p.totalClaimable.mul(token0Price || 0),
-          // @ts-ignore
-          positions: p.positions.map((p) => {
-            return {
-              ...p,
-              totalLiquidity: p.position.amount0
-                ?.div(10 ** p.position.token0.decimals)
-                .mul(token0Price)
-                .add(p.position.amount1 ? p.position.amount1.div(10 ** p.position.token1.decimals).mul(token1Price) : 0),
-            };
-          }),
-        };
-      }),
-    };
+  //       return {
+  //         ...p,
+  //         totalLiquidity: p.totalAmount0
+  //           .div(10 ** p.token0.decimals)
+  //           .mul(token0Price || 0)
+  //           .add(p.totalAmount1.div(10 ** p.token1.decimals).mul(token1Price || 0)),
+  //         claimableValue: p.totalClaimable.mul(token0Price || 0),
+  //         // @ts-ignore
+  //         positions: p.positions.map((p) => {
+  //           return {
+  //             ...p,
+  //             totalLiquidity: p.position.amount0
+  //               ?.div(10 ** p.position.token0.decimals)
+  //               .mul(token0Price)
+  //               .add(p.position.amount1 ? p.position.amount1.div(10 ** p.position.token1.decimals).mul(token1Price) : 0),
+  //           };
+  //         }),
+  //       };
+  //     }),
+  //   };
 
-    !listWithPrice && setListWithPrice(l);
-  }
+  //   !listWithPrice && setListWithPrice(l);
+  // }
 
-  return listWithPrice || list;
+  // return listWithPrice || list;
 };
 
 /**
@@ -390,7 +391,7 @@ const whichIncentiveTokenIdInState = selectorFamily({
       for (let index = 0; index < incentives.length; index++) {
         const incentive = incentives[index];
         const incentiveId = computeIncentiveKey(incentive);
-        const [, liquidity] = await UniswapV3StakerFactory.func.stakes(tokenId, incentiveId);
+        const [, liquidity] = await UniswapV3Staker.func.stakes(tokenId, incentiveId);
         if (Number(liquidity) > 0) {
           res = {
             index,
@@ -403,30 +404,6 @@ const whichIncentiveTokenIdInState = selectorFamily({
       return res;
     },
 });
-
-/**
- * Get rewardInfo of multiple positions
- */
-// const rewardInfosSeletor = selectorFamily({
-//   key: `rewardInfos-${import.meta.env.MODE}`,
-//   get:
-//     (params) =>
-//     async ({ }) => {
-//       console.info('params',params)
-//       if(params&&params?.positions.length==0) return []
-//       const rewardInfos=(
-//         await fetchMulticall(
-//           params.positions.map((position, i) => {
-//             const key=position.isActive?getCurrentIncentiveKey(position.address):position.whichIncentiveTokenIn
-//             return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id,params.pid])]
-//           })
-//         )
-//       )?.map((r) => UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0]) || [];
-//       const rewardInfos=[]
-//       console.info('rewardInfos',rewardInfos)
-//       return rewardInfos
-//     },
-// });
 
 const stakedPositionsQuery = selector<Array<FarmingPosition>>({
   key: `StakedPositionsQuery-${import.meta.env.MODE}`,
@@ -474,12 +451,12 @@ export const handleClaimUnStake = async ({
   accountAddress: string;
 }) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
-  const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
-  const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
-  const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
+  const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
+  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [TokenVST.address, accountAddress, 0]);
+  const data2 = UniswapV3Staker.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
   return await sendTransaction({
-    to: UniswapV3StakerFactory.address,
-    data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
+    to: UniswapV3Staker.address,
+    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
   });
 };
 
@@ -508,12 +485,12 @@ export const handleClaimAndReStake = async ({
   accountAddress: string;
 }) => {
   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
-  const data0 = UniswapV3StakerFactory.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
-  const data1 = UniswapV3StakerFactory.func.interface.encodeFunctionData('claimReward', [VSTTokenContract.address, accountAddress, 0]);
-  const data2 = UniswapV3StakerFactory.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
+  const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
+  const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [TokenVST.address, accountAddress, 0]);
+  const data2 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
   return await sendTransaction({
-    to: UniswapV3StakerFactory.address,
-    data: UniswapV3StakerFactory.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
+    to: UniswapV3Staker.address,
+    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
   });
 };
 
@@ -522,7 +499,8 @@ export const getwhichIncentiveTokenIdIn = (tokenId: number) => getRecoil(whichIn
 export const useWhichIncentiveTokenIdIn = (tokenId: number) => useRecoilValue(whichIncentiveTokenIdInState(+tokenId));
 
 export const useStakedPositions = () => useRecoilValue(stakedPositionsQuery);
-export const useRefreshStakedPositions = () => useRecoilRefresher_UNSTABLE(stakedPositionsQuery);
+export const useRefreshStakedTokenIds = () => useRecoilRefresher_UNSTABLE(stakedTokenIdsQuery);
+export const useRefreshMyFarmsListQuery = () => useRecoilRefresher_UNSTABLE(myFarmsListQuery);
 
 export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean) => {
   const stakedPostions = useStakedPositions();
@@ -537,34 +515,56 @@ export const useIsPositionActive = (tokenId: number) => {
   }, [tokenId.toString()]);
 };
 
-export const useCalcRewards = (positionList: Array<FarmingPosition>, pid: number) => {
-  const [positionsTotalReward, setPositionsTotalReward] = useState<number>(0);
-  const [rewardList, setRewardList] = useState<Array<number>>([]);
-  if (positionList.length == 0) return {};
-  let rewards = 0;
-  useEffect(() => {
-    async function main(positions: Array<FarmingPosition>, pid: number) {
-      (
-        await fetchMulticall(
-          positions.map((position, i) => {
-            const key = position.isActive ? getCurrentIncentiveKey(position.address) : position.whichIncentiveTokenIn;
-            return [UniswapV3StakerFactory.address, UniswapV3StakerFactory.func.interface.encodeFunctionData('getRewardInfo', [key, position.id, pid])];
-          })
-        )
-      )?.map((r, i) => {
-        const claimable = UniswapV3StakerFactory.func.interface.decodeFunctionResult('getRewardInfo', r)[0];
-        rewardList.push(Number(claimable));
-        rewards += Number(claimable);
-        positions[i].claimable = claimable;
-      }) || [];
-      setPositionsTotalReward(rewards);
-      setRewardList(rewardList);
+// export const useCalcRewards = (positionList: Array<FarmingPosition>, pid: number) => {
+//   const [positionsTotalReward, setPositionsTotalReward] = useState<number>(0);
+//   const [rewardList, setRewardList] = useState<Array<number>>([]);
+//   if (positionList.length == 0) return {};
+//   let rewards = 0;
+//   useEffect(() => {
+//     async function main(positions: Array<FarmingPosition>, pid: number) {
+//       (
+//         await fetchMulticall(
+//           positions.map((position, i) => {
+//             const key = position.isActive ? getCurrentIncentiveKey(position.address) : position.whichIncentiveTokenIn;
+//             return [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getRewardInfo', [key, position.id, pid])];
+//           })
+//         )
+//       )?.map((r, i) => {
+//         const claimable = UniswapV3Staker.func.interface.decodeFunctionResult('getRewardInfo', r)[0];
+//         rewardList.push(Number(claimable));
+//         rewards += Number(claimable);
+//         positions[i].claimable = claimable;
+//       }) || [];
+//       setPositionsTotalReward(rewards);
+//       setRewardList(rewardList);
+//     }
+//     const _positions = JSON.parse(JSON.stringify(positionList));
+//     main(_positions, pid);
+//   }, [positionList.toString(), pid]);
+//   return {
+//     positionsTotalReward,
+//     rewardList,
+//   };
+// };
+
+export const useCalcTotalLiquidity = (positions: Array<MyFarmsPositionType>, token0Price: string, token1Price: string) => {
+  return useMemo(() => {
+    if (!!positions.length && token0Price !== '0' && token1Price !== '0') {
+      let total = new Decimal(0);
+      positions.map((p) => {
+        const positionLiquidity = calcPostionLiquidity(p, token0Price, token1Price);
+        total = total.add(positionLiquidity);
+      });
+      return total;
+    } else {
+      return new Decimal(0);
     }
-    const _positions = JSON.parse(JSON.stringify(positionList));
-    main(_positions, pid);
-  }, [positionList.toString(), pid]);
-  return {
-    positionsTotalReward,
-    rewardList,
-  };
+  }, [positions, token0Price, token1Price]);
+};
+
+export const calcPostionLiquidity = (_position: MyFarmsPositionType, token0Price: string, token1Price: string) => {
+  const position = _position.position;
+  const token0Total = new Decimal(position.amount0?.toDecimalStandardUnit(undefined, position.token0.decimals) || 0).mul(token0Price || 0);
+  const token1Total = new Decimal(position.amount1?.toDecimalStandardUnit(undefined, position.token1.decimals) || 0).mul(token1Price || 0);
+  return token0Total.add(token1Total);
 };

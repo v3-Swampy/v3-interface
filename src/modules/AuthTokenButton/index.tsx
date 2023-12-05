@@ -21,14 +21,14 @@ const transitions = {
   en: {
     checking_balance: 'Checking Balance...',
     insufficient_balance: 'Insufficient {token} Balance',
-    need_approve: '{token} Need Approve',
-    checking_approve: 'Checking Approve...',
+    need_approve: 'Approve {token} ',
+    checking_approve: 'Checking Approval...',
     amount_should_greater_than_zero: 'Amount should greater than zero',
   },
   zh: {
     checking_balance: '检测约中...',
     insufficient_balance: '{token} 余额不足',
-    need_approve: '{token} 需要许可',
+    need_approve: '许可 {token}',
     checking_approve: '检测许可中...',
     amount_should_greater_than_zero: '输入金额应该大于0',
   },
@@ -38,6 +38,7 @@ interface Props extends ComponentProps<typeof Button> {
   tokenAddress?: string | null;
   contractAddress: string;
   amount: string;
+  shouldAmountGreaterThanZero?: boolean;
 }
 
 /**
@@ -45,7 +46,7 @@ interface Props extends ComponentProps<typeof Button> {
  * If the detection passes, the children element is displayed. (The priority of the balance is higher than approve)
  * Otherwise, the insufficient amount tip and the button with the approve function are displayed.
  */
-const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddress, amount, ...props }) => {
+const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddress, amount, shouldAmountGreaterThanZero = false, ...props }) => {
   const i18n = useI18n(transitions);
 
   const account = useAccount();
@@ -102,7 +103,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       setStatus('need-approve');
       console.error('Handle approve err', err);
     }
-  }, []);
+  }, [tokenAddress, contractAddress, checkApproveFunc.current]);
 
   useEffect(() => {
     if (status !== 'checking-approve') {
@@ -115,7 +116,8 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
   }, [token?.address, needApprove, amount]);
 
   const checkingBalance = balance === null;
-  const isAmountGreateThanZero = amountUnit ? amountUnit.greaterThan(Zero) : false;
+  // if no need to check amount greater than zero, always return true
+  const isAmountGreateThanZero = shouldAmountGreaterThanZero ? (amountUnit ? amountUnit.greaterThan(Zero) : false) : true;
   const isBalanceSufficient = useMemo(() => (balance && amountUnit ? balance.greaterThanOrEqualTo(amountUnit) : null), [balance, amountUnit]);
 
   if (!account || !amount || (isAmountGreateThanZero && isBalanceSufficient && (!needApprove || status === 'approved'))) return children as React.ReactElement;
@@ -126,7 +128,7 @@ const AuthTokenButton: React.FC<Props> = ({ children, tokenAddress, contractAddr
       {...props}
       onClick={handleApprove}
       loading={status === 'approving'}
-      disabled={status === 'checking-approve' || !isBalanceSufficient}
+      disabled={status === 'checking-approve' || !isAmountGreateThanZero || !isBalanceSufficient}
       type="button"
     >
       {!isAmountGreateThanZero

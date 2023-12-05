@@ -64,7 +64,7 @@ export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' |
       address: poolAddress,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
-      tickCurrent: slots?.[1] ? +slots?.[1].toString() : null,
+      tickCurrent: slots?.[1] !== undefined ? +slots?.[1].toString() : null,
     });
 
     const poolKey = generatePoolKey({ tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee });
@@ -109,7 +109,7 @@ export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB
       ...params,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
-      tickCurrent: slots?.[1] ? +slots?.[1].toString() : null,
+      tickCurrent: slots?.[1] !== undefined ? +slots?.[1].toString() : null,
     });
   });
 };
@@ -126,7 +126,16 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null | undefi
   const poolKey = generatePoolKey({ tokenA, tokenB, fee });
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
   const fetchAndSetPool = useCallback(
-    throttle(() => tokenA && tokenB && fee && fetchPool({ tokenA, tokenB, fee }).then((pool) => !isPoolEqual(pool, getRecoil(poolState(poolKey))) && setPool(pool)), 2000),
+    throttle(
+      () =>
+        tokenA &&
+        tokenB &&
+        fee &&
+        fetchPool({ tokenA, tokenB, fee })
+          .then((pool) => !isPoolEqual(pool, getRecoil(poolState(poolKey))) && setPool(pool))
+          .catch((error) => console.log('usePool error: ', error)),
+      2000
+    ),
     [tokenA?.address, tokenB?.address, fee]
   );
 

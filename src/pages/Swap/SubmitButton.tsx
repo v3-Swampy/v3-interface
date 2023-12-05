@@ -12,12 +12,16 @@ const transitions = {
   en: {
     please_select_token: 'Select a token',
     swap: 'Swap',
+    enter_an_amount: 'Enter an amount',
+    no_liquidity: 'Insufficient liquidity for this trade',
     price_impact_too_high: 'Price Impact Too High',
     swap_anyway: 'Swap Anyway',
   },
   zh: {
     please_select_token: '请选择代币',
     swap: '交换',
+    enter_an_amount: 'Enter an amount',
+    no_liquidity: 'Insufficient liquidity for this trade',
     price_impact_too_high: 'Price Impact Too High',
     swap_anyway: 'Swap Anyway',
   },
@@ -25,28 +29,36 @@ const transitions = {
 
 interface Props {
   sourceTokenAmount: string;
-  priceImpactTooHigh: boolean;
+  destinationTokenAmount: string;
+  priceImpactTooHigh: boolean | undefined;
   priceImpactSeverity: WarningSeverity;
   tradeState: TradeState;
 }
 
-const SubmitButton: React.FC<Props> = ({ sourceTokenAmount,priceImpactTooHigh, priceImpactSeverity, tradeState }) => {
+const SubmitButton: React.FC<Props> = ({ sourceTokenAmount, destinationTokenAmount, priceImpactTooHigh, priceImpactSeverity, tradeState }) => {
   const i18n = useI18n(transitions);
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const isBothTokenSelected = sourceToken && destinationToken;
 
   const buttonText = useMemo(() => {
-    if(!isBothTokenSelected) return i18n.please_select_token;
-    if(priceImpactTooHigh) return i18n.price_impact_too_high;
-    if(priceImpactSeverity > 2) return i18n.swap_anyway;
+    if (!isBothTokenSelected) return i18n.please_select_token;
+    if (!sourceTokenAmount && !destinationTokenAmount) return i18n.enter_an_amount;
+    if (tradeState === TradeState.NO_ROUTE_FOUND) return i18n.no_liquidity;
+    if (priceImpactTooHigh) return i18n.price_impact_too_high;
+    if (priceImpactSeverity > 2) return i18n.swap_anyway;
     return i18n.swap;
-  }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity])
+  }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity, sourceTokenAmount, destinationTokenAmount, tradeState]);
 
   return (
     <AuthConnectButton {...buttonProps}>
       <AuthTokenButton {...buttonProps} tokenAddress={sourceToken?.address} contractAddress={UniswapV3SwapRouter.address} amount={sourceTokenAmount}>
-        <Button {...buttonProps} className={cx(buttonProps.className, !isBothTokenSelected && 'pointer-events-none')} disabled={!isBothTokenSelected || priceImpactTooHigh || tradeState !== TradeState.VALID}>
+        <Button
+          {...buttonProps}
+          className={cx(buttonProps.className, !isBothTokenSelected && 'pointer-events-none')}
+          loading={tradeState === TradeState.LOADING || (tradeState === TradeState.VALID && priceImpactTooHigh === undefined)}
+          disabled={!isBothTokenSelected || priceImpactTooHigh || tradeState !== TradeState.VALID || (!sourceTokenAmount && !destinationTokenAmount)}
+        >
           {buttonText}
         </Button>
       </AuthTokenButton>
@@ -55,7 +67,7 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount,priceImpactTooHigh, p
 };
 
 const buttonProps = {
-  className: 'mt-24px h-40px text-18px rounded-100px',
+  className: 'mt-24px lt-mobile:mt-40px h-40px text-18px rounded-100px',
   color: 'gradient',
   fullWidth: true,
 } as const;

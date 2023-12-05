@@ -1,4 +1,5 @@
 import React from 'react';
+import cx from 'clsx';
 import useClipboard from 'react-use-clipboard';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
@@ -38,7 +39,7 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
         href={`${import.meta.env.VITE_ESpaceScanUrl}/address/${account}`}
       >
         <ShareIcon className="absolute left-32px" />
-        View on explorer
+        view on scan
       </a>
 
       <History />
@@ -58,16 +59,19 @@ const AccountDetailDropdown: React.FC<{ account: string }> = ({ account }) => {
     <Dropdown placement="bottom" trigger="click" Content={<DetailContent account={account} />}>
       <BorderBox
         variant="gradient-white"
-        className="relative flex-shrink-0 min-w-140px h-40px px-8px rounded-100px inline-flex justify-center items-center cursor-pointer overflow-hidden"
+        className={cx(
+          'relative flex-shrink-0 mobile:min-w-144px h-40px px-8px rounded-100px inline-flex justify-center items-center cursor-pointer overflow-hidden lt-mobile:!bg-none lt-mobile:h-24px lt-mobile:px-0',
+          !pendingCount ? 'lt-mobile:w-24px' : 'lt-mobile:w-100px'
+        )}
       >
         {!pendingCount ? (
           <>
-            <Avatar account={account} size={24} className="mr-8px" />
-            <Address address={account} className="text-14px text-black-normal font-medium" useTooltip={false} />
+            <Avatar account={account} size={24} className="mr-8px lt-mobile:mr-0" />
+            <Address address={account} className="text-14px text-black-normal font-medium lt-mobile:hidden" useTooltip={false} />
           </>
         ) : (
-          <Button color="gradient" className="absolute w-full h-40px rounded-100px pointer-events-none">
-            {pendingCount} Pending <Spin className="ml-8px text-16px" />
+          <Button color="gradient" className="absolute w-full h-40px rounded-100px pointer-events-none lt-mobile:text-12px">
+            {pendingCount} Pending <Spin className="ml-8px lt-mobile:ml-4px text-16px lt-mobile:text-14px" />
           </Button>
         )}
       </BorderBox>

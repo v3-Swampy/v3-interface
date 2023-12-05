@@ -26,15 +26,14 @@ const DataDetailContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const totalStakeVST = useTotalStakeVST();
   const VSTPrice = useTokenPrice(TokenVST.address);
-  console.log('VSTPrice', VSTPrice);
   const percentageOfCulatingtion = useStakePercent();
   const averageStakeDuration = useAverageStakeDuration();
 
   const totalLockedBalanceUSD = useMemo(() => {
-
-    return VSTPrice && totalStakeVST ? numberWithCommas(totalStakeVST.mul(VSTPrice).toDecimalStandardUnit(3, TokenUSDT.decimals)) : '-'
+    return VSTPrice && totalStakeVST ? numberWithCommas(totalStakeVST.mul(VSTPrice).toDecimalStandardUnit(3, TokenUSDT.decimals)) : '-';
     // return VSTPrice && totalStakeVST ? numberWithCommas(parseFloat((+VSTPrice * +totalStakeVST?.toDecimalStandardUnit(3, TokenVST?.decimals)).toString().slice(0, -1))) : '';
   }, [VSTPrice, totalStakeVST?.toDecimalMinUnit()]);
+  
 
   return (
     <div className="flex flex-col p-16px pb-24px leading-18px text-14px text-black-normal justify-between">
@@ -44,7 +43,10 @@ const DataDetailContent: React.FC = () => {
         <p className="font-medium">~ {totalLockedBalanceUSD ? `$${totalLockedBalanceUSD}` : '-'}</p>
       </div>
       <div className="flex flex-col leading-18px text-14px text-black-normal">
-        <p className="font-medium" dangerouslySetInnerHTML={{ __html: compiled(i18n.percentage_of_culatingtion, { token: TokenVST?.symbol, percentage: percentageOfCulatingtion }) }} />
+        <p
+          className="font-medium"
+          dangerouslySetInnerHTML={{ __html: compiled(i18n.percentage_of_culatingtion, { token: TokenVST?.symbol, percentage: percentageOfCulatingtion }) }}
+        />
         <p
           className="leading-21px text-14px text-black-normal font-medium"
           dangerouslySetInnerHTML={{ __html: compiled(i18n.average_stake_duration, { duration: averageStakeDuration }) }}
@@ -56,7 +58,7 @@ const DataDetailContent: React.FC = () => {
 
 const DataDetail: React.FC = () => {
   return (
-    <div className="max-w-310px flex rounded-16px bg-white-normal border-2px border-solid border-orange-light-hover">
+    <div className="max-w-310px flex rounded-16px bg-white-normal border-2px border-solid border-orange-light-hover lt-mobile:max-w-full lt-mobile:flex-1 lt-mobile:min-h-310px lt-mobile:rounded-14px lt-mobile:border-1px">
       <Suspense fallback={<Spin className="!absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-60px" />}>
         <DataDetailContent />
       </Suspense>

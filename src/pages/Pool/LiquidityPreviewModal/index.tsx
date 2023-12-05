@@ -1,4 +1,5 @@
 import React, { useCallback, Suspense } from 'react';
+import cx from 'clsx';
 import { type Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n, { toI18n } from '@hooks/useI18n';
 import Button from '@components/Button';
@@ -11,6 +12,7 @@ import { type PositionForUI } from '@service/position';
 import { type Token } from '@service/tokens';
 import { handleCreatePosition as _handleCreatePosition, handleIncreasePositionLiquidity as _handleIncreasePositionLiquidity } from '@service/position';
 import useInTransaction from '@hooks/useInTransaction';
+import { isMobile } from '@utils/is';
 
 const transitions = {
   en: {
@@ -66,17 +68,11 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction } = useInTransaction(recordParams?.type === 'Position_AddLiquidity' ? _handleCreatePosition : _handleIncreasePositionLiquidity);
   const handleClickConfirm = useCallback(async () => {
-    try {
-      const txHash = await execTransaction(transactionParams);
-
-      setNextInfo({ txHash, recordParams });
-    } catch (err) {
-      console.error(`${recordParams?.type} transaction failed: `, err);
-    }
+    setNextInfo({ sendTransaction: () => execTransaction(transactionParams), recordParams });
   }, []);
 
   return (
-    <div className="mt-24px">
+    <div className={cx(isMobile ? 'mt-12px max-h-[calc(100vh-150px)] overflow-scroll drawer-inner-scroller' : 'mt-24px')}>
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
           <TokenPair className="!text-18px" position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />
@@ -106,6 +102,7 @@ const showLiquidityPreviewModal = (props: Props) => {
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
     onSuccess: (navigate) => navigate('/pool'),
+    height: 'full'
   });
 };
 

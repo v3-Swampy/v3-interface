@@ -34,8 +34,12 @@ export const sourceTokenAddressState = atom<string | null>({
       const sourceTokenFromSearchParams = getValidTokenBySearchParams('sourceToken');
       if (!sourceTokenFromSearchParams && !getValidTokenBySearchParams('destinationToken')) {
         setSelf('CFX');
+        updateTokenInSearchParams({ type: 'sourceToken', tokenAddress: 'CFX' });
       } else {
         setSelf(sourceTokenFromSearchParams);
+        if (!sourceTokenFromSearchParams) {
+          updateTokenInSearchParams({ type: 'sourceToken', tokenAddress: null });
+        }
       }
 
       onSet((newSourceTokenAddress) => updateTokenInSearchParams({ type: 'sourceToken', tokenAddress: newSourceTokenAddress }));
@@ -50,14 +54,17 @@ export const useSourceToken = () => {
 };
 export const getSourceToken = () => getTokenByAddress(getRecoil(sourceTokenAddressState));
 
-
 /** <--------------- Destination Token -----------------> */
 export const destinationTokenAddressState = atom<string | null>({
   key: `destinationTokenAddressState-${import.meta.env.MODE}`,
   default: null,
   effects: [
     ({ onSet, setSelf }) => {
-      setSelf(getValidTokenBySearchParams('destinationToken'));
+      const destinationTokenFromSearchParams = getValidTokenBySearchParams('destinationToken');
+      setSelf(destinationTokenFromSearchParams);
+      if (!destinationTokenFromSearchParams) {
+        updateTokenInSearchParams({ type: 'destinationToken', tokenAddress: null });
+      }
       onSet((newDestinationToken) => updateTokenInSearchParams({ type: 'destinationToken', tokenAddress: newDestinationToken }));
     },
   ],
@@ -71,7 +78,6 @@ export const useDestinationToken = () => {
 
 export const getDestinationToken = () => getTokenByAddress(getRecoil(destinationTokenAddressState));
 
-
 /** <--------------- Token Operate -----------------> */
 export const exchangeTokenDirection = () => {
   const sourceTokenAddress = getRecoil(sourceTokenAddressState);
@@ -80,15 +86,15 @@ export const exchangeTokenDirection = () => {
   setRecoil(destinationTokenAddressState, sourceTokenAddress);
 };
 
-export const setToken = ({ type, token }: { type: 'sourceToken' | 'destinationToken'; token: Token }) => {
+export const setToken = ({ type, token }: { type: 'sourceToken' | 'destinationToken'; token: Token | null }) => {
   const tokenAddressState = type === 'sourceToken' ? sourceTokenAddressState : destinationTokenAddressState;
   const anotherTokenAddressState = type === 'sourceToken' ? destinationTokenAddressState : sourceTokenAddressState;
   const anotherTokenAddress = getRecoil(anotherTokenAddressState);
 
-  if (token.address === anotherTokenAddress) {
+  if (token?.address === anotherTokenAddress) {
     exchangeTokenDirection();
     return;
   }
 
-  setRecoil(tokenAddressState, token.address);
+  setRecoil(tokenAddressState, token ? token.address : null);
 };

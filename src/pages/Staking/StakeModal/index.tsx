@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, Suspense } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useForm } from 'react-hook-form';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
@@ -13,17 +13,18 @@ import AmountInput from './AmountInput';
 import DurationSelect, { defaultDuration } from './DurationSelect';
 import { useAccount } from '@service/account';
 import dayjs from 'dayjs';
+import Spin from '@components/Spin';
 
 const transitions = {
   en: {
     title: 'Stake VST',
     confirm: 'Confirm',
-    current_boosting: 'Your Boosting will be: <b>{boosting}</b>',
+    current_boosting: 'Your estimated boost will be: <b>{boosting}</b>',
   },
   zh: {
     title: '质押 VST',
     confirm: '确认',
-    current_boosting: 'Your Current will be: <b>{boosting}</b>',
+    current_boosting: 'Your estimated boost will be: <b>{boosting}</b>',
   },
 } as const;
 
@@ -43,14 +44,16 @@ type Props = ConfirmModalInnerProps & CommonProps;
 const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
   const i18n = useI18n(transitions);
   const [lockedAmount, currentUnlockTime] = useUserInfo();
-  const disabledAmount = type === ModalMode.IncreaseUnlockTime;
-  const disabledLockTime = type === ModalMode.IncreaseAmount;
-  const { register, handleSubmit: withForm, setValue, watch } = useForm();
-  const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
-  const stakeAmount = watch('VST-stake-amount', 0);
   const maxTime = useVEMaxTime();
   const veTotalSupply = useVETotalSupply();
   const account = useAccount();
+  const { register, handleSubmit: withForm, setValue, watch } = useForm();
+
+  const disabledAmount = type === ModalMode.IncreaseUnlockTime;
+  const disabledLockTime = type === ModalMode.IncreaseAmount;
+  const currentStakeDuration = watch('VST-stake-duration', defaultDuration);
+  const stakeAmount = watch('VST-stake-amount', 0);
+
   const { inTransaction, execTransaction: handleStakingVST } = useInTransaction(_handleStakingVST);
 
   const modalMode = useMemo(() => {
@@ -71,27 +74,31 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
     //    IncreaseUnlockTime: the amount will be same, because you will not change the amount value.
     let addedStakeAmount: Unit = new Unit(0);
     let duration: number = currentStakeDuration;
+    let addedUserVeVST: Unit = new Unit(0);
     switch (modalMode) {
       case ModalMode.CreateLock:
         addedStakeAmount = new Unit(stakeAmount || 0);
         // in this status, your lockedAmount will be 0.
         duration = currentStakeDuration;
+        addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
         break;
       case ModalMode.IncreaseAmount:
         addedStakeAmount = new Unit(stakeAmount || 0);
         duration = currentUnlockTime - dayjs().unix();
+        addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
         break;
       case ModalMode.IncreaseUnlockTime:
         addedStakeAmount = new Unit(0);
         duration = currentUnlockTime - dayjs().unix() + currentStakeDuration;
+        //in this situation, the unlock time wiil be increased, so the previous and current veVST will be changed.
+        addedUserVeVST = maxTime ? new Unit(lockedAmount).mul(currentStakeDuration).div(maxTime) : new Unit(0);
         break;
     }
     const totalStakeAmount = new Unit(lockedAmount).add(addedStakeAmount);
     const userVeVST = maxTime ? totalStakeAmount.mul(duration).div(maxTime) : new Unit(0);
-    const addedUserVeVST = maxTime ? addedStakeAmount.mul(duration).div(maxTime) : new Unit(0);
     const addedUserVeVST_decimals = Unit.fromStandardUnit(addedUserVeVST, TokenVST.decimals);
     const _totalSupply = new Unit(veTotalSupply || 0).add(addedUserVeVST_decimals).toDecimalStandardUnit(undefined, TokenVST.decimals);
-    return new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1);
+    return _totalSupply != '0' ? new Unit(userVeVST).mul(0.67).div(_totalSupply).add(0.33).div(0.33).toDecimalMinUnit(1) : 1.0;
   }, [stakeAmount, maxTime, currentStakeDuration, modalMode, lockedAmount, currentUnlockTime]);
 
   const onSubmit = useCallback(
@@ -99,7 +106,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
       const extendDuration = data['VST-stake-duration'];
       const extendDurationText = data['VST-stake-duration-text'];
       const addAmount = data['VST-stake-amount'];
-      let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams;
+      let methodName: 'createLock' | 'increaseUnlockTime' | 'increaseAmount', methodParams: any;
       let unlockTime = dayjs(currentUnlockTime ? currentUnlockTime * 1000 : undefined).unix() + extendDuration;
       let amount = '0x0';
       switch (modalMode) {
@@ -119,13 +126,12 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
           break;
       }
       try {
-        const txHash = await handleStakingVST({
-          methodName,
-          methodParams,
-        });
-
         setNextInfo({
-          txHash,
+          sendTransaction: () =>
+            handleStakingVST({
+              methodName,
+              methodParams,
+            }),
           recordParams: {
             type: methodName === 'createLock' ? 'Stake_CreateLock' : methodName === 'increaseUnlockTime' ? 'Stake_IncreaseUnlockTime' : 'Stake_IncreaseAmount',
             tokenA_Value: methodName !== 'increaseUnlockTime' ? addAmount : extendDurationText,
@@ -167,8 +173,13 @@ const buttonProps = {
 const showStakeModal = (type: ModalMode) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
-    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <StakeModal type={type} {...confirmModalInnerProps} />,
+    ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => (
+      <Suspense fallback={<Spin className="!block mx-auto text-60px" />}>
+        <StakeModal type={type} {...confirmModalInnerProps} />
+      </Suspense>
+    ),
     className: '!max-w-572px !min-h-466px flex flex-col',
+    height: 'full'
   });
 };
 

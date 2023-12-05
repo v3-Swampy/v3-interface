@@ -1,10 +1,12 @@
-import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { usePosition } from '@service/position';
+import { useAccount } from '@service/account';
 import useI18n from '@hooks/useI18n';
+import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';
@@ -23,28 +25,30 @@ const LiquidityDetail: React.FC = () => {
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
 
+  const navigate = useNavigate();
+  const account = useAccount();
+  useEffect(() => {
+    if (!account) {
+      navigate('/pool')
+    }
+  }, [account]);
+
   return (
-    <PageWrapper className="pt-56px">
+    <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
-        <div className="flex items-center mb-16px gap-8px">
-          <span className="i-material-symbols:keyboard-arrow-left text-24px text-gray-normal" />
-          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-18px text-14px text-gray-normal">
+        <div className="mb-16px lt-mobile:mb-12px flex items-center pl-8px pr-16px">
+          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-40px text-24px lt-mobile:text-18px text-gray-normal font-medium">
+            <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.back_to_pools}
           </Link>
         </div>
-        <BorderBox className="w-full p-16px rounded-28px flex flex-col gap-16px lt-md:gap-12px" variant="gradient-white">
-          <div className="ml-16px">
-            <DetailHeader />
+        <BorderBox className="w-full p-16px pt-24px rounded-28px flex flex-col gap-16px" variant="gradient-white">
+          <DetailHeader />
+          <div className="flex gap-16px lt-md:flex-wrap">
+            <Liquidity />
+            <UnclaimedFees />
           </div>
-          <div className="flex gap-16px lt-md:gap-12px">
-            <div className="flex flex-1 min-w-0">
-              <Liquidity />
-            </div>
-            <div className="flex flex-1 min-w-0">
-              <UnclaimedFees />
-            </div>
-          </div>
-          <SelectedPriceRange position={position} tokenId={tokenId}/>
+          <SelectedPriceRange position={position} tokenId={tokenId} />
         </BorderBox>
       </div>
     </PageWrapper>

@@ -8,6 +8,7 @@ import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
 import { getRecoil } from 'recoil-nexus';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 
 const transitions = {
   en: {
@@ -37,6 +38,11 @@ export const resetToken = () => {
   setRecoil(tokenBState, null);
 };
 
+export const setTokens = (tokenA: Token, tokenB: Token) => {
+  setRecoil(tokenAState, tokenA);
+  setRecoil(tokenBState, tokenB);
+};
+
 export const swapTokenAB = () => {
   const tokenA = getRecoil(tokenAState);
   const tokenB = getRecoil(tokenBState);
@@ -45,6 +51,7 @@ export const swapTokenAB = () => {
   if (!tokenA || !tokenB) return false;
   return true;
 };
+
 export const useTokenA = () => useRecoilValue(tokenAState);
 export const useTokenB = () => useRecoilValue(tokenBState);
 export const useIsBothTokenSelected = () => {
@@ -53,23 +60,23 @@ export const useIsBothTokenSelected = () => {
   return !!tokenA && !!tokenB;
 };
 
-const SelectPair: React.FC<{ handleSwapToken: VoidFunction }> = ({ handleSwapToken }) => {
+const SelectPair: React.FC<{ handleSwapToken: VoidFunction; }> = ({ handleSwapToken }) => {
   const i18n = useI18n(transitions);
 
   const [tokenA, setTokenA] = useRecoilState(tokenAState);
   const [tokenB, setTokenB] = useRecoilState(tokenBState);
 
   const handleSetToken = useCallback(
-    ({ token, type }: { token: Token; type: 'tokenA' | 'tokenB' }) => {
+    ({ token, type }: { token: Token | null; type: 'tokenA' | 'tokenB' }) => {
       const anotherToken = type === 'tokenA' ? tokenB : tokenA;
       const setToken = type === 'tokenA' ? setTokenA : setTokenB;
-      if (anotherToken?.address === token.address) {
+      if (anotherToken?.address === token?.address) {
         handleSwapToken();
       } else {
         setToken(token);
       }
     },
-    [tokenA, tokenB]
+    [tokenA, tokenB, handleSwapToken]
   );
 
   return (
@@ -90,7 +97,7 @@ const SelectPair: React.FC<{ handleSwapToken: VoidFunction }> = ({ handleSwapTok
             </>
           )}
           {!tokenA && i18n.select_token}
-          <span className="i-ic:sharp-keyboard-arrow-down ml-auto flex-shrink-0 text-16px font-medium" />
+          <ArrowDownIcon className="w-8px h-5px ml-auto flex-shrink-0" />
         </Button>
 
         <Button
@@ -107,7 +114,7 @@ const SelectPair: React.FC<{ handleSwapToken: VoidFunction }> = ({ handleSwapTok
             </>
           )}
           {!tokenB && i18n.select_token}
-          <span className="i-ic:sharp-keyboard-arrow-down ml-auto flex-shrink-0 text-16px font-medium" />
+          <ArrowDownIcon className="w-8px h-5px ml-auto flex-shrink-0" />
         </Button>
       </div>
     </>

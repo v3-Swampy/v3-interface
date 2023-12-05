@@ -3,6 +3,10 @@ html {
   scroll-behavior: smooth;
 }
 
+:root {
+  --w3m-z-index: 100001 !important;
+}
+
 input {
   font-family: 'Outfit';
 }
@@ -48,7 +52,11 @@ input {
 }
 
 body {
-  @apply m-0 p-0 overflow-hidden h-full bg-white-normal;
+  @apply m-0 p-0 overflow-hidden h-full bg-#FFFDFA min-h-100vh;
+  background-image: url('/src/assets/icons/bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .main-scroller {
@@ -103,4 +111,14 @@ button {
 
 .contain-size {
   contain: size style paint;
+}
+
+.text-gradient-orange {
+  background-image: linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-orange {
+  background: linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
 }

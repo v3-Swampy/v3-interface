@@ -26,7 +26,7 @@ export const PoolRemoveLiquidity = lazyWithPreload(() => import('@pages/Pool/Rem
       PoolAddLiquidityPage.preload();
       PoolIncreaseLiquidity.preload();
       PoolRemoveLiquidity.preload();
-    }, 500);
+    }, 2000);
 
   try {
     handleRecoilInit(() => {

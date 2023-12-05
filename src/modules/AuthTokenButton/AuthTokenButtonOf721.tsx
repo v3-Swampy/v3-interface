@@ -13,12 +13,12 @@ export type Status = 'checking-approval' | 'need-approval' | 'approving' | 'appr
 const transitions = {
   en: {
     checking_approval: 'Checking Approval...',
-    need_approval: 'Need Approval',
+    need_approval: 'Approve',
     amount_should_greater_than_zero: 'Amount should greater than zero',
   },
   zh: {
     checking_approval: '检测授权中...',
-    need_approval: '需要授权',
+    need_approval: '授权',
     amount_should_greater_than_zero: '输入金额应该大于0',
   },
 } as const;

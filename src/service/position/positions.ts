@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { selector, useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
+import { selector, useRecoilValue, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager, MulticallContract, fetchMulticall } from '@contracts/index';
+import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
-import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, getPool, Pool } from '@service/pairs&pool';
-import { getTokenByAddress, getWrapperTokenByAddress, getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens } from '@service/tokens';
+import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, Pool } from '@service/pairs&pool';
+import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { computePoolAddress, usePool } from '@service/pairs&pool';
 
@@ -84,14 +84,23 @@ const tokenIdsQuery = selector<Array<number> | []>({
   },
 });
 
-export const decodePosition = (tokenId: number, decodeRes: Array<any>) => {
-  const token0 = getTokenByAddress(decodeRes?.[2])!;
-  const token1 = getTokenByAddress(decodeRes?.[3])!;
+export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => {
+  let token0 = getTokenByAddress(decodeRes?.[2])!;
+  let token1 = getTokenByAddress(decodeRes?.[3])!;
+  if (!token0) {
+    token0 = (await fetchTokenInfoByAddress(decodeRes?.[2]))!;
+    if (token0) addTokenToList(token0);
+  }
+
+  if (!token1) {
+    token1 = (await fetchTokenInfoByAddress(decodeRes?.[3]))!;
+    if (token1) addTokenToList(token1);
+  }
   const fee = Number(decodeRes?.[4]);
 
   const address = computePoolAddress({
-    tokenA: token0,
-    tokenB: token1,
+    tokenA: token0!,
+    tokenB: token1!,
     fee: fee,
   });
 
@@ -130,7 +139,7 @@ export const positionQueryByTokenId = selectorFamily({
   key: `positionQueryByTokenId-${import.meta.env.MODE}`,
   get: (tokenId: number) => async () => {
     const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
-    const position: Position = decodePosition(tokenId, decodeRes);
+    const position = await decodePosition(tokenId, decodeRes);
     return position;
   },
 });
@@ -148,19 +157,22 @@ export const positionsQueryByTokenIds = selectorFamily({
         tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
       );
 
-      if (Array.isArray(positionsResult))
-        return positionsResult
-          ?.map((singleRes, index) => {
+      if (Array.isArray(positionsResult)) {
+        const tmpRes = await Promise.all(
+          positionsResult?.map(async (singleRes, index) => {
             const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-            const position: Position = decodePosition(tokenIds[index], decodeRes);
+            const position = await decodePosition(tokenIds[index], decodeRes);
 
             return position;
           })
-          .map((position) => {
-            const { token0, token1, fee } = position;
-            const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
-            return enhancePositionForUI(position, pool);
-          });
+        );
+        return tmpRes.map((position) => {
+          const { token0, token1, fee } = position;
+          const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
+          return enhancePositionForUI(position, pool);
+        });
+      }
+
       return [];
     },
 });
@@ -200,14 +212,13 @@ export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQu
 
 export const usePositionByTokenId = (tokenId: number) => useRecoilValue(positionQueryByTokenId(+tokenId));
 
-export const usePositionsForUI = () => useRecoilValue(PositionsForUISelector);
+export const usePositionsForUI = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(PositionsForUISelector);
 
 export const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
   const upper = new Unit(1.0001).pow(new Unit(tickUpper));
-
-  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool?.token0Price, upper }) : [undefined, undefined];
+  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool.token0Price.mul(`1e${token1.decimals-token0.decimals}`), upper }) : [undefined, undefined];
   const ratio = lower && pool && upper ? calcRatio(lower, pool.token0Price, upper) : undefined;
 
   const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
@@ -252,14 +263,14 @@ export const createPreviewPositionForUI = (
 ) => enhancePositionForUI(position as Position, pool);
 
 export const usePositionStatus = (position: PositionForUI) => {
-  const { token0, token1, fee, liquidity, tickLower, tickUpper } = position;
+  const { token0, token1, fee, liquidity, tickLower, tickUpper } = position ?? {};
 
   const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
   const tickCurrent = pool?.tickCurrent;
   return useMemo(() => {
     return liquidity === '0'
       ? PositionStatus.Closed
-      : !tickCurrent
+      : typeof tickCurrent !== 'number'
       ? undefined
       : tickCurrent < tickLower || tickCurrent > tickUpper
       ? PositionStatus.OutOfRange

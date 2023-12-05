@@ -1,7 +1,6 @@
 import { atom } from 'recoil';
-import { store as fluentStore, switchChain as _switchChain } from '@cfxjs/use-wallet-react/ethereum';
-import { targetChainId } from '..';
-export { connect, sendTransaction } from '@cfxjs/use-wallet-react/ethereum';
+import { store as fluentStore } from '@cfxjs/use-wallet-react/ethereum';
+export { connect, sendTransaction, watchAsset, addChain, switchChain } from '@cfxjs/use-wallet-react/ethereum';
 
 export const accountState = atom<string | null | undefined>({
   key: 'metamaskAccountState-vSwap',
@@ -40,5 +39,3 @@ export const chainIdState = atom<string | null | undefined>({
 });
 
 export const disconnect = () => Promise<void>;
-
-export const switchChain = () => _switchChain('0x' + Number(targetChainId).toString(16));

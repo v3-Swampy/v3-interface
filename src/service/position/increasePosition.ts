@@ -1,19 +1,15 @@
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { uniqueId } from 'lodash-es';
-import Decimal from 'decimal.js';
 import { NonfungiblePositionManager } from '@contracts/index';
-import { getWrapperTokenByAddress, isTokenEqual } from '@service/tokens';
+import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { getPool, type Pool } from '@service/pairs&pool';
+import { getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
-import { getDeadline, getSlippageTolerance } from '@service/settings';
+import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage } from '@service/settings';
 import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
-
-const Q192 = new Decimal(2).toPower(192);
-const Zero = new Unit(0);
 
 export const handleClickSubmitIncreasePositionLiquidity = async ({
   tokenId,
@@ -33,7 +29,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
   try {
     const account = getAccount();
     if (!account) return;
-    const slippageTolerance = getSlippageTolerance();
+    const slippageTolerance = getSlippageTolerance() || 0;
     const pool = await getPool({ tokenA: _tokenA, tokenB: _tokenB, fee: position.fee });
     const tokenA = getWrapperTokenByAddress(_tokenA.address)!;
     const tokenB = getWrapperTokenByAddress(_tokenB.address)!;
@@ -49,36 +45,36 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
 
-    // const { amount0Min, amount1Min } = calcAmountMinWithSlippageTolerance({
-    //   pool: pool ?? {
-    //     tickCurrent: +findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: new Unit(priceInit!), tokenA, tokenB }) })?.toDecimalMinUnit(),
-    //     sqrtPriceX96,
-    //   } as Pool,
-    //   token0,
-    //   token1,
-    //   token0Amount,
-    //   token1Amount,
-    //   fee,
-    //   tickLower,
-    //   tickUpper,
-    //   slippageTolerance,
-    // });
-    // console.log(slippageTolerance, token0Amount, token1Amount);
-    // console.log(amount0Min, amount1Min);
+    const sqrtPriceX96 = pool?.sqrtPriceX96;
+    let currentPrice = pool?.token0Price?.toDecimalMinUnit();
+    currentPrice = new Unit(currentPrice!).mul(`1e${token1.decimals-token0.decimals}`).toDecimalMinUnit();
 
-    const { amount0Min, amount1Min } = { amount0Min: 0, amount1Min: 0 };
+    const tickLower = position.tickLower;
+    const tickUpper = position.tickUpper;
+
+    if (!sqrtPriceX96 || !currentPrice) {
+      return;
+    }
+    const { amount0Min, amount1Min } = calcAmountMinWithSlippage(
+      sqrtPriceX96,
+      slippageTolerance,
+      currentPrice,
+      tickLower,
+      tickUpper,
+      token0AmountUnit.toDecimalMinUnit(),
+      token1AmountUnit.toDecimalMinUnit()
+    );
 
     const previewUniqueId = uniqueId();
     const inverted = token0?.address === tokenA?.address;
     setInvertedState(previewUniqueId, inverted);
-    // console.log(token0Amount, token1Amount)
     const dataWithoutCFX = NonfungiblePositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
       {
         tokenId,
         amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
         amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
-        amount0Min: Unit.fromStandardUnit(amount0Min, token0.decimals).toHexMinUnit(),
-        amount1Min: Unit.fromStandardUnit(amount1Min, token1.decimals).toHexMinUnit(),
+        amount0Min: new Unit(amount0Min).toHexMinUnit(),
+        amount1Min: new Unit(amount1Min).toHexMinUnit(),
         deadline: getDeadline(),
       },
     ]);
@@ -96,17 +92,17 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
 
     const recordParams = {
       type: 'Position_IncreaseLiquidity',
-      tokenA_Address: tokenA.address,
-      tokenA_Value: Unit.fromStandardUnit(amountTokenA, tokenA.decimals).toDecimalStandardUnit(5),
-      tokenB_Address: tokenB.address,
-      tokenB_Value: Unit.fromStandardUnit(amountTokenB, tokenB.decimals).toDecimalStandardUnit(5),
+      tokenA_Address: _tokenA.address,
+      tokenA_Value: amountTokenA,
+      tokenB_Address: _tokenB.address,
+      tokenB_Value: amountTokenB,
     } as const;
 
     showLiquidityPreviewModal({
       leftToken: _tokenA,
       rightToken: _tokenB,
-      leftAmount: Unit.fromStandardUnit(amountTokenA).add((isTokenEqual(token0, _tokenA) ? position.amount0 : position.amount1) ?? 0),
-      rightAmount: Unit.fromStandardUnit(amountTokenB).add((isTokenEqual(token0, _tokenA) ? position.amount1 : position.amount0) ?? 0),
+      leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
+      rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
       inverted,
       previewUniqueId,
       previewPosition: createPreviewPositionForUI(

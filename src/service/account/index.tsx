@@ -7,7 +7,9 @@ import {
   connect as connectFluent,
   disconnect as disconnectFluent,
   switchChain as switchChainFluent,
+  addChain as addChainFluent,
   sendTransaction as sendTransactionWithFluent,
+  watchAsset as watchAssetFluent,
 } from './fluent';
 import {
   accountState as metamaskAccountState,
@@ -15,10 +17,23 @@ import {
   connect as connectMetamask,
   disconnect as disconnectMetamask,
   switchChain as switchChainMetamask,
+  addChain as addChainMetamask,
   sendTransaction as sendTransactionWithMetamask,
+  watchAsset as watchAssetMetamask,
 } from './metamask';
-import { isProduction } from '@utils/is';
-export const targetChainId = isProduction ? '1030' : '71';
+import {
+  accountState as walletConnectAccountState,
+  chainIdState as walletConnectChainIdState,
+  connect as connectWalletConnect,
+  disconnect as disconnectWalletConnect,
+  switchChain as switchChainWalletConnect,
+  addChain as addChainWalletConnect,
+  sendTransaction as sendTransactionWithWalletConnect,
+  watchAsset as watchAssetWalletConnect,
+} from './wallet-connect';
+import { showToast } from '@components/showPopup';
+import { Network, targetChainId } from './Network';
+export * from './Network';
 
 const methodsMap = {
   fluent: {
@@ -26,16 +41,30 @@ const methodsMap = {
     chainIdState: fluentChainIdState,
     connect: connectFluent,
     switchChain: switchChainFluent,
+    addChain: addChainFluent,
     sendTransaction: sendTransactionWithFluent,
     disconnect: disconnectFluent,
+    watchAsset: watchAssetFluent,
   },
   metamask: {
     accountState: metamaskAccountState,
     chainIdState: metamaskChainIdState,
     connect: connectMetamask,
     switchChain: switchChainMetamask,
+    addChain: addChainMetamask,
     sendTransaction: sendTransactionWithMetamask,
     disconnect: disconnectMetamask,
+    watchAsset: watchAssetMetamask,
+  },
+  walletConnect: {
+    accountState: walletConnectAccountState,
+    chainIdState: walletConnectChainIdState,
+    connect: connectWalletConnect,
+    switchChain: switchChainWalletConnect,
+    addChain: addChainWalletConnect,
+    sendTransaction: sendTransactionWithWalletConnect,
+    disconnect: disconnectWalletConnect,
+    watchAsset: watchAssetWalletConnect,
   },
 } as const;
 
@@ -91,10 +120,29 @@ export const disconnect = async () => {
   } catch (_) {}
 };
 
-export const switchChain = () => {
+export const switchChain = async () => {
   const method = getAccountMethod();
   if (!method) return;
-  methodsMap[method].switchChain();
+  try {
+    await methodsMap[method].switchChain('0x' + Number(Network.chainId).toString(16));
+  } catch (switchError) {
+    // This error code indicates that the chain has not been added to MetaMask.
+    if ((switchError as any)?.code === 4902) {
+      try {
+        await methodsMap[method].addChain({
+          ...Network,
+          chainId: '0x' + Number(Network.chainId).toString(16),
+        });
+        showToast(`Add ${Network.chainName} to ${method.charAt(0).toUpperCase() + method.slice(1)} Success!`, { type: 'success' });
+      } catch (addError) {
+        if ((addError as any)?.code === 4001) {
+          showToast('You cancel the add chain reqeust.', { type: 'error' });
+        }
+      }
+    } else if ((switchError as any)?.code === 4001) {
+      showToast('You cancel the switch chain reqeust.', { type: 'error' });
+    }
+  }
 };
 
 export const sendTransaction = async (params: Parameters<typeof sendTransactionWithFluent>[0]) => {
@@ -103,6 +151,12 @@ export const sendTransaction = async (params: Parameters<typeof sendTransactionW
     throw new Error('No account connected');
   }
   return methodsMap[accountMethod].sendTransaction(params);
+};
+
+export const watchAsset = (params: Parameters<typeof watchAssetFluent>[0]) => {
+  const method = getAccountMethod();
+  if (!method) return;
+  return methodsMap[method].watchAsset(params);
 };
 
 export const useAccount = () => useRecoilValue(accountState);

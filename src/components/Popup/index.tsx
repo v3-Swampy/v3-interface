@@ -90,6 +90,7 @@ export class PopupClass implements PopupMethods {
       container = document.createElement('div');
       container.setAttribute('id', 'popup-container-' + uniqueId());
       container.style.position = 'absolute';
+      container.style.zIndex = '10000';
       document.body.appendChild(container);
     }
     const component = createPortal(React.createElement(PopupComponent, { ref: this.popupRef }), container);

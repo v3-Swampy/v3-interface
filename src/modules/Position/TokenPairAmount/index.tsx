@@ -2,7 +2,7 @@ import React from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { type PositionForUI } from '@service/position';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { type Token, getUnwrapperTokenByAddress, isTokenEqual } from '@service/tokens';
+import { type Token, isTokenEqual } from '@service/tokens';
 import { useInvertedState } from '../invertedState';
 
 const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; ratio: number | undefined }> = ({ token, amount, ratio }) => {

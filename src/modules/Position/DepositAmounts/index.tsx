@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback, useLayoutEffect } from 'react';
+import React, { memo, useRef, useMemo, useLayoutEffect } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type UseFormGetValues, type FieldValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import Balance from '@modules/Balance';
 import { isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
-import { usePool, FeeAmount } from '@service/pairs&pool';
+import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
@@ -15,7 +15,6 @@ import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
 const transitions = {
   en: {
     deposit_amounts: 'Deposit Amounts',
-    select_token: 'Select a token',
     balance: 'Balance',
     max: 'MAX',
     outof_range: 'The market price is outside your specified price range. Single-asset deposit only.',
@@ -23,7 +22,6 @@ const transitions = {
   },
   zh: {
     deposit_amounts: '存入金额',
-    select_token: '选择代币',
     balance: '余额',
     max: '最大值',
     outof_range: '市场兑换率超出您指定的范围。将只注入单项代币。',
@@ -53,37 +51,72 @@ interface Props {
 }
 
 const DepositAmount: React.FC<
-  Pick<Props, 'register' | 'setValue' | 'isRangeValid'> & {
-    token: Token | null;
-    pairToken: Token | null;
+  Pick<Props, 'register' | 'setValue' | 'isRangeValid' | 'fee' | 'tokenA' | 'getValues'> & {
+    token: Token | null | undefined;
+    pairToken: Token | null | undefined;
     type: 'tokenA' | 'tokenB';
-    price: Unit | null | undefined;
+    priceTokenA: Unit | null | undefined;
+    priceLower: Unit | undefined;
+    priceUpper: Unit | undefined;
     isValidToInput: boolean;
     isOutOfRange: boolean;
     isPairTokenOutOfRange: boolean;
   }
-> = ({ type, token, pairToken, price, isRangeValid = true, isOutOfRange, isPairTokenOutOfRange, register, setValue }) => {
+> = ({ type, tokenA, token, pairToken, priceTokenA, isRangeValid = true, isOutOfRange, isPairTokenOutOfRange, priceLower, priceUpper, fee, getValues, register, setValue }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
+  const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
 
+  const changePairAmount = useRef<(newAmount: string) => void>(() => {});
   useLayoutEffect(() => {
-    setValue(`amount-${type}`, '');
-  }, [token?.address, account]);
-
-  const changePairAmount = useCallback(
-    (newAmount: string) => {
-      if (!price) return;
-      const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
-      if (!newAmount || isPairTokenOutOfRange) {
+    changePairAmount.current = (newAmount: string) => {
+      if (!priceTokenA || !priceLower || !priceUpper || !token || !pairToken || !fee) return;
+      if (!newAmount || isPairTokenOutOfRange || !pairToken || !token || !pairToken) {
         setValue(pairKey, '');
         return;
       }
+      const usedPriceLower = priceLower.equals(0) ? calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: getMinTick(fee), convertLimit: false }) : priceLower;
+      const usedPriceUpper = !priceUpper.isFinite() ? calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: getMaxTick(fee), convertLimit: false }) : priceUpper;
+      // const usedPriceLower = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: -6600, convertLimit: false });
+      // const usedPriceUpper = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: 60, convertLimit: false });
+      // console.log(usedPriceLower?.toDecimalMinUnit(), usedPriceUpper?.toDecimalMinUnit())
+
+      const isThisTokenEqualsTokenA = isTokenEqual(token, tokenA);
       const currentInputAmount = new Unit(newAmount);
-      const pairTokenExpectedAmount = currentInputAmount?.mul(price);
+      const temp = new Unit(1).div(priceTokenA.sqrt()).sub(new Unit(1).div(usedPriceUpper.sqrt())).div(priceTokenA.sqrt().sub(usedPriceLower.sqrt()));
+      const pairTokenExpectedAmount = currentInputAmount.mul(!isThisTokenEqualsTokenA ? temp : invertPrice(temp));
       setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
-    },
-    [type, price, pairToken, isPairTokenOutOfRange]
-  );
+    };
+  }, [fee, priceTokenA, priceLower, priceUpper, isPairTokenOutOfRange, token?.address, pairToken?.address]);
+
+  const priceTokenAFixed8 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(8) : null), [priceTokenA]);
+  const priceLowerAFixed8 = useMemo(() => (priceLower ? priceLower.toDecimalMinUnit(8) : null), [priceLower]);
+  const priceUppperAFixed8 = useMemo(() => (priceUpper ? priceUpper.toDecimalMinUnit(8) : null), [priceUpper]);
+  useLayoutEffect(() => {
+    if (type === 'tokenB') return;
+    const value = getValues();
+    const amountTokenA = value['amount-tokenA'];
+    if (!priceTokenA || !amountTokenA) {
+      setValue('amount-tokenB', '');
+      return;
+    }
+    changePairAmount.current(amountTokenA);
+  }, [priceTokenAFixed8, priceLowerAFixed8, priceUppperAFixed8]);
+
+  useLayoutEffect(() => {
+    const value = getValues();
+    const currentAmount = value[`amount-${type}`];
+    if (isPairTokenOutOfRange) {
+      setValue(pairKey, '');
+    } else {
+      if (!priceTokenA) return;
+      changePairAmount.current(currentAmount);
+    }
+  }, [isPairTokenOutOfRange]);
+
+  useLayoutEffect(() => {
+    setValue(`amount-${type}`, '');
+  }, [fee]);
 
   return (
     <div className={cx('mt-4px h-84px rounded-16px bg-orange-light-hover', !isOutOfRange ? 'pt-8px pl-16px pr-8px' : 'flex flex-col justify-center items-center px-24px')}>
@@ -103,14 +136,15 @@ const DepositAmount: React.FC<
               })}
               min={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
               step={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
-              onBlur={(evt) => changePairAmount(evt.target.value)}
+              onBlur={(evt) => changePairAmount.current(evt.target.value)}
             />
 
-            <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium cursor-pointer">
-              {token && <img className="w-24px h-24px mr-4px" src={token.logoURI} alt={`${token.symbol} logo`} />}
-              {token && token.symbol}
-              {!token && i18n.select_token}
-            </div>
+            {token && (
+              <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium">
+                {<img className="w-24px h-24px mr-4px" src={token.logoURI} alt={`${token.symbol} logo`} />}
+                {token.symbol}
+              </div>
+            )}
           </div>
 
           {account && token && (
@@ -124,7 +158,7 @@ const DepositAmount: React.FC<
                     disabled={!balance || balance === '0'}
                     onClick={() => {
                       setValue(`amount-${type}`, balance);
-                      changePairAmount(balance ?? '');
+                      changePairAmount.current(balance ?? '');
                     }}
                     type="button"
                   >
@@ -161,8 +195,20 @@ const DepositAmounts: React.FC<Props> = ({
   register,
 }) => {
   const i18n = useI18n(transitions);
-  const priceLower = useMemo(() => (_priceLower ? new Unit(_priceLower) : undefined), [_priceLower]);
-  const priceUpper = useMemo(() => (_priceUpper ? new Unit(_priceUpper) : undefined), [_priceUpper]);
+  const priceLower = useMemo(() => {
+    try {
+      return _priceLower ? new Unit(_priceLower) : undefined;
+    } catch (_) {
+      return undefined;
+    }
+  }, [_priceLower]);
+  const priceUpper = useMemo(() => {
+    try {
+      return _priceUpper ? new Unit(_priceUpper) : undefined;
+    } catch (_) {
+      return undefined;
+    }
+  }, [_priceUpper]);
 
   const { state, pool } = usePool({ tokenA, tokenB, fee });
 
@@ -170,62 +216,53 @@ const DepositAmounts: React.FC<Props> = ({
     () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
     [tokenA?.address, pool, priceInit]
   );
-  const priceTokenB = useMemo(() => (priceTokenA ? new Unit(1).div(priceTokenA) : null), [priceTokenA]);
 
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
-  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThan(priceLower) : false;
-  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThan(priceUpper) : false;
+  const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;
+  const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThanOrEqualTo(priceUpper) : false;
 
-  const token0PriceFixed5 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(5) : null), [priceTokenA]);
-
+  const account = useAccount();
   useLayoutEffect(() => {
-    const value = getValues();
-    const amountTokenA = value['amount-tokenA'];
-    if (!priceTokenA || !amountTokenA) {
-      setValue('amount-tokenB', '');
-      return;
-    }
-    const tokenBExpectedAmount = new Unit(amountTokenA).mul(priceTokenA);
-    setValue('amount-tokenB', trimDecimalZeros(tokenBExpectedAmount.toDecimalMinUnit(tokenB?.decimals)));
-  }, [token0PriceFixed5]);
+    setValue('amount-tokenA', '');
+    setValue('amount-tokenB', '');
+  }, [tokenA?.address, tokenB?.address, account]);
 
-  useLayoutEffect(() => {
-    if (isPriceLowerGreaterThanCurrentPrice) {
-      setValue('amount-tokenB', '');
-    }
-
-    if (isPriceUpperLessThanCurrentPrice) {
-      setValue('amount-tokenA', '');
-    }
-  }, [isPriceUpperLessThanCurrentPrice, isPriceLowerGreaterThanCurrentPrice]);
-
-  if (!tokenA || !tokenB || !fee) return null;
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-medium">{title || i18n.deposit_amounts}</p>
       <DepositAmount
+        tokenA={tokenA}
         token={tokenA}
         pairToken={tokenB}
         type="tokenA"
-        price={priceTokenA}
+        priceTokenA={priceTokenA}
+        priceLower={priceLower}
+        priceUpper={priceUpper}
         isValidToInput={isValidToInput}
         isOutOfRange={isPriceUpperLessThanCurrentPrice}
         isPairTokenOutOfRange={isPriceLowerGreaterThanCurrentPrice}
         setValue={setValue}
         register={register}
+        getValues={getValues}
         isRangeValid={isRangeValid}
+        fee={fee}
       />
       <DepositAmount
+        tokenA={tokenA}
         token={tokenB}
-        pairToken={tokenB}
+        pairToken={tokenA}
         type="tokenB"
-        price={priceTokenB}
+        priceTokenA={priceTokenA}
+        priceLower={priceLower}
+        priceUpper={priceUpper}
         isValidToInput={isValidToInput}
         isOutOfRange={isPriceLowerGreaterThanCurrentPrice}
         isPairTokenOutOfRange={isPriceUpperLessThanCurrentPrice}
         setValue={setValue}
         register={register}
+        getValues={getValues}
         isRangeValid={isRangeValid}
+        fee={fee}
       />
     </div>
   );

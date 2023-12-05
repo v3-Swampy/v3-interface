@@ -3,7 +3,6 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react-swc';
 import compression from 'vite-plugin-compression';
 import Unocss from 'unocss/vite';
-import presetIcons from '@unocss/preset-icons';
 import presetWind from '@unocss/preset-wind';
 import transformerDirective from '@unocss/transformer-directives';
 import svgr from 'vite-plugin-svgr';
@@ -13,16 +12,7 @@ export default defineConfig({
     svgr(),
     Unocss({
       transformers: [transformerDirective()],
-      presets: [
-        presetWind(),
-        presetIcons({
-          prefix: 'i-',
-          extraProperties: {
-            display: 'inline-block',
-            'vertical-align': 'middle',
-          },
-        }),
-      ],
+      presets: [presetWind()],
       theme: {
         breakpoints: {
           tiny: '350px',
@@ -37,23 +27,28 @@ export default defineConfig({
         colors: {
           orange: {
             normal: '#E14E28', // className="bg-purple-primary"
-            light: '#FFE8C9',
-            lightHover: '#FFF9F0',
+            light: '#FFEDD5',
+            lightHover: '#FFF9EF',
             dot: '#FFB75D',
           },
           black: {
-            normal: '#225050',
+            normal: '#222222',
             light: '#769292',
           },
           gray: {
-            normal: '#C2C4D0',
+            normal: '#8E8E8E',
             light: '#E1E1E7',
+            slight: '#DDDDDD',
+            end: '#F5F3F1',
           },
           white: {
             normal: '#FFFDFA',
           },
           error: {
-            normal: '#E96170',
+            normal: '#B80101',
+          },
+          warning: {
+            normal: '#FFB75D',
           },
           green: {
             normal: '#009595',
@@ -82,12 +77,12 @@ export default defineConfig({
       '@components': resolve(__dirname, 'src/components'),
       '@service': resolve(__dirname, 'src/service'),
       '@constants': resolve(__dirname, 'src/constants'),
-      '@uniswap-v2-sdk': resolve(__dirname, 'src/uniswap-v2-sdk'),
       events: 'rollup-plugin-node-polyfills/polyfills/events',
       jsbi: 'jsbi/dist/jsbi-cjs.js',
     },
   },
   build: {
+    minify: false,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -102,6 +97,18 @@ export default defineConfig({
     esbuildOptions: {
       define: {
         global: 'globalThis',
+      },
+    },
+  },
+  server: {
+    proxy: {
+      '/v1': {
+        target: 'https://api.vswap.finance',
+        changeOrigin: true,
+        secure: false,
+        headers: {
+          Referer: 'https://api.vswap.finance',
+        },
       },
     },
   },

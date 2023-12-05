@@ -6,7 +6,9 @@ import { type UseFormRegister, type FieldValues } from 'react-hook-form';
 import Dropdown from '@components/Dropdown';
 import useI18n from '@hooks/useI18n';
 import { FeeAmount } from '@service/pairs&pool';
+import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import { useIsBothTokenSelected } from './SelectPair';
+import { setRecoil } from 'recoil-nexus';
 
 const transitions = {
   en: {
@@ -26,6 +28,10 @@ const currentFeeState = atom<FeeAmount>({
   effects: [persistAtomWithDefault(FeeAmount.LOW)],
 });
 export const useCurrentFee = () => useRecoilValue(currentFeeState);
+
+export const setCurrentFee = (fee: FeeAmount) => {
+  setRecoil(currentFeeState, fee);
+};
 
 const FeeAmountLengh = Object.values(FeeAmount).length / 2;
 const FeeAmountList = Object.values(FeeAmount).slice(0, FeeAmountLengh) as FeeAmount[];
@@ -51,9 +57,11 @@ const SelectDropdown: React.FC<{ setVisible: (visible: boolean) => void }> = ({ 
           >
             <div className="mr-auto">
               <p className="text-18px leading-24px text-black-normal font-medium">{FeeAmountValues[index] / 10000}%</p>
-              <p className="text-14px leading-20px text-gray-normal">Best for most pairs</p>
+              {/* TODO hide temporary */}
+              {/* <p className="text-14px leading-20px text-gray-normal">Best for most pairs</p> */}
             </div>
-            <span className="text-12px text-black-light font-light">1% select</span>
+            {/* TODO hide temporary */}
+            {/* <span className="text-12px text-black-light font-light">1% select</span> */}
           </div>
         )
       )}
@@ -81,14 +89,12 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
               visible ? 'bg-orange-light-hover border-transparent' : 'bg-white-normal border-orange-light'
             )}
           >
-            <input
-              className="display-none"
-              value={currentFee}
-              type="number"
-            />
             <span className="text-18px text-black-normal font-medium mr-auto">{currentFee / 10000}% fee tier</span>
-            <span className="px-8px h-20px leading-20px rounded-4px bg-orange-light-hover text-12px text-black-light font-light">93% select</span>
-            <span className={cx('i-ic:sharp-keyboard-arrow-down ml-12px flex-shrink-0 text-16px font-medium transition-transform', visible && 'rotate-180deg')} />
+            {/* TODO hide temporary */}
+            {/* <span className="px-8px h-20px leading-20px rounded-4px bg-orange-light-hover text-12px text-black-light font-light">93% select</span> */}
+            <span className={cx('ml-12px flex-shrink-0 transition-transform', visible && 'rotate-180deg')}>
+              <ArrowDownIcon className="w-8px h-5px" />
+            </span>
           </div>
         </div>
       </Dropdown>

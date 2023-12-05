@@ -6,7 +6,7 @@ import Mask from '@components/Mask';
 import List, { type ItemProps } from '../List';
 
 export interface PopupProps extends ItemProps {
-  Content: React.ReactNode | Function;
+  Content: React.ReactNode | (() => JSX.Element);
   duration?: number;
   preventDuplicate?: boolean;
   maximum?: number;
@@ -45,7 +45,7 @@ const PopupItem = forwardRef<HTMLDivElement, PopupProps & { handleClose: () => v
       </div>
     );
   return (
-    <div ref={ref} className="w-fit px-[5px] py-[8px] bg-black bg-opacity-70 text-white rounded backface-visible">
+    <div ref={ref} className="w-fit px-[5px] py-[8px] bg-black-normal bg-opacity-70 text-white-normal rounded-4px backface-visible">
       {Content}
     </div>
   );
