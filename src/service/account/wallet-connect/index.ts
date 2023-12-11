@@ -45,7 +45,7 @@ export const connect = async () => {
     });
     //如果返回URI，则打开QRCode模式(即我们没有连接现有的配对)。
     if (uri) {
-      web3Modal.openModal({ uri, standaloneChains: ['eip155:1'] });
+      web3Modal.openModal({ uri, standaloneChains: [`eip155:${targetChainId}`] });
     }
 
     // 等待钱包的会话批准。
@@ -158,8 +158,8 @@ const handleSessionUpdate = async (_session: SessionTypes.Struct | undefined) =>
   const client = await SignClient.init({
     projectId,
     metadata: {
-      name: 'Example Dapp',
-      description: 'Example Dapp',
+      name: 'vSwap Finance',
+      description: 'A concentrated liquidity DEX on Conflux',
       url: window.location.host,
       icons: ['https://walletconnect.com/walletconnect-logo.png'],
     },
