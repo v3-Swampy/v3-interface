@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite --host",
     "dev:prod": "vite --mode production",
-    "build:dev": "tsc && vite build --mode development",
-    "build:prod": "tsc && vite build"
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build"
   },
   "dependencies": {
     "@cfx-kit/wallet-avatar": "^0.0.3",
