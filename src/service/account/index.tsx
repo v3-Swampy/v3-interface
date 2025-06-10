@@ -1,167 +1,51 @@
-import { atom, selector, useRecoilValue } from 'recoil';
-import { setRecoil, getRecoil } from 'recoil-nexus';
-import { persistAtom } from '@utils/recoilUtils';
-import {
-  accountState as fluentAccountState,
-  chainIdState as fluentChainIdState,
-  connect as connectFluent,
-  disconnect as disconnectFluent,
-  switchChain as switchChainFluent,
-  addChain as addChainFluent,
-  sendTransaction as sendTransactionWithFluent,
-  watchAsset as watchAssetFluent,
-} from './fluent';
-import {
-  accountState as metamaskAccountState,
-  chainIdState as metamaskChainIdState,
-  connect as connectMetamask,
-  disconnect as disconnectMetamask,
-  switchChain as switchChainMetamask,
-  addChain as addChainMetamask,
-  sendTransaction as sendTransactionWithMetamask,
-  watchAsset as watchAssetMetamask,
-} from './metamask';
-import {
-  accountState as walletConnectAccountState,
-  chainIdState as walletConnectChainIdState,
-  connect as connectWalletConnect,
-  disconnect as disconnectWalletConnect,
-  switchChain as switchChainWalletConnect,
-  addChain as addChainWalletConnect,
-  sendTransaction as sendTransactionWithWalletConnect,
-  watchAsset as watchAssetWalletConnect,
-} from './wallet-connect';
+import { atom } from 'recoil';
+import { useChainId, switchChain as _switchChain, getCurrentWalletName, store } from '@cfx-kit/react-utils/dist/AccountManage';
 import { showToast } from '@components/showPopup';
 import { Network, targetChainId } from './Network';
+export { sendTransaction, watchAsset, useAccount, useChainId, connect, disconnect, getAccount, getCurrentWalletName } from '@cfx-kit/react-utils/dist/AccountManage';
 export * from './Network';
 
-const methodsMap = {
-  fluent: {
-    accountState: fluentAccountState,
-    chainIdState: fluentChainIdState,
-    connect: connectFluent,
-    switchChain: switchChainFluent,
-    addChain: addChainFluent,
-    sendTransaction: sendTransactionWithFluent,
-    disconnect: disconnectFluent,
-    watchAsset: watchAssetFluent,
-  },
-  metamask: {
-    accountState: metamaskAccountState,
-    chainIdState: metamaskChainIdState,
-    connect: connectMetamask,
-    switchChain: switchChainMetamask,
-    addChain: addChainMetamask,
-    sendTransaction: sendTransactionWithMetamask,
-    disconnect: disconnectMetamask,
-    watchAsset: watchAssetMetamask,
-  },
-  walletConnect: {
-    accountState: walletConnectAccountState,
-    chainIdState: walletConnectChainIdState,
-    connect: connectWalletConnect,
-    switchChain: switchChainWalletConnect,
-    addChain: addChainWalletConnect,
-    sendTransaction: sendTransactionWithWalletConnect,
-    disconnect: disconnectWalletConnect,
-    watchAsset: watchAssetWalletConnect,
-  },
-} as const;
 
-type Methods = keyof typeof methodsMap;
-
-export const accountMethodFilter = atom<Methods | null>({
-  key: 'accountFilter-vSwap',
-  default: null,
-  effects: [persistAtom],
-});
-
-export const accountState = selector({
+export const accountState = atom<string | null | undefined>({
   key: 'account-vSwap',
-  get: ({ get }) => {
-    const filter = get(accountMethodFilter);
-    if (!filter) return null;
-    if (!methodsMap[filter]) return null;
-    const { accountState } = methodsMap[filter];
-    return get(accountState);
-  },
+  default: undefined,
+  effects: [
+    ({ setSelf, trigger }) => {
+      if (trigger === 'get') {
+        setSelf(store.getState().account);
+      }
+
+      const unsubAccount = store.subscribe(
+        (state) => state.account,
+        (account) => setSelf(account)
+      );
+      return unsubAccount;
+    },
+  ],
 });
 
-export const chainIdState = selector({
-  key: 'chainIdState-vSwap',
-  get: ({ get }) => {
-    const filter = get(accountMethodFilter);
-    if (!filter) return null;
-    if (!methodsMap[filter]) return null;
-
-    return get(methodsMap[filter].chainIdState);
-  },
-});
-
-export const getAccountMethod = () => getRecoil(accountMethodFilter);
-export const getAccount = () => getRecoil(accountState);
-
-export const connect = async (method: Methods) => {
-  try {
-    await methodsMap[method].connect();
-    setRecoil(accountMethodFilter, method);
-  } catch (err) {
-    throw err;
-  }
-};
-
-export const disconnect = async () => {
-  try {
-    const currentMethod = getAccountMethod();
-    if (currentMethod) {
-      await methodsMap[currentMethod].disconnect();
-    }
-    setRecoil(accountMethodFilter, null);
-  } catch (_) {}
-};
 
 export const switchChain = async () => {
-  const method = getAccountMethod();
-  if (!method) return;
-  try {
-    await methodsMap[method].switchChain('0x' + Number(Network.chainId).toString(16));
-  } catch (switchError) {
-    // This error code indicates that the chain has not been added to MetaMask.
-    if ((switchError as any)?.code === 4902) {
-      try {
-        await methodsMap[method].addChain({
-          ...Network,
-          chainId: '0x' + Number(Network.chainId).toString(16),
-        });
-        showToast(`Add ${Network.chainName} to ${method.charAt(0).toUpperCase() + method.slice(1)} Success!`, { type: 'success' });
-      } catch (addError) {
-        if ((addError as any)?.code === 4001) {
-          showToast('You cancel the add chain reqeust.', { type: 'error' });
-        }
-      }
-    } else if ((switchError as any)?.code === 4001) {
+  const currentWalletName = getCurrentWalletName();
+  if (!currentWalletName) return;
+
+  await _switchChain(Network.chainId, {
+    addChainParams: {
+      ...Network,
+      chainId: '0x' + Number(Network.chainId).toString(16)
+    },
+    addChainCallback: () => {
+      showToast(`Add ${Network.chainName} to ${currentWalletName} Success!`, { type: 'success' });
+    },
+    cancleAddCallback: () => {
+      showToast('You cancel the add chain reqeust.', { type: 'error' });
+    },
+    cancelSwitchCallback: () => {
       showToast('You cancel the switch chain reqeust.', { type: 'error' });
     }
-  }
+  });
 };
 
-export const sendTransaction = async (params: Parameters<typeof sendTransactionWithFluent>[0]) => {
-  const accountMethod = getAccountMethod();
-  if (!accountMethod) {
-    throw new Error('No account connected');
-  }
-  return methodsMap[accountMethod].sendTransaction(params);
-};
-
-export const watchAsset = (params: Parameters<typeof watchAssetFluent>[0]) => {
-  const method = getAccountMethod();
-  if (!method) return;
-  return methodsMap[method].watchAsset(params);
-};
-
-export const useAccount = () => useRecoilValue(accountState);
-export const useAccountMethod = () => useRecoilValue(accountMethodFilter);
-export const useChainId = () => useRecoilValue(chainIdState);
 export const useIsChainMatch = () => {
   const chainId = useChainId();
   return chainId === targetChainId;
