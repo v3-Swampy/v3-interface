@@ -190,11 +190,12 @@ export const PositionsForUISelector = selector<Array<PositionForUI>>({
   get: ({ get }) => {
     const positions = get(positionsQuery);
     if (!positions) return [];
-    return positions.map((position) => {
+    const enhancedPositions = positions.map((position) => {
       const { token0, token1, fee } = position;
       const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
       return enhancePositionForUI(position, pool);
     });
+    return enhancedPositions.reverse();
   },
 });
 

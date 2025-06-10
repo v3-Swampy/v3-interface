@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import 'rc-slider/assets/index.css';
 
 import PageWrapper from '@components/Layout/PageWrapper';
@@ -122,8 +122,9 @@ const RemoveLiquidity: React.FC = () => {
     setRightRemoveAmount(rightTotalAmount.mul(removePercent).div(100));
   }, [removePercent, setLeftRemoveAmount, leftTotalAmount, rightTotalAmount]);
 
-  if (!tokenId || !position || !status || status === PositionStatus.Closed) return <div />;
-
+  if (!tokenId || !position || !status) return null;
+  if (status === PositionStatus.Closed) return <Navigate to="/pool" replace />;
+  
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
