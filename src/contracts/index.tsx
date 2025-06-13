@@ -1,5 +1,4 @@
-import { Contract} from 'ethers';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { Contract, JsonRpcProvider, type InterfaceAbi } from 'ethers';
 import ERC20ABI from './abis/ERC20.json';
 import ERC721ABI from './abis/ERC721.json';
 import MulticallABI from './abis/Multicall.json';
@@ -16,7 +15,7 @@ import UniswapV3StakerABI from './abis/UniswapV3Staker.json';
 
 export const Provider = new JsonRpcProvider(import.meta.env.VITE_ESpaceRpcUrl);
 
-const createContract = (address: string, ABI: any) => {
+const createContract = (address: string, ABI: InterfaceAbi) => {
   const _Contract = new Contract(address, ABI, Provider);
   return {
     func: _Contract,

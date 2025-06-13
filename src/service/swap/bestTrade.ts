@@ -97,7 +97,6 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
     amount: amountUnit.toDecimalMinUnit(),
     type: tradeType,
   };
-  console.log('args', args);
   return getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
     if (res.data) {
       return res.data;
