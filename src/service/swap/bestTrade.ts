@@ -97,12 +97,16 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
     amount: amountUnit.toDecimalMinUnit(),
     type: tradeType,
   };
+  console.log('args', args);
   return getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
     if (res.data) {
       return res.data;
     } else {
       throw new Error('NO_ROUTE');
     }
+  }).catch(err => {
+    console.log('err', err);
+    throw err;
   });
 };
 
@@ -245,7 +249,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
       } catch (err) {
         const errStr = String(err);
         const isNoRoute = errStr?.includes('Failed to generate client side quote');
-        const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get') || errStr?.includes('SyntaxError');
+        const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get') || errStr?.includes('SyntaxError') || errStr?.includes('Unexpected error');
         if (fetchMethod === 'priorityMethod' && isNetworkError) {
           runFetch('secondaryMethod');
         } else {

@@ -50,7 +50,6 @@ const SwapPage: React.FC = () => {
   const inputedAmount = inputedType === null ? '' : inputedType === 'sourceToken' ? sourceTokenAmount : destinationTokenAmount;
   const currentTradeType = inputedType === null || !inputedAmount ? null : inputedType === 'sourceToken' ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT;
   const bestTrade = useBestTrade(currentTradeType, inputedAmount, sourceToken, destinationToken);
-
   const sourceTokenTradeAmountUSDPrice = undefined;
   const destinationTokenTradeAmountUSDPrice = undefined;
 

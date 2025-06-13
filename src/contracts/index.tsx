@@ -1,4 +1,5 @@
-import { Contract, JsonRpcProvider, type InterfaceAbi } from 'ethers';
+import { Contract} from 'ethers';
+import { JsonRpcProvider } from '@ethersproject/providers';
 import ERC20ABI from './abis/ERC20.json';
 import ERC721ABI from './abis/ERC721.json';
 import MulticallABI from './abis/Multicall.json';
@@ -15,7 +16,7 @@ import UniswapV3StakerABI from './abis/UniswapV3Staker.json';
 
 export const Provider = new JsonRpcProvider(import.meta.env.VITE_ESpaceRpcUrl);
 
-const createContract = (address: string, ABI: InterfaceAbi) => {
+const createContract = (address: string, ABI: any) => {
   const _Contract = new Contract(address, ABI, Provider);
   return {
     func: _Contract,
@@ -37,7 +38,7 @@ export const UniswapV3Quoter = createContract(isProduction ? '0xeb6775b690664d9c
 export const UniswapV3SwapRouter = createContract(isProduction ? '0x7d76b91d7e24be0088cab406ce2792a911914381' : '0x7d76b91d7e24be0088cab406ce2792a911914381', SwapRouterABI);
 
 export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
-  MulticallContract.func.aggregate.staticCall(data).then((res) => {
+  MulticallContract.func.aggregate.staticCall(data).then((res: any) => {
     const result = res?.[1];
     if (result) return Array.from(result);
     else return null;
