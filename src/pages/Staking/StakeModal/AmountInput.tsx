@@ -36,7 +36,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
         <div className="flex justify-between items-center">
           <Input
             type="number"
-            className="text-24px"
+            className="text-24px responsive-font-small pr-32px lt-mobile:text-16px"
             clearIcon
             placeholder="0"
             {...register('VST-stake-amount', {

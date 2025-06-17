@@ -3,7 +3,7 @@ import cx from 'clsx';
 import useI18n, { toI18n, compiled } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import useInTransaction from '@hooks/useInTransaction';
-import { ReactComponent as LogoIcon } from '@assets/icons/logo_icon.svg';
+import logo from '@assets/icons/logo_icon.svg';
 import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
@@ -143,7 +143,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   if (fPositions.length === 0) {
     return (
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
-        <LogoIcon className={cx("-mt-8 w-120px h-120px", isMobile && 'lt-mobile:w-100px lt-mobile:h-100px')}></LogoIcon>
+        <img className="-mt-8 w-120px h-120px lt-mobile:w-100px lt-mobile:h-100px" src={logo} />
         <div className="text-22px leading-28px font-400 font-not-italic mt-8 lt-mobile:text-14px lt-mobile:font-500 lt-mobile:leading-18px">{i18n.null}</div>
         {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
         <div className={cx(classNameLink, isMobile && 'lt-mobile:mt-36px')} onClick={handleNavigate}>
