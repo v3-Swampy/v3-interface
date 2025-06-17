@@ -1,6 +1,7 @@
 html {
   font-family: 'Outfit';
   scroll-behavior: smooth;
+  font-weight: 300;
 }
 
 :root {

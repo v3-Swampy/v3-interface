@@ -49,7 +49,7 @@ const AddTokenWarningModal: React.FC<CommonProps> = ({ tokenAddress, onConfirm, 
       <WarningColorIcon className="w-16px h-13.5px mr-2px" />
       <span>{i18n.warning}</span>
     </div>
-    <p className="text-black-normal text-16px leading-20px font-medium mb-60px">
+    <p className="text-black-normal text-16px leading-20px font-normal mb-60px">
       {i18n.add_warning_desc}
     </p>
     <div className="bg-orange-light-hover rounded-32px flex items-center justify-center w-full py-4px text-orange-normal text-14px leading-18px">
@@ -70,12 +70,12 @@ const AddTokenWarningModal: React.FC<CommonProps> = ({ tokenAddress, onConfirm, 
     </div>
     <div className="flex flex-1 w-full mt-16px gap-16px">
       <div className="flex h-48px flex-1">
-        <Button className="h-48px rounded-100px text-16px leading-20px flex items-center w-full !font-bold" variant='outlined' color="gray" onClick={hidePopup}>
+        <Button className="h-48px rounded-100px text-16px leading-20px flex items-center w-full !font-medium" variant='outlined' color="gray" onClick={hidePopup}>
           {i18n.cancel}
         </Button>
       </div>
       <div className="flex h-48px flex-1">
-        <Button className="h-48px rounded-100px text-16px leading-20px flex items-center w-full !font-bold" onClick={handleConfirm}>
+        <Button className="h-48px rounded-100px text-16px leading-20px flex items-center w-full !font-medium" onClick={handleConfirm}>
           {i18n.confirm}
         </Button>
       </div>

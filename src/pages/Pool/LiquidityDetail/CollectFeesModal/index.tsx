@@ -61,7 +61,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 const buttonProps = {
   color: 'orange',
   fullWidth: true,
-  className: 'mt-auto h-48px rounded-100px text-16px font-bold',
+  className: 'mt-auto h-48px rounded-100px text-16px font-medium',
 } as const;
 
 const showCollectFeesModal = (props: CommonProps) => {

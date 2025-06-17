@@ -19,21 +19,21 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
 
   return (
     <BorderBox variant="gradient-white" className="w-240px p-16px pt-20px rounded-28px">
-      <p className="mb-16px leading-18px text-14px text-black-normal font-medium">Account</p>
+      <p className="mb-16px leading-18px text-14px text-black-normal font-normal">Account</p>
       <div className="flex items-center">
         <Avatar account={account} size={24} className="mr-8px" />
-        <Address address={account} className="text-14px text-black-normal font-medium" useTooltip={false} />
+        <Address address={account} className="text-14px text-black-normal font-normal" useTooltip={false} />
       </div>
 
       <Tooltip visible={isCopied} text="Copied!">
-        <div className="mt-8px relative flex items-center pl-50px text-12px text-gray-normal font-medium cursor-pointer" onClick={copy}>
+        <div className="mt-8px relative flex items-center pl-50px text-12px text-gray-normal font-normal cursor-pointer" onClick={copy}>
           <CopyIcon className="absolute left-32px" />
           Copy Address
         </div>
       </Tooltip>
 
       <a
-        className="mt-10px block relative flex items-center pl-50px text-12px text-gray-normal font-medium cursor-pointer no-underline"
+        className="mt-10px block relative flex items-center pl-50px text-12px text-gray-normal font-normal cursor-pointer no-underline"
         target="_blank"
         rel="noopener noreferrer"
         href={`${import.meta.env.VITE_ESpaceScanUrl}/address/${account}`}
@@ -67,7 +67,7 @@ const AccountDetailDropdown: React.FC<{ account: string }> = ({ account }) => {
         {!pendingCount ? (
           <>
             <Avatar account={account} size={24} className="mr-8px lt-mobile:mr-0" />
-            <Address address={account} className="text-14px text-black-normal font-medium lt-mobile:hidden" useTooltip={false} />
+            <Address address={account} className="text-14px text-black-normal font-normal lt-mobile:hidden" useTooltip={false} />
           </>
         ) : (
           <Button color="gradient" className="absolute w-full h-40px rounded-100px pointer-events-none lt-mobile:text-12px">

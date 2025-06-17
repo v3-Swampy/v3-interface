@@ -56,7 +56,7 @@ const SelectDropdown: React.FC<{ setVisible: (visible: boolean) => void }> = ({ 
             }}
           >
             <div className="mr-auto">
-              <p className="text-18px leading-24px text-black-normal font-medium">{FeeAmountValues[index] / 10000}%</p>
+              <p className="text-18px leading-24px text-black-normal font-normal">{FeeAmountValues[index] / 10000}%</p>
               {/* TODO hide temporary */}
               {/* <p className="text-14px leading-20px text-gray-normal">Best for most pairs</p> */}
             </div>
@@ -77,7 +77,7 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
 
   return (
     <div className={cx('mt-16px', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
-      <p className="mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.select_fee_tier}</p>
+      <p className="mb-8px leading-18px text-14px text-black-normal font-normal">{i18n.select_fee_tier}</p>
       <Dropdown visible={visible} Content={<SelectDropdown setVisible={setVisible} />} sameWidth offset={[0, 0]} className="w-full" onClickOutside={() => setVisible(false)}>
         <div
           className={cx('rounded-tl-16px rounded-tr-16px overflow-hidden transition-colors', visible ? 'bg-orange-light' : 'bg-transparent')}
@@ -89,7 +89,7 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
               visible ? 'bg-orange-light-hover border-transparent' : 'bg-white-normal border-orange-light'
             )}
           >
-            <span className="text-18px text-black-normal font-medium mr-auto">{currentFee / 10000}% fee tier</span>
+            <span className="text-18px text-black-normal font-normal mr-auto">{currentFee / 10000}% fee tier</span>
             {/* TODO hide temporary */}
             {/* <span className="px-8px h-20px leading-20px rounded-4px bg-orange-light-hover text-12px text-black-light font-light">93% select</span> */}
             <span className={cx('ml-12px flex-shrink-0 transition-transform', visible && 'rotate-180deg')}>

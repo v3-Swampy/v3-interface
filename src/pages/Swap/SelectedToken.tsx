@@ -70,7 +70,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
         <BorderBox
           className={cx(
             'flex-shrink-0 ml-14px lt-mobile:ml-4px flex items-center min-w-120px lt-mobile:min-w-102px h-40px lt-mobile:h-32px px-16px lt-mobile:pl-8px lt-mobile:pr-12px rounded-10px lt-mobile:rounded-8px',
-            'text-14px text-black-normal font-medium cursor-pointer !transition-none',
+            'text-14px text-black-normal font-normal cursor-pointer !transition-none',
             currentSelectToken ? 'bg-orange-light' : 'bg-transparent'
           )}
           variant={!currentSelectToken ? 'gradient-orange-light-hover' : 'transparent'}
@@ -91,7 +91,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals} gas={sourceToken?.address === 'CFX' ? cfxGas : undefined}>
             {(balance) => (
               <Button
-                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium border-1px! hover:bg-orange-normal hover:text-white-normal!"
+                className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
                 variant='outlined'
                 color="orange"
                 disabled={!balance || balance === '0'}

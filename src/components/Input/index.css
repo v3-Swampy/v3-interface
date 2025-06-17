@@ -3,7 +3,7 @@
 }
 
 .input {
-  @apply w-full font-medium bg-transparent border-none transition-colors placeholder-gray-normal;
+  @apply w-full font-normal bg-transparent border-none transition-colors placeholder-gray-normal;
   color: inherit;
   font-size: inherit;
   overflow: hidden;

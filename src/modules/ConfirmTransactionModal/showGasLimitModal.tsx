@@ -11,14 +11,14 @@ const GasLimitModal: React.FC = () => {
       <div className="mt-12px text-center">
         <img className="w-780px max-w-85vw aspect-780/314" src={FailedGasLimitImage} alt="Failed Reach Metamask gaslimit tip" />
         <div className={cx("mt-6px flex justify-center", isMobile ? 'flex-col gap-24px' : 'gap-228px')}>
-          <div className="flex flex-col items-center font-medium">
+          <div className="flex flex-col items-center font-normal">
             <div className="w-72px h-22px leading-22px rounded-22px text-14px text-white-normal bg-gradient-orange">STEP 01</div>
-            <p className="mt-6px text-12px leading-16px text-black-normal font-medium">Click the "Edit"</p>
+            <p className="mt-6px text-12px leading-16px text-black-normal font-normal">Click the "Edit"</p>
           </div>
 
-          <div className="flex flex-col items-center font-medium">
+          <div className="flex flex-col items-center font-normal">
             <div className="w-72px h-22px leading-22px rounded-22px text-14px text-white-normal bg-gradient-orange">STEP 02</div>
-            <p className="mt-6px text-12px leading-16px text-black-normal font-medium">
+            <p className="mt-6px text-12px leading-16px text-black-normal font-normal">
               Enter "15000000" and then
               <br />
               click the "Save" button
@@ -30,7 +30,7 @@ const GasLimitModal: React.FC = () => {
           <a className='!text-#0057FF' target="_blank" rel="noopener noreferrer" href="https://fluentwallet.com/">Fluent Wallet</a>.
         </p>
       </div>
-      <Button color="orange" className="!flex mx-auto w-60% max-w-540px lt-sm:w-full h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>
+      <Button color="orange" className="!flex mx-auto w-60% max-w-540px lt-sm:w-full h-48px rounded-100px text-16px !font-medium" onClick={hidePopup}>
         Understand
       </Button>
     </>

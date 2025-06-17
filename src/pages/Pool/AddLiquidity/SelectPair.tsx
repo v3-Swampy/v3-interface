@@ -81,7 +81,7 @@ const SelectPair: React.FC<{ handleSwapToken: VoidFunction; }> = ({ handleSwapTo
 
   return (
     <>
-      <p className="mt-16px mb-8px leading-18px text-14px text-black-normal font-medium">{i18n.select_pair}</p>
+      <p className="mt-16px mb-8px leading-18px text-14px text-black-normal font-normal">{i18n.select_pair}</p>
       <div className="mb-24px flex gap-10px">
         <Button
           className="!flex-shrink-1 w-50% h-40px rounded-100px !px-0"

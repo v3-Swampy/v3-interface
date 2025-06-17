@@ -146,7 +146,7 @@ const SwapPage: React.FC = () => {
     <PageWrapper className="pt-56px pb-40px lt-mobile:pt-16px">
       <BorderBox className="relative mx-auto max-w-572px p-16px rounded-28px lt-mobile:rounded-4" variant="gradient-white">
         <div className="mb-16px flex justify-between items-center mobile:pr-8px lt-mobile:px-4px">
-          <span className="mobile:w-84px h-40px leading-40px lt-mobile:h-18px lt-mobile:leading-18px mobile:rounded-100px text-center text-14px text-black-normal font-medium mobile:bg-orange-light-hover">
+          <span className="mobile:w-84px h-40px leading-40px lt-mobile:h-18px lt-mobile:leading-18px mobile:rounded-100px text-center text-14px text-black-normal font-normal mobile:bg-orange-light-hover">
             {i18n.swap}
           </span>
           <Settings />

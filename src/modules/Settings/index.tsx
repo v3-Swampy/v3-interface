@@ -90,9 +90,9 @@ const SettingsContent: React.FC = () => {
 
   return (
     <BorderBox variant="orange" className="w-240px p-16px rounded-28px bg-white-normal shadow-popper">
-      <p className="mb-16px leading-18px text-14px text-orange-normal font-medium">{i18n.settings}</p>
+      <p className="mb-16px leading-18px text-14px text-orange-normal font-normal">{i18n.settings}</p>
 
-      <p className="flex items-center mb-8px leading-18px text-14px text-black-normal font-medium">
+      <p className="flex items-center mb-8px leading-18px text-14px text-black-normal font-normal">
         {i18n.slippage_tolerance}
         <Tooltip text={i18n.slippage_tolerance_tooltip}>
           <span className="w-12px h-12px ml-6px">
@@ -117,7 +117,7 @@ const SettingsContent: React.FC = () => {
             placeholder={slippageToleranceMethod === 'auto' ? `${slippageToleranceValue}` : ''}
             onChange={onSlippageToleranceChange}
           />
-          <span className="flex-shrink-0 ml-8px leading-40px text-14px text-black-normal font-medium">%</span>
+          <span className="flex-shrink-0 ml-8px leading-40px text-14px text-black-normal font-normal">%</span>
         </div>
 
         <button
@@ -131,7 +131,7 @@ const SettingsContent: React.FC = () => {
         </button>
       </div>
 
-      <p className="flex items-center mt-16px mb-8px leading-18px text-14px text-black-normal font-medium">
+      <p className="flex items-center mt-16px mb-8px leading-18px text-14px text-black-normal font-normal">
         {i18n.transaction_deadline}
         <Tooltip text={i18n.transaction_deadline_tooltip}>
           <span className="w-12px h-12px ml-6px">
@@ -154,10 +154,10 @@ const SettingsContent: React.FC = () => {
         <span className="block flex-shrink-0 min-w-62px  leading-40px text-14px text-black-light">{i18n.minutes}</span>
       </div>
 
-      <p className="mt-24px mb-12px leading-18px text-14px text-orange-normal font-medium">{i18n.interface_settings}</p>
+      <p className="mt-24px mb-12px leading-18px text-14px text-orange-normal font-normal">{i18n.interface_settings}</p>
 
       <div className="flex justify-between items-center">
-        <p className="flex items-center leading-18px text-14px text-black-normal font-medium">
+        <p className="flex items-center leading-18px text-14px text-black-normal font-normal">
           {i18n.auto_router_api}
           <Tooltip text={i18n.auto_router_api_tooltip}>
             <span className="w-12px h-12px ml-6px">
@@ -169,7 +169,7 @@ const SettingsContent: React.FC = () => {
       </div>
 
       <div className="mt-4px flex justify-between items-center">
-        <p className="flex items-center leading-18px text-14px text-black-normal font-medium">
+        <p className="flex items-center leading-18px text-14px text-black-normal font-normal">
           {i18n.expert_mode}
           <Tooltip text={i18n.expert_mode_tooltip}>
             <span className="w-12px h-12px ml-6px">

@@ -7,7 +7,7 @@ import { useInvertedState } from '../invertedState';
 
 const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; ratio: number | undefined }> = ({ token, amount, ratio }) => {
   return (
-    <div className="flex items-center justify-between text-14px leading-18px font-medium text-black-normal w-full">
+    <div className="flex items-center justify-between text-14px leading-18px font-normal text-black-normal w-full">
       <div className="flex items-center">
         <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
         <span className="ml-8px">{token?.symbol}</span>
@@ -15,7 +15,7 @@ const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; rat
       <div>
         <span>{amount}</span>
         {typeof ratio === 'number' && (
-          <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-medium ml-8px">{ratio}%</span>
+          <span className="inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-normal ml-8px">{ratio}%</span>
         )}
       </div>
     </div>

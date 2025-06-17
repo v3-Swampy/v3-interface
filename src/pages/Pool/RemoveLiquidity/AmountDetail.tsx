@@ -23,7 +23,7 @@ const AmountItem: React.FC<{ className?: string; tokenSymbol: string; amount: st
   className = '',
 }) => {
   return (
-    <div className={cx('font-medium text-xs flex items-center justify-between lt-tiny:flex-wrap', className)}>
+    <div className={cx('font-normal text-xs flex items-center justify-between lt-tiny:flex-wrap', className)}>
       <span className='whitespace-nowrap'>{title}</span>
       <div className="flex items-center">
         <div className='mr-8px text-ellipsis whitespace-nowrap overflow-hidden text-right'>{trimDecimalZeros(amount)}</div>

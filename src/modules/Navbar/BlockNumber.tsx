@@ -15,7 +15,7 @@ const BlockNumber = () => {
   }, []);
 
   return (
-    <div className="mb-[32px] absolute bottom-0 right-24px flex items-center text-14px text-[#8E8E8E] font-medium">
+    <div className="mb-[32px] absolute bottom-0 right-24px flex items-center text-14px text-[#8E8E8E] font-normal">
       <span className="breathing-light mr-4px" />
       {blockNumber}
     </div>
