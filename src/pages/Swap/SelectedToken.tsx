@@ -16,7 +16,7 @@ const transitions = {
   en: {
     select_token: 'Select a token',
     balance: 'Balance',
-    max: 'MAX',
+    max: 'Max',
   },
   zh: {
     select_token: '选择代币',
@@ -91,7 +91,8 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           <Balance className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals} gas={sourceToken?.address === 'CFX' ? cfxGas : undefined}>
             {(balance) => (
               <Button
-                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
+                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium border-1px! hover:bg-orange-normal hover:text-white-normal!"
+                variant='outlined'
                 color="orange"
                 disabled={!balance || balance === '0'}
                 onClick={() => {
