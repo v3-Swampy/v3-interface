@@ -39,16 +39,16 @@ const DataDetailContent: React.FC = () => {
     <div className="flex flex-col p-16px pb-24px leading-18px text-14px text-black-normal justify-between">
       <div className="flex flex-col">
         <p>{compiled(i18n.total_staking, { token: TokenVST?.symbol })}</p>
-        <p className="leading-40px text-32px font-medium mt-24px mb-8px">{totalStakeVST?.toDecimalStandardUnit(2, TokenVST?.decimals) ?? '...'}</p>
-        <p className="font-medium">~ {totalLockedBalanceUSD ? `$${totalLockedBalanceUSD}` : '-'}</p>
+        <p className="leading-40px text-32px font-normal mt-24px mb-8px">{totalStakeVST?.toDecimalStandardUnit(2, TokenVST?.decimals) ?? '...'}</p>
+        <p className="font-normal">~ {totalLockedBalanceUSD ? `$${totalLockedBalanceUSD}` : '-'}</p>
       </div>
       <div className="flex flex-col leading-18px text-14px text-black-normal">
         <p
-          className="font-medium"
+          className="font-normal"
           dangerouslySetInnerHTML={{ __html: compiled(i18n.percentage_of_culatingtion, { token: TokenVST?.symbol, percentage: percentageOfCulatingtion }) }}
         />
         <p
-          className="leading-21px text-14px text-black-normal font-medium"
+          className="leading-21px text-14px text-black-normal font-normal"
           dangerouslySetInnerHTML={{ __html: compiled(i18n.average_stake_duration, { duration: averageStakeDuration }) }}
         />
       </div>

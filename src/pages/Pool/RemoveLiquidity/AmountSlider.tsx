@@ -19,7 +19,7 @@ const AmountSlider: React.FC<{ removePercent: number; setRemovePercent: React.Di
   const marks = useMemo(
     () =>
       [0, 25, 50, 75, 100].reduce((acc: any, cur) => {
-        acc[cur] = <div className={`text-black-normal font-medium leading-15px  text-left  ${cur === 100 ? '-ml-20px' : 'ml-12px'}`}>{cur === 100 ? i18n.max : `${cur}%`}</div>;
+        acc[cur] = <div className={`text-black-normal font-normal leading-15px  text-left  ${cur === 100 ? '-ml-20px' : 'ml-12px'}`}>{cur === 100 ? i18n.max : `${cur}%`}</div>;
         return acc;
       }, {}),
     [i18n]
@@ -31,7 +31,7 @@ const AmountSlider: React.FC<{ removePercent: number; setRemovePercent: React.Di
 
   return (
     <div className="bg-orange-light-hover flex lt-mobile:flex-wrap rounded-20px pt-16px pb-32px px-16px mt-12px">
-      <div className="font-medium text-sm w-114px">
+      <div className="font-normal text-sm w-114px">
         <p className="mb-8px">{i18n.amount}</p>
         <p className="text-32px leading-40px">{removePercent}%</p>
       </div>

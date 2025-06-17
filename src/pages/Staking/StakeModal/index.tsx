@@ -167,7 +167,7 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
 const buttonProps = {
   color: 'orange',
   fullWidth: true,
-  className: 'mt-24px h-48px rounded-100px text-16px font-bold',
+  className: 'mt-24px h-48px rounded-100px text-16px font-medium',
 } as const;
 
 const showStakeModal = (type: ModalMode) => {

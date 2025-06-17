@@ -46,8 +46,8 @@ const transitions = {
 } as const;
 
 const className = {
-  title: 'color-gray-normal text-xs font-500 not-italic leading-15px mb-2 lt-mobile:mb-1',
-  content: 'color-black-normal text-12px font-500 not-italic leading-15px',
+  title: 'color-gray-normal text-xs font-normal not-italic leading-15px mb-2 lt-mobile:mb-1',
+  content: 'color-black-normal text-12px font-normal not-italic leading-15px',
   buttonBase: 'flex items-center h-8 rounded-full py-7px px-20.5px relative cursor-pointer lt-mobile:ml-0 lt-mobile:mt-2 lt-mobile:mb-2',
   buttonFarming: 'bg-green-normal/10 color-green-normal',
   buttonFarmingSolid: 'color-green-normal border border-solid border-green-normal bg-white-normal',
@@ -224,12 +224,12 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
   return (
     <div className="rounded-4 bg-white-normal p-6 mt-6 lt-mobile:pt-8 lt-mobile:px-2 lt-mobile:pb-2 lt-mobile:-mt-4">
       <div className="flex items-center lt-mobile:flex-col lt-mobile:items-start">
-        <span className="text-14px font-500 font-not-italic leading-18px color-gray-normal">
+        <span className="text-14px font-normal font-not-italic leading-18px color-gray-normal">
           {i18n.myPosition} ({positionList.length})
         </span>
         <span className={`${className.incentiveHit} ${isEnded ? 'color-white-normal bg-gray-slight' : 'color-orange-normal bg-orange-normal/10'}`}>
           {isEnded ? null : <ClockIcon className="mr-1 w-12px h-12px" />}
-          <span className="text-12px font-400 font-not-italic leading-15px ml-0.5">Incentive until: {new Date(endTime * 1000).toLocaleString()}</span>
+          <span className="text-12px  font-not-italic leading-15px ml-0.5">Incentive until: {new Date(endTime * 1000).toLocaleString()}</span>
         </span>
       </div>
       <div>

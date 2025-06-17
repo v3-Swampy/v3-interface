@@ -39,7 +39,7 @@ const DetailHeader: React.FC = () => {
       {isOwner && (
         <div className="flex md:justify-end gap-16px lt-mobile:gap-12px lt-mini:gap-8px lt-md:w-full lt-md:mt-24px">
           <Button
-            className="px-24px h-40px rounded-100px text-14px font-medium !text-orange-normal lt-md:max-w-50%"
+            className="px-24px h-40px rounded-100px text-14px font-normal !text-orange-normal lt-md:max-w-50%"
             color="orange-light"
             onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}
           >
@@ -47,7 +47,7 @@ const DetailHeader: React.FC = () => {
           </Button>
           {status && status !== PositionStatus.Closed && (
             <Button
-              className="px-24px h-40px rounded-100px text-14px font-medium lt-md:max-w-50%"
+              className="px-24px h-40px rounded-100px text-14px font-normal lt-md:max-w-50%"
               color="gradient"
               onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}
             >

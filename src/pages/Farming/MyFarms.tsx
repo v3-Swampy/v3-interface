@@ -102,7 +102,7 @@ const MyFarmsItem: React.FC<{
             <span className="flex items-center">
               {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
               <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:w-4" />
-              <span className="font-normal font-500 text-12px leading-15px text-green-normal">{boosting}X</span>
+              <span className="font-normal font-normal text-12px leading-15px text-green-normal">{boosting}X</span>
             </span>
           </div>
         </div>

@@ -44,7 +44,7 @@ const UnclaimedFees: React.FC = () => {
         </div>
         {isOwner && (token0Fee !== '0' || token1Fee !== '0') && (
           <Button
-            className="px-24px h-40px rounded-100px text-14px font-medium"
+            className="px-24px h-40px rounded-100px text-14px font-normal"
             color="gradient"
             onClick={() => showCollectFeesModal({ position, fee0, fee1, tokenId: Number(tokenId) })}
           >

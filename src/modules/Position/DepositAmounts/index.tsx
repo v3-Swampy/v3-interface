@@ -140,7 +140,7 @@ const DepositAmount: React.FC<
             />
 
             {token && (
-              <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium">
+              <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-normal">
                 {<img className="w-24px h-24px mr-4px" src={token.logoURI} alt={`${token.symbol} logo`} />}
                 {token.symbol}
               </div>
@@ -153,7 +153,7 @@ const DepositAmount: React.FC<
               <Balance className="ml-2px" address={token.address} decimals={token.decimals}>
                 {(balance) => (
                   <Button
-                    className="ml-12px px-8px h-20px rounded-4px text-14px font-medium border-1px! hover:bg-orange-normal hover:text-white-normal!"
+                    className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
                     variant='outlined'
                     color="orange"
                     disabled={!balance || balance === '0'}
@@ -230,7 +230,7 @@ const DepositAmounts: React.FC<Props> = ({
 
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
-      <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-medium">{title || i18n.deposit_amounts}</p>
+      <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-normal">{title || i18n.deposit_amounts}</p>
       <DepositAmount
         tokenA={tokenA}
         token={tokenA}

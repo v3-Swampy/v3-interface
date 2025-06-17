@@ -102,8 +102,8 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
             <img className="w-24px h-24px mr-8px" src={token.logoURI} alt={`${token.symbol} logo`} />
 
             <div className="mr-auto">
-              <p className="leading-15px text-12px text-gray-normal font-medium">{token.name}</p>
-              <p className="leading-18px text-14px text-black-normal font-medium">{token.symbol}</p>
+              <p className="leading-15px text-12px text-gray-normal font-normal">{token.name}</p>
+              <p className="leading-18px text-14px text-black-normal font-normal">{token.symbol}</p>
             </div>
 
             {token.fromSearch && (
@@ -178,7 +178,7 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
         <div
           key={token.address}
           className={cx(
-            'inline-flex items-center p-8px pr-12px lt-mobile:p-6px rounded-100px border-2px border-solid  border-orange-light text-14px lt-mobile:text-12px text-black-normal font-medium cursor-pointer transition-colors',
+            'inline-flex items-center p-8px pr-12px lt-mobile:p-6px rounded-100px border-2px border-solid  border-orange-light text-14px lt-mobile:text-12px text-black-normal font-normal cursor-pointer transition-colors',
             currentSelectToken?.address === token.address ? 'bg-orange-light-hover pointer-events-none' : 'bg-transparent hover:bg-orange-light-hover'
           )}
           onClick={() => {

@@ -64,14 +64,14 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentive
     <div className={cx("mt-24px min-h-318px !flex flex-col items-center justify-center", isMobile && 'lt-mobile:relative lt-mobile:min-h-400px')}>
       <WarningIcon className="-mt-8 lt-mobile:w-100px lt-mobile:h-100px"></WarningIcon>
       <div
-        className={cx("text-18px leading-30px font-500 font-not-italic mt-6 w-76", isMobile && 'lt-mobile:text-14px lt-mobile:leading-18px lt-mobile:w-240px')}
+        className={cx("text-18px leading-30px font-normal font-not-italic mt-6 w-76", isMobile && 'lt-mobile:text-14px lt-mobile:leading-18px lt-mobile:w-240px')}
         dangerouslySetInnerHTML={{
           __html: compiled(i18n.info, { symbol0: position?.token0?.symbol, symbol1: position?.token1?.symbol }),
         }}
       ></div>
 
       <div className={cx("absolute bottom-6 left-4 right-4", isMobile && 'lt-mobile:left-0 lt-mobile:right-0')}>
-        <div className="font-400 text-12px leading-20px color-gray-normal text-center mb-2">{i18n.confirmInfo}</div>
+        <div className="text-12px leading-20px color-gray-normal text-center mb-2">{i18n.confirmInfo}</div>
         <div className={cx("flex justify-between", isMobile && 'lt-mobile:justify-around')}>
           <AuthConnectButton className={`${classNames.baseButton} border border-solid bg-white-normal`}>
             <Button

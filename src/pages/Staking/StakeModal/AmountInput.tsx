@@ -31,7 +31,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
 
   return (
     <>
-      <p className="pl-8px mb-8px text-14px text-black-normal font-medium">{i18n.stake_amount}</p>
+      <p className="pl-8px mb-8px text-14px text-black-normal font-normal">{i18n.stake_amount}</p>
       <div className="p-8px pl-16px rounded-16px bg-orange-light-hover mb-16px">
         <div className="flex justify-between items-center">
           <Input
@@ -48,7 +48,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
           />
           <div className="min-w-80px h-40px pl-8px bg-orange-light rounded-full flex items-center">
             <img className="w-24px h-24px mr-4px" src={TokenVST?.logoURI} alt={`${TokenVST?.logoURI} icon`} />
-            <span className="text-14px text-black-normal font-medium">{TokenVST?.symbol}</span>
+            <span className="text-14px text-black-normal font-normal">{TokenVST?.symbol}</span>
           </div>
         </div>
 
@@ -57,7 +57,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
           <Balance className="ml-2px" address={TokenVST.address} decimals={TokenVST.decimals}>
             {(balance) => (
               <Button
-                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium border-1px! hover:bg-orange-normal hover:text-white-normal!"
+                className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
                 variant='outlined'
                 color="orange"
                 disabled={!balance || balance === '0'}

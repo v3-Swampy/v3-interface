@@ -69,7 +69,7 @@ const ClaimAndUnstakeModal: React.FC<ModalType> = ({ isActive, incentive, id, pi
     <div className={cx('mt-24px min-h-318px !flex flex-col items-center justify-center', isMobile && 'lt-mobile:relative lt-mobile:min-h-400px')}>
       <LogoIcon className={cx('-mt-8 w-120px h-120px', isMobile && 'lt-mobile:w-100px lt-mobile:h-100px')} />
       <div
-        className={cx("text-22px leading-28px font-400 font-not-italic mt-8 w-90", isMobile && 'lt-mobile:text-14px lt-mobile:leading-18px lt-mobile:w-240px')}
+        className={cx("text-22px leading-28px font-not-italic mt-8 w-90", isMobile && 'lt-mobile:text-14px lt-mobile:leading-18px lt-mobile:w-240px')}
         dangerouslySetInnerHTML={{
           __html: compiled(i18n.info, { symbol0: position?.token0?.symbol, symbol1: position?.token1?.symbol }),
         }}

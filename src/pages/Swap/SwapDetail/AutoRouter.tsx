@@ -40,12 +40,12 @@ const AutoRouter: React.FC<Props> = ({ bestTrade, networkFee }) => {
     >
       {() => (
         <>
-          <p className="text-gradient-orange ml-24px lt-mobile:ml-16px relative leading-18px text-14px font-medium">{i18n.auto_router}</p>
+          <p className="text-gradient-orange ml-24px lt-mobile:ml-16px relative leading-18px text-14px font-normal">{i18n.auto_router}</p>
           <ArrowDownIcon className="w-8px h-5px absolute right-16px accordion-arrow top-1/2 -translate-y-[calc(50%-2.5px)]" />
         </>
       )}
 
-      <div className="flex justify-between items-center leading-18px text-14px font-medium">
+      <div className="flex justify-between items-center leading-18px text-14px font-normal">
         <RoutingDiagram sourceToken={sourceToken} destinationToken={destinationToken} routes={routes} />
       </div>
 

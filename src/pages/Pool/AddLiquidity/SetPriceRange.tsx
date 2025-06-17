@@ -155,7 +155,7 @@ const RangeInput: React.FC<
   return (
     <div className={cx('flex-grow-1 flex-shrink-1', !priceTokenA && 'opacity-50 pointer-events-none')}>
       <div className="mb-6px flex justify-between w-full">
-        <p className="leading-18px text-14px text-black-normal font-medium">{type === 'lower' ? i18n.min_price : i18n.max_price}</p>
+        <p className="leading-18px text-14px text-black-normal font-normal">{type === 'lower' ? i18n.min_price : i18n.max_price}</p>
 
         {!!tokenA && !!tokenB && <span className="leading-20px text-12px text-gray-normal">{`${tokenB.symbol} ${i18n.per} ${tokenA.symbol}`}</span>}
       </div>
@@ -163,7 +163,7 @@ const RangeInput: React.FC<
       <div className="add-liquidity-price-input relative flex items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light">
         <div
           className={cx(
-            'flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer',
+            'flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-normal transition-colors cursor-pointer',
             shouldHideSubIcon && 'opacity-0 pointer-events-none'
           )}
           onClick={handleClickSub}
@@ -188,12 +188,12 @@ const RangeInput: React.FC<
 
         {type === 'upper' && priceUpper === 'Infinity' && (
           <div className="add-liquidity-price-infinity absolute flex justify-center items-center left-36px h-36px w-56px bg-orange-light-hover pointer-events-none">
-            <span className="text-24px text-black-normal font-medium">∞</span>
+            <span className="text-24px text-black-normal font-normal">∞</span>
           </div>
         )}
         <div
           className={cx(
-            'ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-medium transition-colors cursor-pointer',
+            'ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-normal transition-colors cursor-pointer',
             shouldHideAddIcon && 'opacity-0 pointer-events-none'
           )}
           onClick={handleClickAdd}
@@ -242,11 +242,11 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
 
   return (
     <div className={cx('p-16px rounded-16px bg-orange-light-hover', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
-      <p className="mb-16px leading-18px text-14px text-black-normal font-medium">{i18n.set_price_range}</p>
+      <p className="mb-16px leading-18px text-14px text-black-normal font-normal">{i18n.set_price_range}</p>
 
       {pool !== null && (
         <p className={cx('text-center text-12px text-black-normal font-light transition-opacity', (!tokenA || !tokenB) && 'opacity-0')}>
-          {i18n.current_price}:&nbsp;&nbsp;<span className="font-medium">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
+          {i18n.current_price}:&nbsp;&nbsp;<span className="font-normal">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
           {`${tokenB?.symbol} ${i18n.per} ${tokenA?.symbol}`}
         </p>
       )}
@@ -269,7 +269,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
               onBlur={handlePriceInitChange}
             />
           </div>
-          <div className="flex items-center h-36px px-16px rounded-bl-16px rounded-br-16px bg-orange-light text-14px text-black-normal font-medium">
+          <div className="flex items-center h-36px px-16px rounded-bl-16px rounded-br-16px bg-orange-light text-14px text-black-normal font-normal">
             {compiled(i18n.current_tokenA_price, { tokenASymbol: tokenA?.symbol ?? '' })}: {priceInit}
           </div>
         </>
@@ -307,7 +307,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
       {pool !== null && (
         <div
           className={cx(
-            'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-medium text-black-normal cursor-pointer',
+            'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-normal text-black-normal cursor-pointer',
             !priceTokenA && 'text-gray-normal pointer-events-none'
           )}
           onClick={setFullRange}

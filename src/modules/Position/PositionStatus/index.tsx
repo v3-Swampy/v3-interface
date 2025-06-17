@@ -46,7 +46,7 @@ const PositionStatusFC: React.FC<Props> = ({ position, className, style, ...prop
   const status = usePositionStatus(position);
   return (
     <div
-      className={cx('inline-flex items-center leading-18px text-12px font-medium', !status && 'opacity-0', className)}
+      className={cx('inline-flex items-center leading-18px text-12px font-normal', !status && 'opacity-0', className)}
       style={{ color: status ? PositionStatusMap[status].color : undefined, ...style }}
       {...props}
     >

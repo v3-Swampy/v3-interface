@@ -72,7 +72,7 @@ const CountDown: React.FC = ({}) => {
   return (
     <BorderBox className="relative w-220px rounded-20px lt-mobile:mt-4" variant="gradient-white">
       <div className="w-54 h-16 ">
-        <div className="h-25px font-400 text-12px leading-15px color-white-normal flex items-center justify-center rounded-t-16px gradient-orange-light-hover">
+        <div className="h-25px text-12px leading-15px color-white-normal flex items-center justify-center rounded-t-16px gradient-orange-light-hover">
           {i18n.claimOpeningAt}
           <Tooltip text={compiled(i18n.tooltipClaim, { date: claimTimeDate })}>
             <span className="w-12px h-12px ml-6px">
@@ -90,7 +90,7 @@ const CountDown: React.FC = ({}) => {
             <span className={classNames.colon}>&#58;</span>
             <div className="mr-12px">{seconds}</div>
           </div>
-          <div className="font-400 text-10px leading-13px flex  items-center text-12px text-center mt-2px">
+          <div className="text-10px leading-13px flex  items-center text-12px text-center mt-2px">
             <div className="flex-1 ml--5px">{i18n.days}</div>
             <div className="flex-1">{i18n.hours}</div>
             <div className="flex-1 mr--5px">{i18n.minutes}</div>

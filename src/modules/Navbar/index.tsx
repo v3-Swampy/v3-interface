@@ -34,7 +34,7 @@ const Navbar: React.FC = () => {
           <NavLinks />
         </div>
 
-        <div className="flex-shrink-0 ml-auto mr-16px flex justify-center items-center w-156px h-40px rounded-100px text-14px text-black-normal font-medium bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
+        <div className="flex-shrink-0 ml-auto mr-16px flex justify-center items-center w-156px h-40px rounded-100px text-14px text-black-normal font-normal bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
           <span className="breathing-light" />
           <ConfluxLogo className="w-24px h-24px mx-4px" />
           <span className="lt-mobile:hidden">Conflux eSpace</span>
@@ -57,7 +57,7 @@ const NavLinks: React.FC = () => {
         <NavLink
           key={route.path}
           to={route.path}
-          className={({ isActive }) => cx('text-16px font-medium no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
+          className={({ isActive }) => cx('text-16px font-normal no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
           style={({ isActive }) => ({ color: isActive ? '#E14E28' : '#222222' })}
         >
           <span

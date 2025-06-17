@@ -42,9 +42,9 @@ const ExpertModeModal: React.FC<CommonProps> = ({ className }) => {
   }
   return <div className="flex flex-col items-center">
     <WarningColorIcon className={cx("w-80px h-68px mb-30px", isMobile ? 'mt-44px' : 'mt-72px')} />
-    <p className={cx("text-center text-18px leading-30px text-#000 w-310px font-medium", isMobile ? 'mb-36px' : 'mb-72px')}>{i18n.remind_title}</p>
+    <p className={cx("text-center text-18px leading-30px text-#000 w-310px font-normal", isMobile ? 'mb-36px' : 'mb-72px')}>{i18n.remind_title}</p>
     <p className="text-16px leading-20px text-#8e8e8e mb-16px font-light">{i18n.remind_desc}</p>
-    <Button className="h-48px rounded-100px text-16px w-full !font-bold" onClick={handleConfirm}>
+    <Button className="h-48px rounded-100px text-16px w-full !font-medium" onClick={handleConfirm}>
       <WarningWhiteIcon className="w-16px h-16px mr-8px" />
       {i18n.turn_on_expert_mode}
     </Button>
