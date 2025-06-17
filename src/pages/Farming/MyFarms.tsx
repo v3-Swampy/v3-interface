@@ -161,8 +161,8 @@ const MyFarms = () => {
   if (!account || (myFarmingList.active.length == 0 && myFarmingList.ended.length == 0)) {
     return (
       <div className="mt-4 pt-112px pb-168px flex flex-1 flex-col items-center justify-center">
-        <NoFarms className="w-120px h-120px mb-4" />
-        <span className="text-22px leading-28px">No Farms</span>
+        <NoFarms className="w-120px h-120px mb-2" />
+        <span className="text-14px leading-18px text-gray-normal">No Farms</span>
       </div>
     );
   }
