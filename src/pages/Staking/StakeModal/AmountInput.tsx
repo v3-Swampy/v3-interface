@@ -17,7 +17,7 @@ const transitions = {
   en: {
     stake_amount: 'Stake Amount',
     balance: 'Balance',
-    max: 'MAX',
+    max: 'Max',
   },
   zh: {
     stake_amount: '质押数量',
@@ -57,7 +57,8 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
           <Balance className="ml-2px" address={TokenVST.address} decimals={TokenVST.decimals}>
             {(balance) => (
               <Button
-                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
+                className="ml-12px px-8px h-20px rounded-4px text-14px font-medium border-1px! hover:bg-orange-normal hover:text-white-normal!"
+                variant='outlined'
                 color="orange"
                 disabled={!balance || balance === '0'}
                 onClick={() => setValue('VST-stake-amount', balance)}

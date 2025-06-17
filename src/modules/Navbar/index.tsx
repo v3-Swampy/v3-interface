@@ -9,7 +9,8 @@ import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
 import { routes } from '@router/index';
 import { useRefreshPositions } from '@service/position';
-import AccountDetailDropdown from './/AccountDetailDropdown';
+import BlockNumber from '@modules/Navbar/BlockNumber';
+import AccountDetailDropdown from './AccountDetailDropdown';
 import './index.css';
 
 const Navbar: React.FC = () => {
@@ -23,7 +24,7 @@ const Navbar: React.FC = () => {
         mainScrollerDistance > 1 && 'bg-#FFFDFA'
       )}
     >
-      <nav className="flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
+      <nav className="relative flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
         <NavLink to="/swap" style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined })} className="lt-mobile:h-24px">
           <SmallLogo className="mobile:display-none w-24px h-24px " />
           <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />
@@ -76,11 +77,17 @@ const NavLinks: React.FC = () => {
 
 export const FooterBar: React.FC = () => {
   return (
-    <footer className="md:display-none fixed bottom-0 w-full h-60px border-0px border-t-1px border-solid border-#D9D9D9">
-      <div className="w-full h-full inline-flex justify-evenly items-center bg-white-normal">
-        <NavLinks />
-      </div>
-    </footer>
+    <>
+      <footer className="md:display-none fixed bottom-0 w-full h-60px border-0px border-t-1px border-solid border-#D9D9D9">
+        <div className="w-full h-full inline-flex justify-evenly items-center bg-white-normal">
+          <NavLinks />
+        </div>
+      </footer>
+      <footer className="lt-md:display-none relative mx-auto xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
+        <BlockNumber />
+      </footer>
+    </>
+
   );
 };
 
