@@ -4,6 +4,7 @@ import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import { ReactComponent as NoFarms } from '@assets/icons/no_farms.svg';
 import { ReactComponent as DoublechevrondownIcon } from '@assets/icons/doublechevrondown.svg';
 import Tooltip from '@components/Tooltip';
 import Spin from '@components/Spin';
@@ -158,7 +159,12 @@ const MyFarms = () => {
   }, []);
 
   if (!account || (myFarmingList.active.length == 0 && myFarmingList.ended.length == 0)) {
-    return <div className="mt-4 py-2">Empty List</div>;
+    return (
+      <div className="mt-4 pt-112px pb-168px flex flex-1 flex-col items-center justify-center">
+        <NoFarms className="w-120px h-120px mb-4" />
+        <span className="text-22px leading-28px">No Farms</span>
+      </div>
+    );
   }
 
   if (!account) return <></>;
