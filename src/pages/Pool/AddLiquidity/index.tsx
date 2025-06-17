@@ -183,7 +183,7 @@ const AddLiquidity: React.FC = () => {
                 priceUpper={priceUpper}
               />
 
-              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} />
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} disabled={!tokenA || !tokenB || !isRangeValid} />
             </div>
           </BorderBox>
         </form>

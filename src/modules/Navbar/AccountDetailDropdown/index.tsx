@@ -25,7 +25,7 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
         <Address address={account} className="text-14px text-black-normal font-medium" useTooltip={false} />
       </div>
 
-      <Tooltip visible={isCopied} text="复制成功">
+      <Tooltip visible={isCopied} text="Copied!">
         <div className="mt-8px relative flex items-center pl-50px text-12px text-gray-normal font-medium cursor-pointer" onClick={copy}>
           <CopyIcon className="absolute left-32px" />
           Copy Address

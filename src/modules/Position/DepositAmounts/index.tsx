@@ -16,7 +16,7 @@ const transitions = {
   en: {
     deposit_amounts: 'Deposit Amounts',
     balance: 'Balance',
-    max: 'MAX',
+    max: 'Max',
     outof_range: 'The market price is outside your specified price range. Single-asset deposit only.',
     outof_range_tip: 'Your position will not earn fees or be used in trades until the market price moves into your range.',
   },
@@ -153,7 +153,8 @@ const DepositAmount: React.FC<
               <Balance className="ml-2px" address={token.address} decimals={token.decimals}>
                 {(balance) => (
                   <Button
-                    className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
+                    className="ml-12px px-8px h-20px rounded-4px text-14px font-medium border-1px! hover:bg-orange-normal hover:text-white-normal!"
+                    variant='outlined'
                     color="orange"
                     disabled={!balance || balance === '0'}
                     onClick={() => {

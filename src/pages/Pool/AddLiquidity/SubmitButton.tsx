@@ -17,7 +17,7 @@ const transitions = {
   },
 } as const;
 
-const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSubmitCreate: boolean; }> = ({ amountTokenA, amountTokenB, inSubmitCreate }) => {
+const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSubmitCreate: boolean; disabled: boolean }> = ({ amountTokenA, amountTokenB, inSubmitCreate, disabled }) => {
   const i18n = useI18n(transitions);
   const tokenA = useTokenA()!;
   const tokenB = useTokenB()!;
@@ -26,7 +26,7 @@ const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSub
     <AuthConnectButton {...buttonProps}>
       <AuthTokenButton {...buttonProps} tokenAddress={tokenA?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenA}>
         <AuthTokenButton {...buttonProps} tokenAddress={tokenB?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenB}>
-          <Button {...buttonProps} loading={inSubmitCreate}>{i18n.preview}</Button>
+          <Button {...buttonProps} loading={inSubmitCreate} disabled={disabled}>{i18n.preview}</Button>
         </AuthTokenButton>
       </AuthTokenButton>
     </AuthConnectButton>
