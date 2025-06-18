@@ -6,7 +6,6 @@ import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modul
 import { hidePopup } from '@components/showPopup';
 import { TokenVST } from '@service/tokens';
 import AuthTokenButton from '@modules/AuthTokenButton';
-import AuthConnectButton from '@modules/AuthConnectButton';
 import Button from '@components/Button';
 import { VotingEscrowContract } from '@contracts/index';
 import useInTransaction from '@hooks/useInTransaction';
@@ -158,22 +157,20 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
           {!disabledLockTime && <DurationSelect register={register} setValue={setValue} currentStakeDuration={currentStakeDuration} currentUnlockTime={currentUnlockTime} />}
           <p className="pl-8px mt-16px w-full font-normal text-black-normal" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boosting}x` }) }} />
         </div>
-        <AuthConnectButton {...buttonProps}>
-          <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
-            <div className="flex items-center justify-center flex flex-1">
-              <div className="flex flex-1 items-center mr-4">
-                <Button className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="gray" onClick={hidePopup}>
-                  {i18n.cancel}
-                </Button>
-              </div>
-              <div className="flex flex-1 items-center">
-                <Button className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="orange" loading={inTransaction}>
-                  {i18n.confirm}
-                </Button>
-              </div>
-            </div>
-          </AuthTokenButton>
-        </AuthConnectButton>
+        <div className="flex items-end justify-center flex-1">
+          <div className="flex flex-1 items-center mr-4">
+            <Button className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="gray" onClick={hidePopup}>
+              {i18n.cancel}
+            </Button>
+          </div>
+          <div className="flex flex-1 items-center">
+            <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
+              <Button className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="orange" loading={inTransaction}>
+                {i18n.confirm}
+              </Button>
+            </AuthTokenButton>
+          </div>
+        </div>
       </form>
     </div>
   );
