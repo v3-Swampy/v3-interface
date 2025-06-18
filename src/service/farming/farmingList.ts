@@ -69,6 +69,7 @@ export const incentiveHistory = cachedIncentiveHistory;
       setRecoil(incentiveHistoryState, incentive_history);
     } finally {
       resolveFarmingInit(true);
+      window.location.reload();
     }
   } catch (err) {
     console.error('Failed to get the latest farming data: ', err);
