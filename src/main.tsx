@@ -23,14 +23,14 @@ import '@service/tokens';
 import { targetChainId } from '@service/account';
 
 const WalletConnectProvider = createWalletConnectProvider({
-  projectId: '7e687248f1fa49c26ed5f2cf87404dc8',
+  projectId: '4e899f779e6ccef67d25e3804ace4af1',
   targetChainId: `eip155:${targetChainId}`,
   metadata: {
     name: "vSwap Finance",
     description:
       "A concentrated liquidity DEX on Conflux eSpace",
     url: window.location.host,
-    icons: ["https://walletconnect.com/walletconnect-logo.png"],
+    icons: [`${window.location.origin}/logo.png`],
   },
 });
 
