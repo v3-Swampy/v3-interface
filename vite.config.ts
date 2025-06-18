@@ -77,8 +77,6 @@ export default defineConfig({
       '@components': resolve(__dirname, 'src/components'),
       '@service': resolve(__dirname, 'src/service'),
       '@constants': resolve(__dirname, 'src/constants'),
-      events: 'rollup-plugin-node-polyfills/polyfills/events',
-      buffer: 'rollup-plugin-node-polyfills/polyfills/buffer-es6',
       jsbi: 'jsbi/dist/jsbi-cjs.js',
     },
   },

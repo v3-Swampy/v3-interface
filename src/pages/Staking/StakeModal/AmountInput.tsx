@@ -3,7 +3,7 @@ import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 're
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Balance from '@modules/Balance';
 import Button from '@components/Button';
-import Input from '@components/Input';
+import Input, { defaultDynamicFontSize } from '@components/Input';
 import useI18n from '@hooks/useI18n';
 import { type Token } from '@service/tokens';
 
@@ -45,6 +45,9 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
             })}
             min={new Unit(1).toDecimalStandardUnit(undefined, TokenVST.decimals)}
             step={new Unit(1).toDecimalStandardUnit(undefined, TokenVST.decimals)}
+            decimals={TokenVST.decimals}
+            dynamicFontSize={defaultDynamicFontSize}
+            preventMinus
           />
           <div className="min-w-80px h-40px pl-8px bg-orange-light rounded-full flex items-center">
             <img className="w-24px h-24px mr-4px" src={TokenVST?.logoURI} alt={`${TokenVST?.logoURI} icon`} />

@@ -22,7 +22,6 @@ import './index.css';
 import '@service/tokens';
 import { targetChainId } from '@service/account';
 
-
 const WalletConnectProvider = createWalletConnectProvider({
   projectId: '7e687248f1fa49c26ed5f2cf87404dc8',
   targetChainId: `eip155:${targetChainId}`,
@@ -35,8 +34,8 @@ const WalletConnectProvider = createWalletConnectProvider({
   },
 });
 
-register6963Wallet();
 registerWallet(WalletConnectProvider);
+register6963Wallet();
 
 dayjs.extend(durationPlugin);
 

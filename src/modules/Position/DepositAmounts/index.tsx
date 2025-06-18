@@ -2,7 +2,7 @@ import React, { memo, useRef, useMemo, useLayoutEffect } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type UseFormGetValues, type FieldValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
-import Input from '@components/Input';
+import Input, { defaultDynamicFontSize } from '@components/Input';
 import Button from '@components/Button';
 import Balance from '@modules/Balance';
 import { isTokenEqual, type Token } from '@service/tokens';
@@ -137,6 +137,9 @@ const DepositAmount: React.FC<
               min={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
               step={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
               onBlur={(evt) => changePairAmount.current(evt.target.value)}
+              decimals={token?.decimals}
+              dynamicFontSize={defaultDynamicFontSize}
+              preventMinus
             />
 
             {token && (

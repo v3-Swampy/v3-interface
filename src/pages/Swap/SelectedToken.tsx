@@ -2,7 +2,7 @@ import React, { useEffect, memo } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import Input from '@components/Input';
+import Input, { defaultDynamicFontSize } from '@components/Input';
 import Button from '@components/Button';
 import BorderBox from '@components/Box/BorderBox';
 import Balance from '@modules/Balance';
@@ -53,7 +53,7 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
     <div className="h-96px lt-mobile:h-74px pt-16px pl-24px pr-16px lt-mobile:pt-8px lt-mobile:pl-16px lt-mobile:pr-8px rounded-20px lt-mobile:rounded-14px bg-orange-light-hover">
       <div className="flex justify-between items-center">
         <Input
-          className="text-32px responsive-font-big pr-32px lt-mobile:text-24px"
+          className="text-32px pr-32px lt-mobile:text-24px"
           clearIcon
           disabled={!currentSelectToken}
           placeholder="0"
@@ -65,6 +65,9 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           min={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           step={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           type="number"
+          decimals={currentSelectToken?.decimals}
+          dynamicFontSize={defaultDynamicFontSize}
+          preventMinus
         />
 
         <BorderBox
