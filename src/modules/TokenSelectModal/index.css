@@ -1,3 +1,15 @@
 .list-token-item:not(:has(:hover)):hover {
   @apply hover:bg-orange-light
 }
+
+.token-warning-text {
+  background: linear-gradient(94deg, #EE9B27 -1.32%, #E14D28 46.7%, #6F84B8 95.78%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.token-warning-blur-content {
+  filter: blur(2px);
+  transition: filter 0.3s ease;
+}
