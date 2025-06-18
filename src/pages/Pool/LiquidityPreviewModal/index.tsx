@@ -102,6 +102,7 @@ const showLiquidityPreviewModal = (props: Props) => {
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
     onSuccess: (navigate) => navigate('/pool'),
+    height: 'full',
   });
 };
 

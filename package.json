@@ -53,6 +53,7 @@
     "@use-gesture/react": "^10.2.27",
     "@walletconnect/modal": "^2.7.0",
     "@walletconnect/sign-client": "^2.17.1",
+    "buffer": "^6.0.3",
     "clsx": "^1.2.1",
     "custom-react-scrollbar": "^0.0.4",
     "dayjs": "^1.11.7",
