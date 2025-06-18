@@ -40,7 +40,7 @@ const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSub
 };
 
 const buttonProps = {
-  className: 'mt-16px h-40px rounded-100px',
+  className: 'mt-16px h-40px rounded-100px text-18px',
   fullWidth: true,
 } as const;
 

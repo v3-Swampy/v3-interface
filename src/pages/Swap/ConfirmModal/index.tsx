@@ -155,7 +155,7 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
       <Button
         color="orange"
         fullWidth
-        className={cx('h-48px rounded-100px text-14px', isMobile ? 'mt-16px' : 'mt-auto')}
+        className={cx('h-40px text-18px rounded-100px', isMobile ? 'mt-16px' : 'mt-auto')}
         loading={inTransaction}
         onClick={handleClickConfirm}
         disabled={updateTradeFunc !== null}

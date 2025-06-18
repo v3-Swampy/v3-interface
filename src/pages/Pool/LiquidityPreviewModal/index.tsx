@@ -88,7 +88,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
 
         <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
-        <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
+        <Button color="orange" fullWidth className="mt-16px h-40px rounded-100px text-18px" loading={inTransaction} onClick={handleClickConfirm}>
           {i18n.add}
         </Button>
       </Suspense>

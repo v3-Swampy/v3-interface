@@ -152,7 +152,7 @@ const RemoveLiquidity: React.FC = () => {
             onClick={onClickPreview}
             disabled={!removePercent}
             type="button"
-            className="h-40px max-w-394px w-full rounded-100px mt-32px mx-auto flex"
+            className="h-40px text-18px max-w-394px w-full rounded-100px mt-32px mx-auto flex"
             color={removePercent ? 'gradient' : 'orange'}
           >
             {i18n.preview}
