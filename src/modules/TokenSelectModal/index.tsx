@@ -16,6 +16,7 @@ import { useTokens, useCommonTokens, setCommonToken, fetchTokenInfoByAddress, ad
 import { isMobile } from '@utils/is';
 import { ReactComponent as SearchIcon } from '@assets/icons/search.svg';
 import { ReactComponent as DeleteIcon } from '@assets/icons/delete.svg';
+import SelectTokenWarning from './SelectTokenWarning';
 import './index.css';
 
 const transitions = {
@@ -82,6 +83,8 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
   const usedTokens = useMemo(() => (inSearching ? [] : searchTokens ?? tokens), [searchTokens, tokens, inSearching]);
 
+  const [warningToken, setWarningToken] = useState<Token | null>(null);
+
   const Token = useCallback(
     ({ index, style }: { index: number; style: React.CSSProperties }) => {
       const token = usedTokens[index];
@@ -94,9 +97,13 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
             )}
             onClick={() => {
               addTokenToList(token);
-              onSelect(token);
-              hidePopup();
-              setTimeout(() => setCommonToken(token), 88);
+              if (token.fromSearch) {
+                setWarningToken(token);
+              } else {
+                onSelect(token);
+                hidePopup();
+                setTimeout(() => setCommonToken(token), 88);
+              }
             }}
           >
             <img className="w-24px h-24px mr-8px" src={token.logoURI} alt={`${token.symbol} logo`} />
@@ -137,35 +144,49 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
   }, []);
 
   return (
-    <div className="mt-24px">
-      <div className="flex items-center h-40px px-28px rounded-100px bg-orange-light-hover">
-        <label className="inline-flex items-center pr-12px" htmlFor="input--token_search">
-          <SearchIcon className="flex-shrink-0 w-14px h-14px" />
-        </label>
-        <Input id="input--token_search" className="text-14px h-40px" clearIcon placeholder={i18n.search_placeholder} onChange={handleFilterChange} />
+    <>
+      <div className={cx('mt-24px', warningToken && 'token-warning-blur-content')}>
+        <div className="flex items-center h-40px px-28px rounded-100px bg-orange-light-hover">
+          <label className="inline-flex items-center pr-12px" htmlFor="input--token_search">
+            <SearchIcon className="flex-shrink-0 w-14px h-14px" />
+          </label>
+          <Input id="input--token_search" className="text-14px h-40px" clearIcon placeholder={i18n.search_placeholder} onChange={handleFilterChange} />
+        </div>
+
+        <CommonTokens currentSelectToken={currentSelectToken} onSelect={(token) => (token?.fromSearch ? setWarningToken(token) : onSelect(token))} />
+
+        <div className="my-16px lt-mobile:mt-12px h-2px bg-orange-light-hover" />
+
+        <div
+          className={cx('relative flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover overflow-hidden', isMobile && 'drawer-inner-scroller touch-none')}
+          style={{ minHeight: listHeight }}
+        >
+          {inSearching && (
+            <Delay>
+              <Spin className="!absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-48px" />
+            </Delay>
+          )}
+          {!inSearching && searchTokens && searchTokens.length === 0 && (
+            <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-14px text-black-light">No matching token found</p>
+          )}
+          <FixedSizeList ref={listRef} width="100%" height={listHeight} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
+            {Token}
+          </FixedSizeList>
+        </div>
       </div>
-
-      <CommonTokens currentSelectToken={currentSelectToken} onSelect={onSelect} />
-
-      <div className="my-16px lt-mobile:mt-12px h-2px bg-orange-light-hover" />
-
-      <div
-        className={cx('relative flex flex-col gap-12px pt-12px pb-4px rounded-20px bg-orange-light-hover overflow-hidden', isMobile && 'drawer-inner-scroller touch-none')}
-        style={{ minHeight: listHeight }}
-      >
-        {inSearching && (
-          <Delay>
-            <Spin className="!absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-48px" />
-          </Delay>
-        )}
-        {!inSearching && searchTokens && searchTokens.length === 0 && (
-          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-14px text-black-light">No matching token found</p>
-        )}
-        <FixedSizeList ref={listRef} width="100%" height={listHeight} itemCount={usedTokens.length} itemSize={44} outerElementType={CustomScrollbar}>
-          {Token}
-        </FixedSizeList>
-      </div>
-    </div>
+      {warningToken && (
+        <SelectTokenWarning
+          tokenSymbol={warningToken.symbol}
+          tokenAddress={warningToken.address}
+          onCancel={() => setWarningToken(null)}
+          onConfirm={() => {
+            onSelect(warningToken);
+            hidePopup();
+            setTimeout(() => setCommonToken(warningToken), 88);
+          }}
+        />
+      )}
+    </>
   );
 };
 
@@ -183,6 +204,9 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
           )}
           onClick={() => {
             onSelect(token);
+            if (token.fromSearch) {
+              return;
+            }
             hidePopup();
             setTimeout(() => setCommonToken(token), 88);
           }}
