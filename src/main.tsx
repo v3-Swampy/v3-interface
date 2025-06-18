@@ -14,7 +14,6 @@ import { registerWallet } from '@cfx-kit/react-utils/dist/AccountManage';
 import {
   createWalletConnectProvider,
   register6963Wallet,
-  FluentEthereumProvider,
 } from '@cfx-kit/react-utils/dist/AccountManagePlugins';
 import 'uno.css';
 import 'reseter.css/css/reseter.css';
@@ -38,7 +37,6 @@ const WalletConnectProvider = createWalletConnectProvider({
 
 register6963Wallet();
 registerWallet(WalletConnectProvider);
-registerWallet(FluentEthereumProvider);
 
 dayjs.extend(durationPlugin);
 
