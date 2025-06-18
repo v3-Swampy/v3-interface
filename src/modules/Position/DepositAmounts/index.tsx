@@ -124,7 +124,7 @@ const DepositAmount: React.FC<
         <>
           <div className="flex justify-between items-center">
             <Input
-              className="text-24px responsive-font-small pr-32px lt-mobile:text-16px"
+              className="text-24px pr-32px lt-mobile:text-16px"
               clearIcon
               disabled={!isRangeValid}
               placeholder="0"
