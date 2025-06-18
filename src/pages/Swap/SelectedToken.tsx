@@ -2,7 +2,7 @@ import React, { useEffect, memo } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues } from 'react-hook-form';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import Input from '@components/Input';
+import Input, { defaultDynamicFontSize } from '@components/Input';
 import Button from '@components/Button';
 import BorderBox from '@components/Box/BorderBox';
 import Balance from '@modules/Balance';
@@ -65,6 +65,9 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
           min={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           step={new Unit(1).toDecimalStandardUnit(undefined, currentSelectToken?.decimals)}
           type="number"
+          decimals={currentSelectToken?.decimals}
+          dynamicFontSize={defaultDynamicFontSize}
+          preventMinus
         />
 
         <BorderBox
