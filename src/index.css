@@ -12,14 +12,6 @@ input {
   font-family: 'Outfit';
 }
 
-input.responsive-font-big {
-  font-size: clamp(12px, 2vw, 32px);
-}
-
-input.responsive-font-small {
-  font-size: clamp(12px, 2vw, 24px);
-}
-
 @font-face {
   font-family: 'Outfit';
   src: url('./assets/fonts/Outfit-Light.woff2') format('woff2');
