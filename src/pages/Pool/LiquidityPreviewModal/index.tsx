@@ -81,7 +81,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
 
         <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
           <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
-          <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-medium">
+          <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-normal">
             Fee Tier
             <span>{previewPosition.fee / 10000}%</span>
           </p>
@@ -102,7 +102,6 @@ const showLiquidityPreviewModal = (props: Props) => {
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
     onSuccess: (navigate) => navigate('/pool'),
-    height: 'full'
   });
 };
 

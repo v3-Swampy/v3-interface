@@ -21,7 +21,6 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
 import AuthConnectButton from '@modules/AuthConnectButton';
-import { isMobile } from '@utils/is';
 
 const transitions = {
   en: {
@@ -70,15 +69,15 @@ const Position = ({ data, address, startTime, endTime, pid }: { data: PositionFo
   }, [leftTokenPrice, rightTokenPrice, data.amount0, data.amount1]);
 
   const classNameButton = useMemo(() => {
-    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-500 not-italic color-orange-normal cursor-pointer lt-mobile:mt-20px lt-mobile:w-full lt-mobile:!bg-transparent lt-mobile:!color-orange-normal lt-mobile:border-1';
+    return 'inline-flex shrink-0 items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-normal not-italic color-orange-normal cursor-pointer lt-mobile:mt-20px lt-mobile:w-full lt-mobile:!bg-transparent lt-mobile:!color-orange-normal lt-mobile:border-1';
   }, []);
 
   return (
     <div className="rounded-4 bg-orange-light-hover p-4 flex justify-between items-center mb-4 lt-mobile:flex-col" key={data.id}>
       <div className="lt-mobile:w-full">
         <div>
-          <span className="font-400 font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
-          <span className="font-500 font-not-italic text-14px leading-18px color-black-normal mr-2">{liquidity}</span>
+          <span className="font-not-italic text-14px leading-18px color-gray-normal mr-0.5">{i18n.liquidity}</span>
+          <span className="font-normal font-not-italic text-14px leading-18px color-black-normal mr-2">{liquidity}</span>
           <PositionStatus position={data} />
         </div>
         <PriceRange position={data} type="horizontal" />
@@ -127,7 +126,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   }, [positions, address]);
 
   const classNameLink = useMemo(() => {
-    return 'font-500 font-not-italic text-14px leading-18px color-orange-normal underline mt-4 text-center cursor-pointer';
+    return 'font-normal font-not-italic text-14px leading-18px color-orange-normal underline mt-4 text-center cursor-pointer';
   }, []);
 
   const handleNavigate = useCallback(() => {
@@ -144,9 +143,9 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
     return (
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
         <img className="-mt-8 w-120px h-120px lt-mobile:w-100px lt-mobile:h-100px" src={logo} />
-        <div className="text-22px leading-28px font-400 font-not-italic mt-8 lt-mobile:text-14px lt-mobile:font-500 lt-mobile:leading-18px">{i18n.null}</div>
+        <div className="text-22px leading-28px font-not-italic mt-8 lt-mobile:text-14px lt-mobile:font-normal lt-mobile:leading-18px">{i18n.null}</div>
         {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
-        <div className={cx(classNameLink, isMobile && 'lt-mobile:mt-36px')} onClick={handleNavigate}>
+        <div className={cx(classNameLink, "lt-mobile:mt-36px")} onClick={handleNavigate}>
           <span>
             {compiled(i18n.provide, {
               leftToken: leftToken.symbol,
@@ -158,15 +157,15 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
     );
   } else {
     return (
-      <div className={cx("mt-24px", isMobile && 'lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto drawer-inner-scroller')}>
-        <div className={cx("max-h-454px min-h-318px overflow-y-auto", isMobile && 'lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto')}>
+      <div className="mt-24px lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto lt-mobile:drawer-inner-scroller">
+        <div className="max-h-454px min-h-318px overflow-y-auto lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto">
           {fPositions.map((p) => {
             return <Position data={p} address={address} startTime={startTime} endTime={endTime} pid={pid}></Position>;
           })}
         </div>
         <div className="text-center">
           {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
-          <div className={cx(classNameLink, isMobile && 'lt-mobile:mt-24px lt-mobile:mb-4')} onClick={handleNavigate}>
+          <div className={cx(classNameLink, "lt-mobile:mt-24px lt-mobile:mb-4")} onClick={handleNavigate}>
             {compiled(i18n.more, {
               leftToken: leftToken.symbol,
               rightToken: rightToken.symbol,

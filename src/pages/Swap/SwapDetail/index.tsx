@@ -119,25 +119,25 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
           bestTrade.state !== TradeState.VALID ? (
             <>
               {bestTrade.state === TradeState.INVALID && (
-                <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-gray-normal font-medium">
+                <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-gray-normal font-normal">
                   Enter the target amount in any input box to get the best price automatically
                 </div>
               )}
               {bestTrade.state === TradeState.LOADING && (
-                <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-black-normal font-medium">
+                <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-black-normal font-normal">
                   <Spin className="mr-10px" />
                   Fetching best price...
                 </div>
               )}
               {bestTrade.state === TradeState.ERROR && (
-                <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-error-normal font-medium cursor-pointer underline">
+                <div className="ml-24px lt-mobile:ml-16px flex items-center leading-18px text-14px text-error-normal font-normal cursor-pointer underline">
                   {bestTrade.error ?? 'Fetching best price Failed, please wait a moment and try again.'}
                 </div>
               )}
             </>
           ) : (
             <>
-              <div className="ml-24px lt-mobile:ml-16px relative leading-18px text-14px text-black-normal font-medium cursor-ew-resize" onClick={handleClickAccordionTitle}>
+              <div className="ml-24px lt-mobile:ml-16px relative leading-18px text-14px text-black-normal font-normal cursor-ew-resize" onClick={handleClickAccordionTitle}>
                 {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
                 {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
               </div>
@@ -165,7 +165,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
               <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
             </span>
           </Tooltip>
-          <span className="font-medium text-black-normal">
+          <span className="font-normal text-black-normal">
             {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
           </span>
         </div>
@@ -177,7 +177,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
               <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
             </span>
           </Tooltip>
-          <span className="font-medium text-gray-normal">{bestTrade?.trade?.priceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
+          <span className="text-gray-normal">{bestTrade?.trade?.priceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
         </div>
 
         {tradeType !== undefined && (
@@ -189,7 +189,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
                     {tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received : i18n.maximum_send} ({slippageForUi} %)
                     <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
                   </span>
-                  <span className="font-medium">
+                  <span>
                     {slippageAmount} {tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}
                   </span>
                 </div>
@@ -205,7 +205,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
               <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
             </span>
           </Tooltip>
-          <span className="font-medium ">{networkFee}</span>
+          <span>{networkFee}</span>
         </div>
       </Accordion>
       {!fromPreview && readyToShowAutoRouter && <AutoRouter bestTrade={bestTrade} networkFee={networkFee} />}

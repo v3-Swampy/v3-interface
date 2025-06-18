@@ -13,7 +13,7 @@ const PriceRange: React.FC<{ position: PositionForUI; type?: 'verticle' | 'horiz
   // verticle is default
   // horizontal used in farming stakeLP list
   const classNames = useMemo(() => {
-    const wrapper = 'flex items-center leading-16px mt-4px text-12px font-medium whitespace-nowrap';
+    const wrapper = 'flex items-center leading-16px mt-4px text-12px font-normal whitespace-nowrap';
     const price = 'text-gray-normal';
     const arrow = 'w-16px h-8px flex-shrink-0 mx-8px';
 

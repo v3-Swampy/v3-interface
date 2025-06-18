@@ -102,7 +102,7 @@ const MyFarmsItem: React.FC<{
             <span className="flex items-center">
               {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
               <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:w-4" />
-              <span className="font-normal font-500 text-12px leading-15px text-green-normal">{boosting}X</span>
+              <span className="font-normal font-normal text-12px leading-15px text-green-normal">{boosting}X</span>
             </span>
           </div>
         </div>
@@ -161,8 +161,8 @@ const MyFarms = () => {
   if (!account || (myFarmingList.active.length == 0 && myFarmingList.ended.length == 0)) {
     return (
       <div className="mt-4 pt-112px pb-168px flex flex-1 flex-col items-center justify-center">
-        <NoFarms className="w-120px h-120px mb-4" />
-        <span className="text-22px leading-28px">No Farms</span>
+        <NoFarms className="w-120px h-120px mb-2" />
+        <span className="text-14px leading-18px text-gray-normal">No Farms</span>
       </div>
     );
   }

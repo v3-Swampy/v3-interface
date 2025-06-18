@@ -37,7 +37,7 @@ const LiquidityDetail: React.FC = () => {
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
         <div className="mb-16px lt-mobile:mb-12px flex items-center pl-8px pr-16px">
-          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-40px text-24px lt-mobile:text-18px text-gray-normal font-medium">
+          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-40px text-24px lt-mobile:text-18px text-gray-normal font-normal">
             <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.back_to_pools}
           </Link>

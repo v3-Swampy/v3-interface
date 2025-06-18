@@ -1,6 +1,6 @@
 /** common **/
 .button {
-  @apply relative inline-flex justify-center items-center whitespace-nowrap outline-none transition-colors transition-opacity font-medium no-underline cursor-pointer;
+  @apply relative inline-flex justify-center items-center whitespace-nowrap outline-none transition-colors transition-opacity font-normal no-underline cursor-pointer;
   font-family: 'Outfit';
 }
 

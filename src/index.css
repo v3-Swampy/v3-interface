@@ -1,6 +1,7 @@
 html {
   font-family: 'Outfit';
   scroll-behavior: smooth;
+  font-weight: 300;
 }
 
 :root {
@@ -9,14 +10,6 @@ html {
 
 input {
   font-family: 'Outfit';
-}
-
-input.responsive-font-big {
-  font-size: clamp(12px, 2vw, 32px);
-}
-
-input.responsive-font-small {
-  font-size: clamp(12px, 2vw, 24px);
 }
 
 @font-face {

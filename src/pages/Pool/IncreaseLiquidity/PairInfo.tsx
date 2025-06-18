@@ -31,7 +31,7 @@ const PairInfo: React.FC<{ position: PositionForUI | undefined }> = ({ position 
       </div>
       <div className="flex flex-col w-full mt-12px rounded-20px bg-orange-light-hover p-16px">
         <TokenPairAmount amount0={amount0} amount1={amount1} position={position} tokenId={tokenId} />
-        <div className="mt-18px pl-32px font-medium text-sm flex justify-between text-black-normal">
+        <div className="mt-18px pl-32px font-normal text-sm flex justify-between text-black-normal">
           <span>{i18n.feeTier}</span>
           <span>{(fee ?? 0) / 10000}%</span>
         </div>

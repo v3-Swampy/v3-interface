@@ -186,7 +186,7 @@ const History: React.FC = () => {
   return (
     <>
       <div className="mt-26px mb-16px flex items-center">
-        <span className="text-14px text-black-normal font-medium">Transactions</span>
+        <span className="text-14px text-black-normal font-normal">Transactions</span>
         {hasPending && (
           <span className="ml-4px inline-block flex justify-center items-center w-20px h-20px rounded-4px bg-orange-light">
             <Spin className="text-12px text-orange-normal" />
@@ -198,7 +198,7 @@ const History: React.FC = () => {
         </Button>
       </div>
       <CustomScrollbar className="max-h-294px">
-        {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-medium">No transaction history</p>}
+        {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-normal">No transaction history</p>}
         <FixedSizeList width="100%" height={height} itemCount={history.length} itemSize={46} outerElementType={CustomScrollbar}>
           {Record}
         </FixedSizeList>
