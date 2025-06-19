@@ -36,7 +36,7 @@
     }
   },
   "dependencies": {
-    "@cfx-kit/react-utils": "^0.0.55",
+    "@cfx-kit/react-utils": "^0.0.56",
     "@cfx-kit/wallet-avatar": "^0.0.3",
     "@cfxjs/use-wallet-react": "^0.0.8",
     "@ethersproject/abi": "^5.7.0",
@@ -51,8 +51,6 @@
     "@uniswap/v3-sdk": "3.9.0",
     "@uniswap/v3-staker": "1.0.2",
     "@use-gesture/react": "^10.2.27",
-    "@walletconnect/modal": "^2.7.0",
-    "@walletconnect/sign-client": "^2.17.1",
     "buffer": "^6.0.3",
     "clsx": "^1.2.1",
     "custom-react-scrollbar": "^0.0.4",
