@@ -21,6 +21,7 @@ import 'custom-react-scrollbar/dist/style.css';
 import './index.css';
 import '@service/tokens';
 import { targetChainId } from '@service/account';
+import { isInMobileWalletBrowser } from '@utils/is';
 
 const WalletConnectProvider = createWalletConnectProvider({
   projectId: '4e899f779e6ccef67d25e3804ace4af1',
@@ -34,7 +35,9 @@ const WalletConnectProvider = createWalletConnectProvider({
   },
 });
 
-registerWallet(WalletConnectProvider);
+if (!isInMobileWalletBrowser()) {
+  registerWallet(WalletConnectProvider);
+}
 register6963Wallet();
 
 dayjs.extend(durationPlugin);
