@@ -36,9 +36,9 @@
     }
   },
   "dependencies": {
-    "@cfx-kit/react-utils": "0.0.54",
+    "@cfx-kit/react-utils": "^0.0.55",
     "@cfx-kit/wallet-avatar": "^0.0.3",
-    "@cfxjs/use-wallet-react": "0.0.7",
+    "@cfxjs/use-wallet-react": "^0.0.8",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/properties": "^5.7.0",
