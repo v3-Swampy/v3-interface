@@ -144,7 +144,6 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
         <img className="-mt-8 w-120px h-120px lt-mobile:w-100px lt-mobile:h-100px" src={logo} />
         <div className="text-22px leading-28px font-not-italic mt-8 lt-mobile:text-14px lt-mobile:font-normal lt-mobile:leading-18px">{i18n.null}</div>
-        {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
         <div className={cx(classNameLink, "lt-mobile:mt-36px")} onClick={handleNavigate}>
           <span>
             {compiled(i18n.provide, {
@@ -164,7 +163,6 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
           })}
         </div>
         <div className="text-center">
-          {/* TODO link to should be like /pool/add_liquidity?left=cfx&right=usdt */}
           <div className={cx(classNameLink, "lt-mobile:mt-24px lt-mobile:mb-4")} onClick={handleNavigate}>
             {compiled(i18n.more, {
               leftToken: leftToken.symbol,

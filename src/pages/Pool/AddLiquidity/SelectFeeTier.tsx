@@ -57,10 +57,8 @@ const SelectDropdown: React.FC<{ setVisible: (visible: boolean) => void }> = ({ 
           >
             <div className="mr-auto">
               <p className="text-18px leading-24px text-black-normal font-normal">{FeeAmountValues[index] / 10000}%</p>
-              {/* TODO hide temporary */}
               {/* <p className="text-14px leading-20px text-gray-normal">Best for most pairs</p> */}
             </div>
-            {/* TODO hide temporary */}
             {/* <span className="text-12px text-black-light font-light">1% select</span> */}
           </div>
         )
@@ -90,7 +88,6 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
             )}
           >
             <span className="text-18px text-black-normal font-normal mr-auto">{currentFee / 10000}% fee tier</span>
-            {/* TODO hide temporary */}
             {/* <span className="px-8px h-20px leading-20px rounded-4px bg-orange-light-hover text-12px text-black-light font-light">93% select</span> */}
             <span className={cx('ml-12px flex-shrink-0 transition-transform', visible && 'rotate-180deg')}>
               <ArrowDownIcon className="w-8px h-5px" />

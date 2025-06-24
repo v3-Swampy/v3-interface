@@ -15,7 +15,7 @@ import { TokenVST, type Token } from '@service/tokens';
 
 export interface FarmingPosition extends PositionForUI {
   isActive: boolean; //whether the incentive status of this position is active,that is when the incentive that you are in is your current incentive, it is true.
-  whichIncentiveTokenIn: IncentiveKey;
+  whichIncentiveTokenIn?: IncentiveKey;
   claimable?: number;
 }
 
@@ -387,7 +387,7 @@ const whichIncentiveTokenIdInState = selectorFamily({
     async ({ get }) => {
       const position = get(positionQueryByTokenId(tokenId));
       const incentives = getPastIncentivesOfPool(position?.address);
-      let res: { index: number; incentive: IncentiveKey; incentiveId: string } = null!; // TODO: Not sure if null is possible
+      let res: { index: number; incentive: IncentiveKey; incentiveId: string } | null = null;
       for (let index = 0; index < incentives.length; index++) {
         const incentive = incentives[index];
         const incentiveId = computeIncentiveKey(incentive);
@@ -415,8 +415,8 @@ const stakedPositionsQuery = selector<Array<FarmingPosition>>({
     stakedPositions.map((position) => {
       const _position = { ...position } as FarmingPosition;
       const whichIncentiveTokenIn = get(whichIncentiveTokenIdInState(position.id));
-      _position.isActive = whichIncentiveTokenIn.index == currentIndex;
-      _position.whichIncentiveTokenIn = whichIncentiveTokenIn.incentive;
+      _position.isActive = whichIncentiveTokenIn?.index == currentIndex;
+      _position.whichIncentiveTokenIn = whichIncentiveTokenIn?.incentive;
       _stakedPositions.push(_position);
     });
     return _stakedPositions;
@@ -511,7 +511,7 @@ export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean)
 export const useIsPositionActive = (tokenId: number) => {
   const whichIncentiveTokenIDIn = useWhichIncentiveTokenIdIn(tokenId);
   return useMemo(() => {
-    return whichIncentiveTokenIDIn.index == getCurrentIncentiveIndex();
+    return whichIncentiveTokenIDIn?.index == getCurrentIncentiveIndex();
   }, [tokenId.toString()]);
 };
 
