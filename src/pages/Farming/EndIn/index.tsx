@@ -94,14 +94,17 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
   }
 
   return (
-    <BorderBox className="rounded-7 lt-mobile:rounded-4" variant="gradient-white">
+    <BorderBox className="rounded-7 lt-mobile:rounded-4 overflow-hidden" variant="gradient-white">
       {(state === 'urgent' || state === 'normal') && (
-        <div className="flex items-center p-4 text-14px leading-24px font-normal color-white-normal lt-mobile:px-4 lt-mobile:py-3">
+        <div 
+          className="flex items-center p-4 pb-11 text-14px leading-24px font-normal color-white-normal lt-mobile:px-4 lt-mobile:py-3 lt-mobile:pb-7"
+          style={{ background: 'linear-gradient(94.16deg, #EE9B27 -1.32%, #E14D28 46.7%, #6F84B8 95.78%)' }}
+        >
           <AlarmClockIcon className="mr-2 w-6 h-6 flex-shrink-0" />
           <span dangerouslySetInnerHTML={{ __html: fTimeLeft }}></span>
         </div>
       )}
-      <div className={`bg-white-normal rounded-7 lt-mobile:rounded-4 p-4`}>{children}</div>
+      <div className={`-mt-7 lt-mobile:-mt-4 bg-white-normal rounded-7 lt-mobile:rounded-4 p-4`}>{children}</div>
     </BorderBox>
   );
 };
