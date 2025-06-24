@@ -159,7 +159,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
       <div className="mt-24px lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto lt-mobile:drawer-inner-scroller">
         <div className="max-h-454px min-h-318px overflow-y-auto lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto">
           {fPositions.map((p) => {
-            return <Position data={p} address={address} startTime={startTime} endTime={endTime} pid={pid}></Position>;
+            return <Position key={pid} data={p} address={address} startTime={startTime} endTime={endTime} pid={pid}></Position>;
           })}
         </div>
         <div className="text-center">
