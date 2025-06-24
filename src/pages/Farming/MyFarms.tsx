@@ -48,10 +48,10 @@ const MyFarmsItem: React.FC<{
   const [isShow, setIsShow] = useState<boolean>(false);
   const currentIncentive = getCurrentIncentivePeriod();
   const boosting = useBoostFactor();
-  const token0Pirce = useTokenPrice(token0.address);
-  const token1Pirce = useTokenPrice(token1.address);
-  const totalLiquidity = useCalcTotalLiquidity(positions, token0Pirce || '0', token1Pirce || '0');
-  const inFetchingTokenPrice = token0Pirce === undefined || token1Pirce === undefined;
+  const token0Price = useTokenPrice(token0.address);
+  const token1Price = useTokenPrice(token1.address);
+  const totalLiquidity = useCalcTotalLiquidity(positions, token0Price || '0', token1Price || '0');
+  const inFetchingTokenPrice = token0Price === undefined || token1Price === undefined;
 
   const handleShow = () => {
     setIsShow(!isShow);
@@ -97,7 +97,7 @@ const MyFarmsItem: React.FC<{
           <div className={`${classNames.title}`}>{i18n.APR}</div>
           {/* <div className={`${classNames.content} flex items-center lt-mobile:flex-col lt-mobile:items-start`}> */}
           <div className={`${classNames.content} flex items-center`}>
-            {/* TODO: hardcode the APR in first stage */}
+            {/* TODO: should display my farms apr */}
             <span className="">Infinity%</span>
             <span className="flex items-center">
               {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
@@ -123,12 +123,11 @@ const MyFarmsItem: React.FC<{
           </div>
           <div className={`${classNames.content}`}>{totalClaimable ? numFormat(new Unit(totalClaimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
         </div>
-        {/* TODO should use first one */}
         <div className="flex items-center justify-end col-span-1 lt-mobile:hidden">
-          <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
+          <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-180' : 'rotate-0'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Pirce={token0Pirce || ''} token1Pirce={token1Pirce || ''}></Positions>}
+      {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Price={token0Price || ''} token1Price={token1Price || ''}></Positions>}
       <div className={`hidden lt-mobile:block lt-mobile:bg-white-normal lt-mobile:-mb-0 lt-mobile:rounded-2xl lt-mobile:-mt-4 lt-mobile:pt-4`}>
         <div className="h-28px flex items-center justify-center">
           <DoublechevrondownIcon onClick={handleShow} className={`cursor-pointer w-24px h-24px ${isShow ? 'rotate-180' : 'rotate-0'}`}></DoublechevrondownIcon>

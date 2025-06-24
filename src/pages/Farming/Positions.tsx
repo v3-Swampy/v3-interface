@@ -3,7 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPostionLiquidity } from '@service/farming/myFarms';
+import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPositionLiquidity } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
 import { useAccount, useIsChainMatch } from '@service/account';
@@ -57,7 +57,7 @@ const className = {
   buttonFamingAndPauseMobile: 'lt-mobile:w-[fit-content] lt-mobile:h-24px lt-mobile:px-2 lt-mobile:text-12px lt-mobile:leading-15px lt-mobile:py-0 lt-mobile:!mt-0',
 };
 
-const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0Pirce: string; token1Pirce: string }> = ({ position, pid, token0Pirce, token1Pirce }) => {
+const PositionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0Price: string; token1Price: string }> = ({ position, pid, token0Price, token1Price }) => {
   const { claimable, isActive } = position;
   const i18n = useI18n(transitions);
   const account = useAccount();
@@ -67,15 +67,15 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   const { inTransaction: claimIntransaction, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
   const isCanClaim = useCanClaim();
   const isChainMath = useIsChainMatch();
-  const inFetchingTokenPrice = token0Pirce === '' || token1Pirce === '';
+  const inFetchingTokenPrice = token0Price === '' || token1Price === '';
 
   const isPaused = useMemo(() => {
     return isActive ? status == PositionStatus.OutOfRange : true;
   }, [status]);
 
   const liquidity = useMemo(() => {
-    return calcPostionLiquidity(position, token0Pirce, token1Pirce);
-  }, [position, token0Pirce, token1Pirce]);
+    return calcPositionLiquidity(position, token0Price, token1Price);
+  }, [position, token0Price, token1Price]);
 
   return (
     <div
@@ -209,12 +209,12 @@ const PostionItem: React.FC<{ position: MyFarmsPositionType; pid: number; token0
   );
 };
 
-const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: number; isEnded: boolean; token0Pirce: string; token1Pirce: string }> = ({
+const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: number; isEnded: boolean; token0Price: string; token1Price: string }> = ({
   positionList,
   pid,
   isEnded,
-  token0Pirce,
-  token1Pirce,
+  token0Price,
+  token1Price,
 }) => {
   const i18n = useI18n(transitions);
   const currentIncentive = getCurrentIncentivePeriod();
@@ -234,7 +234,7 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
       </div>
       <div>
         {positionList.map((p: any, i) => (
-          <PostionItem position={p} key={p.tokenId} pid={pid} token0Pirce={token0Pirce} token1Pirce={token1Pirce} />
+          <PositionItem position={p} key={p.tokenId} pid={pid} token0Price={token0Price} token1Price={token1Price} />
         ))}
       </div>
     </div>

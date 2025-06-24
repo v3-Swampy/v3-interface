@@ -231,6 +231,8 @@ export const usePoolsQuery = () => {
        * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
        * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
        */
+      // TODO: tvl is not accurate, need to calculate the liquidity of the pool
+      // TODO: apr range should divide tvl not totalSupply
       const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
       const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(totalAllocPoint).mul(price).div(totalSupply).mul(31536000);
       const APRLow = APRHigh.mul(0.33);
@@ -281,7 +283,7 @@ export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {
   return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])]);
 };
 
-export const geLiquility = (position: FarmingPosition, token0Price?: string | null, token1Price?: string | null) => {
+export const geLiquidity = (position: FarmingPosition, token0Price?: string | null, token1Price?: string | null) => {
   if (token0Price && token1Price && position.amount0 && position.amount1) {
     return position.amount0.mul(token0Price).add(position.amount1.mul(token1Price));
   }

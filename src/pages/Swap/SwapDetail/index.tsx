@@ -139,7 +139,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             <>
               <div className="ml-24px lt-mobile:ml-16px relative leading-18px text-14px text-black-normal font-normal cursor-ew-resize" onClick={handleClickAccordionTitle}>
                 {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
-                {fromTokenUSDPrice && <>&nbsp;&nbsp;({trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))}$)</>}
+                {fromTokenUSDPrice && <>&nbsp;&nbsp;(${trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))})</>}
               </div>
               {networkFee && (
                 <span
