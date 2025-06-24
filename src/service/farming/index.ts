@@ -283,7 +283,7 @@ export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {
   return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])]);
 };
 
-export const geLiquidity = (position: FarmingPosition, token0Price?: string | null, token1Price?: string | null) => {
+export const getLiquidity = (position: FarmingPosition, token0Price?: string | null, token1Price?: string | null) => {
   if (token0Price && token1Price && position.amount0 && position.amount1) {
     return position.amount0.mul(token0Price).add(position.amount1.mul(token1Price));
   }
