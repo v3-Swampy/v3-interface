@@ -7,7 +7,7 @@ import { enhancePositionForUI, positionQueryByTokenId, positionsQueryByTokenIds,
 import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';
 import { fetchMulticall, NonfungiblePositionManager, UniswapV3Staker } from '@contracts/index';
 import { useTokenPrice, type Pool, fetchPools } from '@service/pairs&pool';
-import _ from 'lodash-es';
+import * as _ from 'lodash-es';
 import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
 import { decodePosition } from '@service/position/positions';
 import Decimal from 'decimal.js';
@@ -116,7 +116,7 @@ const myFarmsPoolsQuery = selector({
   key: `myFarmsPoolsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(myFarmsPositionsQuery);
-    return fetchPools(_.uniqBy(positions, (p) => p.address));
+    return fetchPools(_.uniqBy(positions, (p: any) => p.address));
   },
 });
 
@@ -503,8 +503,8 @@ export const useRefreshStakedTokenIds = () => useRecoilRefresher_UNSTABLE(staked
 export const useRefreshMyFarmsListQuery = () => useRecoilRefresher_UNSTABLE(myFarmsListQuery);
 
 export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean) => {
-  const stakedPostions = useStakedPositions();
-  const positions = useMemo(() => stakedPostions.filter((position) => position.address == poolAddress && position.isActive == isActive), [stakedPostions]);
+  const stakedPositions = useStakedPositions();
+  const positions = useMemo(() => stakedPositions.filter((position) => position.address == poolAddress && position.isActive == isActive), [stakedPositions]);
   return positions;
 };
 
@@ -552,7 +552,7 @@ export const useCalcTotalLiquidity = (positions: Array<MyFarmsPositionType>, tok
     if (!!positions.length && token0Price !== '0' && token1Price !== '0') {
       let total = new Decimal(0);
       positions.map((p) => {
-        const positionLiquidity = calcPostionLiquidity(p, token0Price, token1Price);
+        const positionLiquidity = calcPositionLiquidity(p, token0Price, token1Price);
         total = total.add(positionLiquidity);
       });
       return total;
@@ -562,7 +562,7 @@ export const useCalcTotalLiquidity = (positions: Array<MyFarmsPositionType>, tok
   }, [positions, token0Price, token1Price]);
 };
 
-export const calcPostionLiquidity = (_position: MyFarmsPositionType, token0Price: string, token1Price: string) => {
+export const calcPositionLiquidity = (_position: MyFarmsPositionType, token0Price: string, token1Price: string) => {
   const position = _position.position;
   const token0Total = new Decimal(position.amount0?.toDecimalStandardUnit(undefined, position.token0.decimals) || 0).mul(token0Price || 0);
   const token1Total = new Decimal(position.amount1?.toDecimalStandardUnit(undefined, position.token1.decimals) || 0).mul(token1Price || 0);

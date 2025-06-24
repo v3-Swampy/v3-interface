@@ -48,10 +48,10 @@ const MyFarmsItem: React.FC<{
   const [isShow, setIsShow] = useState<boolean>(false);
   const currentIncentive = getCurrentIncentivePeriod();
   const boosting = useBoostFactor();
-  const token0Pirce = useTokenPrice(token0.address);
-  const token1Pirce = useTokenPrice(token1.address);
-  const totalLiquidity = useCalcTotalLiquidity(positions, token0Pirce || '0', token1Pirce || '0');
-  const inFetchingTokenPrice = token0Pirce === undefined || token1Pirce === undefined;
+  const token0Price = useTokenPrice(token0.address);
+  const token1Price = useTokenPrice(token1.address);
+  const totalLiquidity = useCalcTotalLiquidity(positions, token0Price || '0', token1Price || '0');
+  const inFetchingTokenPrice = token0Price === undefined || token1Price === undefined;
 
   const handleShow = () => {
     setIsShow(!isShow);
@@ -128,7 +128,7 @@ const MyFarmsItem: React.FC<{
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Pirce={token0Pirce || ''} token1Pirce={token1Pirce || ''}></Positions>}
+      {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Price={token0Price || ''} token1Price={token1Price || ''}></Positions>}
       <div className={`hidden lt-mobile:block lt-mobile:bg-white-normal lt-mobile:-mb-0 lt-mobile:rounded-2xl lt-mobile:-mt-4 lt-mobile:pt-4`}>
         <div className="h-28px flex items-center justify-center">
           <DoublechevrondownIcon onClick={handleShow} className={`cursor-pointer w-24px h-24px ${isShow ? 'rotate-180' : 'rotate-0'}`}></DoublechevrondownIcon>
