@@ -231,6 +231,8 @@ export const usePoolsQuery = () => {
        * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
        * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
        */
+      // TODO: tvl is not accurate, need to calculate the liquidity of the pool
+      // TODO: apr range should divide tvl not totalSupply
       const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
       const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(totalAllocPoint).mul(price).div(totalSupply).mul(31536000);
       const APRLow = APRHigh.mul(0.33);

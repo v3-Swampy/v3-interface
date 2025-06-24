@@ -97,7 +97,7 @@ const MyFarmsItem: React.FC<{
           <div className={`${classNames.title}`}>{i18n.APR}</div>
           {/* <div className={`${classNames.content} flex items-center lt-mobile:flex-col lt-mobile:items-start`}> */}
           <div className={`${classNames.content} flex items-center`}>
-            {/* TODO: hardcode the APR in first stage */}
+            {/* TODO: should display my farms apr */}
             <span className="">Infinity%</span>
             <span className="flex items-center">
               {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
@@ -123,9 +123,8 @@ const MyFarmsItem: React.FC<{
           </div>
           <div className={`${classNames.content}`}>{totalClaimable ? numFormat(new Unit(totalClaimable).toDecimalStandardUnit(2, TokenVST.decimals)) : 0} VST</div>
         </div>
-        {/* TODO should use first one */}
         <div className="flex items-center justify-end col-span-1 lt-mobile:hidden">
-          <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-0' : 'rotate-90'}`}></ChevronDownIcon>
+          <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-180' : 'rotate-0'}`}></ChevronDownIcon>
         </div>
       </div>
       {isShow && <Positions positionList={positions} pid={data.pid} isEnded={isEnded} token0Price={token0Price || ''} token1Price={token1Price || ''}></Positions>}
