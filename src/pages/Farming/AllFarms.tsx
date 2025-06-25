@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
-import { numFormat } from '@utils/numberUtils';
+import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import Tooltip from '@components/Tooltip';
 import showStakeLPModal from './StakeLPModal';
-import { type PoolType, usePoolsQuery } from '@service/farming';
+import { useAllPools } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import { useTokenPrice } from '@service/pairs&pool';
 import classNames from './classNames';
 
 const transitions = {
@@ -30,8 +31,16 @@ const transitions = {
   },
 } as const;
 
-const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
+const AllFarmsItem: React.FC<{ data: ReturnType<typeof useAllPools>[number] }> = ({ data }) => {
   const i18n = useI18n(transitions);
+  const token0Price = useTokenPrice(data.token0.address);
+  const token1Price = useTokenPrice(data.token1.address);
+  const tvl = useMemo(() => {
+    if (token0Price && token1Price && data?.amount0 && data?.amount1) {
+      return `$${numberWithCommas(trimDecimalZeros(data.amount0.mul(token0Price).add(data.amount1.mul(token1Price)).toDecimalStandardUnit(2)))}`;
+    }
+    return null;
+  }, [token0Price, token1Price, data?.amount0, data?.amount1]);
 
   return (
     <div
@@ -61,7 +70,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
       </div>
       <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>{i18n.tvl}</div>
-        <div className={`${classNames.content}`}>{data.tvl ? `$${numFormat(data.tvl)}` : '--'}</div>
+        <div className={`${classNames.content}`}>{tvl || '--'}</div>
       </div>
       <div className={`col-span-2 lt-mobile:col-span-4 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>
@@ -86,7 +95,7 @@ const AllFarmsItem: React.FC<{ data: PoolType }> = ({ data }) => {
 };
 
 const AllFarms = () => {
-  const poolList = usePoolsQuery();
+  const poolList = useAllPools();
 
   return (
     <div className="mt-6 lt-mobile:mt-4">
