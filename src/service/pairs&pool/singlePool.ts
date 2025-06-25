@@ -8,7 +8,7 @@ import { getWrapperTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount, Pool, isPoolEqual } from './';
 import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
-import _ from 'lodash-es';
+import { chunk } from 'lodash-es';
 import { type Position } from '@service/position';
 
 /**
@@ -50,7 +50,7 @@ export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' |
     .filter((p) => p !== null)
     .flat();
 
-  const resOfPool = _.chunk(await fetchMulticall(multicallsOfPool as any), 2).map(([slot0, liquidity], index) => {
+  const resOfPool = chunk(await fetchMulticall(multicallsOfPool as any), 2).map(([slot0, liquidity], index) => {
     const { token0, token1, fee } = positions[index];
     const wrapperedTokenA = getWrapperTokenByAddress(token0?.address)!;
     const wrapperedTokenB = getWrapperTokenByAddress(token1?.address)!;
@@ -72,7 +72,6 @@ export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' |
 
     return pool;
   });
-
   return resOfPool;
 };
 

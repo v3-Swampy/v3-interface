@@ -4,7 +4,7 @@ import { accountState, sendTransaction } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
 import { getRecoil } from 'recoil-nexus';
 import { enhancePositionForUI, positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI } from '@service/position';
-import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, poolsInfoQuery } from '@service/farming';
+import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, pidAndAllocPointsQuery } from '@service/farming';
 import { fetchMulticall, NonfungiblePositionManager, UniswapV3Staker } from '@contracts/index';
 import { useTokenPrice, type Pool, fetchPools } from '@service/pairs&pool';
 import * as _ from 'lodash-es';
@@ -177,7 +177,7 @@ const groupPositions = (positions: MyFarmsPositionType[]): GroupedPositions[] =>
 const myFarmsListQuery = selector({
   key: `myFarmsListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
-    const pools = get(poolsInfoQuery);
+    const pools = get(pidAndAllocPointsQuery);
     if (pools.length == 0) return { active: [], ended: [] };
     const positions = get(myFarmsPositionsQuery).map((position) => {
       const { token0, token1, fee } = position;

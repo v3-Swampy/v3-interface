@@ -6,7 +6,7 @@ import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/
 import { chunk } from 'lodash-es';
 import dayjs from 'dayjs';
 import { getUnwrapperTokenByAddress, type Token, stableTokens, baseTokens, getTokenByAddress, fetchTokenInfoByAddress, addTokenToList, TokenVST } from '@service/tokens';
-import { FeeAmount } from '@service/pairs&pool';
+import { FeeAmount, fetchPools, calcAmountFromPrice } from '@service/pairs&pool';
 import { sendTransaction } from '@service/account';
 import { poolIds, incentiveHistory, Incentive } from './farmingList';
 import { useTokenPrice } from '@service/pairs&pool';
@@ -23,26 +23,25 @@ const poolIdsQuery = atom({
 });
 
 // get poolinfo list of pids
-export const poolsInfoQuery = selector({
-  key: `poolsInfoQuery-${import.meta.env.MODE}`,
+export const pidAndAllocPointsQuery = selector({
+  key: `pidAndAllocPointQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const poolIds = get(poolIdsQuery);
-    // get poolinfo list of pids
     try {
       const resOfMulticall: any = await fetchMulticall(poolIds.map((id) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('poolInfo', [id])]));
-      let pools = resOfMulticall
+      const pidAndAllocPoints = resOfMulticall
         ? poolIds.map((pid, i) => {
-            const r = UniswapV3Staker.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
+          const r = UniswapV3Staker.func.interface.decodeFunctionResult('poolInfo', resOfMulticall[i]);
 
-            return {
-              address: r[0], // pool address
-              allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
-              pid,
-            };
-          })
+          return {
+            address: r[0], // pool address
+            allocPoint: new Decimal(r[1].toString()).div(40).toString(), // pool allocPoint, divide by 40 to get the real multiplier
+            pid,
+          };
+        })
         : [];
 
-      return pools;
+      return pidAndAllocPoints;
     } catch (error) {
       return [];
     }
@@ -135,15 +134,14 @@ const poolsQuery = selector({
   key: `poolsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const poolIds = get(poolIdsQuery);
-    const poolsInfo = get(poolsInfoQuery);
+    const pools = get(pidAndAllocPointsQuery);
 
     if (poolIds.length === 0) return [];
 
     // initial pair contract
-    const pairContracts = poolsInfo.map((poolInfo) => createPairContract(poolInfo.address));
+    const pairContracts = pools.map((pool) => createPairContract(pool.address));
 
     try {
-      // get pair info list
       const resOfMulticall2 = await fetchMulticall(
         pairContracts
           .map((pairContract) => {
@@ -160,14 +158,14 @@ const poolsQuery = selector({
 
       const pairsInfo = resOfMulticall2
         ? chunk(resOfMulticall2, 5).map((r, i) => {
-            return {
-              token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
-              token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
-              fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
-              totalSupply: UniswapV3Staker.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
-              totalAllocPoint: UniswapV3Staker.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
-            };
-          })
+          return {
+            token0: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
+            token1: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
+            fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
+            totalSupply: UniswapV3Staker.func.interface.decodeFunctionResult('poolStat', r[3])[0].toString(),
+            totalAllocPoint: UniswapV3Staker.func.interface.decodeFunctionResult('totalAllocPoint', r[4])[0].toString(),
+          };
+        })
         : [];
       const tokenInfos = await Promise.all(
         pairsInfo?.map(async (info) => {
@@ -189,16 +187,28 @@ const poolsQuery = selector({
         })
       );
 
-      // merge pool info and pair info
-      return poolsInfo.map((p, i) => {
+      const poolsInfo = await fetchPools(tokenInfos.map(({ token0, token1 }, i) => ({ token0, token1, fee: pairsInfo[i].fee })));
+
+      return pools.map((p, i) => {
         const { totalSupply, ...pairInfo } = pairsInfo[i];
-        const { token0, token1 } = pairInfo;
-        const [leftToken, rightToken] = getLRToken(getTokenByAddress(token0), getTokenByAddress(token1));
+        const { token0, token1 } = tokenInfos[i];
+        const pool = poolsInfo[i];
+        const [amount0, amount1] = pool?.token0Price && totalSupply && pool.tickCurrent ?
+          calcAmountFromPrice({
+            liquidity: totalSupply,
+            lower: new Unit(1.0001).pow(new Unit(pool.tickCurrent! - 2400)),
+            current: pool.token0Price.mul(`1e${token1.decimals - token0.decimals}`),
+            upper: new Unit(1.0001).pow(new Unit(pool.tickCurrent! + 2400)),
+          })
+          : [undefined, undefined];
+        const [leftToken, rightToken] = getLRToken(getTokenByAddress(token0.address), getTokenByAddress(token1.address));
         return {
           ...p,
           ...pairInfo,
-          token0: tokenInfos[i]?.token0,
-          token1: tokenInfos[i]?.token1,
+          token0,
+          token1,
+          amount0,
+          amount1,
           tvl: 0,
           range: [],
           totalSupply,
@@ -214,41 +224,40 @@ const poolsQuery = selector({
   },
 });
 
-export const usePoolsQuery = () => {
-  const pools = useRecoilValue(poolsQuery);
-  const price = useTokenPrice(TokenVST.address) || 0;
+export const useAllPools = () => useRecoilValue(poolsQuery);
 
-  if (!price) return pools;
+// export const usePoolsQuery = () => {
+//   const pools = useRecoilValue(poolsQuery);
+//   const vstPrice = useTokenPrice(TokenVST.address) || 0;
 
-  return pools.map((p) => {
-    const { totalSupply, totalAllocPoint } = p;
-    const currentIncentivePeriod = getCurrentIncentivePeriod();
-    let APRRange: [string, string] | [] = [];
+//   if (!vstPrice) return pools;
 
-    if (price) {
-      /**
-       * <reward rate per second> = incentive amount / (incentive endTime - incentive startTime)
-       * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
-       * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
-       */
-      // TODO: tvl is not accurate, need to calculate the liquidity of the pool
-      // TODO: apr range should divide tvl not totalSupply
-      const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
-      const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(totalAllocPoint).mul(price).div(totalSupply).mul(31536000);
-      const APRLow = APRHigh.mul(0.33);
+//   return pools.map((p) => {
+//     const { totalSupply, totalAllocPoint } = p;
+//     const currentIncentivePeriod = getCurrentIncentivePeriod();
+//     let APRRange: [string, string] | [] = [];
 
-      APRRange = [APRLow.toFixed(2), APRHigh.toFixed(2)];
-    }
+//     if (vstPrice) {
+//       /**
+//        * <reward rate per second> = incentive amount / (incentive endTime - incentive startTime)
+//        * APR lower bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000 * 33%
+//        * APR high  bound = <reward rate per second> * UniswapV3Staker::poolInfo(pid).allocPoint / UniswapV3Staker::totalAllocPoint * <VST price in USD> / TVL * 31536000
+//        */
+//       const rewardRatePerSecond = currentIncentivePeriod.amount / (currentIncentivePeriod.endTime - currentIncentivePeriod.startTime);
+//       const APRHigh = new Decimal(rewardRatePerSecond).mul(p.allocPoint).div(totalAllocPoint).mul(vstPrice).div(totalSupply).mul(31536000);
+//       const APRLow = APRHigh.mul(0.33);
 
-    const tvl = new Decimal(price).mul(totalSupply).div(1e18).toFixed(2);
+//       APRRange = [APRLow.toFixed(2), APRHigh.toFixed(2)];
+//     }
 
-    return {
-      ...p,
-      tvl,
-      range: APRRange,
-    };
-  });
-};
+//     const tvl = new Decimal(vstPrice).mul(totalSupply).div(1e18).toFixed(2);
+
+//     return {
+//       ...p,
+//       range: [],
+//     };
+//   });
+// };
 
 export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery);
 
@@ -283,7 +292,7 @@ export const computeIncentiveKey = (incentiveKeyObject?: {}): string => {
   return keccak256(['bytes'], [defaultAbiCoder.encode(['tuple(address rewardToken,address pool,uint256 startTime,uint256 endTime,address refundee)'], [incentiveKeyObject])]);
 };
 
-export const getLiquidity = (position: FarmingPosition, token0Price?: string | null, token1Price?: string | null) => {
+export const geLiquility = (position: FarmingPosition, token0Price?: string | null, token1Price?: string | null) => {
   if (token0Price && token1Price && position.amount0 && position.amount1) {
     return position.amount0.mul(token0Price).add(position.amount1.mul(token1Price));
   }
