@@ -4,7 +4,7 @@ import { accountState, sendTransaction } from '@service/account';
 import { getPastIncentivesOfPool, computeIncentiveKey, getLRToken } from './';
 import { getRecoil } from 'recoil-nexus';
 import { enhancePositionForUI, positionQueryByTokenId, positionsQueryByTokenIds, type PositionForUI } from '@service/position';
-import { getCurrentIncentiveIndex, IncentiveKey, getCurrentIncentiveKey, pidAndAllocPointsQuery } from '@service/farming';
+import { currentIncentiveSelector, IncentiveKey, getCurrentIncentiveKey, pidAndAllocPointsQuery, useCurrentIncentive } from '@service/farming';
 import { fetchMulticall, NonfungiblePositionManager, UniswapV3Staker } from '@contracts/index';
 import { useTokenPrice, type Pool, fetchPools } from '@service/pairs&pool';
 import * as _ from 'lodash-es';
@@ -178,13 +178,14 @@ const myFarmsListQuery = selector({
   key: `myFarmsListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const pools = get(pidAndAllocPointsQuery);
+    const currentIncentive = get(currentIncentiveSelector);
     if (pools.length == 0) return { active: [], ended: [] };
     const positions = get(myFarmsPositionsQuery).map((position) => {
       const { token0, token1, fee } = position;
       const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
       return enhancePositionForUI(position, pool);
     });
-    const currentIndex = getCurrentIncentiveIndex();
+    const currentIndex = currentIncentive?.index;
 
     const incentiveKeysOfAllPositions = positions
       .map((p) => {
@@ -410,7 +411,7 @@ const stakedPositionsQuery = selector<Array<FarmingPosition>>({
   get: async ({ get }) => {
     const stakedTokenIds = get(stakedTokenIdsQuery);
     const stakedPositions = get(positionsQueryByTokenIds(stakedTokenIds));
-    const currentIndex = getCurrentIncentiveIndex();
+    const currentIndex = get(currentIncentiveSelector)?.index;
     const _stakedPositions: Array<FarmingPosition> = [];
     stakedPositions.map((position) => {
       const _position = { ...position } as FarmingPosition;
@@ -510,9 +511,10 @@ export const useStakedPositionsByPool = (poolAddress: string, isActive: boolean)
 
 export const useIsPositionActive = (tokenId: number) => {
   const whichIncentiveTokenIDIn = useWhichIncentiveTokenIdIn(tokenId);
+  const currentIncentive = useCurrentIncentive();
   return useMemo(() => {
-    return whichIncentiveTokenIDIn?.index == getCurrentIncentiveIndex();
-  }, [tokenId.toString()]);
+    return whichIncentiveTokenIDIn?.index == currentIncentive?.index;
+  }, [tokenId.toString(), currentIncentive?.index]);
 };
 
 // export const useCalcRewards = (positionList: Array<FarmingPosition>, pid: number) => {

@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import { useEffect, useState } from 'react';
 import { ReactComponent as AlarmClockIcon } from '@assets/icons/alarm-clock.svg';
-import { getCurrentIncentivePeriod } from '@service/farming';
+import { useCurrentIncentive } from '@service/farming';
 import BorderBox from '@components/Box/BorderBox';
 
 interface EndInProps {
@@ -34,7 +34,8 @@ const ONE_WEEK = 7 * ONE_DAY;
 type StateType = 'default' | 'normal' | 'urgent';
 
 const EndIn: React.FC<EndInProps> = ({ children }) => {
-  const timestamp = getCurrentIncentivePeriod()?.endTime ?? 0;
+  const currentIncentive = useCurrentIncentive();
+  const timestamp = currentIncentive?.period?.endTime ?? 0;
   const i18n = useI18n(transitions);
   const [timeLeft, setTimeLeft] = useState('');
 
@@ -92,6 +93,7 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
   if (state === 'urgent') {
     fTimeLeft += `<span>${i18n.claim}</span>`;
   }
+  
 
   return (
     <BorderBox className="rounded-7 lt-mobile:rounded-4 overflow-hidden" variant="gradient-white">

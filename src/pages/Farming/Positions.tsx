@@ -5,7 +5,7 @@ import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
 import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPositionLiquidity } from '@service/farming/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
-import { getCurrentIncentiveKey, getCurrentIncentivePeriod } from '@service/farming';
+import { getCurrentIncentiveKey, useCurrentIncentive } from '@service/farming';
 import { useAccount, useIsChainMatch } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Spin from '@components/Spin';
@@ -217,9 +217,9 @@ const Positions: React.FC<{ positionList: Array<MyFarmsPositionType>; pid: numbe
   token1Price,
 }) => {
   const i18n = useI18n(transitions);
-  const currentIncentive = getCurrentIncentivePeriod();
+  const currentIncentive = useCurrentIncentive();
 
-  const endTime = useMemo(() => (isEnded ? currentIncentive.startTime : currentIncentive.endTime), [isEnded]);
+  const endTime = useMemo(() => (isEnded ? currentIncentive.period.startTime : currentIncentive.period.endTime), [isEnded, currentIncentive?.index]);
 
   return (
     <div className="rounded-4 bg-white-normal p-6 mt-6 lt-mobile:pt-8 lt-mobile:px-2 lt-mobile:pb-2 lt-mobile:-mt-4">

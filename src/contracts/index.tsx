@@ -53,4 +53,4 @@ export const createVSTTokenContract = () => createERC20Contract(TokenVST.address
 
 export const UniswapV3Staker = createContract(isProduction ? '0x8a2b815d84da33e270d20cfb2eac26cfb55c1e38' : '0x8a2b815d84da33e270d20cfb2eac26cfb55c1e38', UniswapV3StakerABI);
 
-export const RefudeeContractAddress = isProduction ? '0xad085e56f5673fd994453bbcdfe6828aa659cb0d' : '0xad085e56f5673fd994453bbcdfe6828aa659cb0d';
+export const RefundeeContractAddress = isProduction ? '0xad085e56f5673fd994453bbcdfe6828aa659cb0d' : '0xad085e56f5673fd994453bbcdfe6828aa659cb0d';
