@@ -8,7 +8,7 @@ import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
-import { type PoolType, handleStakeLP as _handleStakeLP } from '@service/farming';
+import { type useAllPools, handleStakeLP as _handleStakeLP } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3Staker, NonfungiblePositionManager } from '@contracts/index';
 import { useNavigate } from 'react-router-dom';
@@ -50,9 +50,9 @@ export enum ModalMode {
   IncreaseUnlockTime,
 }
 
-type Props = ConfirmModalInnerProps & PoolType;
+type Props = ConfirmModalInnerProps & ReturnType<typeof useAllPools>[number];
 
-const Position = ({ data, address, startTime, endTime, pid }: { data: PositionForUI; startTime: number; endTime: number } & Pick<PoolType, 'address' | 'pid'>) => {
+const Position = ({ data, address, startTime, endTime, pid }: { data: PositionForUI; startTime: number; endTime: number } & Pick<ReturnType<typeof useAllPools>[number], 'address' | 'pid'>) => {
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
@@ -130,6 +130,7 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   }, []);
 
   const handleNavigate = useCallback(() => {
+    if (!leftToken || !rightToken) return;
     setTokens(leftToken, rightToken);
     setCurrentFee(Number(fee));
     hidePopup();
@@ -147,8 +148,8 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
         <div className={cx(classNameLink, "lt-mobile:mt-36px")} onClick={handleNavigate}>
           <span>
             {compiled(i18n.provide, {
-              leftToken: leftToken.symbol,
-              rightToken: rightToken.symbol,
+              leftToken: leftToken?.symbol ?? '',
+              rightToken: rightToken?.symbol ?? '',
             })}
           </span>
         </div>
@@ -165,8 +166,8 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
         <div className="text-center">
           <div className={cx(classNameLink, "lt-mobile:mt-24px lt-mobile:mb-4")} onClick={handleNavigate}>
             {compiled(i18n.more, {
-              leftToken: leftToken.symbol,
-              rightToken: rightToken.symbol,
+              leftToken: leftToken?.symbol ?? '',
+              rightToken: rightToken?.symbol ?? '',
             })}
           </div>
         </div>
@@ -175,12 +176,12 @@ const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startT
   }
 };
 
-const showStakeLPModal = (pool: PoolType) => {
+const showStakeLPModal = (pool: ReturnType<typeof useAllPools>[number]) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     subTitle: compiled(toI18n(transitions).subTitle, {
-      leftToken: pool.leftToken.symbol,
-      rightToken: pool.rightToken.symbol,
+      leftToken: pool.leftToken?.symbol ?? '',
+      rightToken: pool.rightToken?.symbol ?? '',
     }),
     ConfirmContent: (props: ConfirmModalInnerProps) => (
       <Suspense fallback={<Spin className="!block mx-auto text-60px mt-6" />}>

@@ -1,13 +1,16 @@
 import React, { useMemo } from 'react';
 import useI18n from '@hooks/useI18n';
+import Decimal from 'decimal.js';
 import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import Tooltip from '@components/Tooltip';
 import showStakeLPModal from './StakeLPModal';
-import { useAllPools } from '@service/farming';
+import { useAllPools, useCurrentIncentive } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import Spin from '@components/Spin';
 import { useTokenPrice } from '@service/pairs&pool';
+import { TokenVST } from '@service/tokens';
 import classNames from './classNames';
 
 const transitions = {
@@ -35,12 +38,30 @@ const AllFarmsItem: React.FC<{ data: ReturnType<typeof useAllPools>[number] }> =
   const i18n = useI18n(transitions);
   const token0Price = useTokenPrice(data.token0.address);
   const token1Price = useTokenPrice(data.token1.address);
+  const vstPrice = useTokenPrice(TokenVST.address);
+  const currentIncentive = useCurrentIncentive();
+
   const tvl = useMemo(() => {
     if (token0Price && token1Price && data?.amount0 && data?.amount1) {
-      return `$${numberWithCommas(trimDecimalZeros(data.amount0.mul(token0Price).add(data.amount1.mul(token1Price)).toDecimalStandardUnit(2)))}`;
+      return data.amount0.mul(token0Price).add(data.amount1.mul(token1Price));
     }
     return null;
   }, [token0Price, token1Price, data?.amount0, data?.amount1]);
+
+  const tvlDisplay = useMemo(() => {
+    if (tvl) {
+      return `$${numberWithCommas(trimDecimalZeros(tvl.toDecimalStandardUnit(2)))}`;
+    }
+    return '--';
+  }, [tvl]);
+
+  const range = useMemo(() => {
+    if (!currentIncentive?.period || !vstPrice || !data?.amount0 || !data?.amount1 || !data?.allocPoint || !data?.totalAllocPoint || !tvl) return null;
+    const rewardRatePerSecond = currentIncentive.period.amount / (currentIncentive.period.endTime - currentIncentive.period.startTime);
+    const APRHigh = new Decimal(rewardRatePerSecond).mul(data.allocPoint).div(data.totalAllocPoint).mul(vstPrice).div(tvl.toDecimal()).mul(31536000);
+    const APRLow = APRHigh.mul(0.33);
+    return [APRLow.toFixed(2), APRHigh.toFixed(2)] as const;
+  }, [currentIncentive?.index, vstPrice, data?.amount0, data?.amount1, data?.allocPoint, data?.totalAllocPoint, tvl]);
 
   return (
     <div
@@ -66,11 +87,11 @@ const AllFarmsItem: React.FC<{ data: ReturnType<typeof useAllPools>[number] }> =
         <div className={`${classNames.title}`}>
           {i18n.APR} {i18n.range}
         </div>
-        <div className={`${classNames.content}`}>{data.range.length ? `${data.range[0]}% ~ ${data.range[1]}%` : '--'}</div>
+        <div className={`${classNames.content}`}>{range ? `${range[0]}% ~ ${range[1]}%` : (token0Price === undefined || token1Price === undefined || vstPrice === undefined) ? <Spin /> : '--'}</div>
       </div>
       <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>{i18n.tvl}</div>
-        <div className={`${classNames.content}`}>{tvl || '--'}</div>
+        <div className={`${classNames.content}`}>{(token0Price === undefined || token1Price === undefined) ? <Spin /> : tvlDisplay}</div>
       </div>
       <div className={`col-span-2 lt-mobile:col-span-4 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>
@@ -81,7 +102,7 @@ const AllFarmsItem: React.FC<{ data: ReturnType<typeof useAllPools>[number] }> =
             </span>
           </Tooltip>
         </div>
-        <div className={classNames.content}>{data.allocPoint}X</div>
+        <div className={classNames.content}>{data.multiplier}X</div>
       </div>
       <div className="flex items-center justify-end col-span-3 lt-mobile:absolute lt-mobile:right-2 lt-mobile:top-4">
         <AuthConnectButton className={classNames.authConnectButton}>

@@ -12,7 +12,7 @@ import Positions from './Positions';
 import dayjs from 'dayjs';
 import Corner from './Corner';
 import { useMyFarmsList, GroupedPositions, useCalcTotalLiquidity, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
-import { getCurrentIncentivePeriod } from '@service/farming';
+import { useCurrentIncentive } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { useAccount } from '@service/account';
 import { TokenVST } from '@service/tokens';
@@ -46,7 +46,7 @@ const MyFarmsItem: React.FC<{
   const { positions, totalClaimable, token0, token1 } = data;
 
   const [isShow, setIsShow] = useState<boolean>(false);
-  const currentIncentive = getCurrentIncentivePeriod();
+  const currentIncentive = useCurrentIncentive();
   const boosting = useBoostFactor();
   const token0Price = useTokenPrice(token0.address);
   const token1Price = useTokenPrice(token1.address);
@@ -59,8 +59,8 @@ const MyFarmsItem: React.FC<{
   if (Array.isArray(data?.positions) && data?.positions.length == 0) return null;
   const endTime = useMemo(() => {
     // if incentive status is active, we can use the time of incentive, otherwise, we can use any past time to indicate that the current phase is over and that time has passed
-    return isActive ? currentIncentive.endTime : currentIncentive.startTime;
-  }, [isActive, currentIncentive]);
+    return isActive ? currentIncentive.period.endTime : currentIncentive.period.startTime;
+  }, [isActive, currentIncentive?.index]);
 
   const isEnded = useMemo(() => dayjs().isAfter(dayjs.unix(Number(endTime))), [endTime]);
 
