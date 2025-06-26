@@ -9,7 +9,7 @@ import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
 import { routes } from '@router/index';
 import { useRefreshPositions } from '@service/position';
-import BlockNumber from '@modules/Navbar/BlockNumber';
+export { default as BlockNumber } from '@modules/Navbar/BlockNumber';
 import AccountDetailDropdown from './AccountDetailDropdown';
 import './index.css';
 
@@ -77,17 +77,11 @@ const NavLinks: React.FC = () => {
 
 export const FooterBar: React.FC = () => {
   return (
-    <>
-      <footer className="md:display-none fixed bottom-0 w-full h-60px border-0px border-t-1px border-solid border-#D9D9D9">
-        <div className="w-full h-full inline-flex justify-evenly items-center bg-white-normal">
-          <NavLinks />
-        </div>
-      </footer>
-      <footer className="lt-md:display-none relative mx-auto xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
-        <BlockNumber />
-      </footer>
-    </>
-
+    <footer className="md:display-none fixed bottom-0 w-full h-60px border-0px border-t-1px border-solid border-#D9D9D9">
+      <div className="w-full h-full inline-flex justify-evenly items-center bg-white-normal">
+        <NavLinks />
+      </div>
+    </footer>
   );
 };
 

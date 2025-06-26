@@ -55,20 +55,22 @@ export const incentiveHistoryState = atom<Array<Incentive>>({
   default: cachedIncentiveHistory,
 });
 
-const timeTickState = atom<number>({
-  key: `timeTickState-${import.meta.env.MODE}`,
-  default: Date.now(),
+// 存储当前激励期的唯一标识符，只有激励期切换时才会改变
+const currentIncentivePeriodKeyState = atom<string>({
+  key: `currentIncentivePeriodKeyState-${import.meta.env.MODE}`,
+  default: '',
 });
 
 export const currentIncentiveSelector = selector({
   key: `currentIncentiveIndexSelector-${import.meta.env.MODE}`,
   get: ({ get }) => {
     const incentiveHistory = get(incentiveHistoryState);
-    get(timeTickState);
+    get(currentIncentivePeriodKeyState);
 
     const now = dayjs().unix();
     const index = incentiveHistory.findIndex((period) => now >= period.startTime && now <= period.endTime);
     const period = incentiveHistory[index];
+    
     return {
       period,
       index
@@ -91,10 +93,19 @@ const setupPreciseTimer = (incentiveHistory: Array<Incentive>) => {
     
     setTimeout(() => {
       try {
-        setRecoil(timeTickState, Date.now());
+        const nowUnix = dayjs().unix();
+        const currentPeriod = incentiveHistory.find((period) => nowUnix >= period.startTime && nowUnix <= period.endTime);
+        const newPeriodKey = currentPeriod ? `${currentPeriod.startTime}-${currentPeriod.endTime}` : 'none';
+        
+        const existingKey = getRecoil(currentIncentivePeriodKeyState);
+        
+        if (newPeriodKey !== existingKey) {
+          setRecoil(currentIncentivePeriodKeyState, newPeriodKey);
+        }
+        
         setupPreciseTimer(incentiveHistory);
       } catch (error) {
-        console.warn('Failed to update time tick:', error);
+        console.warn('Failed to update incentive period:', error);
         setTimeout(() => setupPreciseTimer(incentiveHistory), 5000);
       }
     }, safeDelay);
@@ -118,6 +129,9 @@ export const getPastHistory = (index?: number) => {
 
 export const getCurrentIncentiveKey = (poolAddress: string): IncentiveKey => {
   const currentIncentive = getCurrentIncentivePeriod();
+  if (!currentIncentive) {
+    throw new Error('No current incentive period available');
+  }
   return getIncentiveKey(poolAddress, currentIncentive.startTime, currentIncentive.endTime);
 };
 
@@ -137,7 +151,11 @@ export const getIncentiveKey = (address: string, startTime?: number, endTime?: n
       refundee: RefundeeContractAddress,
     };
   } else {
-    const { startTime, endTime } = getCurrentIncentivePeriod();
+    const currentIncentive = getCurrentIncentivePeriod();
+    if (!currentIncentive) {
+      throw new Error('No current incentive period available');
+    }
+    const { startTime, endTime } = currentIncentive;
 
     return {
       rewardToken: TokenVST?.address,
@@ -159,7 +177,11 @@ export const getIncentiveKey = (address: string, startTime?: number, endTime?: n
     const { incentive_history, farmings } = await p;
 
     if (isEqual(farmings, cachedFarmings) && isEqual(incentive_history, cachedIncentiveHistory)) {
-      // 即使数据没有变化，也要设置定时器（可能是页面刷新）
+      const nowUnix = dayjs().unix();
+      const currentPeriod = incentive_history.find((period) => nowUnix >= period.startTime && nowUnix <= period.endTime);
+      const initialPeriodKey = currentPeriod ? `${currentPeriod.startTime}-${currentPeriod.endTime}` : 'none';
+      setRecoil(currentIncentivePeriodKeyState, initialPeriodKey);
+      
       setupPreciseTimer(incentive_history);
       return;
     }
@@ -174,7 +196,11 @@ export const getIncentiveKey = (address: string, startTime?: number, endTime?: n
       setRecoil(farmingsState, farmings);
       setRecoil(incentiveHistoryState, incentive_history);
     } finally {
-      // 设置智能定时器
+      const nowUnix = dayjs().unix();
+      const currentPeriod = incentive_history.find((period) => nowUnix >= period.startTime && nowUnix <= period.endTime);
+      const initialPeriodKey = currentPeriod ? `${currentPeriod.startTime}-${currentPeriod.endTime}` : 'none';
+      setRecoil(currentIncentivePeriodKeyState, initialPeriodKey);
+      
       setupPreciseTimer(incentive_history);
       resolveFarmingInit(true);
     }

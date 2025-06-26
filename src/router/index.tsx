@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import CustomScrollbar from 'custom-react-scrollbar';
 import TopLevelErrorBoundary from '@modules/TopLevelErrorBoundary';
-import Navbar, { FooterBar } from '@modules/Navbar';
+import Navbar, { FooterBar, BlockNumber } from '@modules/Navbar';
 import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
@@ -66,6 +66,7 @@ const RouteWrapper: React.FC = () => {
       <CustomScrollbar className="main-scroller" contentClassName="min-h-full !flex flex-col pb-40px">
         <Suspense fallback={<PageLevelLoading />}>
           <Outlet />
+          <BlockNumber />
         </Suspense>
       </CustomScrollbar>
       <FooterBar />
