@@ -1,6 +1,7 @@
 import useI18n, { compiled } from '@hooks/useI18n';
 import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
+import cx from 'clsx';
 import { useEffect, useState } from 'react';
 import { ReactComponent as AlarmClockIcon } from '@assets/icons/alarm-clock.svg';
 import { useCurrentIncentive } from '@service/farming';
@@ -94,7 +95,6 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
     fTimeLeft += `<span>${i18n.claim}</span>`;
   }
   
-
   return (
     <BorderBox className="rounded-7 lt-mobile:rounded-4 overflow-hidden" variant="gradient-white">
       {(state === 'urgent' || state === 'normal') && (
@@ -106,7 +106,7 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
           <span dangerouslySetInnerHTML={{ __html: fTimeLeft }}></span>
         </div>
       )}
-      <div className={`-mt-7 lt-mobile:-mt-4 bg-white-normal rounded-7 lt-mobile:rounded-4 p-4`}>{children}</div>
+      <div className={cx('bg-white-normal rounded-7 lt-mobile:rounded-4 p-4', (state === 'urgent' || state === 'normal') && '-mt-7 lt-mobile:-mt-4')}>{children}</div>
     </BorderBox>
   );
 };
