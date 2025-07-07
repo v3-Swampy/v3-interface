@@ -6,8 +6,9 @@ import Spin from '@components/Spin';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCanClaim } from '@service/farming';
 import AllFarms from './AllFarms';
-// import MyFarms from './MyFarms';
+import MyFarms from './MyFarms';
 import CountDown from './CountDown';
+
 import EndIn from './EndIn';
 
 const transitions = {
@@ -56,6 +57,7 @@ const FarmingPage: React.FC = () => {
   const handleClickTab = useCallback((tab: TabKeyType) => {
     const search = new URLSearchParams(params);
     search.set('tab', tab);
+
     navigate(`${pathname}?${search.toString()}`);
   }, []);
 
@@ -80,7 +82,7 @@ const FarmingPage: React.FC = () => {
             </div>
             <div>{!isCanClaim && <CountDown />}</div>
           </div>
-          <Suspense fallback={<Spin className="!block mx-auto text-60px mt-4" />}>{tab === TabKey.My ? null : <AllFarms />}</Suspense>
+          <Suspense fallback={<Spin className="!block mx-auto text-60px mt-4" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
         </EndIn>
       </div>
     </PageWrapper>

@@ -104,6 +104,7 @@ export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB
   ]).then((res) => {
     const slots = res?.[0] && res?.[0] !== '0x' ? poolContract.func.interface.decodeFunctionResult('slot0', res[0]) : null;
     const liquidityRes = res?.[1] && res?.[1] !== '0x' ? poolContract.func.interface.decodeFunctionResult('liquidity', res[1]) : null;
+
     return createPool({
       ...params,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,

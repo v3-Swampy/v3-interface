@@ -235,3 +235,15 @@ export const getToken0And1 = (tokenA: Token | null | undefined, tokenB: Token | 
   const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
   return notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA];
 }
+
+
+export const getTokenByAddressWithAutoFetch = async (address: string) => {
+  const token = getTokenByAddress(address);
+  if (token) return token;
+  const tokenInfo = await fetchTokenInfoByAddress(address);
+  if (tokenInfo) {
+    addTokenToList(tokenInfo);
+    return tokenInfo;
+  }
+  return null;
+};

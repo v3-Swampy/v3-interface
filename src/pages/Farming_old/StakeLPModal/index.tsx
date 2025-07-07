@@ -8,7 +8,7 @@ import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
-import { type usePools, handleStakeLP as _handleStakeLP, type incentiveKey } from '@service/farming';
+import { type useAllPools, handleStakeLP as _handleStakeLP } from '@service/farming_old';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3Staker, NonfungiblePositionManager } from '@contracts/index';
 import { useNavigate } from 'react-router-dom';
@@ -50,9 +50,9 @@ export enum ModalMode {
   IncreaseUnlockTime,
 }
 
-type Props = ConfirmModalInnerProps & ReturnType<typeof usePools>[number];
+type Props = ConfirmModalInnerProps & ReturnType<typeof useAllPools>[number];
 
-const Position = ({ data, currentIncentiveKey }: { data: PositionForUI; currentIncentiveKey: incentiveKey }) => {
+const Position = ({ data, address, startTime, endTime, pid }: { data: PositionForUI; startTime: number; endTime: number } & Pick<ReturnType<typeof useAllPools>[number], 'address' | 'pid'>) => {
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
@@ -90,7 +90,10 @@ const Position = ({ data, currentIncentiveKey }: { data: PositionForUI; currentI
             onClick={async () => {
               const txHash = await handleStakeLP({
                 tokenId: data.id,
-                incentiveKey: currentIncentiveKey,
+                address,
+                startTime,
+                endTime,
+                pid: pid,
               });
               if (typeof txHash === 'string') {
                 addRecordToHistory({
@@ -113,40 +116,40 @@ const Position = ({ data, currentIncentiveKey }: { data: PositionForUI; currentI
   );
 };
 
-const StakeModal: React.FC<Props> = ({ poolAddress, currentIncentiveKey, pairInfo }) => {
+const StakeModal: React.FC<Props> = ({ address, currentIncentivePeriod: { startTime, endTime }, pid, leftToken, rightToken, fee }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const navigate = useNavigate();
 
   const fPositions = useMemo(() => {
-    return positions.filter((p) => p.address === poolAddress && p.liquidity !== '0');
-  }, [positions, poolAddress]);
+    return positions.filter((p) => p.address === address && p.liquidity !== '0');
+  }, [positions, address]);
 
   const classNameLink = useMemo(() => {
     return 'font-normal font-not-italic text-14px leading-18px color-orange-normal underline mt-4 text-center cursor-pointer';
   }, []);
 
   const handleNavigate = useCallback(() => {
-    if (!pairInfo.leftToken || !pairInfo.rightToken) return;
-    setTokens(pairInfo.leftToken, pairInfo.rightToken);
-    setCurrentFee(Number(pairInfo.fee));
+    if (!leftToken || !rightToken) return;
+    setTokens(leftToken, rightToken);
+    setCurrentFee(Number(fee));
     hidePopup();
 
     setTimeout(() => {
       navigate(`/pool/add_liquidity`);
     }, 50);
-  }, [navigate, pairInfo.leftToken, pairInfo.rightToken]);
+  }, [navigate, leftToken, rightToken]);
 
   if (fPositions.length === 0) {
     return (
       <div className="mt-24px min-h-318px !flex flex-col items-center justify-center">
         <img className="-mt-8 w-120px h-120px lt-mobile:w-100px lt-mobile:h-100px" src={logo} />
         <div className="text-22px leading-28px font-not-italic mt-8 lt-mobile:text-14px lt-mobile:font-normal lt-mobile:leading-18px">{i18n.null}</div>
-        <div className={cx(classNameLink, 'lt-mobile:mt-36px')} onClick={handleNavigate}>
+        <div className={cx(classNameLink, "lt-mobile:mt-36px")} onClick={handleNavigate}>
           <span>
             {compiled(i18n.provide, {
-              leftToken: pairInfo.leftToken?.symbol ?? '',
-              rightToken: pairInfo.rightToken?.symbol ?? '',
+              leftToken: leftToken?.symbol ?? '',
+              rightToken: rightToken?.symbol ?? '',
             })}
           </span>
         </div>
@@ -157,14 +160,14 @@ const StakeModal: React.FC<Props> = ({ poolAddress, currentIncentiveKey, pairInf
       <div className="mt-24px lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto lt-mobile:drawer-inner-scroller">
         <div className="max-h-454px min-h-318px overflow-y-auto lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto">
           {fPositions.map((p) => {
-            return <Position key={p.address} data={p} currentIncentiveKey={currentIncentiveKey!}></Position>;
+            return <Position key={pid} data={p} address={address} startTime={startTime} endTime={endTime} pid={pid}></Position>;
           })}
         </div>
         <div className="text-center">
-          <div className={cx(classNameLink, 'lt-mobile:mt-24px lt-mobile:mb-4')} onClick={handleNavigate}>
+          <div className={cx(classNameLink, "lt-mobile:mt-24px lt-mobile:mb-4")} onClick={handleNavigate}>
             {compiled(i18n.more, {
-              leftToken: pairInfo.leftToken?.symbol ?? '',
-              rightToken: pairInfo.rightToken?.symbol ?? '',
+              leftToken: leftToken?.symbol ?? '',
+              rightToken: rightToken?.symbol ?? '',
             })}
           </div>
         </div>
@@ -173,12 +176,12 @@ const StakeModal: React.FC<Props> = ({ poolAddress, currentIncentiveKey, pairInf
   }
 };
 
-const showStakeLPModal = (pool: ReturnType<typeof usePools>[number]) => {
+const showStakeLPModal = (pool: ReturnType<typeof useAllPools>[number]) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     subTitle: compiled(toI18n(transitions).subTitle, {
-      leftToken: pool.pairInfo.leftToken?.symbol ?? '',
-      rightToken: pool.pairInfo.rightToken?.symbol ?? '',
+      leftToken: pool.leftToken?.symbol ?? '',
+      rightToken: pool.rightToken?.symbol ?? '',
     }),
     ConfirmContent: (props: ConfirmModalInnerProps) => (
       <Suspense fallback={<Spin className="!block mx-auto text-60px mt-6" />}>

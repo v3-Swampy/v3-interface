@@ -9,7 +9,7 @@ import { ModalPopup, DrawerPopup, Toast } from '@components/showPopup';
 import { isMobile } from '@utils/is';
 import Router from './router';
 import { tokenInitPromise } from '@service/tokens';
-import { farmingInitPromise } from '@service/farming/farmingList';
+// import { farmingInitPromise } from '@service/farming/farmingList';
 import { registerWallet } from '@cfx-kit/react-utils/dist/AccountManage';
 import {
   createWalletConnectProvider,
@@ -46,7 +46,7 @@ if (isMobile) {
   document.styleSheets[0].insertRule('.scrollbar__thumbPlaceholder--vertical { display:none !important; }', 0);
 }
 
-Promise.all([tokenInitPromise, farmingInitPromise]).then(() => {
+Promise.all([tokenInitPromise]).then(() => {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <RecoilRoot initializeState={initializeRecoil}>
       <RecoilNexus />

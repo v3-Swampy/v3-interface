@@ -12,9 +12,9 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
-import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST, useRefreshBoostFactor, useRefreshVeTotalSuppply } from '@service/staking';
 import { useRefreshPoolsQuery } from '@service/farming';
+// import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 
 export const transitions = {
   en: {
@@ -74,10 +74,10 @@ export const TransitionsTypeMap = {
  */
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
-  const refreshStakedTokenIds = useRefreshStakedTokenIds();
+  // const refreshStakedTokenIds = useRefreshStakedTokenIds();
   const refreshUserInfo = useRefreshUserInfo();
   const refreshPoolsQuery = useRefreshPoolsQuery();
-  const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
+  // const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
   const refreshBalaceOfveVST = useRefreshBalanceOfveVST();
   const refreshTotalStakedVST = useRefreshTotalStakedVST();
   const refreshBoostFactor = useRefreshBoostFactor();
@@ -85,10 +85,10 @@ export const useRefreshData = () => {
 
   return {
     refreshPositions,
-    refreshStakedTokenIds,
+    // refreshStakedTokenIds,
     refreshUserInfo,
     refreshPoolsQuery,
-    refreshMyFarmsListQuery,
+    // refreshMyFarmsListQuery,
     refreshBalaceOfveVST,
     refreshTotalStakedVST,
     refreshBoostFactor,
@@ -107,10 +107,10 @@ export const RefreshTypeMap = {
   ['Stake_IncreaseAmount']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
   ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedTokenIds'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
-  ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
-  ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
-  ['MyFarms_Claim']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
-  ['MyFarms_Unstake']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
+  // ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
+  // ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
+  // ['MyFarms_Claim']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
+  // ['MyFarms_Unstake']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
   ['Stake_Unlock']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
