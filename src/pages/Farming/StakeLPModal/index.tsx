@@ -157,7 +157,7 @@ const StakeModal: React.FC<Props> = ({ poolAddress, currentIncentiveKey, pairInf
       <div className="mt-24px lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto lt-mobile:drawer-inner-scroller">
         <div className="max-h-454px min-h-318px overflow-y-auto lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto">
           {fPositions.map((p) => {
-            return <Position key={p.address} data={p} currentIncentiveKey={currentIncentiveKey!}></Position>;
+            return <Position key={p.id} data={p} currentIncentiveKey={currentIncentiveKey!}></Position>;
           })}
         </div>
         <div className="text-center">

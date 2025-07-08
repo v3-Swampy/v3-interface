@@ -170,6 +170,7 @@ export const fetchBestTrade = async ({
       };
     } catch (err) {
       const errStr = String(err);
+      console.log('errStr', errStr);
       const isNoRoute = errStr?.includes('Failed to generate client side quote');
       const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get');
       if (fetchMethod === 'priorityMethod' && isNetworkError) {
