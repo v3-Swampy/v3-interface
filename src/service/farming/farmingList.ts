@@ -1,6 +1,6 @@
 import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
-import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, type Token } from '@service/tokens';
+import { getTokenByAddressWithAutoFetch, getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { timestampSelector } from './timestamp';
 
@@ -10,6 +10,8 @@ export const farmingPoolsAddress = atom<Array<string>>({
   default: [
     "0x3EEd2D9BA0Ea2c4AcBA87206F69cDcB4d3a03f31",
     "0xc0D0e6fDB000b62E48db5CCD54A1CFE3c5CB30Ea",
+    "0x4A33468caAFD9220AB0b11e3342bE8AAcC468908",
+    "0xB7CC615ffcE028f541705B796EDff62f2d28BBa4"
   ]
 });
 
@@ -26,7 +28,6 @@ const poolsQuery = selector({
   get: async ({ get }) => {
     const poolsAddress = get(farmingPoolsAddress);
     const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
-    
     const pairsInfoQuery = await fetchMulticall(
       pairContracts
         .map((pairContract) => {
@@ -47,14 +48,18 @@ const poolsQuery = selector({
         };
       })
       : [];
+
     const tokensDetail = await Promise.all(pairsInfo.map(async (info) => {
-      const token0 = await getTokenByAddress(info.token0Address)!;
-      const token1 = await getTokenByAddress(info.token1Address)!;
+      const [token0, token1] = await Promise.all([
+        getTokenByAddress(info.token0Address),
+        getTokenByAddress(info.token1Address)
+      ]);
       return {
         token0,
         token1,
       };
     }));
+
     const leftAndRightTokens = tokensDetail.map((token) => {
       const [leftToken, rightToken] = getLRToken(token.token0, token.token1);
       return {
@@ -96,14 +101,14 @@ const poolsQuery = selector({
       })
     );
 
-    const pools = poolsAddress?.map((poolAddress, index) => {
+    const pools = poolsAddress ? await Promise.all(poolsAddress.map(async (poolAddress, index) => {
       const rewardTokenAddresses = incentiveKeys[index].map(key => key.rewardToken);
-      const rewards = [...new Set(rewardTokenAddresses)].map((address) => ({
-        token: getTokenByAddress(address)!,
+      const rewards = await Promise.all([...new Set(rewardTokenAddresses)].map(async (address) => ({
+        token: await getTokenByAddress(address),
         unreleasedAmount: incentiveKeys[index]
           .map((key, i) => key.rewardToken === address ? incentives[index][i]?.tokenUnreleased : 0n)
           .reduce((a, b) => a + b, 0n),
-      }));
+      })));
 
       return {
         poolAddress,
@@ -119,7 +124,7 @@ const poolsQuery = selector({
         currentIncentiveKey: incentiveKeys?.[index]?.find(key => key.inTimeRange),
         rewards,
       };
-    }) ?? null;
+    })) : null;
 
     return pools;
   }

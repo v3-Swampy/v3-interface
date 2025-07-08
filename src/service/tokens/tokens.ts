@@ -155,11 +155,10 @@ export const useTokens = () => {
 (async function () {
   const tokensURL = `${import.meta.env.VITE_TokenListConfigUrl}`;
   try {
-    const [p] = waitAsyncResult({
+    const [p, stop, getStatus] = waitAsyncResult({
       fetcher: (): Promise<{ tokens: Array<Token> }> => fetch(tokensURL).then((res) => res.json()),
     });
     const { tokens } = await p;
-
     const innerTokens = cachedTokens.filter((token) => !token.fromSearch);
     const searchedTokens = cachedTokens.filter((token) => token.fromSearch);
     if (isEqual(tokens, innerTokens)) return;

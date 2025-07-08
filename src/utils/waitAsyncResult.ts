@@ -13,7 +13,7 @@ export const isTransactionReceipt = async (txHash: string) => {
 };
 
 
-const transactionReceiptCache = new Map<string, Readonly<[Promise<NonNullable<Awaited<ReturnType<typeof isTransactionReceipt>>>>, VoidFunction, () => 'fullfilled' | 'rejected' | 'pending']>>();
+const transactionReceiptCache = new Map<string, Readonly<[Promise<NonNullable<Awaited<ReturnType<typeof isTransactionReceipt>>>>, VoidFunction, () => 'fulfilled' | 'rejected' | 'pending']>>();
 export const waitTransactionReceipt = (txHash: string) => {
   const cachedRes = transactionReceiptCache.get(txHash);
   if (cachedRes) {
@@ -48,7 +48,7 @@ const waitAsyncResult = <T extends () => Promise<any>>({ fetcher, maxWaitTime = 
     reject(new Error('Wait async stop'));
   };
 
-  let status: 'fullfilled' | 'rejected' | 'pending' = 'pending';
+  let status: 'fulfilled' | 'rejected' | 'pending' = 'pending';
   const getStatus = () => status;
 
   const promise = new Promise<NonNullable<Awaited<ReturnType<T>>>>(async (resolve, _reject) => {
@@ -59,7 +59,7 @@ const waitAsyncResult = <T extends () => Promise<any>>({ fetcher, maxWaitTime = 
       try {
         const res = await fetcher();
         if (res) {
-          status === 'fullfilled';
+          status = 'fulfilled';
           resolve(res);
           return;
         }

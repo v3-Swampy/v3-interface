@@ -7,7 +7,7 @@ import { LRUCacheFunction } from '@utils/LRUCache';
 import { FeeAmount } from './';
 import { Token as UniToken } from '@uniswap/sdk-core';
 
-const POOL_INIT_CODE_HASH = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54';
+const POOL_INIT_CODE_HASH = '0x21f9fbd4afc79e76492f571c11dd0bcb3b6b948b580e367c86487b679b037db4';
 
 /**
  * Computes a pool address
@@ -18,7 +18,7 @@ const POOL_INIT_CODE_HASH = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89
  * @param initCodeHashManualOverride Override the init code hash used to compute the pool address if necessary
  * @returns The pool address
  */
-function _computePoolAddress({ tokenA, tokenB, fee=FeeAmount.MEDIUM, initCodeHashManualOverride }: { tokenA: Token|UniToken; tokenB: Token|UniToken; fee?: FeeAmount; initCodeHashManualOverride?: string }): string {
+function _computePoolAddress({ tokenA, tokenB, fee = FeeAmount.MEDIUM, initCodeHashManualOverride }: { tokenA: Token | UniToken; tokenB: Token | UniToken; fee?: FeeAmount; initCodeHashManualOverride?: string }): string {
   if (!tokenA || !tokenB) return '';
 
   const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
