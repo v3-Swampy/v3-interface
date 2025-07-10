@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import useI18n from '@hooks/useI18n';
 import Decimal from 'decimal.js';
 import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
@@ -8,7 +8,7 @@ import { usePools, useCurrentIncentiveKey } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Spin from '@components/Spin';
-import { useTokenPrice } from '@service/pairs&pool';
+import { useTokenPrice, getTokensPrice } from '@service/pairs&pool';
 import { TokenVST } from '@service/tokens';
 import classNames from './classNames';
 import showStakeLPModal from './StakeLPModal';
@@ -34,21 +34,18 @@ const transitions = {
   },
 } as const;
 
-const AllFarmsItem: React.FC<{ data: ReturnType<typeof usePools>[number] }> = ({ data }) => {
+const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number] }> = ({ data }) => {
   const i18n = useI18n(transitions);
-  const token0Price = useTokenPrice(data.pairInfo.token0.address);
-  const token1Price = useTokenPrice(data.pairInfo.token1.address);
-  const vstPrice = useTokenPrice(TokenVST.address);
-  const currentIncentive = useCurrentIncentiveKey();
+  const token0Price = useTokenPrice(data.pairInfo.token0?.address);
+  const token1Price = useTokenPrice(data.pairInfo.token1?.address);
 
   const tvl = useMemo(() => {
     if (token0Price && token1Price && data?.incentives?.[0]?.token0Amount && data?.incentives?.[0]?.token1Amount) {
-      const token0AmountDecimal = new Decimal(data.incentives[0].token0Amount.toString());
-      const token1AmountDecimal = new Decimal(data.incentives[0].token1Amount.toString());
-      const token0PriceDecimal = new Decimal(token0Price);
-      const token1PriceDecimal = new Decimal(token1Price);
-
-      return token0AmountDecimal.mul(token0PriceDecimal).add(token1AmountDecimal.mul(token1PriceDecimal));
+      const token0Amount = new Decimal(data.incentives[0].token0Amount.toString());
+      const token1Amount = new Decimal(data.incentives[0].token1Amount.toString());
+      return token0Amount
+        .div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18))).mul(token0Price)
+        .add(token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price));
     }
     return null;
   }, [token0Price, token1Price, data?.incentives?.[0]?.token0Amount, data?.incentives?.[0]?.token1Amount]);
@@ -60,13 +57,87 @@ const AllFarmsItem: React.FC<{ data: ReturnType<typeof usePools>[number] }> = ({
     return '--';
   }, [tvl]);
 
-  // const range = useMemo(() => {
-  //   if (!currentIncentive?.period || !vstPrice || !data?.amount0 || !data?.amount1 || !data?.allocPoint || !data?.totalAllocPoint || !tvl) return null;
-  //   const rewardRatePerSecond = currentIncentive.period.amount / (currentIncentive.period.endTime - currentIncentive.period.startTime);
-  //   const APRHigh = new Decimal(rewardRatePerSecond).mul(data.allocPoint).div(data.totalAllocPoint).mul(vstPrice).div(tvl.toDecimal()).mul(31536000);
-  //   const APRLow = APRHigh.mul(0.33);
-  //   return [APRLow.toFixed(2), APRHigh.toFixed(2)] as const;
-  // }, [currentIncentive?.index, vstPrice, data?.amount0, data?.amount1, data?.allocPoint, data?.totalAllocPoint, tvl]);
+  const rewardTokenAddresses = useMemo(() => {
+    if (!data?.incentiveKeys) return [];
+    const addresses = data.incentiveKeys.map(key => key.rewardToken);
+    return [...new Set(addresses)];
+  }, [data?.incentiveKeys]);
+
+  const [rewardTokenPrices, setRewardTokenPrices] = useState<{ [key: string]: string | null }>({});
+  const [pricesLoading, setPricesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!rewardTokenAddresses.length) {
+      setRewardTokenPrices({});
+      setPricesLoading(false);
+      return;
+    }
+
+    setPricesLoading(true);
+    
+    getTokensPrice(rewardTokenAddresses)
+      .then(priceMap => {
+        setRewardTokenPrices(priceMap);
+      })
+      .catch(error => {
+        console.warn('Failed to fetch reward token prices:', error);
+        setRewardTokenPrices({});
+      })
+      .finally(() => {
+        setPricesLoading(false);
+      });
+  }, [rewardTokenAddresses]);
+
+  const aprData = useMemo(() => {
+    if (!data?.incentiveKeys || !data?.incentives || !tvl) return null;
+
+    const rewardTokenAprs: { [tokenAddress: string]: { low: string; high: string; symbol?: string } } = {};
+    let totalRewardsPerSecond = new Decimal(0);
+
+    data.incentiveKeys.forEach((key, index) => {
+      const incentive = data.incentives[index];
+      if (!incentive || !key.inTimeRange || incentive.isEmpty) return;
+
+      const rewardTokenPrice = rewardTokenPrices[key.rewardToken];
+      if (!rewardTokenPrice) return;
+
+      const rewardToken = data.rewards.find(r => r.token?.address === key.rewardToken);
+      const rewardTokenDecimals = rewardToken?.token?.decimals ?? 18;
+
+      const rewardValuePerSecond = new Decimal(incentive.rewardRate.toString())
+        .div(new Decimal(10).pow(rewardTokenDecimals))
+        .mul(rewardTokenPrice);
+
+      totalRewardsPerSecond = totalRewardsPerSecond.add(rewardValuePerSecond);
+
+      const baseAPR = rewardValuePerSecond
+        .div(tvl)
+        .mul(31536000);
+
+      rewardTokenAprs[key.rewardToken] = {
+        low: baseAPR.toFixed(2),
+        high: baseAPR.mul(3).toFixed(2),
+        symbol: rewardToken?.token?.symbol
+      };
+    });
+
+    const totalBaseAPR = totalRewardsPerSecond
+      .div(tvl)
+      .mul(31536000);
+
+    const totalAprRange = {
+      low: totalBaseAPR.toFixed(2),
+      high: totalBaseAPR.mul(3).toFixed(2)
+    };
+
+    return {
+      rewardTokenAprs,
+      totalAprRange,
+      hasValidData: !totalRewardsPerSecond.isZero()
+    };
+  }, [data?.incentiveKeys, data?.incentives, data?.rewards, tvl, rewardTokenPrices]);
+
+  const isLoadingPrices = pricesLoading;
 
   return (
     <div
@@ -92,7 +163,15 @@ const AllFarmsItem: React.FC<{ data: ReturnType<typeof usePools>[number] }> = ({
         <div className={`${classNames.title}`}>
           {i18n.APR} {i18n.range}
         </div>
-        {/* <div className={`${classNames.content}`}>{range ? `${range[0]}% ~ ${range[1]}%` : (token0Price === undefined || token1Price === undefined || vstPrice === undefined) ? <Spin /> : '--'}</div> */}
+        <div className={`${classNames.content}`}>
+          {isLoadingPrices ? (
+            <Spin />
+          ) : aprData?.hasValidData ? (
+            `${aprData.totalAprRange.low}% ~ ${aprData.totalAprRange.high}%`
+          ) : (
+            '--'
+          )}
+        </div>
       </div>
       <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>{i18n.tvl}</div>
@@ -123,6 +202,8 @@ const AllFarmsItem: React.FC<{ data: ReturnType<typeof usePools>[number] }> = ({
 const AllFarms = () => {
   const pools = usePools();
   console.log(pools);
+
+  if (!pools) return null;
   return (
     <div className="mt-6 lt-mobile:mt-4">
       {pools.map((p) => (
