@@ -284,6 +284,56 @@ export const useTokenPrice = (tokenAddress: string | undefined, amount: string =
   return null;
 };
 
+export const getTokensPrice = async (tokenAddresses: string[], amount: string = '1'): Promise<{ [address: string]: string | null }> => {
+  const pricePromises = tokenAddresses.map(async (tokenAddress) => {
+    try {
+      const token = getWrapperTokenByAddress(tokenAddress);
+      
+      // 如果是USDT，直接返回amount
+      if (tokenAddress === TokenUSDT?.address) {
+        return { address: tokenAddress, price: amount || null };
+      }
+      
+      // 如果tokenAddress为空或token不存在
+      if (!tokenAddress || !token) {
+        return { address: tokenAddress, price: null };
+      }
+      
+      // 如果amount为空
+      if (!amount) {
+        return { address: tokenAddress, price: null };
+      }
+      
+      // 获取交易结果
+      const result = await fetchBestTrade({
+        tradeType: TradeType.EXACT_INPUT,
+        amount,
+        tokenIn: token,
+        tokenOut: TokenUSDT
+      });
+      
+      if (result.state === TradeState.VALID) {
+        const price = result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
+        return { address: tokenAddress, price };
+      }
+      
+      return { address: tokenAddress, price: null };
+    } catch (error) {
+      console.warn(`Failed to fetch price for ${tokenAddress}:`, error);
+      return { address: tokenAddress, price: null };
+    }
+  });
+  
+  const results = await Promise.all(pricePromises);
+  const priceMap: { [address: string]: string | null } = {};
+  
+  results.forEach(({ address, price }) => {
+    priceMap[address] = price;
+  });
+  
+  return priceMap;
+};
+
 function calcTradeFromData({
   res,
   tradeType,

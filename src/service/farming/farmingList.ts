@@ -23,7 +23,13 @@ export interface incentiveKey {
   refundee: string;
 }
 
-const poolsQuery = selector({
+export interface incentiveKeyDetail extends incentiveKey {
+  status: 'not-active' | 'active' | 'ended';
+  key: [string, string, number, number, string];
+  rewardTokenInfo: Token;
+}
+
+export const poolsQuery = selector({
   key: `farmingPoolsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const poolsAddress = get(farmingPoolsAddress);
@@ -51,8 +57,8 @@ const poolsQuery = selector({
 
     const tokensDetail = await Promise.all(pairsInfo.map(async (info) => {
       const [token0, token1] = await Promise.all([
-        getTokenByAddress(info.token0Address),
-        getTokenByAddress(info.token1Address)
+        getTokenByAddressWithAutoFetch(info.token0Address),
+        getTokenByAddressWithAutoFetch(info.token1Address)
       ]);
       return {
         token0,
@@ -78,8 +84,10 @@ const poolsQuery = selector({
         startTime: Number(data?.[2]),
         endTime: Number(data?.[3]),
         refundee: data?.[4],
-        inTimeRange: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp,
-      })) as Array<incentiveKey & { inTimeRange: boolean }>
+        status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
+        key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
+        rewardTokenInfo: getTokenByAddress(data?.[0])!,
+      })) as Array<incentiveKeyDetail>
     })!;
     const incentivesQuery = await fetchMulticall(
       incentiveKeys.flat().map((key) => [
@@ -104,7 +112,7 @@ const poolsQuery = selector({
     const pools = poolsAddress ? await Promise.all(poolsAddress.map(async (poolAddress, index) => {
       const rewardTokenAddresses = incentiveKeys[index].map(key => key.rewardToken);
       const rewards = await Promise.all([...new Set(rewardTokenAddresses)].map(async (address) => ({
-        token: await getTokenByAddress(address),
+        token: await getTokenByAddressWithAutoFetch(address),
         unreleasedAmount: incentiveKeys[index]
           .map((key, i) => key.rewardToken === address ? incentives[index][i]?.tokenUnreleased : 0n)
           .reduce((a, b) => a + b, 0n),
@@ -121,7 +129,6 @@ const poolsQuery = selector({
         },
         incentiveKeys: incentiveKeys?.[index] ?? [],
         incentives: incentives?.[index] ?? [],
-        currentIncentiveKey: incentiveKeys?.[index]?.find(key => key.inTimeRange),
         rewards,
       };
     })) : null;
@@ -141,7 +148,7 @@ const currentIncentiveKeySelector = selector({
   key: `currentIncentiveKeySelector-${import.meta.env.MODE}`,
   get: ({ get }) => {
     const pools = get(poolsQuery);
-    return pools?.[0]?.incentiveKeys.find(key => key.inTimeRange);
+    return pools?.[0]?.incentiveKeys.find(key => key.status === 'active');
   }
 });
 

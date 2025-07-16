@@ -50,7 +50,7 @@ export enum ModalMode {
   IncreaseUnlockTime,
 }
 
-type Props = ConfirmModalInnerProps & ReturnType<typeof usePools>[number];
+type Props = ConfirmModalInnerProps & NonNullable<ReturnType<typeof usePools>>[number];
 
 const Position = ({ data, currentIncentiveKey }: { data: PositionForUI; currentIncentiveKey: incentiveKey }) => {
   const i18n = useI18n(transitions);
@@ -173,7 +173,7 @@ const StakeModal: React.FC<Props> = ({ poolAddress, currentIncentiveKey, pairInf
   }
 };
 
-const showStakeLPModal = (pool: ReturnType<typeof usePools>[number]) => {
+const showStakeLPModal = (pool: NonNullable<ReturnType<typeof usePools>>[number]) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     subTitle: compiled(toI18n(transitions).subTitle, {

@@ -36,6 +36,7 @@
     }
   },
   "dependencies": {
+    "@cfx-kit/dapp-utils": "^0.2.5",
     "@cfx-kit/react-utils": "^0.0.56",
     "@cfx-kit/wallet-avatar": "^0.0.3",
     "@cfxjs/use-wallet-react": "^0.0.9",
@@ -72,7 +73,7 @@
     "recoil-nexus": "^0.4.0",
     "reseter.css": "^2.0.0",
     "tiny-invariant": "^1.3.1",
-    "v-swap-smart-order-router": "3.10.12",
+    "v-swap-smart-order-router": "^3.10.13",
     "zustand": "^4.3.8"
   },
   "devDependencies": {
