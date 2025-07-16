@@ -1,7 +1,7 @@
 import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
 import { getTokenByAddressWithAutoFetch, getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, type Token } from '@service/tokens';
-import { chunk } from 'lodash-es';
+import { chunk, omit } from 'lodash-es';
 import { timestampSelector } from './timestamp';
 
 
@@ -148,11 +148,12 @@ const currentIncentiveKeySelector = selector({
   key: `currentIncentiveKeySelector-${import.meta.env.MODE}`,
   get: ({ get }) => {
     const pools = get(poolsQuery);
-    return pools?.[0]?.incentiveKeys.find(key => key.status === 'active');
+    const res = pools?.[0]?.incentiveKeys.find(key => key.status === 'active');
+    return omit(res, 'poolAddress', 'key');
   }
 });
 
-export const useCurrentIncentiveKey = () => {
+export const useCurrentIncentiveKeyDetail = () => {
   return useRecoilValue(currentIncentiveKeySelector);
 };
 

@@ -4,7 +4,7 @@ import Decimal from 'decimal.js';
 import cx from 'clsx';
 import { useEffect, useState } from 'react';
 import { ReactComponent as AlarmClockIcon } from '@assets/icons/alarm-clock.svg';
-import { useCurrentIncentiveKey } from '@service/farming';
+import { useCurrentIncentiveKeyDetail } from '@service/farming';
 import BorderBox from '@components/Box/BorderBox';
 
 interface EndInProps {
@@ -35,8 +35,8 @@ const ONE_WEEK = 7 * ONE_DAY;
 type StateType = 'default' | 'normal' | 'urgent';
 
 const EndIn: React.FC<EndInProps> = ({ children }) => {
-  const currentIncentive = useCurrentIncentiveKey();
-  const endTime = currentIncentive?.endTime ?? 0;
+  const currentIncentiveKeyDetail = useCurrentIncentiveKeyDetail();
+  const endTime = currentIncentiveKeyDetail?.endTime ?? 0;
   const i18n = useI18n(transitions);
   const [timeLeft, setTimeLeft] = useState('');
   

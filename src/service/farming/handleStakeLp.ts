@@ -3,14 +3,13 @@ import { UniswapV3Staker } from '@contracts/index';
 import { sendTransaction } from '@service/account';
 import { hidePopup } from '@components/showPopup';
 import showGasLimitModal from '@modules/ConfirmTransactionModal/showGasLimitModal';
-import { type incentiveKey } from './farmingList';
+import { type useCurrentIncentiveKeyDetail } from './farmingList';
 
 
-export const handleStakeLP = async ({ incentiveKey, tokenId }: { incentiveKey: incentiveKey; tokenId: number; }) => {
+export const handleStakeLP = async ({ incentiveKeyDetail, tokenId, poolAddress }: { incentiveKeyDetail: ReturnType<typeof useCurrentIncentiveKeyDetail>; tokenId: number; poolAddress: string; }) => {
   try {
     const data0 = UniswapV3Staker.func.interface.encodeFunctionData('depositToken', [tokenId]);
-    const data1 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [[incentiveKey.rewardToken, incentiveKey.poolAddress, incentiveKey.startTime, incentiveKey.endTime, incentiveKey.refundee], tokenId]);
-    
+    const data1 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [[incentiveKeyDetail.rewardToken, poolAddress, incentiveKeyDetail.startTime, incentiveKeyDetail.endTime, incentiveKeyDetail.refundee], tokenId]);
     return await sendTransaction({
       to: UniswapV3Staker.address,
       data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1]]),

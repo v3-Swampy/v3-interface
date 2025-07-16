@@ -81,112 +81,49 @@ const myFarmsQuery = selector({
       const myFarmsResult = userPositionsWithIncentiveKey.map((userPositionWithIncentiveKey, index) => ({
         ...userPositionWithIncentiveKey,
         stakeReward: stakeRewards[index],
-      })).filter(item => item.incentiveKey.status !== 'not-active');
+      })).filter(item => item.incentiveKey.status !== 'active');
 
-      const groupedByPoolAndStatus = groupBy(myFarmsResult, (item) =>
-        `${item.pool.poolAddress}_${item.incentiveKey.status}`
-      );
+      const groupedByPoolAndStatus = groupBy(myFarmsResult, item => item.pool.poolAddress);
 
-      // 根据时间段包含关系进行聚类的函数
-      const groupByTimeRange = (items: typeof myFarmsResult) => {
-        // 获取所有唯一的时间段
-        const timeRanges = Array.from(new Set(items.map(item => 
-          `${item.incentiveKey.startTime}_${item.incentiveKey.endTime}`
-        ))).map(range => {
-          const [startTime, endTime] = range.split('_').map(Number);
-          return { startTime, endTime, key: range };
-        });
+      const groupedFarms = map(groupedByPoolAndStatus, (items) => {
+        const groupedByTokenId = groupBy(items, 'tokenId');
 
-        // 找到每个时间段的包含关系
-        const groups: { [key: string]: string[] } = {};
-        const processed = new Set<string>();
+        const positions = map(groupedByTokenId, (tokenIdItems, tokenId) => {
+          const groupedByRewardToken = groupBy(tokenIdItems, item => item.incentiveKey.rewardToken.toLowerCase());
 
-        // 为每个时间段找到它的根时间段（包含它的最大时间段）
-        timeRanges.forEach(range => {
-          if (processed.has(range.key)) return;
-
-          // 找到包含当前时间段的所有时间段
-          const containingRanges = timeRanges.filter(other => 
-            other.startTime <= range.startTime && 
-            other.endTime >= range.endTime &&
-            other.key !== range.key
-          );
-
-          // 找到最大的包含时间段（如果有的话）
-          const rootRange = containingRanges.length > 0 
-            ? containingRanges.reduce((prev, curr) => 
-                (curr.endTime - curr.startTime) > (prev.endTime - prev.startTime) ? curr : prev
-              )
-            : range;
-
-          // 将当前时间段归到根时间段的组中
-          if (!groups[rootRange.key]) {
-            groups[rootRange.key] = [];
-          }
-          groups[rootRange.key].push(range.key);
-          processed.add(range.key);
-        });
-
-        // 根据分组结果重新组织items
-        return Object.values(groups).map(groupKeys => {
-          return items.filter(item => 
-            groupKeys.includes(`${item.incentiveKey.startTime}_${item.incentiveKey.endTime}`)
-          );
-        });
-      };
-
-      const groupedFarms = Object.values(groupedByPoolAndStatus).flatMap(poolStatusItems => {
-        // 首先按时间段包含关系分组
-        const timeRangeGroups = groupByTimeRange(poolStatusItems);
-        
-        return timeRangeGroups.map(items => {
-          const groupedByTokenId = groupBy(items, 'tokenId');
-
-          const positions = map(groupedByTokenId, (tokenIdItems, tokenId) => {
-            const groupedByRewardToken = groupBy(tokenIdItems, item => item.incentiveKey.rewardToken.toLowerCase());
-
-            const rewards = map(groupedByRewardToken, (rewardTokenItems) => {
-              const mergedStakeReward = rewardTokenItems.reduce((acc, item) => ({
-                liquidity: acc.liquidity + item.stakeReward.liquidity,
-                boostedLiquidity: acc.boostedLiquidity + item.stakeReward.boostedLiquidity,
-                rewardsPerSecondX32: acc.rewardsPerSecondX32 + item.stakeReward.rewardsPerSecondX32,
-                unsettledReward: acc.unsettledReward + item.stakeReward.unsettledReward,
-              }), {
-                liquidity: 0n,
-                boostedLiquidity: 0n,
-                rewardsPerSecondX32: 0n,
-                unsettledReward: 0n,
-              });
-
-              return {
-                stakeReward: mergedStakeReward,
-                rewardTokenInfo: rewardTokenItems[0].incentiveKey.rewardTokenInfo,
-              };
+          const rewards = map(groupedByRewardToken, (rewardTokenItems) => {
+            const mergedStakeReward = rewardTokenItems.reduce((acc, item) => ({
+              liquidity: acc.liquidity + item.stakeReward.liquidity,
+              boostedLiquidity: acc.boostedLiquidity + item.stakeReward.boostedLiquidity,
+              rewardsPerSecondX32: acc.rewardsPerSecondX32 + item.stakeReward.rewardsPerSecondX32,
+              unsettledReward: acc.unsettledReward + item.stakeReward.unsettledReward,
+            }), {
+              liquidity: 0n,
+              boostedLiquidity: 0n,
+              rewardsPerSecondX32: 0n,
+              unsettledReward: 0n,
             });
 
             return {
-              tokenId: BigInt(tokenId),
-              rewards,
+              stakeReward: mergedStakeReward,
+              rewardTokenInfo: rewardTokenItems[0].incentiveKey.rewardTokenInfo,
             };
           });
 
           return {
-            pool: items[0].pool,
-            positions,
-            incentiveStatus: items[0].incentiveKey.status,
-            VSTIncentiveEndAt: items?.find(item => item.incentiveKey.rewardToken.toLowerCase() === TokenVST.address.toLowerCase())?.incentiveKey.endTime,
+            tokenId: BigInt(tokenId),
+            rewards,
           };
         });
-      }).flat().sort((a, b) => {
-        if (a.incentiveStatus === 'ended' && b.incentiveStatus !== 'ended') {
-          return 1;
-        }
-        if (a.incentiveStatus !== 'ended' && b.incentiveStatus === 'ended') {
-          return -1;
-        }
-        return 0;
-      });
 
+        return {
+          pool: items[0].pool,
+          positions,
+          incentiveStatus: items[0].incentiveKey.status,
+          VSTIncentiveEndAt: items?.find(item => item.incentiveKey.rewardToken.toLowerCase() === TokenVST.address.toLowerCase())?.incentiveKey.endTime,
+        };
+      });
+      console.log('groupedFarms', groupedFarms);
       return groupedFarms;
     } catch (error) {
       console.error('Error in myFarmsQuery:', error);

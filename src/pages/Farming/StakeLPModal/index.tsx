@@ -8,7 +8,7 @@ import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
-import { type usePools, handleStakeLP as _handleStakeLP, type incentiveKey } from '@service/farming';
+import { type usePools, handleStakeLP as _handleStakeLP, useCurrentIncentiveKeyDetail } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3Staker, NonfungiblePositionManager } from '@contracts/index';
 import { useNavigate } from 'react-router-dom';
@@ -52,11 +52,11 @@ export enum ModalMode {
 
 type Props = ConfirmModalInnerProps & NonNullable<ReturnType<typeof usePools>>[number];
 
-const Position = ({ data, currentIncentiveKey }: { data: PositionForUI; currentIncentiveKey: incentiveKey }) => {
+const Position = ({ data, currentIncentiveKeyDetail, poolAddress }: { data: PositionForUI; currentIncentiveKeyDetail: ReturnType<typeof useCurrentIncentiveKeyDetail>; poolAddress: string }) => {
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
-  const { amount0, amount1, leftToken, rightToken, fee } = data ?? {};
+  const { amount0, amount1, leftToken, rightToken } = data ?? {};
 
   const leftTokenPrice = useTokenPrice(leftToken?.address);
   const rightTokenPrice = useTokenPrice(rightToken?.address);
@@ -90,7 +90,8 @@ const Position = ({ data, currentIncentiveKey }: { data: PositionForUI; currentI
             onClick={async () => {
               const txHash = await handleStakeLP({
                 tokenId: data.id,
-                incentiveKey: currentIncentiveKey,
+                incentiveKeyDetail: currentIncentiveKeyDetail,
+                poolAddress,
               });
               if (typeof txHash === 'string') {
                 addRecordToHistory({
@@ -113,10 +114,11 @@ const Position = ({ data, currentIncentiveKey }: { data: PositionForUI; currentI
   );
 };
 
-const StakeModal: React.FC<Props> = ({ poolAddress, currentIncentiveKey, pairInfo }) => {
+const StakeModal: React.FC<Props> = ({ poolAddress, pairInfo }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const navigate = useNavigate();
+  const currentIncentiveKeyDetail = useCurrentIncentiveKeyDetail();
 
   const fPositions = useMemo(() => {
     return positions.filter((p) => p.address === poolAddress && p.liquidity !== '0');
@@ -157,7 +159,7 @@ const StakeModal: React.FC<Props> = ({ poolAddress, currentIncentiveKey, pairInf
       <div className="mt-24px lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto lt-mobile:drawer-inner-scroller">
         <div className="max-h-454px min-h-318px overflow-y-auto lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto">
           {fPositions.map((p) => {
-            return <Position key={p.id} data={p} currentIncentiveKey={currentIncentiveKey!}></Position>;
+            return <Position key={p.id} data={p} currentIncentiveKeyDetail={currentIncentiveKeyDetail!} poolAddress={poolAddress} />;
           })}
         </div>
         <div className="text-center">
