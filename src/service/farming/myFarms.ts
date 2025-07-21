@@ -3,8 +3,40 @@ import { groupBy, map, } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@cfx-kit/dapp-utils/dist/fetch';
 import { accountState } from '@service/account';
-import { TokenVST } from '@service/tokens';
-import { poolsQuery } from './farmingList';
+import { TokenVST, type Token } from '@service/tokens';
+import { positionsQueryByTokenIds } from '@service/position';
+import { poolsQuery, type incentiveKeyDetail } from './farmingList';
+
+const mergeStakeRewardsByToken = <T extends { stakeReward: {
+  liquidity: bigint;
+  boostedLiquidity: bigint;
+  rewardsPerSecondX32: bigint;
+  unsettledReward: bigint;
+}; rewardTokenInfo?: Token; incentiveKey?: incentiveKeyDetail }>(
+  items: T[],
+  getRewardTokenKey: (item: T) => string
+) => {
+  const groupedByRewardToken = groupBy(items, getRewardTokenKey);
+  
+  return map(groupedByRewardToken, (rewardTokenItems) => {
+    const mergedStakeReward = rewardTokenItems.reduce((acc, item) => ({
+      liquidity: acc.liquidity + item.stakeReward.liquidity,
+      boostedLiquidity: acc.boostedLiquidity + item.stakeReward.boostedLiquidity,
+      rewardsPerSecondX32: acc.rewardsPerSecondX32 + item.stakeReward.rewardsPerSecondX32,
+      unsettledReward: acc.unsettledReward + item.stakeReward.unsettledReward,
+    }), {
+      liquidity: 0n,
+      boostedLiquidity: 0n,
+      rewardsPerSecondX32: 0n,
+      unsettledReward: 0n,
+    });
+
+    return {
+      stakeReward: mergedStakeReward,
+      rewardTokenInfo: rewardTokenItems[0].rewardTokenInfo || rewardTokenItems[0].incentiveKey?.rewardTokenInfo,
+    };
+  });
+};
 
 const myFarmsQuery = selector({
   key: `myFarmsQuery-${import.meta.env.MODE}`,
@@ -35,15 +67,18 @@ const myFarmsQuery = selector({
 
       const userPositionsQuery = UniswapV3Staker.func.interface.decodeFunctionResult('multicall', userPositionsQueryMulticall)?.[0];
       const userPositions = Array.from(userPositionsQuery).map((item) =>
-        Array.from(UniswapV3Staker.func.interface.decodeFunctionResult('getUserPositions', item as string)?.[0] as bigint[])
+        Array.from(UniswapV3Staker.func.interface.decodeFunctionResult('getUserPositions', item as string)?.[0] as bigint[]).map(bigintValue => Number(bigintValue))
       );
+
+      const positions = get(positionsQueryByTokenIds(userPositions.flat()));
+      console.log('positions', positions);
 
       const userPositionsWithIncentiveKey = userPositions.map((tokenIds, index) => {
         const pool = pools[index];
         return tokenIds.flatMap((tokenId) =>
           pool.incentiveKeys.map((incentiveKey) => ({
             pool,
-            tokenId,
+            position: positions.find(position => position.id === tokenId)!,
             incentiveKey
           }))
         );
@@ -57,8 +92,8 @@ const myFarmsQuery = selector({
             from: '0x000000000000000000000000000000000000fe01',
             to: UniswapV3Staker.address,
             data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
-              userPositionsWithIncentiveKey.map(({ incentiveKey, tokenId }) =>
-                UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, tokenId])
+              userPositionsWithIncentiveKey.map(({ incentiveKey, position }) =>
+                UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, position.id])
               )
             ])
           },
@@ -81,37 +116,22 @@ const myFarmsQuery = selector({
       const myFarmsResult = userPositionsWithIncentiveKey.map((userPositionWithIncentiveKey, index) => ({
         ...userPositionWithIncentiveKey,
         stakeReward: stakeRewards[index],
-      })).filter(item => item.incentiveKey.status !== 'active');
+      })).filter(item => item.incentiveKey.status === 'active');
 
       const groupedByPoolAndStatus = groupBy(myFarmsResult, item => item.pool.poolAddress);
 
       const groupedFarms = map(groupedByPoolAndStatus, (items) => {
-        const groupedByTokenId = groupBy(items, 'tokenId');
+        const groupedByTokenId = groupBy(items, item => item.position.id);
 
-        const positions = map(groupedByTokenId, (tokenIdItems, tokenId) => {
-          const groupedByRewardToken = groupBy(tokenIdItems, item => item.incentiveKey.rewardToken.toLowerCase());
-
-          const rewards = map(groupedByRewardToken, (rewardTokenItems) => {
-            const mergedStakeReward = rewardTokenItems.reduce((acc, item) => ({
-              liquidity: acc.liquidity + item.stakeReward.liquidity,
-              boostedLiquidity: acc.boostedLiquidity + item.stakeReward.boostedLiquidity,
-              rewardsPerSecondX32: acc.rewardsPerSecondX32 + item.stakeReward.rewardsPerSecondX32,
-              unsettledReward: acc.unsettledReward + item.stakeReward.unsettledReward,
-            }), {
-              liquidity: 0n,
-              boostedLiquidity: 0n,
-              rewardsPerSecondX32: 0n,
-              unsettledReward: 0n,
-            });
-
-            return {
-              stakeReward: mergedStakeReward,
-              rewardTokenInfo: rewardTokenItems[0].incentiveKey.rewardTokenInfo,
-            };
-          });
+        const positions = map(groupedByTokenId, (positionItems, tokenId) => {
+          const rewards = mergeStakeRewardsByToken(
+            positionItems,
+            item => item.incentiveKey.rewardToken.toLowerCase()
+          );
 
           return {
-            tokenId: BigInt(tokenId),
+            tokenId,
+            position: positionItems[0].position,
             rewards,
           };
         });
@@ -119,11 +139,14 @@ const myFarmsQuery = selector({
         return {
           pool: items[0].pool,
           positions,
+          rewards: mergeStakeRewardsByToken(
+            positions.flatMap(pos => pos.rewards),
+            reward => reward.rewardTokenInfo?.address?.toLowerCase() ?? ''
+          ),
           incentiveStatus: items[0].incentiveKey.status,
           VSTIncentiveEndAt: items?.find(item => item.incentiveKey.rewardToken.toLowerCase() === TokenVST.address.toLowerCase())?.incentiveKey.endTime,
         };
       });
-      console.log('groupedFarms', groupedFarms);
       return groupedFarms;
     } catch (error) {
       console.error('Error in myFarmsQuery:', error);

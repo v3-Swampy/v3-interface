@@ -12,7 +12,7 @@ import Dropdown from '@components/Dropdown';
 import BorderBox from '@components/Box/BorderBox';
 import { useTokenPrice, getTokensPrice } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
-import classNames from './classNames';
+import classNames from '../classNames';
 import showStakeLPModal from './StakeLPModal';
 import MiningIcon from '@assets/imgs/mining.png';
 
@@ -35,7 +35,7 @@ const transitions = {
   },
 } as const;
 
-const RewardsDetail: React.FC<{ rewards: NonNullable<ReturnType<typeof usePools>>[number]['rewards'] }> = memo(({ rewards }) => {
+export const RewardsDetail: React.FC<{ rewards: NonNullable<ReturnType<typeof usePools>>[number]['rewards'] }> = memo(({ rewards }) => {
   return (
     <BorderBox variant="gradient-white" className="max-w-90vw p-24px rounded-28px">
       {rewards?.map((reward) => (
