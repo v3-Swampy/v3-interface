@@ -78,7 +78,9 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
       {Object.entries(aprData?.rewardTokenAPRs ?? {}).map(([tokenAddress, { low, high, token }]) => (
         <div className="mt-10px flex items-center justify-between text-14px text-black-normal" key={tokenAddress}>
           <span>{token.symbol} Rewards</span>
-          <span>{low}% ~ {high}%</span>
+          <span>
+            {low}% ~ {high}%
+          </span>
         </div>
       ))}
 
@@ -86,7 +88,9 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
 
       <div className="flex items-center justify-between text-18px leading-22px text-black-normal font-medium">
         <span>Total APR</span>
-        <span>{aprData?.totalAprRange.low}% ~ {aprData?.totalAprRange.high}%</span>
+        <span>
+          {aprData?.totalAprRange.low}% ~ {aprData?.totalAprRange.high}%
+        </span>
       </div>
     </BorderBox>
   );
@@ -98,16 +102,21 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
   const token1Price = useTokenPrice(data.pairInfo.token1?.address);
 
   const tvl = useMemo(() => {
-    if (token0Price && token1Price && data?.incentives?.[0]?.token0Amount && data?.incentives?.[0]?.token1Amount) {
-      const token0Amount = new Decimal(data.incentives[0].token0Amount.toString());
-      const token1Amount = new Decimal(data.incentives[0].token1Amount.toString());
-      return token0Amount
-        .div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18)))
-        .mul(token0Price)
-        .add(token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price));
-    }
-    return null;
-  }, [token0Price, token1Price, data?.incentives?.[0]?.token0Amount, data?.incentives?.[0]?.token1Amount]);
+    if (!token0Price || !token1Price || !data?.incentives?.length) return null;
+    // 计算每个 incentive 的美元价值
+    const tvlValues = data.incentives.map((incentive) => {
+      if (incentive?.token0Amount && incentive?.token1Amount) {
+        const token0Amount = new Decimal(incentive.token0Amount.toString());
+        const token1Amount = new Decimal(incentive.token1Amount.toString());
+        const token0Value = token0Amount.div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18))).mul(token0Price);
+        const token1Value = token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price);
+        return token0Value.add(token1Value);
+      }
+      return new Decimal(0);
+    });
+    if (tvlValues.length === 0) return null;
+    return Decimal.max(...tvlValues);
+  }, [token0Price, token1Price, data?.incentives, data?.pairInfo.token0?.decimals, data?.pairInfo.token1?.decimals]);
 
   const tvlDisplay = useMemo(() => {
     if (tvl) {

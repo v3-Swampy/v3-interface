@@ -6,7 +6,7 @@ import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, Pool } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
 import { getPool } from '@service/pairs&pool/singlePool';
-import { computePoolAddress, usePool } from '@service/pairs&pool';
+import { computePoolAddress } from '@service/pairs&pool';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -53,6 +53,7 @@ export interface PositionForUI extends Position {
   // position token0 ratio
   ratio?: number;
   pool?: Pool | null | undefined;
+  positionStatus?: PositionStatus;
 }
 
 const positionBalanceQuery = selector({
@@ -225,6 +226,14 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
   const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
   const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
 
+  const tickCurrent = pool?.tickCurrent;
+
+  const positionStatus = liquidity === '0'
+    ? PositionStatus.Closed
+    : typeof tickCurrent !== 'number'
+      ? undefined
+      : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange
+
   if (
     // if token0 is a dollar-stable asset, set it as the quote token
     stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
@@ -242,6 +251,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
       leftToken: unwrapToken0,
       priceLowerForUI: invertPrice(priceUpper),
       priceUpperForUI: invertPrice(priceLower),
+      positionStatus,
       pool,
     };
   }
@@ -254,6 +264,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
     leftToken: unwrapToken1,
     priceLowerForUI: priceLower,
     priceUpperForUI: priceUpper,
+    positionStatus,
     pool,
   };
 };
@@ -263,18 +274,16 @@ export const createPreviewPositionForUI = (
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
 
-export const usePositionStatus = (position: PositionForUI) => {
-  const { token0, token1, fee, liquidity, tickLower, tickUpper } = position ?? {};
+export const usePositionStatus = (position: PositionForUI) => useMemo(() => getPositionStatus(position), [position]);
 
-  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
+
+export const getPositionStatus = (position: PositionForUI) => {
+  const { liquidity, tickLower, tickUpper, pool } = position ?? {};
   const tickCurrent = pool?.tickCurrent;
-  return useMemo(() => {
-    return liquidity === '0'
-      ? PositionStatus.Closed
-      : typeof tickCurrent !== 'number'
-        ? undefined
-        : tickCurrent < tickLower || tickCurrent > tickUpper
-          ? PositionStatus.OutOfRange
-          : PositionStatus.InRange;
-  }, [position]);
+
+  return liquidity === '0'
+    ? PositionStatus.Closed
+    : typeof tickCurrent !== 'number'
+      ? undefined
+      : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
 };

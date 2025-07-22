@@ -59,15 +59,14 @@ const className = {
 };
 
 const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[number]['positions'][number]; supply: string | undefined }> = ({ data, supply }) => {
-  const { position } = data;
+  const { isPositionActive } = data;
   const i18n = useI18n(transitions);
   const account = useAccount();
-  const status = usePositionStatus(position);
   // const { inTransaction: unstakeInTransaction, execTransaction: handleClaimUnStake } = useInTransaction(_handleClaimUnStake, true);
   // const { inTransaction: claimIntransaction, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
   const isCanClaim = useCanClaim();
   const isChainMath = useIsChainMatch();
-  const isPaused = status == PositionStatus.OutOfRange;
+  const isPaused = !isPositionActive;
 
   return (
     <div
@@ -184,9 +183,8 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
   );
 };
 
-const Positions: React.FC<{ positions: NonNullable<ReturnType<typeof useMyFarms>>[number]['positions']; VSTIncentiveEndAt?: number; supplies: (string | undefined)[] }> = ({
+const Positions: React.FC<{ positions: NonNullable<ReturnType<typeof useMyFarms>>[number]['positions']; supplies: (string | undefined)[] }> = ({
   positions,
-  VSTIncentiveEndAt,
   supplies,
 }) => {
   const i18n = useI18n(transitions);
@@ -198,12 +196,6 @@ const Positions: React.FC<{ positions: NonNullable<ReturnType<typeof useMyFarms>
         <span className="text-14px font-normal font-not-italic leading-18px color-gray-normal">
           {i18n.myPosition} ({positions?.length})
         </span>
-        {VSTIncentiveEndAt && (
-          <span className={`${className.incentiveHit} color-orange-normal bg-orange-normal/10`}>
-            <ClockIcon className="mr-1 w-12px h-12px" />
-            <span className="text-12px  font-not-italic leading-15px ml-0.5">Incentive until: {new Date(VSTIncentiveEndAt * 1000).toLocaleString()}</span>
-          </span>
-        )}
       </div>
       <div>
         {positions?.map?.((position, index) => (
