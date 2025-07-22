@@ -126,7 +126,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
               className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 lt-mobile:w-46% lt-mobile:mr-0`}
               onClick={async () => {
                 const txHash = await handleClaim({
-                  VSTIncentiveKey: data.VSTIncentiveKey!,
+                  stakedIncentiveKeys: data.stakedIncentiveKeys,
                   rewards: data.rewards,
                   tokenId: data.tokenId,
                   accountAddress: account as string,
@@ -158,7 +158,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
               //   });
               // } else {
               const txHash = await handleUnstake({
-                VSTIncentiveKey: data.VSTIncentiveKey!,
+                stakedIncentiveKeys: data.stakedIncentiveKeys,
                 rewards: data.rewards,
                 tokenId: data.tokenId,
                 accountAddress: account as string,

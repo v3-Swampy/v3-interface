@@ -4,14 +4,13 @@ import { type IncentiveKeyDetail, type Rewards } from '@service/farming';
 import { hidePopup } from '@components/showPopup';
 import showGasLimitModal from '@modules/ConfirmTransactionModal/showGasLimitModal';
 
-export const handleStakeLP = async ({ VSTIncentiveKey, tokenId }: { VSTIncentiveKey: IncentiveKeyDetail; tokenId: number; }) => {
+export const handleStakeLP = async ({ activeIncentiveKeys, tokenId }: { activeIncentiveKeys: IncentiveKeyDetail[]; tokenId: number; }) => {
   try {
-    const key = [VSTIncentiveKey.rewardToken, VSTIncentiveKey.poolAddress, VSTIncentiveKey.startTime, VSTIncentiveKey.endTime, VSTIncentiveKey.refundee];
     const data0 = UniswapV3Staker.func.interface.encodeFunctionData('depositToken', [tokenId]);
-    const data1 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [key, tokenId]);
+    const stakeData = activeIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee], tokenId]));
     return await sendTransaction({
       to: UniswapV3Staker.address,
-      data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1]]),
+      data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, ...stakeData]]),
     });
   } catch (err: any) {
     if (err?.code === -32603) {
@@ -24,46 +23,44 @@ export const handleStakeLP = async ({ VSTIncentiveKey, tokenId }: { VSTIncentive
 };
 
 export const handleClaim = async ({
-  VSTIncentiveKey,
+  stakedIncentiveKeys,
   tokenId,
   accountAddress,
   rewards,
 }: {
-  VSTIncentiveKey: IncentiveKeyDetail;
+  stakedIncentiveKeys: IncentiveKeyDetail[];
   rewards: Rewards;
   tokenId: number;
   accountAddress: string;
 }) => {
-  const key = [VSTIncentiveKey.rewardToken, VSTIncentiveKey.poolAddress, VSTIncentiveKey.startTime, VSTIncentiveKey.endTime, VSTIncentiveKey.refundee];
-  const data0 = UniswapV3Staker.func.interface.encodeFunctionData('unstakeToken', [key, tokenId]);
-  const claimRewardData = rewards.map((reward) => UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [reward.rewardTokenInfo?.address, accountAddress, reward.stakeReward.unsettledReward]));
-  const data2 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [key, tokenId]);
+  const unstakeData = stakedIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('unstakeToken', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee], tokenId]));
+  const claimRewardData = rewards.map((reward) => UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [reward.rewardTokenInfo?.address, accountAddress, 0]));
+  const stakeData = stakedIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee], tokenId]));
 
   return await sendTransaction({
     to: UniswapV3Staker.address,
-    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, ...claimRewardData, data2]]),
+    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[...unstakeData, ...claimRewardData, ...stakeData]]),
   });
 };
 
 
 export const handleUnstake = async ({
-  VSTIncentiveKey,
+  stakedIncentiveKeys,
   rewards,
   tokenId,
   accountAddress,
 }: {
-  VSTIncentiveKey: IncentiveKeyDetail;
+  stakedIncentiveKeys: IncentiveKeyDetail[];
   rewards: Rewards;
   tokenId: number;
   accountAddress: string;
 }) => {
-  const key = [VSTIncentiveKey.rewardToken, VSTIncentiveKey.poolAddress, VSTIncentiveKey.startTime, VSTIncentiveKey.endTime, VSTIncentiveKey.refundee];
-  const data0 = UniswapV3Staker.func.interface.encodeFunctionData('unstakeToken', [key, tokenId]);
-  const claimRewardData = rewards.map((reward) => UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [reward.rewardTokenInfo?.address, accountAddress, reward.stakeReward.unsettledReward]));
-  const data2 = UniswapV3Staker.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
+  const unstakeData = stakedIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('unstakeToken', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee], tokenId]));
+  const claimRewardData = rewards.map((reward) => UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [reward.rewardTokenInfo?.address, accountAddress, 0]));
+  const withdrawData = UniswapV3Staker.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
 
   return await sendTransaction({
     to: UniswapV3Staker.address,
-    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, ...claimRewardData, data2]]),
+    data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[...unstakeData, ...claimRewardData, withdrawData]]),
   });
 };

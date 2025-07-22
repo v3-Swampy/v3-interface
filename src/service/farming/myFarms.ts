@@ -128,7 +128,6 @@ const myFarmsQuery = selector({
 
       const groupedFarms = map(groupedByPool, (items) => {
         const groupedByTokenId = groupBy(items, item => item.position.id);
-        const VSTIncentiveKey = items.find((item) => item.incentiveKey.status === 'active' && isTokenEqual(item.incentiveKey.rewardTokenInfo, TokenVST))?.incentiveKey;
 
         const positions = map(groupedByTokenId, (incentiveItems, positionId) => {
           const activeRewards = mergeStakeRewardsByToken(
@@ -144,8 +143,8 @@ const myFarmsQuery = selector({
           return {
             tokenId: Number(positionId),
             position: incentiveItems[0].position,
-            isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && !!VSTIncentiveKey,
-            VSTIncentiveKey,
+            isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && items.some(item => item.incentiveKey.status === 'active'),
+            stakedIncentiveKeys: incentiveItems.filter((item) => item.stakeReward.liquidity > 0n).map((item) => item.incentiveKey),
             activeRewards,
             rewards,
           };

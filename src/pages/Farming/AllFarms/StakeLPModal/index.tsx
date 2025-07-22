@@ -53,7 +53,7 @@ export enum ModalMode {
 
 type Props = ConfirmModalInnerProps & NonNullable<ReturnType<typeof usePools>>[number];
 
-const Position = ({ data, VSTIncentiveKey }: { data: PositionForUI; VSTIncentiveKey: IncentiveKeyDetail; }) => {
+const Position = ({ data, activeIncentiveKeys }: { data: PositionForUI; activeIncentiveKeys: IncentiveKeyDetail[]; }) => {
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
@@ -91,7 +91,7 @@ const Position = ({ data, VSTIncentiveKey }: { data: PositionForUI; VSTIncentive
             onClick={async () => {
               const txHash = await handleStakeLP({
                 tokenId: data.id,
-                VSTIncentiveKey,
+                activeIncentiveKeys,
               });
               if (typeof txHash === 'string') {
                 addRecordToHistory({
@@ -118,8 +118,8 @@ const StakeModal: React.FC<Props> = ({ poolAddress, pairInfo, incentiveKeys }) =
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const navigate = useNavigate();
-  const VSTIncentiveKey = useMemo(() => {
-    return incentiveKeys?.find((incentiveKey) => incentiveKey.status === 'active' && isTokenEqual(incentiveKey.rewardTokenInfo, TokenVST));
+  const activeIncentiveKeys = useMemo(() => {
+    return incentiveKeys?.filter((incentiveKey) => incentiveKey.status === 'active');
   }, [incentiveKeys]);
 
   const fPositions = useMemo(() => {
@@ -161,7 +161,7 @@ const StakeModal: React.FC<Props> = ({ poolAddress, pairInfo, incentiveKeys }) =
       <div className="mt-24px lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto lt-mobile:drawer-inner-scroller">
         <div className="max-h-454px min-h-318px overflow-y-auto lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto">
           {fPositions.map((p) => {
-            return <Position key={p.id} data={p} VSTIncentiveKey={VSTIncentiveKey!} />;
+            return <Position key={p.id} data={p} activeIncentiveKeys={activeIncentiveKeys} />;
           })}
         </div>
         <div className="text-center">
