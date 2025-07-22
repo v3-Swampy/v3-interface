@@ -2,7 +2,6 @@ import React, { useMemo, useState, useEffect, useTransition } from 'react';
 import useI18n from '@hooks/useI18n';
 import Decimal from 'decimal.js';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { groupBy, map } from 'lodash-es';
 import cx from 'clsx';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
@@ -13,12 +12,10 @@ import Dropdown from '@components/Dropdown';
 import Spin from '@components/Spin';
 import Positions from './Positions';
 import { RewardsDetail } from '../AllFarms';
-import Corner from './Corner';
 import { useMyFarms, useRefreshMyFarms } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { useAccount } from '@service/account';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { useBoostFactor } from '@service/staking';
 import { useTokenPrice, getTokensPrice } from '@service/pairs&pool';
 import classNames from '../classNames';
 
@@ -43,7 +40,7 @@ const MyFarmsItem: React.FC<{
   data: NonNullable<ReturnType<typeof useMyFarms>>[number];
 }> = ({ data }) => {
   const i18n = useI18n(transitions);
-  const { positions, VSTIncentiveEndAt } = data;
+  const { positions } = data;
 
   const [isShow, setIsShow] = useState<boolean>(false);
 
@@ -64,84 +61,61 @@ const MyFarmsItem: React.FC<{
 
     const total = supplies.reduce((acc, item) => {
       if (!item) return acc;
-      return acc.add(new Unit(item));
-    }, new Unit(0));
+      return acc.add(new Decimal(item));
+    }, new Decimal(0));
 
-    return trimDecimalZeros(total.toDecimalMinUnit(2));
+    return trimDecimalZeros(total.toFixed(2));
   }, [supplies]);
 
-  const totalRewards = useMemo(() => {
-    if (!positions) return [];
-
-    const allRewards = positions.flatMap((position) => position.rewards);
-    const groupedRewards = groupBy(allRewards, (reward) => reward.rewardTokenInfo?.address?.toLowerCase());
-
-    return map(groupedRewards, (rewardGroup) => {
-      const mergedStakeReward = rewardGroup.reduce(
-        (acc, reward) => ({
-          liquidity: acc.liquidity + reward.stakeReward.liquidity,
-          boostedLiquidity: acc.boostedLiquidity + reward.stakeReward.boostedLiquidity,
-          rewardsPerSecondX32: acc.rewardsPerSecondX32 + reward.stakeReward.rewardsPerSecondX32,
-          unsettledReward: acc.unsettledReward + reward.stakeReward.unsettledReward,
-        }),
-        {
-          liquidity: 0n,
-          boostedLiquidity: 0n,
-          rewardsPerSecondX32: 0n,
-          unsettledReward: 0n,
-        }
-      );
-
-      return {
-        unreleasedAmount: mergedStakeReward.unsettledReward,
-        rewardsPerSecondX32: mergedStakeReward.rewardsPerSecondX32,
-        token: rewardGroup[0].rewardTokenInfo!,
-      };
-    });
-  }, [positions]);
+  const totalActiveSupply = useMemo(() => {
+    if (!supplies.every(Boolean)) return undefined;
+    return supplies.filter((_, index) => positions[index].isPositionActive).reduce((acc, item) => {
+      if (!item) return acc;
+      return acc.add(new Decimal(item));
+    }, new Decimal(0));
+  }, [supplies]);
 
 
   const [rewardTokenPrices, setRewardTokenPrices] = useState<{ [key: string]: string | null } | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!totalRewards?.length) {
+    if (!data?.rewards?.length) {
       setRewardTokenPrices(null);
       return;
     }
 
-    getTokensPrice(totalRewards.map((reward) => reward.token?.address))
+    getTokensPrice(data.rewards.map((reward) => reward.rewardTokenInfo?.address!))
       .then(setRewardTokenPrices)
       .catch((error) => {
         console.warn('Failed to fetch reward token prices:', error);
         setRewardTokenPrices(null);
       });
-  }, [totalRewards]);
+  }, [data?.rewards]);
 
   const apr = useMemo(() => {
-    if (!totalRewards?.length || !totalSupply || !rewardTokenPrices) return null;
+    if (!data?.activeRewards?.length || !totalActiveSupply || !rewardTokenPrices) return null;
 
-    const allRewardRate = totalRewards.reduce((sum, reward) => {
-      const rewardTokenAddress = reward.token?.address;
+    const allActiveRewardRate = data.activeRewards.reduce((sum, reward) => {
+      const rewardTokenAddress = reward.rewardTokenInfo?.address;
       if (!rewardTokenAddress) return sum;
-      
+
       const rewardTokenPrice = rewardTokenPrices[rewardTokenAddress];
       if (!rewardTokenPrice) return sum;
-      
-      const rewardRatePerSecond = new Decimal(reward.rewardsPerSecondX32.toString()).div(Math.pow(2, 32));
-      const rewardValuePerSecond = rewardRatePerSecond.div(new Decimal(10).pow(reward.token.decimals)).mul(rewardTokenPrice);
-      
+
+      const rewardRatePerSecond = new Decimal(reward.stakeReward.rewardsPerSecondX32.toString()).div(Math.pow(2, 32));
+      const rewardValuePerSecond = rewardRatePerSecond.div(new Decimal(10).pow(reward.rewardTokenInfo!.decimals)).mul(rewardTokenPrice);
+
       return sum.add(rewardValuePerSecond);
     }, new Decimal(0));
 
-    const allActiveSupply = new Decimal(totalSupply);
 
-    if (allActiveSupply.eq(0) || allRewardRate.eq(0)) return 0;
+    if (totalActiveSupply.eq(0) || allActiveRewardRate.eq(0)) return `0%`;
 
     const SECONDS_PER_YEAR = 365 * 24 * 60 * 60;
-    const aprValue = allRewardRate.div(allActiveSupply).mul(SECONDS_PER_YEAR);
+    const aprValue = allActiveRewardRate.div(totalActiveSupply).mul(SECONDS_PER_YEAR);
 
     return `${aprValue.mul(100).toFixed(2)}%`;
-  }, [totalRewards, totalSupply, rewardTokenPrices]);
+  }, [data?.rewards, totalActiveSupply, rewardTokenPrices]);
 
   const boostRatio = useMemo(() => {
     if (!positions) return 0;
@@ -158,10 +132,9 @@ const MyFarmsItem: React.FC<{
     if (totalLiquidity.eq(0)) return 0;
 
     const boostRatio = totalBoostLiquidity.div(totalLiquidity).mul(3);
-    
+
     return boostRatio.toFixed(2);
   }, [positions]);
-
 
   const inFetchingTokenPrice = token0Price === undefined || token1Price === undefined;
 
@@ -174,7 +147,6 @@ const MyFarmsItem: React.FC<{
     <div
       className={`rounded-2xl mb-6 last:mb-0 py-4 px-4 relative bg-orange-light-hover lt-mobile:border-orange-light lt-mobile:p-0 lt-mobile:border-solid lt-mobile:border-1px ${classNames.poolWrapper}`}
     >
-      <Corner timestamp={data.VSTIncentiveEndAt!}></Corner>
       <div
         className={`
           relative px-4 grid grid-cols-18 lt-mobile:px-0  bg-orange-light-hover lt-mobile:border-orange-light
@@ -201,9 +173,7 @@ const MyFarmsItem: React.FC<{
           <div className={`${classNames.title}`}>{i18n.APR}</div>
           {/* <div className={`${classNames.content} flex items-center lt-mobile:flex-col lt-mobile:items-start`}> */}
           <div className={`${classNames.content} flex items-center`}>
-            <span className="">
-              {!apr ? <Spin className="ml-8px text-20px" /> : apr}
-            </span>
+            <span className="">{!apr ? <Spin className="ml-8px text-20px" /> : apr}</span>
             <span className="flex items-center">
               {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
               <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:w-4" />
@@ -218,15 +188,26 @@ const MyFarmsItem: React.FC<{
         <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
           <div className={`${classNames.title}`}>
             {i18n.rewards}
-            <Dropdown Content={<RewardsDetail rewards={totalRewards} />} placement="top" trigger="mouseenter">
+            <Dropdown
+              Content={
+                <RewardsDetail
+                  rewards={data.rewards.map((reward) => ({
+                    token: reward.rewardTokenInfo!,
+                    unreleasedAmount: reward.stakeReward.unsettledReward,
+                  }))}
+                />
+              }
+              placement="top"
+              trigger="mouseenter"
+            >
               <span className="w-12px h-12px ml-6px">
                 <InfoIcon className="w-12px h-12px" />
               </span>
             </Dropdown>
           </div>
           <div className={cx(classNames.content, 'flex items-center gap-2px')}>
-            {totalRewards?.map?.((reward) => (
-              <img key={reward.token?.address} src={reward.token?.logoURI} alt={reward.token?.symbol} className="w-20px h-20px" />
+            {data.rewards?.map?.((reward) => (
+              <img key={reward.rewardTokenInfo?.address} src={reward.rewardTokenInfo?.logoURI} alt={reward.rewardTokenInfo?.symbol} className="w-20px h-20px" />
             ))}
           </div>
         </div>
@@ -234,7 +215,7 @@ const MyFarmsItem: React.FC<{
           <ChevronDownIcon onClick={handleShow} className={`cursor-pointer ${isShow ? 'rotate-180' : 'rotate-0'}`}></ChevronDownIcon>
         </div>
       </div>
-      {isShow && <Positions positions={positions} supplies={supplies}  VSTIncentiveEndAt={VSTIncentiveEndAt!} />}
+      {isShow && <Positions positions={positions} supplies={supplies} />}
       <div className={`hidden lt-mobile:block lt-mobile:bg-white-normal lt-mobile:-mb-0 lt-mobile:rounded-2xl lt-mobile:-mt-4 lt-mobile:pt-4`}>
         <div className="h-28px flex items-center justify-center">
           <DoublechevrondownIcon onClick={handleShow} className={`cursor-pointer w-24px h-24px ${isShow ? 'rotate-180' : 'rotate-0'}`}></DoublechevrondownIcon>
@@ -249,9 +230,9 @@ const MyFarms = () => {
 
   const myFarms = useMyFarms();
   console.log('myFarms', myFarms);
-  const refreshMyFarms = useRefreshMyFarms();
+  // const refreshMyFarms = useRefreshMyFarms();
 
-  const [_, startTransition] = useTransition();
+  // const [_, startTransition] = useTransition();
   // useEffect(() => {
   //   const interval = setInterval(() => {
   //     startTransition(() => {
@@ -275,7 +256,7 @@ const MyFarms = () => {
   return (
     <div className="mt-6 lt-mobile:mt-4">
       {myFarms?.map((item) => (
-        <MyFarmsItem key={`${item.VSTIncentiveEndAt}-${item.pool.poolAddress}`} data={item} />
+        <MyFarmsItem key={item.pool.poolAddress} data={item} />
       ))}
     </div>
   );
