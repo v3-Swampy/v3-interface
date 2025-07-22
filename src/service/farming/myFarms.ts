@@ -121,28 +121,14 @@ const myFarmsQuery = selector({
         stakeReward: stakeRewards[index],
       }));
 
-      // 一类池子下所有的激励计划
       const groupedByPool = groupBy(myFarmsResult, item => item.pool.poolAddress);
 
       const groupedFarms = map(groupedByPool, (items) => {
-        // 一类池子下所有的激励计划，按position.id分组
         const groupedByTokenId = groupBy(items, item => item.position.id);
 
         const positions = map(groupedByTokenId, (incentiveItems, positionId) => {
-          const activeVSTIncentive = incentiveItems.find(item =>
-            item.incentiveKey.status === 'active'
-            && isTokenEqual(item.incentiveKey.rewardTokenInfo, TokenVST)
-          );
-
-          const incentiveTrulyStatus = incentiveItems.map(item =>
-            !activeVSTIncentive ? item.incentiveKey.status :
-              item.incentiveKey.startTime > activeVSTIncentive.incentiveKey.startTime
-              && item.incentiveKey.endTime < activeVSTIncentive.incentiveKey.endTime ? 'active'
-                : item.incentiveKey.status
-          );
-          
           const activeRewards = mergeStakeRewardsByToken(
-            incentiveItems.filter((_, index) => incentiveTrulyStatus[index] === 'active'),
+            incentiveItems.filter((item) => item.incentiveKey.status === 'active'),
             item => item.incentiveKey.rewardToken.toLowerCase()
           );
 
@@ -154,7 +140,7 @@ const myFarmsQuery = selector({
           return {
             tokenId: Number(positionId),
             position: incentiveItems[0].position,
-            isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && !!activeVSTIncentive,
+            isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && !!incentiveItems.find(item => item.incentiveKey.status === 'active'),
             activeRewards,
             rewards,
           };
