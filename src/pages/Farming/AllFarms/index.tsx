@@ -35,21 +35,7 @@ const transitions = {
   },
 } as const;
 
-export const RewardsDetail: React.FC<{ rewards: NonNullable<ReturnType<typeof usePools>>[number]['rewards'] }> = memo(({ rewards }) => {
-  return (
-    <BorderBox variant="gradient-white" className="max-w-90vw p-24px rounded-28px">
-      {rewards?.map((reward) => (
-        <div className="flex items-center gap-4px" key={reward.token?.address}>
-          <img src={reward.token?.logoURI} alt={reward.token?.symbol} className="w-20px h-20px" />
-          <span className="text-12px text-black-normal font-medium">
-            {numberWithCommas(trimDecimalZeros(new Decimal(reward.unreleasedAmount.toString()).div(new Decimal(10).pow(reward.token?.decimals ?? 18)).toFixed(2)))}{' '}
-            {reward.token?.symbol}
-          </span>
-        </div>
-      ))}
-    </BorderBox>
-  );
-});
+
 
 interface APRData {
   rewardTokenAPRs: {
@@ -239,11 +225,6 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
       <div className={`col-span-2 lt-mobile:col-span-4 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>
           {i18n.rewards}
-          <Dropdown Content={<RewardsDetail rewards={data.rewards} />} placement="top" trigger="mouseenter">
-            <span className="w-12px h-12px ml-6px">
-              <InfoIcon className="w-12px h-12px" />
-            </span>
-          </Dropdown>
         </div>
         <div className={cx(classNames.content, 'flex items-center gap-2px')}>
           {data.rewards?.map?.((reward) => (
