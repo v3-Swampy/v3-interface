@@ -98,16 +98,18 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
   const token1Price = useTokenPrice(data.pairInfo.token1?.address);
 
   const tvl = useMemo(() => {
-    if (token0Price && token1Price && data?.incentives?.[0]?.token0Amount && data?.incentives?.[0]?.token1Amount) {
-      const token0Amount = new Decimal(data.incentives[0].token0Amount.toString());
-      const token1Amount = new Decimal(data.incentives[0].token1Amount.toString());
-      return token0Amount
-        .div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18)))
-        .mul(token0Price)
-        .add(token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price));
-    }
-    return null;
-  }, [token0Price, token1Price, data?.incentives?.[0]?.token0Amount, data?.incentives?.[0]?.token1Amount]);
+    if (!token0Price || !token1Price || !data?.incentives?.length) return null;
+    let token0Amount = new Decimal(0);
+    let token1Amount = new Decimal(0);
+    data.incentives.forEach(incentive => {
+      token0Amount = token0Amount.add(new Decimal(incentive.token0Amount.toString()));
+      token1Amount = token1Amount.add(new Decimal(incentive.token1Amount.toString()));
+    });
+    return token0Amount
+      .div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18)))
+      .mul(token0Price)
+      .add(token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price));
+  }, [token0Price, token1Price, data?.incentives]);
 
   const tvlDisplay = useMemo(() => {
     if (tvl) {
