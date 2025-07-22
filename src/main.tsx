@@ -38,7 +38,7 @@ const WalletConnectProvider = createWalletConnectProvider({
 if (!isInMobileWalletBrowser()) {
   registerWallet(WalletConnectProvider);
 }
-register6963Wallet();
+register6963Wallet({ persistFirst: true });
 
 dayjs.extend(durationPlugin);
 
