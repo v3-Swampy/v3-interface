@@ -183,10 +183,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
   );
 };
 
-const Positions: React.FC<{ positions: NonNullable<ReturnType<typeof useMyFarms>>[number]['positions']; supplies: (string | undefined)[] }> = ({
-  positions,
-  supplies,
-}) => {
+const Positions: React.FC<{ positions: NonNullable<ReturnType<typeof useMyFarms>>[number]['positions']; supplies: (string | undefined)[] }> = ({ positions, supplies }) => {
   const i18n = useI18n(transitions);
 
   if (!positions) return null;
