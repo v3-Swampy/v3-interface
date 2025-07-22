@@ -5,7 +5,7 @@ import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import Tooltip from '@components/Tooltip';
 import showStakeLPModal from './StakeLPModal';
-import { useAllPools, useCurrentIncentive } from '@service/farming';
+import { useAllPools, useCurrentIncentive } from '@service/farming_old';
 import TokenPair from '@modules/Position/TokenPair';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Spin from '@components/Spin';

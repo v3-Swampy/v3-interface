@@ -1,210 +1,173 @@
-import { atom, selector, useRecoilValue } from 'recoil';
-import { setRecoil, getRecoil } from 'recoil-nexus';
-import LocalStorage from 'localstorage-enhance';
-import { isEqual } from 'lodash-es';
-import dayjs from 'dayjs';
-import waitAsyncResult from '@utils/waitAsyncResult';
-import { handleRecoilInit } from '@utils/recoilUtils';
-import { TokenVST } from '@service/tokens';
-import { RefundeeContractAddress } from '@contracts/index';
+import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
+import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
+import { getTokenByAddressWithAutoFetch, getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenVST, type Token } from '@service/tokens';
+import { chunk, omit } from 'lodash-es';
+import { timestampSelector } from './timestamp';
 
-export interface Incentive {
-  startTime: number;
-  endTime: number;
-  amount: number;
-}
 
-export interface IncentiveKey {
+export const farmingPoolsAddress = atom<Array<string>>({
+  key: `farmingPoolsAddress-${import.meta.env.MODE}`,
+  default: [
+    "0x3EEd2D9BA0Ea2c4AcBA87206F69cDcB4d3a03f31",
+    "0xc0D0e6fDB000b62E48db5CCD54A1CFE3c5CB30Ea",
+    "0x4A33468caAFD9220AB0b11e3342bE8AAcC468908",
+    "0xB7CC615ffcE028f541705B796EDff62f2d28BBa4"
+  ]
+});
+
+export interface incentiveKey {
   rewardToken: string;
-  pool: string;
+  poolAddress: string;
   startTime: number;
   endTime: number;
   refundee: string;
 }
 
-
-const farmingsKey = `farmingState-${import.meta.env.MODE}`;
-const incentiveHistoryKey = `farmingIncentiveState-${import.meta.env.MODE}`;
-
-let resolveFarmingInit: (value: unknown) => void = null!;
-export const farmingInitPromise = new Promise((resolve) => {
-  resolveFarmingInit = resolve;
-});
-
-const cachedFarmings = (LocalStorage.getItem(farmingsKey, 'farming') as { pids: Array<number> }) ?? { pids: [] };
-const cachedIncentiveHistory = (LocalStorage.getItem(incentiveHistoryKey, 'farming') as Array<Incentive>) ?? [];
-if (cachedFarmings?.pids?.length) {
-  resolveFarmingInit(true);
+export interface incentiveKeyDetail extends incentiveKey {
+  status: 'not-active' | 'active' | 'ended';
+  key: [string, string, number, number, string];
+  rewardTokenInfo: Token;
 }
 
-export const farmingsState = atom<{ pids: Array<number> }>({
-  key: farmingsKey,
-  default: cachedFarmings,
-});
+export const poolsQuery = selector({
+  key: `farmingPoolsQuery-${import.meta.env.MODE}`,
+  get: async ({ get }) => {
+    const poolsAddress = get(farmingPoolsAddress);
+    const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
+    const pairsInfoQuery = await fetchMulticall(
+      pairContracts
+        .map((pairContract) => {
+          return [
+            [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
+            [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
+            [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
+          ];
+        })
+        .flat()
+    );
+    const pairsInfo = pairsInfoQuery
+      ? chunk(pairsInfoQuery, 3).map((r, i) => {
+        return {
+          token0Address: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
+          token1Address: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
+          fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
+        };
+      })
+      : [];
 
-export const poolIdsSelector = selector({
-  key: `poolIdsSelector-${import.meta.env.MODE}`,
-  get: ({ get }) => {
-    const { pids } = get(farmingsState);
-    return pids;
-  },
-});
+    const tokensDetail = await Promise.all(pairsInfo.map(async (info) => {
+      const [token0, token1] = await Promise.all([
+        getTokenByAddressWithAutoFetch(info.token0Address),
+        getTokenByAddressWithAutoFetch(info.token1Address)
+      ]);
+      return {
+        token0,
+        token1,
+      };
+    }));
 
-export const incentiveHistoryState = atom<Array<Incentive>>({
-  key: incentiveHistoryKey,
-  default: cachedIncentiveHistory,
-});
-
-// 存储当前激励期的唯一标识符，只有激励期切换时才会改变
-const currentIncentivePeriodKeyState = atom<string>({
-  key: `currentIncentivePeriodKeyState-${import.meta.env.MODE}`,
-  default: '',
-});
-
-export const currentIncentiveSelector = selector({
-  key: `currentIncentiveIndexSelector-${import.meta.env.MODE}`,
-  get: ({ get }) => {
-    const incentiveHistory = get(incentiveHistoryState);
-    get(currentIncentivePeriodKeyState);
-
-    const now = dayjs().unix();
-    const index = incentiveHistory.findIndex((period) => now >= period.startTime && now <= period.endTime);
-    const period = incentiveHistory[index];
-    
-    return {
-      period,
-      index
-    }
-  },
-});
-
-const setupPreciseTimer = (incentiveHistory: Array<Incentive>) => {
-  if (!incentiveHistory.length) return;
-
-  const now = Date.now();
-  const allTimePoints = incentiveHistory.flatMap(period => [
-    period.startTime * 1000,
-    period.endTime * 1000
-  ]).filter(time => time > now).sort((a, b) => a - b);
-
-  const nextTimePoint = allTimePoints[0];
-  if (nextTimePoint) {
-    const safeDelay = Math.max(nextTimePoint - now + 3000, 1000);
-    
-    setTimeout(() => {
-      try {
-        const nowUnix = dayjs().unix();
-        const currentPeriod = incentiveHistory.find((period) => nowUnix >= period.startTime && nowUnix <= period.endTime);
-        const newPeriodKey = currentPeriod ? `${currentPeriod.startTime}-${currentPeriod.endTime}` : 'none';
-        
-        const existingKey = getRecoil(currentIncentivePeriodKeyState);
-        
-        if (newPeriodKey !== existingKey) {
-          setRecoil(currentIncentivePeriodKeyState, newPeriodKey);
-        }
-        
-        setupPreciseTimer(incentiveHistory);
-      } catch (error) {
-        console.warn('Failed to update incentive period:', error);
-        setTimeout(() => setupPreciseTimer(incentiveHistory), 5000);
-      }
-    }, safeDelay);
-  }
-};
-
-export const useIncentiveHistory = () => useRecoilValue(incentiveHistoryState);
-export const useCurrentIncentive = () => useRecoilValue(currentIncentiveSelector);
-const getCurrentIncentivePeriod = () => getRecoil(currentIncentiveSelector)?.period;
-const getCurrentIncentiveIndex = () => getRecoil(currentIncentiveSelector)?.index;
-
-export const getPastHistory = (index?: number) => {
-  const incentiveHistory = getRecoil(incentiveHistoryState);
-  const i = index ? index : getCurrentIncentiveIndex();
-  const pastHistory = [];
-  for (let y = 0; y <= i; y++) {
-    pastHistory.push(incentiveHistory[y]);
-  }
-  return pastHistory;
-};
-
-export const getCurrentIncentiveKey = (poolAddress: string): IncentiveKey => {
-  const currentIncentive = getCurrentIncentivePeriod();
-  if (!currentIncentive) {
-    throw new Error('No current incentive period available');
-  }
-  return getIncentiveKey(poolAddress, currentIncentive.startTime, currentIncentive.endTime);
-};
-
-export const getPastIncentivesOfPool = (poolAddress?: string) => {
-  if (!poolAddress) return [];
-  const pastHistory = getPastHistory();
-  return pastHistory.map((incentiveItem) => getIncentiveKey(poolAddress, incentiveItem.startTime, incentiveItem.endTime));
-};
-
-export const getIncentiveKey = (address: string, startTime?: number, endTime?: number): IncentiveKey => {
-  if (startTime && endTime) {
-    return {
-      rewardToken: TokenVST?.address,
-      pool: address,
-      startTime: startTime,
-      endTime: endTime,
-      refundee: RefundeeContractAddress,
-    };
-  } else {
-    const currentIncentive = getCurrentIncentivePeriod();
-    if (!currentIncentive) {
-      throw new Error('No current incentive period available');
-    }
-    const { startTime, endTime } = currentIncentive;
-
-    return {
-      rewardToken: TokenVST?.address,
-      pool: address,
-      startTime: startTime,
-      endTime: endTime,
-      refundee: RefundeeContractAddress,
-    };
-  }
-};
-
-// init farming data;
-(async function () {
-  const farmingsURL = `${import.meta.env.VITE_FarmingConfigUrl}`;
-  try {
-    const [p] = waitAsyncResult({
-      fetcher: (): Promise<{ incentive_history: Array<Incentive>; farmings: { pids: Array<number> } }> => fetch(farmingsURL).then((res) => res.json()),
+    const leftAndRightTokens = tokensDetail.map((token) => {
+      const [leftToken, rightToken] = getLRToken(token.token0, token.token1);
+      return {
+        leftToken,
+        rightToken,
+      };
     });
-    const { incentive_history, farmings } = await p;
 
-    if (isEqual(farmings, cachedFarmings) && isEqual(incentive_history, cachedIncentiveHistory)) {
-      const nowUnix = dayjs().unix();
-      const currentPeriod = incentive_history.find((period) => nowUnix >= period.startTime && nowUnix <= period.endTime);
-      const initialPeriodKey = currentPeriod ? `${currentPeriod.startTime}-${currentPeriod.endTime}` : 'none';
-      setRecoil(currentIncentivePeriodKeyState, initialPeriodKey);
-      
-      setupPreciseTimer(incentive_history);
-      return;
-    }
-    try {
-      LocalStorage.setItem({ key: farmingsKey, data: farmings, namespace: 'farming' });
-      LocalStorage.setItem({ key: incentiveHistoryKey, data: incentive_history, namespace: 'farming' });
-      handleRecoilInit((set) => {
-        set(farmingsState, farmings);
-        set(incentiveHistoryState, incentive_history);
-      });
-    } catch (_) {
-      setRecoil(farmingsState, farmings);
-      setRecoil(incentiveHistoryState, incentive_history);
-    } finally {
-      const nowUnix = dayjs().unix();
-      const currentPeriod = incentive_history.find((period) => nowUnix >= period.startTime && nowUnix <= period.endTime);
-      const initialPeriodKey = currentPeriod ? `${currentPeriod.startTime}-${currentPeriod.endTime}` : 'none';
-      setRecoil(currentIncentivePeriodKeyState, initialPeriodKey);
-      
-      setupPreciseTimer(incentive_history);
-      resolveFarmingInit(true);
-    }
-  } catch (err) {
-    console.error('Failed to get the latest farming data: ', err);
+    const timestamp = get(timestampSelector);
+    const incentiveKeysQuery = await fetchMulticall(poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])]));
+    const incentiveKeys = incentiveKeysQuery?.map((res) => {
+      const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
+      return decodeResult?.[0]?.map((data: Array<any>) => ({
+        rewardToken: data?.[0],
+        poolAddress: data?.[1],
+        startTime: Number(data?.[2]),
+        endTime: Number(data?.[3]),
+        refundee: data?.[4],
+        status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
+        key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
+        rewardTokenInfo: getTokenByAddress(data?.[0])!,
+      })) as Array<incentiveKeyDetail>
+    })!;
+    const incentivesQuery = await fetchMulticall(
+      incentiveKeys.flat().map((key) => [
+        UniswapV3Staker.address,
+        UniswapV3Staker.func.interface.encodeFunctionData(
+          'getIncentiveRewardInfo',
+          [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee]]
+        )
+      ])
+    );
+    const incentives = chunk(
+      incentivesQuery,
+      ...incentiveKeys.map(keys => keys.length)
+    ).map((group) =>
+      group.map((raw) => {
+        const [token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty] =
+          UniswapV3Staker.func.interface.decodeFunctionResult('getIncentiveRewardInfo', raw) as unknown as [bigint, bigint, bigint, bigint, boolean];
+        return { token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty };
+      })
+    );
+
+    const pools = poolsAddress ? await Promise.all(poolsAddress.map(async (poolAddress, index) => {
+      const rewardTokenAddresses = incentiveKeys[index].map(key => key.rewardToken);
+      const rewards = await Promise.all([...new Set(rewardTokenAddresses)].map(async (address) => ({
+        token: await getTokenByAddressWithAutoFetch(address),
+        unreleasedAmount: incentiveKeys[index]
+          .map((key, i) => key.rewardToken === address ? incentives[index][i]?.tokenUnreleased : 0n)
+          .reduce((a, b) => a + b, 0n),
+      })));
+
+      return {
+        poolAddress,
+        pairInfo: {
+          fee: pairsInfo[index].fee,
+          token0: tokensDetail[index].token0,
+          token1: tokensDetail[index].token1,
+          leftToken: leftAndRightTokens[index].leftToken,
+          rightToken: leftAndRightTokens[index].rightToken,
+        },
+        incentiveKeys: incentiveKeys?.[index] ?? [],
+        incentives: incentives?.[index] ?? [],
+        rewards,
+      };
+    })) : null;
+
+    return pools;
   }
-})();
+});
+
+export const usePools = () => {
+  return useRecoilValue(poolsQuery);
+};
+
+export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery);
+
+
+const currentIncentiveKeySelector = selector({
+  key: `currentIncentiveKeySelector-${import.meta.env.MODE}`,
+  get: ({ get }) => {
+    const pools = get(poolsQuery);
+    const res = pools?.[0]?.incentiveKeys.find(key => key.status === 'active');
+    return omit(res, 'poolAddress', 'key');
+  }
+});
+
+export const useCurrentIncentiveKeyDetail = () => {
+  return useRecoilValue(currentIncentiveKeySelector);
+};
+
+
+const getLRToken = (token0: Token | null, token1: Token | null) => {
+  if (!token0 || !token1) return [];
+  const unwrapToken0 = getUnwrapperTokenByAddress(token0.address);
+  const unwrapToken1 = getUnwrapperTokenByAddress(token1.address);
+  const checkedLR =
+    // if token0 is a dollar-stable asset, set it as the quote token
+    stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
+    // if token1 is an ETH-/BTC-stable asset, set it as the base token
+    baseTokens.some((baseToken) => baseToken?.address === token1.address);
+  const leftToken = checkedLR ? unwrapToken0 : unwrapToken1;
+  const rightToken = checkedLR ? unwrapToken1 : unwrapToken0;
+  return [leftToken, rightToken];
+};

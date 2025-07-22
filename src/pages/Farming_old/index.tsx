@@ -8,6 +8,7 @@ import { useCanClaim } from '@service/farming';
 import AllFarms from './AllFarms';
 import MyFarms from './MyFarms';
 import CountDown from './CountDown';
+
 import EndIn from './EndIn';
 
 const transitions = {
@@ -56,6 +57,7 @@ const FarmingPage: React.FC = () => {
   const handleClickTab = useCallback((tab: TabKeyType) => {
     const search = new URLSearchParams(params);
     search.set('tab', tab);
+
     navigate(`${pathname}?${search.toString()}`);
   }, []);
 

@@ -4,7 +4,7 @@ import Decimal from 'decimal.js';
 import cx from 'clsx';
 import { useEffect, useState } from 'react';
 import { ReactComponent as AlarmClockIcon } from '@assets/icons/alarm-clock.svg';
-import { useCurrentIncentiveKeyDetail } from '@service/farming';
+import { useCurrentIncentive } from '@service/farming_old';
 import BorderBox from '@components/Box/BorderBox';
 
 interface EndInProps {
@@ -35,11 +35,11 @@ const ONE_WEEK = 7 * ONE_DAY;
 type StateType = 'default' | 'normal' | 'urgent';
 
 const EndIn: React.FC<EndInProps> = ({ children }) => {
-  const currentIncentiveKeyDetail = useCurrentIncentiveKeyDetail();
-  const endTime = currentIncentiveKeyDetail?.endTime ?? 0;
+  const currentIncentive = useCurrentIncentive();
+  const timestamp = currentIncentive?.period?.endTime ?? 0;
   const i18n = useI18n(transitions);
   const [timeLeft, setTimeLeft] = useState('');
-  
+
   // default  : time < 0 || time > 7d
   // urgent   : time < 24h
   // normal   : 24h < time < 7d
@@ -47,7 +47,7 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
 
   useEffect(() => {
     const fn = () => {
-      const diff = dayjs(endTime * 1000).diff(dayjs(), 'second');
+      const diff = dayjs(timestamp * 1000).diff(dayjs(), 'second');
       let timeLeft = '';
       let state: StateType = 'default';
 
@@ -88,8 +88,8 @@ const EndIn: React.FC<EndInProps> = ({ children }) => {
     fn();
 
     return () => clearInterval(intervalId);
-  }, [endTime]);
-  
+  }, [timestamp]);
+
   let fTimeLeft = timeLeft.replace(/(\d+)/g, '<span style="font-family: Helvetica Neue;">$1</span>');
   if (state === 'urgent') {
     fTimeLeft += `<span>${i18n.claim}</span>`;

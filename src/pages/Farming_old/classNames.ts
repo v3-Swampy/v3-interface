@@ -1,5 +1,5 @@
 export default {
-  title: 'flex items-center color-gray-normal text-xs not-italic leading-15px mb-8px lt-mobile:mb-4px',
+  title: 'flex items-center color-gray-normal text-xs not-italic leading-15px mb-2 lt-mobile:mb-1',
   content: 'color-black-normal text-14px font-normal not-italic leading-18px lt-mobile:text-12px lt-mobile:leading-15px',
   authConnectButton:
     'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-normal whitespace-nowrap not-italic color-orange-normal cursor-pointer lt-mobile:border-1 lt-mobile:text-14px',

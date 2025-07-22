@@ -8,7 +8,7 @@ import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
-import { type useAllPools, handleStakeLP as _handleStakeLP } from '@service/farming';
+import { type useAllPools, handleStakeLP as _handleStakeLP } from '@service/farming_old';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3Staker, NonfungiblePositionManager } from '@contracts/index';
 import { useNavigate } from 'react-router-dom';

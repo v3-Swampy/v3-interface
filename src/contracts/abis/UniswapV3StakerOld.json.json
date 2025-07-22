@@ -116,12 +116,6 @@
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
         "internalType": "bytes32",
         "name": "incentiveId",
         "type": "bytes32"
@@ -130,12 +124,6 @@
         "indexed": false,
         "internalType": "uint128",
         "name": "liquidity",
-        "type": "uint128"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint128",
-        "name": "adjustedLiquidity",
         "type": "uint128"
       }
     ],
@@ -153,12 +141,6 @@
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
         "internalType": "bytes32",
         "name": "incentiveId",
         "type": "bytes32"
@@ -166,6 +148,127 @@
     ],
     "name": "TokenUnstaked",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "incentiveId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "liquidity",
+        "type": "uint256"
+      }
+    ],
+    "name": "UpdateWorkingSupply",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "WhitelistAdminAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "WhitelistAdminRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "WhitelistedAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "WhitelistedRemoved",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_allocPoint",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_pool",
+        "type": "address"
+      }
+    ],
+    "name": "add",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "addWhitelistAdmin",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "addWhitelisted",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -258,7 +361,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -283,11 +386,6 @@
         "internalType": "int24",
         "name": "tickUpper",
         "type": "int24"
-      },
-      {
-        "internalType": "uint128",
-        "name": "liquidity",
-        "type": "uint128"
       }
     ],
     "stateMutability": "view",
@@ -355,14 +453,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "pool",
-        "type": "address"
-      }
-    ],
-    "name": "getAllIncentiveKeysByPool",
-    "outputs": [
-      {
         "components": [
           {
             "internalType": "contract IERC20Minimal",
@@ -390,9 +480,22 @@
             "type": "address"
           }
         ],
-        "internalType": "struct IUniswapV3Staker.IncentiveKey[]",
-        "name": "",
-        "type": "tuple[]"
+        "internalType": "struct IUniswapV3Staker.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      }
+    ],
+    "name": "getPoolStat",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "totalSupply",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "workingSupply",
+        "type": "uint128"
       }
     ],
     "stateMutability": "view",
@@ -431,63 +534,109 @@
         "internalType": "struct IUniswapV3Staker.IncentiveKey",
         "name": "key",
         "type": "tuple"
-      }
-    ],
-    "name": "getIncentiveRewardInfo",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "token0Amount",
-        "type": "uint256"
       },
-      {
-        "internalType": "uint256",
-        "name": "token1Amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint96",
-        "name": "tokenUnreleased",
-        "type": "uint96"
-      },
-      {
-        "internalType": "uint96",
-        "name": "rewardRate",
-        "type": "uint96"
-      },
-      {
-        "internalType": "bool",
-        "name": "isEmpty",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
       {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      }
+    ],
+    "name": "getRewardInfo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint160",
+        "name": "secondsInsideX128",
+        "type": "uint160"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "contract IERC20Minimal",
+            "name": "rewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IUniswapV3Pool",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "endTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "refundee",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct IUniswapV3Staker.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getUserWorkingSupply",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "workingSupply",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
-        "name": "incentiveId",
+        "name": "",
         "type": "bytes32"
       }
     ],
-    "name": "getStakeInfo",
+    "name": "incentives",
     "outputs": [
       {
         "internalType": "uint160",
-        "name": "secondsPerLiquidityInsideInitialX128",
+        "name": "totalSecondsClaimedX128",
         "type": "uint160"
       },
       {
-        "internalType": "uint128",
-        "name": "liquidity",
-        "type": "uint128"
+        "internalType": "uint96",
+        "name": "numberOfStakes",
+        "type": "uint96"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalRewardClaimed",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -496,88 +645,123 @@
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "contract IERC20Minimal",
-            "name": "rewardToken",
-            "type": "address"
-          },
-          {
-            "internalType": "contract IUniswapV3Pool",
-            "name": "pool",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "endTime",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "refundee",
-            "type": "address"
-          }
-        ],
-        "internalType": "struct IUniswapV3Staker.IncentiveKey",
-        "name": "key",
-        "type": "tuple"
+        "internalType": "contract IUniswapV3Factory",
+        "name": "_factory",
+        "type": "address"
+      },
+      {
+        "internalType": "contract INonfungiblePositionManager",
+        "name": "_nonfungiblePositionManager",
+        "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_maxIncentiveStartLeadTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxIncentiveDuration",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_votingEscrow",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_k1",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_k2",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_unclaimableEndtime",
         "type": "uint256"
       }
     ],
-    "name": "getStakeRewardInfo",
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "initialized",
     "outputs": [
       {
-        "internalType": "uint128",
-        "name": "liquidity",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint128",
-        "name": "boostedLiquidity",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint128",
-        "name": "rewardsPerSecondX32",
-        "type": "uint128"
-      },
-      {
-        "internalType": "uint96",
-        "name": "unsettledReward",
-        "type": "uint96"
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "pool",
+        "name": "account",
         "type": "address"
       }
     ],
-    "name": "getUserPositions",
+    "name": "isWhitelistAdmin",
     "outputs": [
       {
-        "internalType": "uint256[]",
+        "internalType": "bool",
         "name": "",
-        "type": "uint256[]"
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "isWhitelisted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "k1",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "k2",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -645,7 +829,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "operator",
+        "name": "",
         "type": "address"
       },
       {
@@ -678,13 +862,83 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolInfo",
+    "outputs": [
+      {
         "internalType": "address",
-        "name": "user",
+        "name": "pool",
         "type": "address"
       },
       {
-        "internalType": "contract IERC20Minimal",
-        "name": "rewardToken",
+        "internalType": "uint256",
+        "name": "allocPoint",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "poolStat",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "totalSupply",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "workingSupply",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "removeWhitelisted",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceWhitelistAdmin",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceWhitelisted",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
         "type": "address"
       }
     ],
@@ -692,11 +946,29 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "amountOwed",
+        "name": "",
         "type": "uint256"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_allocPoint",
+        "type": "uint256"
+      }
+    ],
+    "name": "set",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -737,9 +1009,136 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
       }
     ],
     "name": "stakeToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "incentiveId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "stakes",
+    "outputs": [
+      {
+        "internalType": "uint160",
+        "name": "secondsPerLiquidityInsideInitialX128",
+        "type": "uint160"
+      },
+      {
+        "internalType": "uint128",
+        "name": "liquidity",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "tokenIds",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "tokenIdsLength",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalAllocPoint",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "totalRewardUnclaimed",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      }
+    ],
+    "name": "transferDeposit",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -795,11 +1194,103 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
       }
     ],
     "name": "unstakeToken",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "contract IERC20Minimal",
+            "name": "rewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IUniswapV3Pool",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "endTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "refundee",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct IUniswapV3Staker.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      }
+    ],
+    "name": "unstakeTokenAtEnd",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "userRewardProduced",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "votingEscrow",
+    "outputs": [
+      {
+        "internalType": "contract IVotingEscrow",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
