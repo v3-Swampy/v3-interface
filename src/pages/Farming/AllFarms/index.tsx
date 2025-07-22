@@ -35,21 +35,7 @@ const transitions = {
   },
 } as const;
 
-export const RewardsDetail: React.FC<{ rewards: NonNullable<ReturnType<typeof usePools>>[number]['rewards'] }> = memo(({ rewards }) => {
-  return (
-    <BorderBox variant="gradient-white" className="max-w-90vw p-24px rounded-28px">
-      {rewards?.map((reward) => (
-        <div className="flex items-center gap-4px" key={reward.token?.address}>
-          <img src={reward.token?.logoURI} alt={reward.token?.symbol} className="w-20px h-20px" />
-          <span className="text-12px text-black-normal font-medium">
-            {numberWithCommas(trimDecimalZeros(new Decimal(reward.unreleasedAmount.toString()).div(new Decimal(10).pow(reward.token?.decimals ?? 18)).toFixed(2)))}{' '}
-            {reward.token?.symbol}
-          </span>
-        </div>
-      ))}
-    </BorderBox>
-  );
-});
+
 
 interface APRData {
   rewardTokenAPRs: {
@@ -78,7 +64,9 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
       {Object.entries(aprData?.rewardTokenAPRs ?? {}).map(([tokenAddress, { low, high, token }]) => (
         <div className="mt-10px flex items-center justify-between text-14px text-black-normal" key={tokenAddress}>
           <span>{token.symbol} Rewards</span>
-          <span>{low}% ~ {high}%</span>
+          <span>
+            {low}% ~ {high}%
+          </span>
         </div>
       ))}
 
@@ -86,7 +74,9 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
 
       <div className="flex items-center justify-between text-18px leading-22px text-black-normal font-medium">
         <span>Total APR</span>
-        <span>{aprData?.totalAprRange.low}% ~ {aprData?.totalAprRange.high}%</span>
+        <span>
+          {aprData?.totalAprRange.low}% ~ {aprData?.totalAprRange.high}%
+        </span>
       </div>
     </BorderBox>
   );
@@ -99,17 +89,20 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
 
   const tvl = useMemo(() => {
     if (!token0Price || !token1Price || !data?.incentives?.length) return null;
-    let token0Amount = new Decimal(0);
-    let token1Amount = new Decimal(0);
-    data.incentives.forEach(incentive => {
-      token0Amount = token0Amount.add(new Decimal(incentive.token0Amount.toString()));
-      token1Amount = token1Amount.add(new Decimal(incentive.token1Amount.toString()));
+    // 计算每个 incentive 的美元价值
+    const tvlValues = data.incentives.map((incentive) => {
+      if (incentive?.token0Amount && incentive?.token1Amount) {
+        const token0Amount = new Decimal(incentive.token0Amount.toString());
+        const token1Amount = new Decimal(incentive.token1Amount.toString());
+        const token0Value = token0Amount.div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18))).mul(token0Price);
+        const token1Value = token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price);
+        return token0Value.add(token1Value);
+      }
+      return new Decimal(0);
     });
-    return token0Amount
-      .div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18)))
-      .mul(token0Price)
-      .add(token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price));
-  }, [token0Price, token1Price, data?.incentives]);
+    if (tvlValues.length === 0) return null;
+    return Decimal.max(...tvlValues);
+  }, [token0Price, token1Price, data?.incentives, data?.pairInfo.token0?.decimals, data?.pairInfo.token1?.decimals]);
 
   const tvlDisplay = useMemo(() => {
     if (tvl) {
@@ -232,11 +225,6 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
       <div className={`col-span-2 lt-mobile:col-span-4 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>
           {i18n.rewards}
-          <Dropdown Content={<RewardsDetail rewards={data.rewards} />} placement="top" trigger="mouseenter">
-            <span className="w-12px h-12px ml-6px">
-              <InfoIcon className="w-12px h-12px" />
-            </span>
-          </Dropdown>
         </div>
         <div className={cx(classNames.content, 'flex items-center gap-2px')}>
           {data.rewards?.map?.((reward) => (

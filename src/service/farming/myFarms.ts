@@ -128,7 +128,7 @@ const myFarmsQuery = selector({
 
         const positions = map(groupedByTokenId, (incentiveItems, positionId) => {
           const activeRewards = mergeStakeRewardsByToken(
-            incentiveItems.filter((item) => item.incentiveKey.status === 'active'),
+            incentiveItems.filter((item) => item.incentiveKey.status === 'active' && item.position.positionStatus === 'InRange'),
             item => item.incentiveKey.rewardToken.toLowerCase()
           );
 

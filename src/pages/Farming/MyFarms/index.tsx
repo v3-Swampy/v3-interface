@@ -11,7 +11,6 @@ import { ReactComponent as DoublechevrondownIcon } from '@assets/icons/doubleche
 import Dropdown from '@components/Dropdown';
 import Spin from '@components/Spin';
 import Positions from './Positions';
-import { RewardsDetail } from '../AllFarms';
 import { useMyFarms, useRefreshMyFarms } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { useAccount } from '@service/account';
@@ -69,28 +68,29 @@ const MyFarmsItem: React.FC<{
 
   const totalActiveSupply = useMemo(() => {
     if (!supplies.every(Boolean)) return undefined;
-    return supplies.filter((_, index) => positions[index].isPositionActive).reduce((acc, item) => {
-      if (!item) return acc;
-      return acc.add(new Decimal(item));
-    }, new Decimal(0));
+    return supplies
+      .filter((_, index) => positions[index].isPositionActive)
+      .reduce((acc, item) => {
+        if (!item) return acc;
+        return acc.add(new Decimal(item));
+      }, new Decimal(0));
   }, [supplies]);
-
 
   const [rewardTokenPrices, setRewardTokenPrices] = useState<{ [key: string]: string | null } | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!data?.rewards?.length) {
+    if (!data?.activeRewards?.length) {
       setRewardTokenPrices(null);
       return;
     }
 
-    getTokensPrice(data.rewards.map((reward) => reward.rewardTokenInfo?.address!))
+    getTokensPrice(data.activeRewards.map((reward) => reward.rewardTokenInfo?.address!))
       .then(setRewardTokenPrices)
       .catch((error) => {
         console.warn('Failed to fetch reward token prices:', error);
         setRewardTokenPrices(null);
       });
-  }, [data?.rewards]);
+  }, [data?.activeRewards]);
 
   const apr = useMemo(() => {
     if (!data?.activeRewards?.length || !totalActiveSupply || !rewardTokenPrices) return null;
@@ -108,14 +108,13 @@ const MyFarmsItem: React.FC<{
       return sum.add(rewardValuePerSecond);
     }, new Decimal(0));
 
-
     if (totalActiveSupply.eq(0) || allActiveRewardRate.eq(0)) return `0%`;
 
     const SECONDS_PER_YEAR = 365 * 24 * 60 * 60;
     const aprValue = allActiveRewardRate.div(totalActiveSupply).mul(SECONDS_PER_YEAR);
 
     return `${aprValue.mul(100).toFixed(2)}%`;
-  }, [data?.rewards, totalActiveSupply, rewardTokenPrices]);
+  }, [data?.activeRewards, totalActiveSupply, rewardTokenPrices]);
 
   const boostRatio = useMemo(() => {
     if (!positions) return 0;
@@ -188,26 +187,10 @@ const MyFarmsItem: React.FC<{
         <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
           <div className={`${classNames.title}`}>
             {i18n.rewards}
-            <Dropdown
-              Content={
-                <RewardsDetail
-                  rewards={data.rewards.map((reward) => ({
-                    token: reward.rewardTokenInfo!,
-                    unreleasedAmount: reward.stakeReward.unsettledReward,
-                  }))}
-                />
-              }
-              placement="top"
-              trigger="mouseenter"
-            >
-              <span className="w-12px h-12px ml-6px">
-                <InfoIcon className="w-12px h-12px" />
-              </span>
-            </Dropdown>
           </div>
           <div className={cx(classNames.content, 'flex items-center gap-2px')}>
-            {data.rewards?.map?.((reward) => (
-              <img key={reward.rewardTokenInfo?.address} src={reward.rewardTokenInfo?.logoURI} alt={reward.rewardTokenInfo?.symbol} className="w-20px h-20px" />
+            {data.pool.rewards?.map?.((reward) => (
+              <img key={reward.token?.address} src={reward.token?.logoURI} alt={reward.token?.symbol} className="w-20px h-20px" />
             ))}
           </div>
         </div>
