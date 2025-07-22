@@ -26,16 +26,16 @@ export const handleClaim = async ({
   stakedIncentiveKeys,
   tokenId,
   accountAddress,
-  rewards,
+  activeIncentiveKeys,
 }: {
   stakedIncentiveKeys: IncentiveKeyDetail[];
-  rewards: Rewards;
+  activeIncentiveKeys: IncentiveKeyDetail[];
   tokenId: number;
   accountAddress: string;
 }) => {
   const unstakeData = stakedIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('unstakeToken', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee], tokenId]));
-  const claimRewardData = rewards.map((reward) => UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [reward.rewardTokenInfo?.address, accountAddress, 0]));
-  const stakeData = stakedIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee], tokenId]));
+  const claimRewardData = stakedIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [key.rewardToken, accountAddress, 0]));
+  const stakeData = activeIncentiveKeys.map((key) => UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee], tokenId]));
 
   return await sendTransaction({
     to: UniswapV3Staker.address,

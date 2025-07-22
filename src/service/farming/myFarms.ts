@@ -136,7 +136,7 @@ const myFarmsQuery = selector({
           );
 
           const rewards = mergeStakeRewardsByToken(
-            incentiveItems,
+            incentiveItems.filter((item) => item.stakeReward.unsettledReward > 0n),
             item => item.incentiveKey.rewardToken.toLowerCase()
           );
 
@@ -145,6 +145,7 @@ const myFarmsQuery = selector({
             position: incentiveItems[0].position,
             isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && items.some(item => item.incentiveKey.status === 'active'),
             stakedIncentiveKeys: incentiveItems.filter((item) => item.stakeReward.liquidity > 0n).map((item) => item.incentiveKey),
+            activeIncentiveKeys: incentiveItems.filter((item) => item.incentiveKey.status === 'active').map((item) => item.incentiveKey),
             activeRewards,
             rewards,
           };

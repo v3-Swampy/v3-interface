@@ -9,7 +9,6 @@ import { useMyFarms } from '@service/farming';
 import { useAccount, useIsChainMatch } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Spin from '@components/Spin';
-import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
 import showUnstakeModal from './UnstakeModal';
 import { addRecordToHistory } from '@service/history';
 import useInTransaction from '@hooks/useInTransaction';
@@ -127,7 +126,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
               onClick={async () => {
                 const txHash = await handleClaim({
                   stakedIncentiveKeys: data.stakedIncentiveKeys,
-                  rewards: data.rewards,
+                  activeIncentiveKeys: data.activeIncentiveKeys,
                   tokenId: data.tokenId,
                   accountAddress: account as string,
                 });
