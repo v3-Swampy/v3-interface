@@ -116,11 +116,11 @@ const myFarmsQuery = selector({
       const myFarmsResult = userPositionsWithIncentiveKey.map((userPositionWithIncentiveKey, index) => ({
         ...userPositionWithIncentiveKey,
         stakeReward: stakeRewards[index],
-      })).filter(item => item.incentiveKey.status === 'active');
+      })).filter(item => item.incentiveKey.status !== 'not-active');
 
-      const groupedByPoolAndStatus = groupBy(myFarmsResult, item => item.pool.poolAddress);
+      const groupedByPool = groupBy(myFarmsResult, item => item.pool.poolAddress);
 
-      const groupedFarms = map(groupedByPoolAndStatus, (items) => {
+      const groupedFarms = map(groupedByPool, (items) => {
         const groupedByTokenId = groupBy(items, item => item.position.id);
 
         const positions = map(groupedByTokenId, (positionItems, tokenId) => {
@@ -132,6 +132,7 @@ const myFarmsQuery = selector({
           return {
             tokenId,
             position: positionItems[0].position,
+            status: positionItems.filter(item => item.incentiveKey.status === 'active').length > 0 ? 'active' : 'ended',
             rewards,
           };
         });
@@ -143,7 +144,6 @@ const myFarmsQuery = selector({
             positions.flatMap(pos => pos.rewards),
             reward => reward.rewardTokenInfo?.address?.toLowerCase() ?? ''
           ),
-          incentiveStatus: items[0].incentiveKey.status,
           VSTIncentiveEndAt: items?.find(item => item.incentiveKey.rewardToken.toLowerCase() === TokenVST.address.toLowerCase())?.incentiveKey.endTime,
         };
       });
