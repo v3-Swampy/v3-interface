@@ -3,7 +3,7 @@ import useI18n from '@hooks/useI18n';
 import { numFormat } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPositionLiquidity } from '@service/farming/myFarms';
+import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPositionLiquidity } from '@service/farming_old/myFarms';
 import { usePositionStatus, PositionStatus } from '@service/position';
 import { getCurrentIncentiveKey, useCurrentIncentive } from '@service/farming';
 import { useAccount, useIsChainMatch } from '@service/account';

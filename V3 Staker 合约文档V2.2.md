@@ -1,4 +1,4 @@
-# V3 Staker 合约与产品对接文档 V1.1
+# V3 Staker 合约文档 V2.2
 
 [TOC]
 
@@ -10,20 +10,22 @@
 
 为确保用语的精确与统一，定义以下核心概念：
 
-| 中文术语              | 英文术语           | 定义                                                         |
-| --------------------- | ------------------ | ------------------------------------------------------------ |
-| **V3 池**             | `pool`             | 指一个 Uniswap V3 流动性池。                                 |
-| **V3 流动性质押凭证** | `v3token`          | 代表用户在某个 V3 池中的一个具体流动性仓位 (position) 的非同质化代币 (NFT)。它包含了池地址 (`pool`)、所有者 (`owner`)、价格区间 (`tickLower`, `tickUpper`) 和流动性数量 (`liquidity`) 等关键信息。一个 `v3token` 与一个 V3 池唯一对应。 |
-| **激励计划**          | `incentive`        | 一项为特定 V3 池的流动性提供者设计的奖励活动。其核心属性包括：关联的 V3 池 (`pool`)、奖励代币 (`reward token`)、计划开始时间 (`start time`)、结束时间 (`end time`) 以及创建者 (`owner`)。创建者拥有在计划结束后，回收所有未发放奖励的权限。 |
-| **活跃流动性**        | `active liquidity` | 所有价格区间 (`tickLower`, `tickUpper`) 覆盖当前价格的 `v3token` 的流动性总和。 |
-| **存入**              | `deposit`          | 用户将持有的 `v3token` 存入 Staker 合约的过程。这是参与任何激励计划的前提。 |
-| **取出**              | `withdraw`         | 用户从 Staker 合约中取回其 `v3token` 的过程。只有当一个 `v3token` 未质押在任何激励计划中时，该操作才可执行。 |
-| **质押**              | `stake`            | 用户将一个已经**存入** (`deposit`) Staker 合约的 `v3token`，质押到一个具体的**激励计划** (`incentive`) 中以赚取奖励的过程。 |
-| **解押**              | `unstake`          | 用户将其 `v3token` 从一个**激励计划** (`incentive`) 中退出的过程。 |
-| **结算**              | `settle`           | 在用户执行**解押** (`unstake`) 操作时，系统**结算**用户在此次质押期间应获得的奖励总额，并将其记录到用户的个人奖励账户中。 |
-| **领取**              | `claim`            | 用户提取其个人奖励账户中已**结算** (`settle`) 奖励的操作。   |
+| 中文术语              | 英文术语               | 定义                                                         |
+| --------------------- | ---------------------- | ------------------------------------------------------------ |
+| **V3 池**             | `pool`                 | 指一个 Uniswap V3 流动性池。                                 |
+| **V3 流动性质押凭证** | `v3token` / `position` | 代表用户在某个 V3 池中的一个具体流动性仓位 (position) 的非同质化代币 (NFT)。它包含了池地址 (`pool`)、所有者 (`owner`)、价格区间 (`tickLower`, `tickUpper`) 和流动性数量 (`liquidity`) 等关键信息。一个 `v3token` 与一个 V3 池唯一对应。 |
+| **激励计划**          | `incentive`            | 一项为特定 V3 池的流动性提供者设计的奖励活动。其核心属性包括：关联的 V3 池 (`pool`)、奖励代币 (`reward token`)、计划开始时间 (`start time`)、结束时间 (`end time`) 以及创建者 (`owner`)。创建者拥有在计划结束后，回收所有未发放奖励的权限。 |
+| **活跃流动性**        | `active liquidity`     | 所有价格区间 (`tickLower`, `tickUpper`) 覆盖当前价格的 `v3token` 的流动性总和。 |
+| **存入**              | `deposit`              | 用户将持有的 `v3token` 存入 Staker 合约的过程。这是参与任何激励计划的前提。 |
+| **取出**              | `withdraw`             | 用户从 Staker 合约中取回其 `v3token` 的过程。只有当一个 `v3token` 未质押在任何激励计划中时，该操作才可执行。 |
+| **质押**              | `stake`                | 用户将一个已经**存入** (`deposit`) Staker 合约的 `v3token`，质押到一个具体的**激励计划** (`incentive`) 中以赚取奖励的过程。 |
+| **解押**              | `unstake`              | 用户将其 `v3token` 从一个**激励计划** (`incentive`) 中退出的过程。 |
+| **结算**              | `settle`               | 在用户执行**解押** (`unstake`) 操作时，系统**结算**用户在此次质押期间应获得的奖励总额，并将其记录到用户的个人奖励账户中。 |
+| **领取**              | `claim`                | 用户提取其个人奖励账户中已**结算** (`settle`) 奖励的操作。   |
 
-## 3. 合约交互流程与接口说明
+**提醒：** 合约逻辑和前端逻辑不完全相同，前端替用户隐藏了一些合约逻辑的细节，不要使用合约逻辑去理解前端逻辑，详见章节 3.3. 
+
+## 3. 合约交互流程
 
 ### 3.1. 用户交互步骤
 
@@ -31,7 +33,7 @@
 
 1. **获取凭证**: 用户首先在 Uniswap V3 协议中提供流动性，从而获得一个代表其流动性仓位的 `v3token`。
 2. **存入 Staker**: 用户调用 `deposit` 接口，将 `v3token` 存入 Staker 合约中。此时 `v3token` 由 Staker 合约保管。
-3. **参与激励**: 对于已经存入的 `v3token`，用户可以选择一个有效的 `incentive` (激励计划)，并调用 `stake` 接口将该 `v3token` 质押进去，开始赚取奖励。
+3. **参与激励**: 对于已经存入的 `v3token`，用户可以选择一个有效的 `incentive` (激励计划)，并调用 `stake` 接口将该 `v3token` 质押进去，开始赚取奖励。**同一个 `v3token` 可以同时参与多个激励计划。**
 4. **退出激励**: 用户可在任何时刻调用 `unstake` 接口，将其 `v3token` 从激励计划中解押。此时，系统会立即为其**结算** (`settle`) 应得奖励。
 5. **取回凭证**: 对于一个未质押在任何激励计划中的 `v3token`，用户可以调用 `withdraw` 接口，将其从 Staker 合约中完全取回。
 6. **领取奖励**: 用户可以随时调用 `claim` 接口，提取其名下所有已结算的奖励。
@@ -43,6 +45,39 @@
 1. **创建计划**: 管理员调用接口创建 `incentive`，需指定关联的 V3 Pool、奖励代币、起止时间，并提供初始奖励资金。同一个 V3 Pool 最多可以同时存在 **256** 个奖励计划。
 2. **管理奖励**: 在激励计划进行期间，管理员可以增加或减少 `unreleased` (待释放) 的奖励金。但**无法**触及已进入 `unsettled` (待结算) 池的奖励。
 3. **结束计划**: 当激励计划到期，且所有参与该计划的 `v3token` 都已解押 (`unstake`) 后，管理员可以最终结束该计划，并将 `unreleased` 账本中所有剩余的奖励退还给计划的 `owner`。
+
+### 3.3. 与前端逻辑的差异
+
+#### 3.3.1. 术语命名与操作流程
+
+前端界面封装并简化了合约操作，导致前端术语与合约的实际定义存在差异。
+
+| 前端术语               | 用户视角的操作目标                                           | 对应的合约层操作序列 (Contract-level Action Sequence)        |
+| :--------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| **`claim` (领取奖励)** | 在不取回质押凭证 (`v3token`) 的情况下，领取当前已赚取的奖励。`v3token` 保持质押状态。 | 复合操作：<br>1. **`unstake()`**: 解押 `v3token`，触发奖励**结算** (`settle`)。<br>2. **`stake()`**: 立即将 `v3token` 重新质押。 |
+| **`unstake` (解押)**   | 彻底退出质押，停止赚取奖励，并从 Staker 合约中取回 `v3token`。 | 复合操作：<br>1. **`unstake()`**: 从所有激励计划中解押 `v3token`，触发最终奖励**结算** (`settle`)。<br>2. **`claim()`**: 提取所有已结算的奖励至用户钱包。<br>3. **`withdraw()`**: 从 Staker 合约取回 `v3token`。 |
+
+**差异总结：**
+
+1.  **操作合并**: 前端将合约的 `unstake`, `settle`, `claim`, `withdraw` 等独立功能，合并为面向用户的“领取奖励”或“解押”两个操作。
+2.  **状态隐藏**: 合约中存在“已结算未领取”的奖励状态。前端通过在解押后自动执行领取，隐藏了此中间状态，用户仅感知到“累积中”和“已到账”两种状态。
+3.  **无缝领取**: 前端通过“先解押再质押”的组合操作，实现了合约不直接支持的“不中断质押并领取奖励”的功能。
+
+#### 3.3.2.  激励计划的自动管理
+
+为简化用户操作，前端将复杂的“激励计划”概念完全对用户隐藏，并进行自动化管理。
+
+*   **对用户透明**
+    在前端界面上，用户看不见、也无需选择或手动参与任何具体的激励计划 (`incentive`)，亦无从知晓激励计划是有固定周期的。用户的操作对象始终是自己的流动性质押凭证 (`v3token`)。
+
+*   **质押操作自动化**
+    当用户质押一个 `v3token` 时，前端会自动将该凭证 `stake` 到所有当前可参与的、有效的激励计划中，以最大化用户的潜在收益。
+
+*   **管理员权限与安全性**
+    管理员有权为用户已存入的 `v3token` 添加新的激励计划，或退出已经结束的激励计划。此操作是安全的，因为它只会增加用户的奖励来源，不会引入任何风险或造成本金损失。
+
+*   **统一收益展示**
+    前端会将所有底层激励计划产生的奖励进行聚合，向用户展示一个统一的、总的年化收益率 (APR) 和奖励数额，而非多个独立的收益来源。
 
 ## 4. 激励计划规则
 
@@ -69,9 +104,101 @@
 - **奖励计算**: 在盲挖期间，用户的潜在奖励会按正常规则进行计算和累积。
 - **提取限制**: 若用户在盲挖期**结束之前**执行 `unstake` 操作，其在此期间累积的所有应得奖励将被作废，并自动返还到该激励计划的 `unreleased` 奖励池中，而不会结算给用户。
 
-## 5. 前端数据获取与计算逻辑
+## 5. 激励模型
 
-### 5.1. 合约数据接口要点
+本章将通过形式化的定义与数学公式，精确描述 V3 Staker 系统的核心激励机制。内容将关注机制的模型设计，而非其底层算法实现。
+
+### 5.1. 奖励释放模型
+
+每个**激励计划 (`incentive`)** 的奖励代币都遵循一个与时间及**活跃流动性 (`active liquidity`)** 相关的动态释放模型。
+
+在任意时间点 $t$（其中 $t_{start} \le t < t_{end}$），系统的瞬时奖励率 $R(t)$（单位：奖励代币/秒）由当前**待释放奖励 (`unreleased`)** 的总量 $U(t)$ 和激励计划的剩余时间决定。（其中，$t_{start}, t_{end}$ 分别代表激励计划的开始和结束时间。）
+
+$$
+R(t) = \frac{U(t)}{t_{end} - t}
+$$
+
+特别地，若池内总**活跃有效流动性（active liquidity）**为零，则释放暂停，待释放的 $U(t)$ 会保持不变，并在流动性恢复后因为剩余时间变少以更高的 $R(t)$ 加速释放。
+
+### 5.2. 质押权重与激励加速 (Boosting)
+
+用户的奖励份额并非仅由其 **V3 流动性质押凭证 (`v3token`)** 的原始流动性 (`liquidity`) 决定，而是由一个经 `Voting Escrow` 权重加速后的**有效流动性 (Boosted Liquidity)** 决定。
+
+#### 5.2.1. Voting Escrow 权重
+
+`Voting Escrow` (ve) 是一个独立的治理代币质押系统，用户通过锁定治理代币获得一个投票余额 `voting balance`，作为其对协议长期价值承诺的量化体现。
+
+*   令 $V$ 为特定用户的 `voting balance`。
+*   令 $\tilde{V}$ 为全市场 `voting balance` 的总和。
+
+治理代币质押机制复用已有的设计，不在本文的关注范围以内。
+
+#### 5.2.2. 有效流动性计算
+
+对于一个提供原始流动性为 $L$ 的用户，其最终用于计算奖励的有效流动性 $L_{boosted}$ 受其自身流动性及 ve 权重的双重影响，其计算结果如下：
+
+$$
+L_{boosted} = L \cdot\min \left(r, 1 + \frac{V/\tilde{V}}{L/\tilde{L}} \cdot (r-1)\right)
+$$
+
+其中：
+*   $L$ 是用户 `v3token` 的原始流动性。
+*   $\tilde{L}$ 是用户**质押 (`stake`)** 后，该激励计划中所有仓位的原始流动性总和。
+*   $r\ge 1$ 是系统参数，代表最大加速比率。
+
+该公式的直观解释是：当用户不获取 boost 加速时，$L_{boosted}$ 等于原始流动性；当用户的 `voting balance` 的全局占比高于 `liquidity` 的全局占比时，$L_{boosted}$ 获得 $r$ 倍最大加速。
+
+代码实现与此公式等价，但有以下差异：
+
+1. 代码中系统参数通过 $k=\frac{100}{r}$ 指定，一般取 $k=33$.
+2. 代码中实际计算的 $L_{boosted}$ 是公式的 $1/r$, 即 $L_{boosted}=L$ 代表最大加速，$L_{boosted}=L/r$ 代表没有加速。这不影响奖励的计算。
+
+**注意：** 有效流动性的计算仅与“质押时刻”的相关参数有关，一旦完成**质押（stake）**，即使相关计算参数发生变化，也不会更新加速后流动性的值。只有进行**解押（unstake）** 后重新**质押（stake）**的操作才能更新这一参数。
+
+### 5.3. 个人奖励结算
+
+用户的最终奖励，是在其**质押 (`stake`)** 期间，按其有效流动性占池内总活跃有效流动性的比例，对该时段内释放的总奖励进行持续分配的结果。
+
+当用户执行**解押 (`unstake`)** 操作时，其从质押时刻 $t_{stake}$ 到解押时刻 $t_{unstake}$ 所获得的奖励总量 $\text{Reward}_{user}$，可通过以下积分公式精确定义：
+
+$$
+\text{Reward} = \int_{t_{stake}}^{t_{unstake}} R(\tau) \cdot \frac{L_{boosted}}{\tilde{L}_{active}(\tau)} \cdot I(\tau) \,d\tau
+$$
+
+其中：
+*   $R(\tau)$ 是在 $\tau$ 时刻的瞬时奖励率。
+*   $L_{boosted}$ 是该用户仓位的有效流动性。
+*   $\tilde{L}_{active}(\tau)$ 是在 $\tau$ 时刻，池中所有处于活跃状态的仓位的有效流动性（加速后流动性）总和。
+*   $I(\tau)$ 是一个指示函数：当用户的仓位在 $\tau$ 时刻处于**活跃流动性**状态时，$I(\tau)=1$；否则为 $0$。
+
+这个公式确保了奖励只在用户提供有效价值（即仓位处于活跃区间）时进行累积，并精确地按照其贡献比例（由 $L$ 体现）进行分配。
+
+### 5.4. 年化收益率 (APR) 的策略相关性说明
+
+年化收益率 (APR) 是一个高度动态且与个人策略密切相关的预估指标，并非所有参与者共享一个统一的数值。其核心原因在于 Uniswap V3 的流动性机制。
+
+#### 5.4.1. 流动性与资金效率
+
+在 Uniswap V3 中，`liquidity` (L) 与投入的*资本*（TVL，即代币数量）和*价格区间的宽度* **两个因素**相关。对于一个给定的 TVL，价格区间 (`tickLower`, `tickUpper`) 越窄，其对应的 `liquidity` 值就越高。而本激励机制的奖励是围绕 `liquidity`（经过加速后为 $L_{boosted}$）进行计算的，因为 `liquidity` 才是衡量对市场流动性贡献的参数。
+
+#### 5.4.2. APR 的策略权衡
+
+流动性提供者通过不同的策略可以获得不同的 APR，但更高的 APR 会带来其他的不利因素，需要提供者进行策略权衡：
+
+*   **高 APR 策略（窄区间）**:
+    *   **优势**: 在价格区间内，用同样多的资金可以获得更高的 `liquidity`，从而在奖励计算中占据更大权重，获得更高的瞬时 APR。
+    *   **风险**: 市场价格极易偏离狭窄的区间。一旦偏离，该仓位将变为非**活跃流动性**，其奖励累积会立即停止（即该时段 APR 为 0）。如果流动性提供者通过频繁调仓来保持流动性的活跃，则可能获得更高的“无常损失”。（注：Uniswap 所说的“无常损失”并不是财务意义上的无常损失，只是一个 Defi 行业的普遍误用。这里我们只能沿用这种误用。）
+*   **稳健 APR 策略（宽区间）**:
+    *   **优势**: 仓位能覆盖更宽的价格波动范围，保持**活跃**状态的时间可能更长，从而更稳定地获得奖励。
+    *   **风险**: 同样资金量对应的 `liquidity` 较低，导致在奖励分配中的权重偏低，瞬时 APR 不及窄区间策略。
+
+#### 5.4.3. 前端展示策略
+
+鉴于 APR 与策略高度相关，对于一个激励计划如何在前端展示全局 APR，合约、产品、前端团队曾经进行了长时间的讨论，最终结论为展示当前有效流动性的实际 APR 值，即基于 $R(\tau) / \tilde{L}_{active}(\tau)$ 计算。
+
+## 6. 前端数据获取与计算逻辑
+
+### 6.1. 合约数据接口要点
 
 前端在展示页面数据时，以下数据由合约提供：
 
@@ -81,19 +208,19 @@
 - **质押详情**: 给定 `token_id` 和 `incentive_key`，合约可提供该 `v3token` 在此激励计划中的完整质押信息 (`IncentiveStake`)。
 - **凭证详情**: 给定 `token_id`，合约可提供该 `v3token` 的所有者等基础信息 (`UserToken`)。
 
-### 5.2. 实现注意事项
+### 6.2. 实现注意事项
 
 - **逻辑参考**: 具体的计算逻辑可参考伪代码文件 `v3-staker-frontend.py`。该文件仅用于阐述逻辑，并非可直接执行的代码。（该文件可以放在 IDE 中查阅以获得类型标记）
 - **数值表示法**: 在与智能合约交互时，必须对数值格式进行精确处理。区块链系统通常使用**大整数 (BigInt)** 来表示定点数（Fixed-Point Number），以规避浮点数运算的精度风险。例如，代币数量常用一个乘以 `10^18` 的整数来表示 `1` 个单位的代币；而 Uniswap 的某些接口可能使用 `2^64` 作为缩放因子（变量名为 `VariableX64`）。实现者必须根据具体接口文档进行相应的数值转换。
 - **运算精度**: 在计算 APR (年化收益率) 等衍生指标时，应特别注意运算顺序，**建议优先执行乘法，再执行除法**，以最大限度地减少计算过程中的精度损失。
 
-## 6. 合约接口定义
+## 7. 合约接口定义
 
 本章节提供了 V3 Staker 智能合约 (`IUniswapV3Staker`) 的权威接口定义。所有与合约的交互都应以此为准。接口遵循 Solidity 0.7.6 版本规范。
 
-### 6.1 数据结构
+### 7.1 数据结构
 
-#### `IncentiveKey`
+#### 7.1.1 `IncentiveKey`
 
 用于唯一标识激励计划的核心结构体。在调用与特定激励计划相关的函数时，需要传入此结构体。
 
@@ -105,11 +232,11 @@
 | `endTime`     | `uint256`        | 奖励停止累积的 Unix 时间戳（秒）。 |
 | `refundee`    | `address`        | 接收剩余奖励代币的地址。           |
 
-### 6.2 操作接口
+### 7.2 操作接口
 
 以下函数会修改合约状态，调用它们需要发起交易并消耗 Gas。
 
-#### 6.2.1 用户操作接口
+#### 7.2.1 用户操作接口
 
 ```solidity
 function depositToken(uint256 tokenId) external;
@@ -167,7 +294,7 @@ function claimReward(
 
 * `reward` (`uint256`): 实际成功领取的奖励数量。
 
-#### 6.2.2 管理员操作接口
+#### 7.2.2 管理员操作接口
 
 ```solidity
 function createIncentive(IncentiveKey memory key, uint256 reward) external;
@@ -192,16 +319,16 @@ function endIncentive(IncentiveKey memory key) external returns (uint256 refund)
 
 * `refund` (`uint256`): 退还给 `refundee` 的剩余奖励金额。
 
-### 6.3 数据查询函数 (Calls)
+### 7.3 数据查询函数 (Calls)
 
 以下函数为只读函数，用于获取合约数据，通常不消耗 Gas（通过 `eth_call` 调用）。
 
-**注意！！！**部分接口可能会出现一个或多个特殊调用需求，在接口中有详细介绍。
+**注意！！！**部分接口可能会出现一个或多个特殊调用需求，在每个接口中有详细介绍。可能的要求包括：
 
-1. 接口中可能没有 `view` 关键词，SDK 调用方法可能会不一样。（但 RPC 层面是一样的，所以需要和接口组确认）
+1. 接口中可能没有 `view` 关键词，SDK 调用方法可能会不一样。（但 RPC 层面是一样的，需要和接口组确认）
 2. **必须**指定 from 为特殊地址 `0xfe01`
 
-#### 6.3.1 全局与池子信息
+#### 7.3.1 全局与池子信息
 
 ```solidity
 function getAllIncentiveKeysByPool(address pool)
@@ -246,7 +373,7 @@ function getIncentiveRewardInfo(IncentiveKey memory key)
 * `rewardRate` (`uint96`): 名义的奖励释放速率（单位：token/秒，1 代表  `1 Drip/秒`）。
 * `isEmpty` (`bool`): 活跃流动性是否为零。
 
-#### 6.3.2 用户与质押信息
+#### 7.3.2 用户与质押信息
 
 ```solidity
 function getUserPositions(address user, address pool) external view returns (uint256[] memory);
@@ -276,7 +403,7 @@ function deposits(uint256 tokenId)
         uint128 liquidity
     );
 ```
-**描述**: 返回已存入 `tokenId` 的基础信息。（前端可能用不到）
+**描述**: 返回已存入 `tokenId` 的基础信息。
 
 **参数**:
 
@@ -330,7 +457,7 @@ function rewards(address user, IERC20Minimal rewardToken) external view returns 
 
 * `amountOwed` (`uint256`): 用户可领取的奖励代币总量。
 
-#### 6.3.3 配置参数信息
+#### 7.3.3 配置参数信息
 
 以下函数用于查询合约的全局性、固定或半固定的配置参数。这些参数通常在合约部署时设定，定义了系统的核心依赖和基本规则。
 
@@ -344,7 +471,7 @@ function unclaimableEndtime() external view returns (uint256);
 
 - 返回一个 Unix 时间戳（秒）。
 
-### 6.4 合约事件
+### 7.4 合约事件
 
 | 事件                      | 描述                                  |
 | ------------------------- | ------------------------------------- |
@@ -540,6 +667,9 @@ class WorldStateForPool:
     这些数据对所有用户都是相同的。
     """
     # 映射：从激励计划的 Key 到该激励计划的全局状态。
+    # 接口函数：
+    #     - getAllIncentiveKeysByPool 获得 IncentiveKey 列表
+    #     - getIncentiveRewardInfo 获得 Incentive
     incentives: Dict[IncentiveKey, Incentive]
     # 映射：从奖励代币地址到其对应的价格（例如，以 USD 计价）。
     # 前端自行获取。
@@ -588,17 +718,24 @@ class UserStateForPool(WorldStateForPool):
     继承自 WorldStateForPool 以复用全局信息。
     """
     # 用户在当前池子的所有 token，在前端称为 Position。
+    # 接口函数：
+    #     - getUserPositions 获得 TokenID 列表
+    #     - deposits 获得 UserToken
     tokens: Dict[TokenID, UserToken]
 
     # 用户的质押详情。每一个 token 可能 stake 在多个 Incentive 中。
     # 结构: { tokenID -> { incentiveKey -> IncentiveStake } }
+    # 接口函数：
+    #     - getUserPositions 获得 TokenID 列表
+    #     - getAllIncentiveKeysByPool 获得 IncentiveKey 列表
+    #     - getStakeRewardInfo 获得 IncentiveStake
     stakes: Dict[TokenID, Dict[IncentiveKey, IncentiveStake]]
 
     def totalSupplyForToken(self, tokenId: TokenID) -> float:
         """[前端展示数据] 计算用户单个动性头寸的价值。"""
         
         token = self.tokens[tokenId]
-        return token.token0Amount() * self.token0Price + token.token0Amount() * self.token1Price
+        return token.token0Amount() * self.token0Price + token.token1Amount() * self.token1Price
 
     def activeSupplyForToken(self, tokenId: TokenID) -> float:
         """计算用户单个活跃（在至少一个激励计划中产生收益）流动性头寸的价值。"""
@@ -615,7 +752,7 @@ class UserStateForPool(WorldStateForPool):
 
         totalRewardRate = 0
         for (key, stake) in stakesForToken.items():
-            if self._isStakeActice(key, tokenId):
+            if self.isStakeActice(key, tokenId):
                 price = self.rewardPrices[stake.rewardTokenAddress]
                 totalRewardRate += price * stake.rewardRate
         return totalRewardRate
@@ -651,11 +788,18 @@ class UserStateForPool(WorldStateForPool):
         return sum([self.rewardRateForToken(tokenId) for tokenId in self.tokens.keys()])
 
     @property
-    def allClaimable(self) -> float:
+    def allClaimable(self) -> Dict[Address, int]:
         """[前端展示数据] 汇总用户在该池中所有头寸的全部待领取奖励。"""
-        
-        return sum([self.claimableForToken(tokenId) for tokenId in self.tokens.keys()])
+        totalClaimable: Dict[Address, int] = dict()
 
+        for tokenId in self.tokens.keys():
+            claimableForTokenMap = self.claimableForToken(tokenId)
+            
+            for address, amount in claimableForTokenMap.items():
+                # 累加到总的字典中
+                totalClaimable[address] = totalClaimable.get(address, 0) + amount
+                
+        return totalClaimable
     
     @property
     def APR(self) -> float:
@@ -675,6 +819,7 @@ class UserStateForPool(WorldStateForPool):
         
         totalLiquidity = sum([stake.liquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values()])
         totalBoostLiquidity = sum([stake.boostLiquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values()])
+        # 这里乘 3 的原因参见文档 V2.1 章节 5.2.2
         return totalBoostLiquidity / totalLiquidity * 3
 ```
 

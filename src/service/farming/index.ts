@@ -1,5 +1,5 @@
 export * from './claimState';
 export * from './farmingList';
 export * from './timestamp';
-export * from './handleStakeLp';
+export * from './actions';
 export * from './myFarms';

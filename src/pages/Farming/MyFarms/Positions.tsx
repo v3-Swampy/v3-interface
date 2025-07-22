@@ -4,16 +4,13 @@ import Decimal from 'decimal.js';
 import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as HammerIcon } from '@assets/icons/harmmer.svg';
 import { ReactComponent as CoffeeCupIcon } from '@assets/icons/coffee_cup.svg';
-// import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake, MyFarmsPositionType, calcPositionLiquidity } from '@service/farming';
-import { usePositionStatus, PositionStatus } from '@service/position';
+import { handleClaim as _handleClaim, handleUnstake as _handleUnstake } from '@service/farming';
 import { useMyFarms } from '@service/farming';
 import { useAccount, useIsChainMatch } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Spin from '@components/Spin';
 import showClaimAndUnstakeModal from './ClaimAndUnstakeModal';
 import showUnstakeModal from './UnstakeModal';
-import { useTokenPrice } from '@service/pairs&pool';
-import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { addRecordToHistory } from '@service/history';
 import useInTransaction from '@hooks/useInTransaction';
 import Button from '@components/Button';
@@ -62,8 +59,9 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
   const { isPositionActive } = data;
   const i18n = useI18n(transitions);
   const account = useAccount();
-  // const { inTransaction: unstakeInTransaction, execTransaction: handleClaimUnStake } = useInTransaction(_handleClaimUnStake, true);
-  // const { inTransaction: claimIntransaction, execTransaction: handleClaimAndReStake } = useInTransaction(_handleClaimAndReStake, true);
+
+  const { inTransaction: claimInTransaction, execTransaction: handleClaim } = useInTransaction(_handleClaim, true);
+  const { inTransaction: unstakeInTransaction, execTransaction: handleUnstake } = useInTransaction(_handleUnstake, true);
   const isCanClaim = useCanClaim();
   const isChainMath = useIsChainMatch();
   const isPaused = !isPositionActive;
@@ -123,16 +121,14 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
           >
             <Button
               disabled={!isCanClaim}
-              // loading={claimIntransaction}
+              loading={claimInTransaction}
               color="white"
               className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 lt-mobile:w-46% lt-mobile:mr-0`}
               onClick={async () => {
-                const txHash = await handleClaimAndReStake({
-                  isActive,
-                  keyThatTokenIdIn: position?.whichIncentiveTokenIn,
-                  currentIncentiveKey: currentIncentiveKey,
-                  tokenId: position.tokenId,
-                  pid,
+                const txHash = await handleClaim({
+                  VSTIncentiveKey: data.VSTIncentiveKey!,
+                  rewards: data.rewards,
+                  tokenId: data.tokenId,
                   accountAddress: account as string,
                 });
                 addRecordToHistory({
@@ -148,32 +144,32 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
 
         <AuthConnectButton className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} !border-none !px-10px lt-mobile:w-46%`}>
           <Button
-            // loading={unstakeInTransaction}
+            loading={unstakeInTransaction}
             color="white"
             className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} lt-mobile:w-46%`}
-            // onClick={async () => {
-            //   if (isCanClaim) {
-            //     showUnstakeModal({
-            //       isActive: true,
-            //       incentive: position?.whichIncentiveTokenIn,
-            //       id: position.tokenId,
-            //       currentIncentiveKey,
-            //       position: position.position,
-            //     });
-            //   } else {
-            //     const txHash = await handleClaimUnStake({
-            //       isActive,
-            //       key: currentIncentiveKey,
-            //       tokenId: position.tokenId,
-            //       accountAddress: account as string,
-            //     });
+            onClick={async () => {
+              // if (isCanClaim) {
+              //   showUnstakeModal({
+              //     isActive: true,
+              //     incentive: position?.whichIncentiveTokenIn,
+              //     id: position.tokenId,
+              //     currentIncentiveKey,
+              //     position: position.position,
+              //   });
+              // } else {
+              const txHash = await handleUnstake({
+                VSTIncentiveKey: data.VSTIncentiveKey!,
+                rewards: data.rewards,
+                tokenId: data.tokenId,
+                accountAddress: account as string,
+              });
 
-            //     addRecordToHistory({
-            //       txHash,
-            //       type: 'MyFarms_Unstake',
-            //     });
-            //   }
-            // }}
+              addRecordToHistory({
+                txHash,
+                type: 'MyFarms_Unstake',
+              });
+              // }
+            }}
           >
             {i18n.unstake}
           </Button>

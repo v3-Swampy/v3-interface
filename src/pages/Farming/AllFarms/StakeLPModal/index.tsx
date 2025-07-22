@@ -8,7 +8,7 @@ import { usePositionsForUI, type PositionForUI } from '@service/position';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import PriceRange from '@modules/Position/PriceRange';
-import { type usePools, handleStakeLP as _handleStakeLP, useCurrentIncentiveKeyDetail } from '@service/farming';
+import { type usePools, handleStakeLP as _handleStakeLP, type IncentiveKeyDetail } from '@service/farming';
 import { AuthTokenButtonOf721 } from '@modules/AuthTokenButton';
 import { UniswapV3Staker, NonfungiblePositionManager } from '@contracts/index';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,7 @@ import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
 import { addRecordToHistory } from '@service/history';
 import { useTokenPrice } from '@service/pairs&pool';
+import { isTokenEqual, TokenVST } from '@service/tokens';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
@@ -52,7 +53,7 @@ export enum ModalMode {
 
 type Props = ConfirmModalInnerProps & NonNullable<ReturnType<typeof usePools>>[number];
 
-const Position = ({ data, currentIncentiveKeyDetail, poolAddress }: { data: PositionForUI; currentIncentiveKeyDetail: ReturnType<typeof useCurrentIncentiveKeyDetail>; poolAddress: string }) => {
+const Position = ({ data, VSTIncentiveKey }: { data: PositionForUI; VSTIncentiveKey: IncentiveKeyDetail; }) => {
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleStakeLP } = useInTransaction(_handleStakeLP, true);
 
@@ -90,8 +91,7 @@ const Position = ({ data, currentIncentiveKeyDetail, poolAddress }: { data: Posi
             onClick={async () => {
               const txHash = await handleStakeLP({
                 tokenId: data.id,
-                incentiveKeyDetail: currentIncentiveKeyDetail,
-                poolAddress,
+                VSTIncentiveKey,
               });
               if (typeof txHash === 'string') {
                 addRecordToHistory({
@@ -114,11 +114,13 @@ const Position = ({ data, currentIncentiveKeyDetail, poolAddress }: { data: Posi
   );
 };
 
-const StakeModal: React.FC<Props> = ({ poolAddress, pairInfo }) => {
+const StakeModal: React.FC<Props> = ({ poolAddress, pairInfo, incentiveKeys }) => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const navigate = useNavigate();
-  const currentIncentiveKeyDetail = useCurrentIncentiveKeyDetail();
+  const VSTIncentiveKey = useMemo(() => {
+    return incentiveKeys?.find((incentiveKey) => incentiveKey.status === 'active' && isTokenEqual(incentiveKey.rewardTokenInfo, TokenVST));
+  }, [incentiveKeys]);
 
   const fPositions = useMemo(() => {
     return positions.filter((p) => p.address === poolAddress && p.liquidity !== '0');
@@ -159,7 +161,7 @@ const StakeModal: React.FC<Props> = ({ poolAddress, pairInfo }) => {
       <div className="mt-24px lt-mobile:h-[calc(100vh-224px)] lt-mobile:overflow-auto lt-mobile:drawer-inner-scroller">
         <div className="max-h-454px min-h-318px overflow-y-auto lt-mobile:max-h-[fit-content] lt-mobile:min-h-auto">
           {fPositions.map((p) => {
-            return <Position key={p.id} data={p} currentIncentiveKeyDetail={currentIncentiveKeyDetail!} poolAddress={poolAddress} />;
+            return <Position key={p.id} data={p} VSTIncentiveKey={VSTIncentiveKey!} />;
           })}
         </div>
         <div className="text-center">

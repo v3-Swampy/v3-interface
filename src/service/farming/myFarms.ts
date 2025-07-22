@@ -5,7 +5,7 @@ import { fetchChain } from '@cfx-kit/dapp-utils/dist/fetch';
 import { accountState } from '@service/account';
 import { type Token, TokenVST, isTokenEqual } from '@service/tokens';
 import { positionsQueryByTokenIds } from '@service/position';
-import { poolsQuery, type incentiveKeyDetail } from './farmingList';
+import { poolsQuery, type IncentiveKeyDetail } from './farmingList';
 
 const mergeStakeRewardsByToken = <T extends {
   stakeReward: {
@@ -13,7 +13,7 @@ const mergeStakeRewardsByToken = <T extends {
     boostedLiquidity: bigint;
     rewardsPerSecondX32: bigint;
     unsettledReward: bigint;
-  }; rewardTokenInfo?: Token; incentiveKey?: incentiveKeyDetail
+  }; rewardTokenInfo?: Token; incentiveKey?: IncentiveKeyDetail
 }>(
   items: T[],
   getRewardTokenKey: (item: T) => string
@@ -39,6 +39,9 @@ const mergeStakeRewardsByToken = <T extends {
     };
   });
 };
+
+
+export type Rewards = ReturnType<typeof mergeStakeRewardsByToken>;
 
 const myFarmsQuery = selector({
   key: `myFarmsQuery-${import.meta.env.MODE}`,
@@ -125,6 +128,7 @@ const myFarmsQuery = selector({
 
       const groupedFarms = map(groupedByPool, (items) => {
         const groupedByTokenId = groupBy(items, item => item.position.id);
+        const VSTIncentiveKey = items.find((item) => item.incentiveKey.status === 'active' && isTokenEqual(item.incentiveKey.rewardTokenInfo, TokenVST))?.incentiveKey;
 
         const positions = map(groupedByTokenId, (incentiveItems, positionId) => {
           const activeRewards = mergeStakeRewardsByToken(
@@ -140,7 +144,8 @@ const myFarmsQuery = selector({
           return {
             tokenId: Number(positionId),
             position: incentiveItems[0].position,
-            isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && !!incentiveItems.find(item => item.incentiveKey.status === 'active'),
+            isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && !!VSTIncentiveKey,
+            VSTIncentiveKey,
             activeRewards,
             rewards,
           };
@@ -169,53 +174,3 @@ const myFarmsQuery = selector({
 
 export const useMyFarms = () => useRecoilValue(myFarmsQuery);
 export const useRefreshMyFarms = () => useRecoilRefresher_UNSTABLE(myFarmsQuery);
-
-
-
-// export const handleClaimUnStake = async ({
-//   isActive,
-//   key,
-//   tokenId,
-//   pid,
-//   accountAddress,
-// }: {
-//   isActive: boolean;
-//   key: IncentiveKey;
-//   tokenId: number;
-//   pid: number;
-//   accountAddress: string;
-// }) => {
-//   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
-//   const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [key, tokenId, pid]);
-//   const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [TokenVST.address, accountAddress, 0]);
-//   const data2 = UniswapV3Staker.func.interface.encodeFunctionData('withdrawToken', [tokenId, accountAddress]);
-//   return await sendTransaction({
-//     to: UniswapV3Staker.address,
-//     data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
-//   });
-// };
-
-// export const handleClaimAndReStake = async ({
-//   isActive,
-//   keyThatTokenIdIn,
-//   currentIncentiveKey,
-//   tokenId,
-//   pid,
-//   accountAddress,
-// }: {
-//   isActive: boolean;
-//   keyThatTokenIdIn: IncentiveKey;
-//   currentIncentiveKey: IncentiveKey;
-//   tokenId: number;
-//   pid: number;
-//   accountAddress: string;
-// }) => {
-//   const methodName = isActive ? 'unstakeToken' : 'unstakeTokenAtEnd';
-//   const data0 = UniswapV3Staker.func.interface.encodeFunctionData(methodName, [keyThatTokenIdIn, tokenId, pid]);
-//   const data1 = UniswapV3Staker.func.interface.encodeFunctionData('claimReward', [TokenVST.address, accountAddress, 0]);
-//   const data2 = UniswapV3Staker.func.interface.encodeFunctionData('stakeToken', [currentIncentiveKey, tokenId, pid]);
-//   return await sendTransaction({
-//     to: UniswapV3Staker.address,
-//     data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [[data0, data1, data2]]),
-//   });
-// };
