@@ -1,57 +1,41 @@
 import React, { Suspense } from 'react';
-import cx from 'clsx';
-import useI18n, { toI18n, compiled } from '@hooks/useI18n';
+import useI18n, { toI18n } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import Spin from '@components/Spin';
 import Button from '@components/Button';
-import { type IncentiveKey } from '@service/farming';
-import { handleClaimUnStake as _handleClaimUnStake, handleClaimAndReStake as _handleClaimAndReStake } from '@service/farming/myFarms';
+import { handleUnstake as _handleUnstake } from '@service/farming';
 import { useAccount } from '@service/account';
 import useInTransaction from '@hooks/useInTransaction';
 import { addRecordToHistory } from '@service/history';
 import { PositionForUI } from '@service/position';
 import { hidePopup } from '@components/showPopup';
-import { ReactComponent as WarningIcon } from '@assets/icons/warning_color.svg';
+import { ReactComponent as WarningIcon } from '@assets/icons/warning2.svg';
 import AuthConnectButton from '@modules/AuthConnectButton';
 
 const transitions = {
   en: {
     title: 'Unstake',
-    info: 'Unstaking LP before the claim time will result in losing all earned rewards.',
-    claimAndUnstake: 'Cancel',
+    info: 'Unstaking your LP before reward claiming opens will forfeit all earned rewards.',
+    cancel: 'Cancel',
     claimAndStake: 'Unstake',
     confirmInfo: 'Are you sure you want to Unstake?',
   },
   zh: {
     title: 'Unstake',
-    info: 'Unstaking LP before the claim time will result in losing all earned rewards.',
-    claimAndUnstake: 'Cancel',
+    info: 'Unstaking your LP before reward claiming opens will forfeit all earned rewards.',
+    cancel: 'Cancel',
     claimAndStake: 'Unstake',
     confirmInfo: 'Are you sure you want to Unstake?',
   },
 } as const;
 
-export enum ModalMode {
-  Unknown,
-  CreateLock,
-  IncreaseAmount,
-  IncreaseUnlockTime,
-}
+type Props = Parameters<typeof _handleUnstake>[0] & { position: PositionForUI };
 
-interface ModalType {
-  isActive: boolean;
-  incentive: any;
-  id: number;
-  pid: number;
-  currentIncentiveKey: IncentiveKey;
-  position: PositionForUI;
-}
-
-const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentiveKey, position }) => {
+const UnstakeModal: React.FC<Props & ConfirmModalInnerProps> = ({ tokenId, stakedIncentiveKeys, position, rewards }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
   // @ts-ignore
-  const { inTransaction, execTransaction: handleClaimUnStake } = useInTransaction(_handleClaimUnStake, true);
+  const { inTransaction, execTransaction: handleUnstake } = useInTransaction(_handleUnstake, true);
 
   const classNames = {
     baseButton:
@@ -62,12 +46,7 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentive
   return (
     <div className="mt-24px min-h-318px !flex flex-col items-center justify-center lt-mobile:relative lt-mobile:min-h-400px">
       <WarningIcon className="-mt-8 lt-mobile:w-100px lt-mobile:h-100px"></WarningIcon>
-      <div
-        className="text-18px leading-30px font-normal font-not-italic mt-6 w-76 lt-mobile:text-14px lt-mobile:leading-18px lt-mobile:w-240px"
-        dangerouslySetInnerHTML={{
-          __html: compiled(i18n.info, { symbol0: position?.token0?.symbol, symbol1: position?.token1?.symbol }),
-        }}
-      ></div>
+      <div className="text-18px leading-30px font-normal mt-24px mx-80px lt-mobile:mx-64px lt-mobile:text-14px lt-mobile:leading-18px">{i18n.info}</div>
 
       <div className="absolute bottom-6 left-4 right-4 lt-mobile:left-0 lt-mobile:right-0">
         <div className="text-12px leading-20px color-gray-normal text-center mb-2">{i18n.confirmInfo}</div>
@@ -80,7 +59,7 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentive
                 hidePopup();
               }}
             >
-              {i18n.claimAndUnstake}
+              {i18n.cancel}
             </Button>
           </AuthConnectButton>
           <AuthConnectButton className={`${classNames.baseButton} ${classNames.activeButton}`}>
@@ -88,11 +67,10 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentive
               loading={inTransaction}
               className={`${classNames.baseButton} ${classNames.activeButton}`}
               onClick={async () => {
-                const txHash = await handleClaimUnStake({
-                  isActive,
-                  key: currentIncentiveKey,
-                  tokenId: id,
-                  pid,
+                const txHash = await handleUnstake({
+                  tokenId,
+                  stakedIncentiveKeys,
+                  rewards,
                   accountAddress: account as string,
                 });
 
@@ -115,7 +93,7 @@ const UnstakeModal: React.FC<ModalType> = ({ isActive, id, pid, currentIncentive
   );
 };
 
-const showUnstakeModal = (data: ModalType) => {
+const showUnstakeModal = (data: Props) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (props: ConfirmModalInnerProps) => (

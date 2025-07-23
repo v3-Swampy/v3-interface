@@ -16,7 +16,6 @@ import { hidePopup } from '@components/showPopup';
 import Button from '@components/Button';
 import { addRecordToHistory } from '@service/history';
 import { useTokenPrice } from '@service/pairs&pool';
-import { isTokenEqual, TokenVST } from '@service/tokens';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { setTokens } from '@pages/Pool/AddLiquidity/SelectPair';
@@ -97,10 +96,10 @@ const Position = ({ data, activeIncentiveKeys }: { data: PositionForUI; activeIn
                 addRecordToHistory({
                   txHash,
                   type: 'AllFarms_StakedLP',
-                  // tokenA_Address: leftToken.address,
-                  // tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
-                  // tokenB_Address: rightToken.address,
-                  // tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, leftToken.decimals) : '',
+                  tokenA_Address: leftToken?.address,
+                  tokenA_Value: amount0 ? new Unit(amount0)?.toDecimalStandardUnit(undefined, leftToken?.decimals) : '',
+                  tokenB_Address: rightToken?.address,
+                  tokenB_Value: amount1 ? new Unit(amount1)?.toDecimalStandardUnit(undefined, leftToken?.decimals) : '',
                 });
               }
             }}
