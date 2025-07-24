@@ -9,7 +9,6 @@ import { ModalPopup, DrawerPopup, Toast } from '@components/showPopup';
 import { isMobile } from '@utils/is';
 import Router from './router';
 import { tokenInitPromise } from '@service/tokens';
-// import { farmingInitPromise } from '@service/farming/farmingList';
 import { registerWallet } from '@cfx-kit/react-utils/dist/AccountManage';
 import {
   createWalletConnectProvider,
@@ -38,7 +37,7 @@ const WalletConnectProvider = createWalletConnectProvider({
 if (!isInMobileWalletBrowser()) {
   registerWallet(WalletConnectProvider);
 }
-register6963Wallet({ persistFirst: true });
+register6963Wallet();
 
 dayjs.extend(durationPlugin);
 

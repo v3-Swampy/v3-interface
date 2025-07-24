@@ -9,11 +9,11 @@ import { useMyFarms } from '@service/farming';
 import { useAccount, useIsChainMatch } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Spin from '@components/Spin';
-import showUnstakeModal from './UnstakeModal';
 import { addRecordToHistory } from '@service/history';
 import useInTransaction from '@hooks/useInTransaction';
 import Button from '@components/Button';
 import { ReactComponent as ClockIcon } from '@assets/icons/clock.svg';
+import showUnstakeModal from './UnstakeModal';
 import { useCanClaim } from '@service/farming';
 import Tooltip from '@components/Tooltip';
 
@@ -129,6 +129,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
                   activeIncentiveKeys: data.activeIncentiveKeys,
                   tokenId: data.tokenId,
                   accountAddress: account as string,
+                  rewards: data.rewards,
                 });
                 addRecordToHistory({
                   txHash,
@@ -147,27 +148,13 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
             color="white"
             className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} lt-mobile:w-46%`}
             onClick={async () => {
-              // if (isCanClaim) {
-              //   showUnstakeModal({
-              //     isActive: true,
-              //     incentive: position?.whichIncentiveTokenIn,
-              //     id: position.tokenId,
-              //     currentIncentiveKey,
-              //     position: position.position,
-              //   });
-              // } else {
-              const txHash = await handleUnstake({
+              showUnstakeModal({
                 stakedIncentiveKeys: data.stakedIncentiveKeys,
                 rewards: data.rewards,
                 tokenId: data.tokenId,
                 accountAddress: account as string,
+                position: data.position,
               });
-
-              addRecordToHistory({
-                txHash,
-                type: 'MyFarms_Unstake',
-              });
-              // }
             }}
           >
             {i18n.unstake}

@@ -1,14 +1,12 @@
-import React, { useMemo, useState, useEffect, useTransition } from 'react';
+import React, { useMemo, useState, useEffect, startTransition } from 'react';
 import useI18n from '@hooks/useI18n';
 import Decimal from 'decimal.js';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import cx from 'clsx';
 import { ReactComponent as LightningIcon } from '@assets/icons/lightning.svg';
 import { ReactComponent as ChevronDownIcon } from '@assets/icons/chevron_down.svg';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import { ReactComponent as NoFarms } from '@assets/icons/no_farms.svg';
 import { ReactComponent as DoublechevrondownIcon } from '@assets/icons/doublechevrondown.svg';
-import Dropdown from '@components/Dropdown';
 import Spin from '@components/Spin';
 import Positions from './Positions';
 import { useMyFarms, useRefreshMyFarms } from '@service/farming';
@@ -208,24 +206,10 @@ const MyFarmsItem: React.FC<{
   );
 };
 
+
 const MyFarms = () => {
   const account = useAccount();
-
   const myFarms = useMyFarms();
-  console.log('myFarms', myFarms);
-  // const refreshMyFarms = useRefreshMyFarms();
-
-  // const [_, startTransition] = useTransition();
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     startTransition(() => {
-  //       refreshMyFarms();
-  //     });
-  //   }, 15000);
-  //   return () => {
-  //     clearInterval(interval);
-  //   };
-  // }, []);
 
   if (!account || !myFarms?.length) {
     return (
@@ -244,5 +228,6 @@ const MyFarms = () => {
     </div>
   );
 };
+
 
 export default MyFarms;
