@@ -29,8 +29,6 @@ export interface HistoryRecord {
     | 'Stake_IncreaseAmount'
     | 'Position_RemoveLiquidity'
     | 'AllFarms_StakedLP'
-    | 'MyFarms_ClaimAndUnstake'
-    | 'MyFarms_ClaimAndStake'
     | 'MyFarms_Claim'
     | 'MyFarms_Unstake'
     | 'Stake_Unlock';
