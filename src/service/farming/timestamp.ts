@@ -25,6 +25,6 @@ export const useAutoRefreshTimestamp = () =>
   useAutoRefreshData({
     recoilValue: timestampSelector,
     fetcher: fetchTimestamp,
-    interval: 10000,
+    interval: 1000,
     refreshImmediately: true,
   });

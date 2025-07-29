@@ -9,7 +9,7 @@ const BlockNumber = () => {
         method: 'eth_blockNumber',
       },
       {
-        intervalTime: 1000,
+        intervalTime: 10000,
         callback: (blockNumber: string) => {
           setBlockNumber(Number(blockNumber));
         },
