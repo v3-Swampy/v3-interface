@@ -36,12 +36,19 @@ export const UniswapV3Quoter = createContract(isProduction ? '0xabedcd052928192c
 
 export const UniswapV3SwapRouter = createContract(isProduction ? '0x94b740b0d9ebb151cc9848c5419627a5ec52d837' : '0x94b740b0d9ebb151cc9848c5419627a5ec52d837', SwapRouterABI);
 
-export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
-  MulticallContract.func.aggregate.staticCall(data).then((res: any) => {
+export const fetchMulticall = (data: string[][], blockNumber?: string): Promise<string[] | null> => {
+
+  const overrides: { blockTag?: string } = {};
+  if (blockNumber) {
+    overrides.blockTag = blockNumber;
+  }
+
+  return MulticallContract.func.aggregate.staticCall(data, overrides).then((res: any) => {
     const result = res?.[1];
     if (result) return Array.from(result);
     else return null;
   });
+};
 
 export const VotingEscrowContract = createContract(isProduction ? '0xaf891c87aea0b7ecc5e661e9672041dab062df45' : '0xaf891c87aea0b7ecc5e661e9672041dab062df45', VotingEscrowABI);
 

@@ -2,7 +2,7 @@ import { selector, useRecoilValue } from 'recoil';
 import { useAutoRefreshData } from '@utils/recoilUtils';
 import { fetchChain } from '@utils/fetch';
 import { MulticallContract } from '@contracts/index';
-import { customBlockNumber } from '@service/pairs&pool/utils';
+import { customBlockNumber } from '@utils/customBlockNumber';
 
 const fetchTimestamp = () => fetchChain({
   params: [

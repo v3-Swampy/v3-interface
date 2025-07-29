@@ -6,7 +6,7 @@ import { RPC_PROVIDER } from '@utils/providers';
 import { AlphaRouter, AlphaRouterConfig, ChainId, routeAmountsToString, SwapRoute } from 'v-swap-smart-order-router';
 import JSBI from 'jsbi';
 import { targetChainId } from '@service/account';
-import { customBlockNumber } from '@service/pairs&pool/utils';
+import { customBlockNumber } from '@utils/customBlockNumber';
 
 type TokenInRoute = Pick<Token, 'address' | 'chainId' | 'symbol' | 'decimals'>;
 

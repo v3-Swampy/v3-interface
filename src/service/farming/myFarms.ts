@@ -6,7 +6,7 @@ import { accountState } from '@service/account';
 import { type Token } from '@service/tokens';
 import { positionsQueryByTokenIds } from '@service/position';
 import { poolsQuery, type IncentiveKeyDetail } from './farmingList';
-import { customBlockNumber } from '@service/pairs&pool/utils';
+import { customBlockNumber } from '@utils/customBlockNumber';
 
 const mergeStakeRewardsByToken = <T extends {
   stakeReward: {
@@ -54,7 +54,7 @@ const myFarmsQuery = selector({
     if (!pools) return null;
 
     const userPositionsQueryMulticall = await fetchChain<string>({
-      url: 'https://evmtestnet.confluxrpc.com',
+      url: import.meta.env.VITE_ESpaceRpcUrl,
       method: 'eth_call',
       params: [
         {
@@ -91,7 +91,7 @@ const myFarmsQuery = selector({
     }).flat();
 
     const stakeRewardsQueryMulticall = await fetchChain<string>({
-      url: 'https://evmtestnet.confluxrpc.com',
+      url: import.meta.env.VITE_ESpaceRpcUrl,
       method: 'eth_call',
       params: [
         {
