@@ -45,8 +45,11 @@ export const fetchMulticall = (data: string[][], blockNumber?: string): Promise<
 
   return MulticallContract.func.aggregate.staticCall(data, overrides).then((res: any) => {
     const result = res?.[1];
-    if (result) return Array.from(result);
+    if (result) return Array.from(result) as string[];
     else return null;
+  }).catch((error) => {
+    console.log('Failed to fetch multicall: ', error);
+    return null;
   });
 };
 

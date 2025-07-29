@@ -7,6 +7,7 @@ import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPri
 import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
 import { getPool } from '@service/pairs&pool/singlePool';
 import { computePoolAddress } from '@service/pairs&pool';
+import { customBlockNumber } from '@utils/customBlockNumber';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -76,7 +77,8 @@ const tokenIdsQuery = selector<Array<number> | []>({
     const tokenIdsArgs = account && positionBalance && positionBalance > 0 ? Array.from({ length: positionBalance }, (_, index) => [account, index]) : [];
 
     const tokenIdResults = await fetchMulticall(
-      tokenIdsArgs.map((args) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('tokenOfOwnerByIndex', args)])
+      tokenIdsArgs.map((args) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('tokenOfOwnerByIndex', args)]),
+      customBlockNumber
     );
 
     if (Array.isArray(tokenIdResults))
@@ -155,7 +157,8 @@ export const positionsQueryByTokenIds = selectorFamily({
         const tokenIds = [...tokenIdParams];
 
         const positionsResult = await fetchMulticall(
-          tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+          tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])]),
+          customBlockNumber
         );
 
         if (Array.isArray(positionsResult)) {
