@@ -248,6 +248,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
         });
       } catch (err) {
         const errStr = String(err);
+        console.log('errStr', errStr);
         const isNoRoute = errStr?.includes('Failed to generate client side quote');
         const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get') || errStr?.includes('SyntaxError') || errStr?.includes('Unexpected error');
         if (fetchMethod === 'priorityMethod' && isNetworkError) {
