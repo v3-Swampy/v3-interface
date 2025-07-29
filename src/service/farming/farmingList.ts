@@ -1,7 +1,7 @@
 import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
-import { isTokenEqual, getTokenByAddressWithAutoFetch, getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenVST, type Token } from '@service/tokens';
-import { chunk, omit } from 'lodash-es';
+import { getTokenByAddressWithAutoFetch, getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenVST, type Token } from '@service/tokens';
+import { chunk } from 'lodash-es';
 import { timestampSelector } from './timestamp';
 
 export const farmingPoolsAddress = atom<Array<string>>({
@@ -144,18 +144,6 @@ export const usePools = () => {
 
 export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery);
 
-const currentIncentiveKeySelector = selector({
-  key: `currentIncentiveKeySelector-${import.meta.env.MODE}`,
-  get: ({ get }) => {
-    const pools = get(poolsQuery);
-    const res = pools?.[0]?.incentiveKeys.find(key => key.status === 'active' && isTokenEqual(key.rewardTokenInfo, TokenVST));
-    return omit(res, 'poolAddress', 'key');
-  },
-});
-
-export const useCurrentIncentiveKeyDetail = () => {
-  return useRecoilValue(currentIncentiveKeySelector);
-};
 
 const getLRToken = (token0: Token | null, token1: Token | null) => {
   if (!token0 || !token1) return [];

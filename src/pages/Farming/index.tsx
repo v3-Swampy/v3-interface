@@ -4,11 +4,9 @@ import useI18n from '@hooks/useI18n';
 import { Suspense } from 'react';
 import Spin from '@components/Spin';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useCanClaim } from '@service/farming';
 import AllFarms from './AllFarms';
 import MyFarms from './MyFarms';
-import CountDown from './CountDown';
-import EndIn from './EndIn';
+import CanClaimIn from './CanClaimIn';
 
 const transitions = {
   en: {
@@ -51,7 +49,6 @@ const FarmingPage: React.FC = () => {
   const tab = params.get('tab') as TabKeyType;
   const buttonClass = 'inline-block py-10px leading-18px px-6 rounded-full text-center text-sm font-normal border border-solid text-gray-normal box-border cursor-pointer';
   const buttonClassActive = 'bg-orange-light !text-orange-normal border border-solid border-orange-light';
-  const isCanClaim = useCanClaim();
 
   const handleClickTab = useCallback((tab: TabKeyType) => {
     const search = new URLSearchParams(params);
@@ -68,7 +65,7 @@ const FarmingPage: React.FC = () => {
             {i18n.desc}
           </div>
         </div>
-        <EndIn>
+        <CanClaimIn>
           <div className="flex justify-between lt-mobile:flex-col">
             <div>
               <div className={`${buttonClass} mr-2 ${tab === TabKey.My ? buttonClassActive : ''}`} onClick={() => handleClickTab(TabKey.My)}>
@@ -78,10 +75,9 @@ const FarmingPage: React.FC = () => {
                 {i18n.allFarms}
               </div>
             </div>
-            <div>{!isCanClaim && <CountDown />}</div>
           </div>
           <Suspense fallback={<Spin className="!block mx-auto text-60px mt-4" />}>{tab === TabKey.My ? <MyFarms /> : <AllFarms />}</Suspense>
-        </EndIn>
+        </CanClaimIn>
       </div>
     </PageWrapper>
   );
