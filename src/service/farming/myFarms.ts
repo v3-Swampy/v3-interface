@@ -6,6 +6,7 @@ import { accountState } from '@service/account';
 import { type Token } from '@service/tokens';
 import { positionsQueryByTokenIds } from '@service/position';
 import { poolsQuery, type IncentiveKeyDetail } from './farmingList';
+import { customBlockNumber } from '@service/pairs&pool/utils';
 
 const mergeStakeRewardsByToken = <T extends {
   stakeReward: {
@@ -65,7 +66,7 @@ const myFarmsQuery = selector({
             )
           ])
         },
-        'latest'
+        customBlockNumber
       ]
     });
 
@@ -102,7 +103,7 @@ const myFarmsQuery = selector({
             )
           ])
         },
-        'latest'
+        customBlockNumber
       ]
     });
 

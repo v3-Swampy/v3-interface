@@ -6,6 +6,7 @@ import { RPC_PROVIDER } from '@utils/providers';
 import { AlphaRouter, AlphaRouterConfig, ChainId, routeAmountsToString, SwapRoute } from 'v-swap-smart-order-router';
 import JSBI from 'jsbi';
 import { targetChainId } from '@service/account';
+import { customBlockNumber } from '@service/pairs&pool/utils';
 
 type TokenInRoute = Pick<Token, 'address' | 'chainId' | 'symbol' | 'decimals'>;
 
@@ -204,6 +205,12 @@ async function getQuote(
   router: AlphaRouter,
   config: Partial<AlphaRouterConfig>
 ): Promise<{ data: GetQuoteResult; error?: unknown }> {
+
+  const enhancedConfig = config;
+  if (customBlockNumber) {
+    enhancedConfig.blockNumber = parseInt(customBlockNumber, 16);
+  }
+
   const currencyIn = new Token(tokenIn.chainId, tokenIn.address, tokenIn.decimals, tokenIn.symbol);
   const currencyOut = new Token(tokenOut.chainId, tokenOut.address, tokenOut.decimals, tokenOut.symbol);
 
@@ -211,7 +218,7 @@ async function getQuote(
   const quoteCurrency = type === TradeType.EXACT_INPUT ? currencyOut : currencyIn;
   const amount = CurrencyAmount.fromRawAmount(baseCurrency, JSBI.BigInt(amountRaw));
 
-  const swapRoute = await router.route(amount, quoteCurrency, type, /*swapConfig=*/ undefined, config);
+  const swapRoute = await router.route(amount, quoteCurrency, type, /*swapConfig=*/ undefined, enhancedConfig);
 
   if (!swapRoute) throw new Error('Failed to generate client side quote');
 

@@ -2,6 +2,7 @@ import { selector, useRecoilValue } from 'recoil';
 import { useAutoRefreshData } from '@utils/recoilUtils';
 import { fetchChain } from '@utils/fetch';
 import { MulticallContract } from '@contracts/index';
+import { customBlockNumber } from '@service/pairs&pool/utils';
 
 const fetchTimestamp = () => fetchChain({
   params: [
@@ -9,7 +10,7 @@ const fetchTimestamp = () => fetchChain({
       to: MulticallContract.address,
       data: MulticallContract.func.interface.encodeFunctionData('getCurrentBlockTimestamp')
     },
-    'latest'
+    customBlockNumber
   ],
 }).then((res) => MulticallContract.func.interface.decodeFunctionResult('getCurrentBlockTimestamp', res as string)).then(res => Number(res));
 
