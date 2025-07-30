@@ -1,4 +1,4 @@
-const prod = import.meta.env.MODE === 'production';
+import { isProduction } from './is';
 
 export const getBlockNumberFromUrl = (): string | null => {
   try {
@@ -21,4 +21,4 @@ export const getBlockNumberFromUrl = (): string | null => {
   }
 };
 
-export const customBlockNumber = prod ? 'latest' : getBlockNumberFromUrl() || 'latest';
+export const customBlockNumber = isProduction ? 'latest' : getBlockNumberFromUrl() || 'latest';
