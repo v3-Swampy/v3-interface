@@ -9,7 +9,6 @@ import { isOdd } from '@utils/is';
 import mergePairs from '@utils/mergePairs';
 import computePoolAddress from './computePoolAddress';
 import { FeeAmount, Pool } from './';
-import { customBlockNumber } from '@utils/customBlockNumber';
 
 const baseCheckTradeTokenSymbols = ['WCFX', 'WBTC', 'USDT', 'ETH'];
 const baseCheckTradeTokensState = atom<Array<Token>>({
@@ -98,8 +97,7 @@ export const usePools = (tokenA: Token | null, tokenB: Token | null) => {
           [poolContract.address, poolContract.func.interface.encodeFunctionData('slot0')],
           [poolContract.address, poolContract.func.interface.encodeFunctionData('liquidity')],
         ])
-        .flat(),
-        customBlockNumber
+        .flat()
     )
       .then((res) =>
         res?.map((data, index) => {
