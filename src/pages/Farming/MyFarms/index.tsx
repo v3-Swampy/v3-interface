@@ -120,7 +120,7 @@ const MyFarmsItem: React.FC<{
     let totalBoostLiquidity = new Decimal(0);
 
     positions.forEach((position) => {
-      position.rewards.forEach((reward) => {
+      position.activeRewards.forEach((reward) => {
         totalLiquidity = totalLiquidity.add(new Decimal(reward.stakeReward.liquidity.toString()));
         totalBoostLiquidity = totalBoostLiquidity.add(new Decimal(reward.stakeReward.boostedLiquidity.toString()));
       });
@@ -128,7 +128,7 @@ const MyFarmsItem: React.FC<{
 
     if (totalLiquidity.eq(0)) return 0;
 
-    const boostRatio = totalBoostLiquidity.div(totalLiquidity).mul(3);
+    const boostRatio = totalBoostLiquidity.div(totalLiquidity).mul(3.03);
 
     return boostRatio.toFixed(2);
   }, [positions]);
