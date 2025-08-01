@@ -1,10 +1,10 @@
-# V3 Staker 合约文档 V2.2
+# V3 Staker 合约文档 V2.3
 
 [TOC]
 
 ## 1. 引言
 
-本文档旨在为 V3 Staker 系统的相关开发、产品及运营人员提供一份统一的参考标准。通过对核心概念、交互流程、关键规则及数据接口的清晰定义，确保各方对系统有共同的理解。
+本文档假设读者已经对 Uniswap V3 的基本概念、运转机制有所了解。主要介绍 Uniswap V3 的 LP Stake 系统 vSwap：介绍基本概念、交互流程、模型设计，为产品相关开发、产品及运营人员提供一份统一的参考标准。通过对核心概念、交互流程、关键规则及数据接口的清晰定义，确保各方对系统有共同的理解。
 
 ## 2. 核心概念定义
 
@@ -131,7 +131,7 @@ $$
 *   令 $V$ 为特定用户的 `voting balance`。
 *   令 $\tilde{V}$ 为全市场 `voting balance` 的总和。
 
-治理代币质押机制复用已有的设计，不在本文的关注范围以内。
+$V$ 的量纲是 token $\times$ 秒，即用户将 $x$ 个单位的治理 token 锁仓 $t$ 秒可以获得 $xt$ 个单位的 `voting balance`.  在目前的合约接口设计中，最大锁仓时间为 4 年（$4\times 365 \times 24\times 60\times 60$ 秒）。
 
 #### 5.2.2. 有效流动性计算
 
@@ -644,13 +644,14 @@ class Incentive:
 # --- 激励中的质押仓位 (IncentiveStake) ---
 class IncentiveStake:
     """
-    描述了一个用户的一个 token 在特定激励计划中的质押详情。
+    描述了一个用户的一个 v3token 在特定激励计划中的质押详情。
     """
     # 当前仓位的原始流动性 (liquidity)
     liquidity: int
 
     # 经过 boost 因子加成后的计算奖励时的有效流动性 (boosted liquidity)。
-    # (boostLiquidity / liquidity) * 3 即为 boost 加速比例。
+    # 如果当前 v3token 不是 active 的，boostLiquidity 等于 0
+    # (boostLiquidity / liquidity) * 100 / k 即为 boost 加速比例。(k = 33)
     boostLiquidity: int
 
     # 当前 incentive 的名义奖励生成速率 (token 每秒)。
@@ -659,6 +660,12 @@ class IncentiveStake:
 
     # 用户在此质押仓位中已产生但尚未结算(settle)的奖励数量。
     unclaimedReward: int
+    
+    def isActive(self):
+      	"""
+      	如果当前 v3token 不是 active 的，liquidity 依然是原始流动性，但 boostLiquidity 为 0
+      	"""
+        return self.boostLiquidity != 0
 
 
 class WorldStateForPool:
@@ -817,10 +824,10 @@ class UserStateForPool(WorldStateForPool):
     def boostRatio(self) -> float:
         """[前端展示数据] 计算用户的平均 Boost 加速比例。"""
         
-        totalLiquidity = sum([stake.liquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values()])
-        totalBoostLiquidity = sum([stake.boostLiquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values()])
-        # 这里乘 3 的原因参见文档 V2.1 章节 5.2.2
-        return totalBoostLiquidity / totalLiquidity * 3
+        totalLiquidity = sum([stake.liquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values() if stake.isActive()])
+        totalBoostLiquidity = sum([stake.boostLiquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values() if stake.isActive()])
+        # 这里的 33 来自参见文档 V2.3 章节 5.2.2 的参数 k
+        return totalBoostLiquidity / totalLiquidity * 100 / 33
 ```
 
 ## B.合约接口文件

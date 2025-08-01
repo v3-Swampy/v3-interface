@@ -156,13 +156,14 @@ class Incentive:
 # --- 激励中的质押仓位 (IncentiveStake) ---
 class IncentiveStake:
     """
-    描述了一个用户的一个 token 在特定激励计划中的质押详情。
+    描述了一个用户的一个 v3token 在特定激励计划中的质押详情。
     """
     # 当前仓位的原始流动性 (liquidity)
     liquidity: int
 
     # 经过 boost 因子加成后的计算奖励时的有效流动性 (boosted liquidity)。
-    # (boostLiquidity / liquidity) * 3 即为 boost 加速比例。
+    # 如果当前 v3token 不是 active 的，boostLiquidity 等于 0
+    # (boostLiquidity / liquidity) * 100 / k 即为 boost 加速比例。(k = 33)
     boostLiquidity: int
 
     # 当前 incentive 的名义奖励生成速率 (token 每秒)。
@@ -171,6 +172,12 @@ class IncentiveStake:
 
     # 用户在此质押仓位中已产生但尚未结算(settle)的奖励数量。
     unclaimedReward: int
+    
+    def isActive(self):
+      	"""
+      	如果当前 v3token 不是 active 的，liquidity 依然是原始流动性，但 boostLiquidity 为 0
+      	"""
+        return self.boostLiquidity != 0
 
 
 class WorldStateForPool:
@@ -179,6 +186,9 @@ class WorldStateForPool:
     这些数据对所有用户都是相同的。
     """
     # 映射：从激励计划的 Key 到该激励计划的全局状态。
+    # 接口函数：
+    #     - getAllIncentiveKeysByPool 获得 IncentiveKey 列表
+    #     - getIncentiveRewardInfo 获得 Incentive
     incentives: Dict[IncentiveKey, Incentive]
     # 映射：从奖励代币地址到其对应的价格（例如，以 USD 计价）。
     # 前端自行获取。
@@ -227,17 +237,24 @@ class UserStateForPool(WorldStateForPool):
     继承自 WorldStateForPool 以复用全局信息。
     """
     # 用户在当前池子的所有 token，在前端称为 Position。
+    # 接口函数：
+    #     - getUserPositions 获得 TokenID 列表
+    #     - deposits 获得 UserToken
     tokens: Dict[TokenID, UserToken]
 
     # 用户的质押详情。每一个 token 可能 stake 在多个 Incentive 中。
     # 结构: { tokenID -> { incentiveKey -> IncentiveStake } }
+    # 接口函数：
+    #     - getUserPositions 获得 TokenID 列表
+    #     - getAllIncentiveKeysByPool 获得 IncentiveKey 列表
+    #     - getStakeRewardInfo 获得 IncentiveStake
     stakes: Dict[TokenID, Dict[IncentiveKey, IncentiveStake]]
 
     def totalSupplyForToken(self, tokenId: TokenID) -> float:
         """[前端展示数据] 计算用户单个动性头寸的价值。"""
         
         token = self.tokens[tokenId]
-        return token.token0Amount() * self.token0Price + token.token0Amount() * self.token1Price
+        return token.token0Amount() * self.token0Price + token.token1Amount() * self.token1Price
 
     def activeSupplyForToken(self, tokenId: TokenID) -> float:
         """计算用户单个活跃（在至少一个激励计划中产生收益）流动性头寸的价值。"""
@@ -254,7 +271,7 @@ class UserStateForPool(WorldStateForPool):
 
         totalRewardRate = 0
         for (key, stake) in stakesForToken.items():
-            if self._isStakeActice(key, tokenId):
+            if self.isStakeActice(key, tokenId):
                 price = self.rewardPrices[stake.rewardTokenAddress]
                 totalRewardRate += price * stake.rewardRate
         return totalRewardRate
@@ -290,11 +307,18 @@ class UserStateForPool(WorldStateForPool):
         return sum([self.rewardRateForToken(tokenId) for tokenId in self.tokens.keys()])
 
     @property
-    def allClaimable(self) -> float:
+    def allClaimable(self) -> Dict[Address, int]:
         """[前端展示数据] 汇总用户在该池中所有头寸的全部待领取奖励。"""
-        
-        return sum([self.claimableForToken(tokenId) for tokenId in self.tokens.keys()])
+        totalClaimable: Dict[Address, int] = dict()
 
+        for tokenId in self.tokens.keys():
+            claimableForTokenMap = self.claimableForToken(tokenId)
+            
+            for address, amount in claimableForTokenMap.items():
+                # 累加到总的字典中
+                totalClaimable[address] = totalClaimable.get(address, 0) + amount
+                
+        return totalClaimable
     
     @property
     def APR(self) -> float:
@@ -312,6 +336,7 @@ class UserStateForPool(WorldStateForPool):
     def boostRatio(self) -> float:
         """[前端展示数据] 计算用户的平均 Boost 加速比例。"""
         
-        totalLiquidity = sum([stake.liquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values()])
-        totalBoostLiquidity = sum([stake.boostLiquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values()])
-        return totalBoostLiquidity / totalLiquidity * 3
+        totalLiquidity = sum([stake.liquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values() if stake.isActive()])
+        totalBoostLiquidity = sum([stake.boostLiquidity for tokenId in self.tokens.keys() for stake in self.stakes[tokenId].values() if stake.isActive()])
+        # 这里的 33 来自参见文档 V2.3 章节 5.2.2 的参数 k
+        return totalBoostLiquidity / totalLiquidity * 100 / 33
