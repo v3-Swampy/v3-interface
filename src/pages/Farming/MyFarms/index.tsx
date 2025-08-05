@@ -9,7 +9,7 @@ import { ReactComponent as NoFarms } from '@assets/icons/no_farms.svg';
 import { ReactComponent as DoublechevrondownIcon } from '@assets/icons/doublechevrondown.svg';
 import Spin from '@components/Spin';
 import Positions from './Positions';
-import { useMyFarms, useRefreshMyFarms } from '@service/farming';
+import { useMyFarms, useCanClaim } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import { useAccount } from '@service/account';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
@@ -37,6 +37,7 @@ const MyFarmsItem: React.FC<{
   data: NonNullable<ReturnType<typeof useMyFarms>>[number];
 }> = ({ data }) => {
   const i18n = useI18n(transitions);
+  const isCanClaim = useCanClaim();
   const { positions } = data;
 
   const [isShow, setIsShow] = useState<boolean>(false);
@@ -170,7 +171,7 @@ const MyFarmsItem: React.FC<{
           <div className={`${classNames.title}`}>{i18n.APR}</div>
           {/* <div className={`${classNames.content} flex items-center lt-mobile:flex-col lt-mobile:items-start`}> */}
           <div className={`${classNames.content} flex items-center`}>
-            <span className="">{!apr ? <Spin className="ml-8px text-20px" /> : apr}</span>
+            <span className="">{isCanClaim ? !apr ? <Spin className="ml-8px text-20px" /> : apr : 'Infinity%'}</span>
             <span className="flex items-center">
               {/* <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:ml-0 lt-mobile:mt-1" /> */}
               <LightningIcon className="w-5 h-5 mx-0.5 ml-2 lt-mobile:w-4" />

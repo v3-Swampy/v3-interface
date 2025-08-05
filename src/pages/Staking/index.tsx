@@ -122,7 +122,7 @@ const StakingPage: React.FC = () => {
                     </AuthConnectButton>
                   </div>
                 </div>
-                <p className="pl-16px mt-20px w-full font-normal lt-mobile:pl-0px lt-mobile:mt-8px" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
+                {/* <p className="pl-16px mt-20px w-full font-normal lt-mobile:pl-0px lt-mobile:mt-8px" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} /> */}
               </div>
             )}
             {stakingStatus === PersonalStakingStatus.TO_UNLOCK && (
@@ -155,7 +155,7 @@ const StakingPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <p className="pl-16px mt-20px w-full font-normal lt-mobile:pl-0px lt-mobile:mt-8px" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} />
+                {/* <p className="pl-16px mt-20px w-full font-normal lt-mobile:pl-0px lt-mobile:mt-8px" dangerouslySetInnerHTML={{ __html: compiled(i18n.current_boosting, { boosting: `${boostingFactor}x` }) }} /> */}
               </div>
             )}
           </div>

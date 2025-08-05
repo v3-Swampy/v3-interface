@@ -248,6 +248,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
         });
       } catch (err) {
         const errStr = String(err);
+        console.log('fetchKey', fetchKey);
         console.log('errStr', errStr);
         const isNoRoute = errStr?.includes('Failed to generate client side quote');
         const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get') || errStr?.includes('SyntaxError') || errStr?.includes('Unexpected error');
@@ -275,6 +276,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
 export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
   const token = getWrapperTokenByAddress(tokenAddress);
   const result = useBestTrade(TradeType.EXACT_INPUT, amount, token, TokenUSDT);
+  console.log('result', result);
   if (tokenAddress === TokenUSDT?.address) return amount ? amount : undefined;
   if (!tokenAddress) return undefined;
   if (!amount) return undefined;
