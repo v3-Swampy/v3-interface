@@ -4,7 +4,7 @@ import useI18n from '@hooks/useI18n';
 import Decimal from 'decimal.js';
 import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
-import { usePools } from '@service/farming';
+import { usePools, useCanClaim } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Spin from '@components/Spin';
@@ -40,15 +40,11 @@ const transitions = {
 interface APRData {
   rewardTokenAPRs: {
     [tokenAddress: string]: {
-      low: string;
-      high: string;
+      apr: string;
       token: Token;
     };
   };
-  totalAprRange: {
-    low: string;
-    high: string;
-  };
+  totalApr: string;
   hasValidData: boolean;
 }
 
@@ -61,11 +57,11 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
         Mining
         <img src={MiningIcon} alt="Mining" className="ml-5px w-20px h-20px" />
       </div>
-      {Object.entries(aprData?.rewardTokenAPRs ?? {}).map(([tokenAddress, { low, high, token }]) => (
+      {Object.entries(aprData?.rewardTokenAPRs ?? {}).map(([tokenAddress, { apr, token }]) => (
         <div className="mt-10px flex items-center justify-between text-14px text-black-normal" key={tokenAddress}>
           <span>{token.symbol} Rewards</span>
           <span>
-            {low}% ~ {high}%
+            {apr}%
           </span>
         </div>
       ))}
@@ -75,7 +71,7 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
       <div className="flex items-center justify-between text-18px leading-22px text-black-normal font-medium">
         <span>Total APR</span>
         <span>
-          {aprData?.totalAprRange.low}% ~ {aprData?.totalAprRange.high}%
+          {aprData?.totalApr}%
         </span>
       </div>
     </BorderBox>
@@ -84,6 +80,7 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
 
 const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number] }> = ({ data }) => {
   const i18n = useI18n(transitions);
+  const isCanClaim = useCanClaim();
   const token0Price = useTokenPrice(data.pairInfo.token0?.address);
   const token1Price = useTokenPrice(data.pairInfo.token1?.address);
 
@@ -133,10 +130,10 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
       });
   }, [rewardTokenAddresses]);
 
-  const aprData = useMemo(() => {
+  const aprData: APRData | null = useMemo(() => {
     if (!data?.incentiveKeys || !data?.incentives || !tvl || !rewardTokenPrices) return null;
 
-    const rewardTokenAPRs: { [tokenAddress: string]: { low: string; high: string; token: Token } } = {};
+    const rewardTokenAPRs: { [tokenAddress: string]: { apr: string; token: Token } } = {};
     const rewardTokenValues: { [tokenAddress: string]: { value: Decimal; token: Token } } = {};
     let totalRewardsPerSecond = new Decimal(0);
 
@@ -165,22 +162,18 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
     Object.entries(rewardTokenValues).forEach(([tokenAddress, { value, token }]) => {
       const baseAPR = value.div(tvl).mul(31536000);
       rewardTokenAPRs[tokenAddress] = {
-        low: baseAPR.toFixed(2),
-        high: baseAPR.mul(3).toFixed(2),
+        apr: baseAPR.toFixed(2),
         token,
       };
     });
 
     const totalBaseAPR = totalRewardsPerSecond.div(tvl).mul(31536000);
 
-    const totalAprRange = {
-      low: totalBaseAPR.toFixed(2),
-      high: totalBaseAPR.mul(3).toFixed(2),
-    };
+    const totalApr = totalBaseAPR.toFixed(2);
 
     return {
       rewardTokenAPRs,
-      totalAprRange,
+      totalApr,
       hasValidData: !totalRewardsPerSecond.isZero(),
     };
   }, [data?.incentiveKeys, data?.incentives, data?.rewards, tvl, rewardTokenPrices]);
@@ -215,7 +208,7 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
           </Dropdown>
         </div>
         <div className={`${classNames.content}`}>
-          {rewardTokenPrices === undefined ? <Spin /> : aprData?.hasValidData ? `${aprData.totalAprRange.low}% ~ ${aprData.totalAprRange.high}%` : '--'}
+          {isCanClaim ? rewardTokenPrices === undefined ? <Spin /> : aprData?.hasValidData ? `${aprData.totalApr}%` : '--' : 'Infinity%'}
         </div>
       </div>
       <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>

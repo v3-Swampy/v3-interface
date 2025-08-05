@@ -159,13 +159,13 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
         </div>
         <div className="flex items-end justify-center flex-1">
           <div className="flex flex-1 items-center mr-4">
-            <Button className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="gray" onClick={hidePopup}>
+            <Button type="button" className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="gray" onClick={hidePopup}>
               {i18n.cancel}
             </Button>
           </div>
           <div className="flex flex-1 items-center">
             <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
-              <Button className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="orange" loading={inTransaction}>
+              <Button type="submit" className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="orange" loading={inTransaction}>
                 {i18n.confirm}
               </Button>
             </AuthTokenButton>
