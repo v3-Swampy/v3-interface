@@ -146,7 +146,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
             color="white"
             className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} lt-mobile:w-46%`}
             onClick={async () => {
-              if (!isChainMath) {
+              if (!isCanClaim) {
                 showUnstakeModal({
                   stakedIncentiveKeys: data.stakedIncentiveKeys,
                   rewards: data.rewards,
