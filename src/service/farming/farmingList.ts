@@ -7,7 +7,7 @@ import { timestampSelector } from './timestamp';
 export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
   default: [
-    '0x3EEd2D9BA0Ea2c4AcBA87206F69cDcB4d3a03f31',
+    '0x261C12D6629404797086F06743f3B2E1D63Ef4c7',
     '0xc0D0e6fDB000b62E48db5CCD54A1CFE3c5CB30Ea',
     '0x4A33468caAFD9220AB0b11e3342bE8AAcC468908',
     '0xB7CC615ffcE028f541705B796EDff62f2d28BBa4',
