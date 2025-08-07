@@ -60,7 +60,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
   const { inTransaction: claimInTransaction, execTransaction: handleClaim } = useInTransaction(_handleClaim, true);
   const { inTransaction: unstakeInTransaction, execTransaction: handleUnstake } = useInTransaction(_handleUnstake, true);
   const isCanClaim = useCanClaim();
-  const isChainMath = useIsChainMatch();
+  const isChainMatch = useIsChainMatch();
   const isPaused = !isPositionActive;
 
   return (
@@ -112,7 +112,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
         </div>
       </div>
       <div className="flex items-center justify-end col-span-5 lt-mobile:col-span-18 lt-mobile:mt-2 lt-mobile:justify-around">
-        {isChainMath && (
+        {isChainMatch && (
           <AuthConnectButton
             className={`${className.buttonBase} ${isPaused ? className.buttonPausedSolid : className.buttonFarmingSolid} mr-2 !border-none !px-10px lt-mobile:w-46% lt-mobile:mr-0`}
           >
