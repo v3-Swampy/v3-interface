@@ -3,6 +3,7 @@ import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/
 import { getTokenByAddressWithAutoFetch, getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenVST, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { timestampSelector } from './timestamp';
+import { customBlockNumber } from '@utils/customBlockNumber';
 
 export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
@@ -43,6 +44,8 @@ export const poolsQuery = selector({
           ];
         })
         .flat()
+      ,
+      customBlockNumber
     );
     const pairsInfo = pairsInfoQuery
       ? chunk(pairsInfoQuery, 3).map((r, i) => {
@@ -74,7 +77,8 @@ export const poolsQuery = selector({
 
     const timestamp = get(timestampSelector);
     const incentiveKeysQuery = await fetchMulticall(
-      poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])])
+      poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])]),
+      customBlockNumber
     );
     const incentiveKeys = incentiveKeysQuery?.map((res) => {
       const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
@@ -89,14 +93,17 @@ export const poolsQuery = selector({
         rewardTokenInfo: getTokenByAddress(data?.[0])!,
       })) as Array<IncentiveKeyDetail>
     })!;
+
     const incentivesQuery = await fetchMulticall(
       incentiveKeys
         .flat()
         .map((key) => [
           UniswapV3Staker.address,
           UniswapV3Staker.func.interface.encodeFunctionData('getIncentiveRewardInfo', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee]]),
-        ])
+        ]),
+        customBlockNumber
     );
+
     const incentives = chunk(incentivesQuery, ...incentiveKeys.map((keys) => keys.length)).map((group) =>
       group.map((raw) => {
         const [token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty] = UniswapV3Staker.func.interface.decodeFunctionResult(

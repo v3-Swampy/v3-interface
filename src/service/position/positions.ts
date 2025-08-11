@@ -7,6 +7,7 @@ import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPri
 import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
 import { getPool } from '@service/pairs&pool/singlePool';
 import { computePoolAddress } from '@service/pairs&pool';
+import { customBlockNumber } from '@utils/customBlockNumber';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -61,7 +62,7 @@ const positionBalanceQuery = selector({
   get: async ({ get }) => {
     const account = get(accountState);
     if (!account) return undefined;
-    const response = await NonfungiblePositionManager.func.balanceOf(account);
+    const response = await NonfungiblePositionManager.func.balanceOf(account, { blockTag: customBlockNumber });
     return response ? Number(response.toString()) : 0;
   },
 });
@@ -74,9 +75,10 @@ const tokenIdsQuery = selector<Array<number> | []>({
     if (!account || !positionBalance) return [];
 
     const tokenIdsArgs = account && positionBalance && positionBalance > 0 ? Array.from({ length: positionBalance }, (_, index) => [account, index]) : [];
-
+    
     const tokenIdResults = await fetchMulticall(
-      tokenIdsArgs.map((args) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('tokenOfOwnerByIndex', args)])
+      tokenIdsArgs.map((args) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('tokenOfOwnerByIndex', args)]),
+      customBlockNumber
     );
 
     if (Array.isArray(tokenIdResults))
@@ -139,7 +141,7 @@ export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => 
 export const positionQueryByTokenId = selectorFamily({
   key: `positionQueryByTokenId-${import.meta.env.MODE}`,
   get: (tokenId: number) => async () => {
-    const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
+    const decodeRes = await NonfungiblePositionManager.func.positions(tokenId, { blockTag: customBlockNumber });
     const position = await decodePosition(tokenId, decodeRes);
     return position;
   },
@@ -155,7 +157,8 @@ export const positionsQueryByTokenIds = selectorFamily({
         const tokenIds = [...tokenIdParams];
 
         const positionsResult = await fetchMulticall(
-          tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+          tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])]),
+          customBlockNumber
         );
 
         if (Array.isArray(positionsResult)) {
