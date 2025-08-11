@@ -152,9 +152,10 @@ const SwapPage: React.FC = () => {
           <Settings />
         </div>
 
-        <form onSubmit={onSubmit}>
+        <form id="swap-form" onSubmit={onSubmit}>
           <SelectedToken type="sourceToken" register={register} setValue={setValue} inputedType={inputedType} handleInputChange={handleInputChange} />
           <div
+            id="swap-exchange-direction"
             className="mx-auto -my-21.5px lt-mobile:-my-10.5px w-fit h-fit p-4px bg-white-normal rounded-full translate-y-0 cursor-pointer"
             onClick={() => {
               exchangeTokenDirection();

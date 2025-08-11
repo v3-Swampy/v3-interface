@@ -28,9 +28,21 @@ const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSub
 
   return (
     <AuthConnectButton {...buttonProps}>
-      <AuthTokenButton {...buttonProps} tokenAddress={tokenA?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenA}>
-        <AuthTokenButton {...buttonProps} tokenAddress={tokenB?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenB}>
-          <Button {...buttonProps} loading={inSubmitCreate}>
+      <AuthTokenButton
+        {...buttonProps}
+        tokenAddress={tokenA?.address}
+        contractAddress={NonfungiblePositionManager.address}
+        amount={amountTokenA}
+        id="pool-increase-liquidity-auth-erc20info-tokenA"
+      >
+        <AuthTokenButton
+          {...buttonProps}
+          tokenAddress={tokenB?.address}
+          contractAddress={NonfungiblePositionManager.address}
+          amount={amountTokenB}
+          id="pool-increase-liquidity-auth-erc20info-tokenB"
+        >
+          <Button {...buttonProps} loading={inSubmitCreate} id="pool-increase-liquidity-submit-button">
             {i18n.preview}
           </Button>
         </AuthTokenButton>

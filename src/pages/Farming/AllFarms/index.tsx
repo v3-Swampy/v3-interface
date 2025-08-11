@@ -226,8 +226,8 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
         </div>
       </div>
       <div className="flex items-center justify-end col-span-3 lt-mobile:absolute lt-mobile:right-2 lt-mobile:top-4">
-        <AuthConnectButton className={classNames.authConnectButton}>
-          <div className={classNames.authConnectButton} onClick={() => showStakeLPModal(data)}>
+        <AuthConnectButton className={classNames.authConnectButton} id="all-farms-stake-lp-show-modal-auth-connect">
+          <div className={classNames.authConnectButton} onClick={() => showStakeLPModal(data)} id="all-farms-stake-lp-show-modal">
             {i18n.stakeLP}
           </div>
         </AuthConnectButton>

@@ -93,7 +93,7 @@ const PoolPage: React.FC = () => {
           {i18n.pool}
 
           <Link to="/pool/add_liquidity" className="no-underline">
-            <Button color="gradient" className="px-24px h-40px text-14px rounded-100px">
+            <Button color="gradient" className="px-24px h-40px text-14px rounded-100px" id="pool-add-new-position">
               <AddIcon className="mr-8px w-12px h-12px" />
               {i18n.new_positions}
             </Button>

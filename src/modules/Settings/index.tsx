@@ -186,7 +186,7 @@ const SettingsContent: React.FC = () => {
 const Settings: React.FC = () => {
   return (
     <Dropdown placement="bottom" trigger="click" Content={<SettingsContent />}>
-      <span className="w-22px h-22px lt-mobile:w-18px lt-mobile:h-18px -translate-y-1px lt-mobile:translate-y-0px flex-shrink-0">
+      <span id="setting-trigger" className="w-22px h-22px lt-mobile:w-18px lt-mobile:h-18px -translate-y-1px lt-mobile:translate-y-0px flex-shrink-0">
         <SettingsIcon className="w-full h-full cursor-pointer" />
       </span>
     </Dropdown>

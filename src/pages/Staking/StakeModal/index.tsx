@@ -164,8 +164,8 @@ const StakeModal: React.FC<Props> = ({ setNextInfo, type }) => {
             </Button>
           </div>
           <div className="flex flex-1 items-center">
-            <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount}>
-              <Button type="submit" className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="orange" loading={inTransaction}>
+            <AuthTokenButton {...buttonProps} tokenAddress={TokenVST.address} contractAddress={VotingEscrowContract.address} amount={stakeAmount} id="stake-confirm-auth-erc20info">
+              <Button type="submit" className="mt-24px h-48px rounded-100px text-16px font-medium" fullWidth={true} color="orange" loading={inTransaction} id="stake-confirm-button">
                 {i18n.confirm}
               </Button>
             </AuthTokenButton>
