@@ -51,13 +51,14 @@ const SubmitButton: React.FC<Props> = ({ sourceTokenAmount, destinationTokenAmou
   }, [isBothTokenSelected, priceImpactTooHigh, priceImpactSeverity, sourceTokenAmount, destinationTokenAmount, tradeState]);
 
   return (
-    <AuthConnectButton {...buttonProps}>
-      <AuthTokenButton {...buttonProps} tokenAddress={sourceToken?.address} contractAddress={UniswapV3SwapRouter.address} amount={sourceTokenAmount}>
+    <AuthConnectButton {...buttonProps} id="swap-submit-button-auth-connect">
+      <AuthTokenButton {...buttonProps} tokenAddress={sourceToken?.address} contractAddress={UniswapV3SwapRouter.address} amount={sourceTokenAmount} id="swap-submit-button-auth-erc20info">
         <Button
           {...buttonProps}
           className={cx(buttonProps.className, !isBothTokenSelected && 'pointer-events-none')}
           loading={tradeState === TradeState.LOADING || (tradeState === TradeState.VALID && priceImpactTooHigh === undefined)}
           disabled={!isBothTokenSelected || priceImpactTooHigh || tradeState !== TradeState.VALID || (!sourceTokenAmount && !destinationTokenAmount)}
+          id="swap-submit-button"
         >
           {buttonText}
         </Button>

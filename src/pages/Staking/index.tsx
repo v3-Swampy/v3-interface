@@ -88,8 +88,8 @@ const StakingPage: React.FC = () => {
               <div className="flex flex-col items-center w-full lt-mobile:p-16px">
                 <StakeCalculate className="w-74px h-74px mt-64px mb-32px" />
                 <p className="leading-18px text-14px font-normal text-black-normal mb-50px max-w-315px text-center">{compiled(i18n.stake_tip, { token: TokenVST.symbol })}</p>
-                <AuthConnectButton {...bigButtonProps}>
-                  <Button {...bigButtonProps} onClick={() => showStakeModal(ModalMode.CreateLock)}>
+                <AuthConnectButton {...bigButtonProps} id="stake-auth-connect">
+                  <Button {...bigButtonProps} onClick={() => showStakeModal(ModalMode.CreateLock)} id="stake-button">
                     {compiled(i18n.stake_button, { token: TokenVST.symbol })}
                   </Button>
                 </AuthConnectButton>
@@ -103,8 +103,8 @@ const StakingPage: React.FC = () => {
                     <p className="font-medium text-18px leading-24px">{trimDecimalZeros(new Unit(lockedAmount).toDecimalMinUnit(5)) ?? '...'}</p>
                     <p className="text-black-light font-normal">~{lockedBalanceUSD ? `$${lockedBalanceUSD}` : '-'}</p>
                     <p className="mt-70px lt-mobile:mt-24px">
-                      <AuthConnectButton {...smallButtonProps}>
-                        <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)}>
+                      <AuthConnectButton {...smallButtonProps} id="stake-more-auth-connect">
+                        <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseAmount)} id="stake-more-button">
                           {i18n.stake_more}
                         </Button>
                       </AuthConnectButton>
@@ -115,8 +115,8 @@ const StakingPage: React.FC = () => {
                       <p className="font-normal mb-16px">{i18n.unstake_time}</p>
                       <p className="text-black-light font-normal">{displayedUnlockedTime}</p>
                     </div>
-                    <AuthConnectButton {...smallButtonProps}>
-                      <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)}>
+                    <AuthConnectButton {...smallButtonProps} id="stake-extend-auth-connect">
+                      <Button {...smallButtonProps} onClick={() => showStakeModal(ModalMode.IncreaseUnlockTime)} id="stake-extend-button">
                         {i18n.extend}
                       </Button>
                     </AuthConnectButton>
@@ -137,7 +137,7 @@ const StakingPage: React.FC = () => {
                   <div className="flex flex-1 flex-col rounded-16px p-16px border-2px border-solid border-orange-light justify-center lt-mobile:border-none lt-mobile:bg-orange-light lt-mobile:rounded-8px">
                     <p className="text-orange-normal font-normal" dangerouslySetInnerHTML={{ __html: i18n.unStake_tip }} />
                     <p className="mt-40px lt-mobile:mt-24px">
-                      <AuthConnectButton {...smallButtonProps}>
+                      <AuthConnectButton {...smallButtonProps} id="stake-unlock-auth-connect">
                         <Button
                           {...smallButtonProps}
                           onClick={async () => {
@@ -148,6 +148,7 @@ const StakingPage: React.FC = () => {
                               tokenA_Address: TokenVST.address,
                             });
                           }}
+                          id="stake-unlock-button"
                         >
                           {i18n.unStake}
                         </Button>

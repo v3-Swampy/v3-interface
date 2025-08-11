@@ -48,6 +48,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
             decimals={TokenVST.decimals}
             dynamicFontSize={defaultDynamicFontSize}
             preventMinus
+            id="stake-amount-input"
           />
           <div className="min-w-80px h-40px pl-8px bg-orange-light rounded-full flex items-center">
             <img className="w-24px h-24px mr-4px" src={TokenVST?.logoURI} alt={`${TokenVST?.logoURI} icon`} />
@@ -57,7 +58,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
 
         <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">
           {i18n.balance}:{' '}
-          <Balance className="ml-2px" address={TokenVST.address} decimals={TokenVST.decimals}>
+          <Balance className="ml-2px" address={TokenVST.address} decimals={TokenVST.decimals} id="stake-vst-balance">
             {(balance) => (
               <Button
                 className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
@@ -66,6 +67,7 @@ const AmountInput: React.FC<Props> = ({ register, setValue, TokenVST }) => {
                 disabled={!balance || balance === '0'}
                 onClick={() => setValue('VST-stake-amount', balance)}
                 type="button"
+                id="stake-amount-max-button"
               >
                 {i18n.max}
               </Button>

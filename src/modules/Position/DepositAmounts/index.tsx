@@ -153,7 +153,7 @@ const DepositAmount: React.FC<
           {account && token && (
             <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">
               {i18n.balance}:{' '}
-              <Balance className="ml-2px" address={token.address} decimals={token.decimals}>
+              <Balance className="ml-2px" address={token.address} decimals={token.decimals} id={`${type}-balance`}>
                 {(balance) => (
                   <Button
                     className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
@@ -165,6 +165,7 @@ const DepositAmount: React.FC<
                       changePairAmount.current(balance ?? '');
                     }}
                     type="button"
+                    id={`${type}-max-button`}
                   >
                     {i18n.max}
                   </Button>

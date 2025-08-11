@@ -62,7 +62,10 @@ const UnstakeModal: React.FC<Props & ConfirmModalInnerProps> = ({ tokenId, stake
               {i18n.cancel}
             </Button>
           </AuthConnectButton>
-          <AuthConnectButton className={`${classNames.baseButton} ${classNames.activeButton}`}>
+          <AuthConnectButton
+            className={`${classNames.baseButton} ${classNames.activeButton}`}
+            id={`my-farms-claim&unstake-auth-connect--${tokenId}`}
+          >
             <Button
               loading={inTransaction}
               className={`${classNames.baseButton} ${classNames.activeButton}`}
@@ -83,6 +86,7 @@ const UnstakeModal: React.FC<Props & ConfirmModalInnerProps> = ({ tokenId, stake
                   type: 'MyFarms_Unstake',
                 });
               }}
+              id={`my-farms-claim&unstake-button--${tokenId}`}
             >
               {i18n.claimAndStake}
             </Button>

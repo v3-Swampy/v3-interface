@@ -82,8 +82,14 @@ const Position = ({ data, activeIncentiveKeys }: { data: PositionForUI; activeIn
         </div>
         <PriceRange position={data} type="horizontal" />
       </div>
-      <AuthConnectButton className={classNameButton}>
-        <AuthTokenButtonOf721 className={classNameButton} tokenAddress={NonfungiblePositionManager.address} contractAddress={UniswapV3Staker.address} tokenId={data.id.toString()}>
+      <AuthConnectButton className={classNameButton} id="all-farms-stake-lp-auth-connect">
+        <AuthTokenButtonOf721
+          className={classNameButton}
+          tokenAddress={NonfungiblePositionManager.address}
+          contractAddress={UniswapV3Staker.address}
+          tokenId={data.id.toString()}
+          id="all-farms-stake-lp-auth-erc721info"
+        >
           {/* UniswapV3NonfungiblePositionManager.approve(contractAddress.UniswapV3Staker, <tokenId>) */}
           <Button
             loading={inTransaction}
@@ -104,6 +110,7 @@ const Position = ({ data, activeIncentiveKeys }: { data: PositionForUI; activeIn
               }
             }}
             className={classNameButton}
+            id="all-farms-stake-lp-submit-button"
           >
             {i18n.stakeLP}
           </Button>

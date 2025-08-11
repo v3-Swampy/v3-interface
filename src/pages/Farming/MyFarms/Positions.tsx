@@ -134,6 +134,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
                   type: 'MyFarms_Claim',
                 });
               }}
+              id={`my-farms-claim-button--${data.tokenId}`}
             >
               {i18n.claim}
             </Button>
@@ -167,6 +168,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
                 });
               }
             }}
+            id={`my-farms-unstake-button--${data.tokenId}`}
           >
             {i18n.unstake}
           </Button>
