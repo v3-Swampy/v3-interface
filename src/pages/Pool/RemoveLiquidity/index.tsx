@@ -154,6 +154,7 @@ const RemoveLiquidity: React.FC = () => {
             type="button"
             className="h-40px text-18px max-w-394px w-full rounded-100px mt-32px mx-auto flex"
             color={removePercent ? 'gradient' : 'orange'}
+            id="pool-remove-liquidity-preview-button"
           >
             {i18n.preview}
           </Button>

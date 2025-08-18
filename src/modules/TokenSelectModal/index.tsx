@@ -145,7 +145,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
   return (
     <>
-      <div className={cx('mt-24px', warningToken && 'token-warning-blur-content')}>
+      <div id="token-select-modal-content" className={cx('mt-24px', warningToken && 'token-warning-blur-content')}>
         <div className="flex items-center h-40px px-28px rounded-100px bg-orange-light-hover">
           <label className="inline-flex items-center pr-12px" htmlFor="input--token_search">
             <SearchIcon className="flex-shrink-0 w-14px h-14px" />

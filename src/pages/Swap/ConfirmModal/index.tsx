@@ -159,6 +159,7 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
         loading={inTransaction}
         onClick={handleClickConfirm}
         disabled={updateTradeFunc !== null}
+        id="swap-confirm-button"
       >
         {i18n.confirm_swap}
       </Button>

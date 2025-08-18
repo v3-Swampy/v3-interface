@@ -42,6 +42,7 @@ const DetailHeader: React.FC = () => {
             className="px-24px h-40px rounded-100px text-14px font-normal !text-orange-normal lt-md:max-w-50%"
             color="orange-light"
             onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}
+            id="pool-goto-increase-liquidity"
           >
             {i18n.increase_liquidity}
           </Button>
@@ -50,6 +51,7 @@ const DetailHeader: React.FC = () => {
               className="px-24px h-40px rounded-100px text-14px font-normal lt-md:max-w-50%"
               color="gradient"
               onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}
+              id="pool-goto-remove-liquidity"
             >
               {i18n.remove_liquidity}
             </Button>

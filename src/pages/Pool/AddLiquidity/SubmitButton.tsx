@@ -17,16 +17,23 @@ const transitions = {
   },
 } as const;
 
-const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSubmitCreate: boolean; disabled: boolean }> = ({ amountTokenA, amountTokenB, inSubmitCreate, disabled }) => {
+const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSubmitCreate: boolean; disabled: boolean }> = ({
+  amountTokenA,
+  amountTokenB,
+  inSubmitCreate,
+  disabled,
+}) => {
   const i18n = useI18n(transitions);
   const tokenA = useTokenA()!;
   const tokenB = useTokenB()!;
 
   return (
-    <AuthConnectButton {...buttonProps}>
-      <AuthTokenButton {...buttonProps} tokenAddress={tokenA?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenA}>
-        <AuthTokenButton {...buttonProps} tokenAddress={tokenB?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenB}>
-          <Button {...buttonProps} loading={inSubmitCreate} disabled={disabled}>{i18n.preview}</Button>
+    <AuthConnectButton id="pool-add-liquidity-auth-connect" {...buttonProps}>
+      <AuthTokenButton id="pool-add-liquidity-auth-erc20info-tokenA" {...buttonProps} tokenAddress={tokenA?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenA}>
+        <AuthTokenButton id="pool-add-liquidity-auth-erc20info-tokenB" {...buttonProps} tokenAddress={tokenB?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenB}>
+          <Button id="pool-add-liquidity-submit-button" {...buttonProps} loading={inSubmitCreate} disabled={disabled}>
+            {i18n.preview}
+          </Button>
         </AuthTokenButton>
       </AuthTokenButton>
     </AuthConnectButton>
