@@ -1,6 +1,6 @@
 import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
-import { getTokenByAddressWithAutoFetch, getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenVST, type Token } from '@service/tokens';
+import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenVST, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { timestampSelector } from './timestamp';
 
@@ -76,9 +76,9 @@ export const poolsQuery = selector({
     const incentiveKeysQuery = await fetchMulticall(
       poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])])
     );
-    const incentiveKeys = incentiveKeysQuery?.map((res) => {
+    const incentiveKeys = (await Promise.all((incentiveKeysQuery ?? []).map(async (res) => {
       const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
-      return decodeResult?.[0]?.map((data: Array<any>) => ({
+      const results = await Promise.all((decodeResult?.[0] ?? []).map(async (data: Array<any>) => ({
         rewardToken: data?.[0],
         poolAddress: data?.[1],
         startTime: Number(data?.[2]),
@@ -86,13 +86,14 @@ export const poolsQuery = selector({
         refundee: data?.[4],
         status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
         key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
-        rewardTokenInfo: getTokenByAddress(data?.[0])!,
-      })) as Array<IncentiveKeyDetail>
-    })!;
+        rewardTokenInfo: await getTokenByAddressWithAutoFetch(data?.[0])!,
+      })));
+      return results;
+    }))) as Array<Array<IncentiveKeyDetail>>;
     const incentivesQuery = await fetchMulticall(
       incentiveKeys
         .flat()
-        .map((key) => [
+        .map((key: IncentiveKeyDetail) => [
           UniswapV3Staker.address,
           UniswapV3Staker.func.interface.encodeFunctionData('getIncentiveRewardInfo', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee]]),
         ])
@@ -110,7 +111,7 @@ export const poolsQuery = selector({
     const pools = poolsAddress
       ? await Promise.all(
           poolsAddress.map(async (poolAddress, index) => {
-            const rewardTokenAddresses = incentiveKeys[index].filter(key => key.status === 'active').map((key) => key.rewardToken);
+            const rewardTokenAddresses = incentiveKeys[index].filter((key: IncentiveKeyDetail) => key.status === 'active').map((key: IncentiveKeyDetail) => key.rewardToken);
             const rewards = await Promise.all(
               [...new Set(rewardTokenAddresses)].map(async (address) => ({
                 token: await getTokenByAddressWithAutoFetch(address),
