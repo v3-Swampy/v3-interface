@@ -200,7 +200,7 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
       </div>
       <div className="col-span-4 lt-mobile:col-span-7">
         <div className={`${classNames.title}`}>
-          {i18n.APR} {i18n.range}
+          {i18n.APR}
           <Dropdown Content={<APRDetail aprData={aprData!} />} placement="top" trigger="mouseenter">
             <span className="w-12px h-12px ml-6px">
               <InfoIcon className="w-12px h-12px" />

@@ -129,7 +129,7 @@ const MyFarmsItem: React.FC<{
 
     if (totalLiquidity.eq(0)) return 0;
 
-    const boostRatio = totalBoostLiquidity.div(totalLiquidity).mul(3.03);
+    const boostRatio = totalBoostLiquidity.div(totalLiquidity).mul(100).div(33);
 
     return boostRatio.toFixed(2);
   }, [positions]);
