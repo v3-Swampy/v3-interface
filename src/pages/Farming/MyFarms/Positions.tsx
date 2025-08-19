@@ -99,7 +99,7 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
       </div>
       <div className="col-span-3 lt-mobile:col-span-9">
         <div className={`${className.title}`}>{i18n.claimable}</div>
-        <div className={`${className.content} flex items-center`}>
+        <div className={`${className.content} flex flex-col gap-[4px]`}>
           {data.rewards?.map(({ rewardTokenInfo, stakeReward }) => (
             <div className="flex items-center gap-4px" key={rewardTokenInfo?.address}>
               <img src={rewardTokenInfo?.logoURI} alt={rewardTokenInfo?.symbol} className="w-20px h-20px" />
