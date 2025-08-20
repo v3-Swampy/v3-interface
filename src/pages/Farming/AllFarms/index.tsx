@@ -213,7 +213,7 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
           </Dropdown>
         </div>
         <div className={`${classNames.content}`}>
-          {isCanClaim ? rewardTokenPrices === undefined ? <Spin /> : aprData?.hasValidData ? `${aprData.totalApr}%` : '--' : 'Infinity%'}
+          {isCanClaim ? rewardTokenPrices === undefined ? <Spin /> : aprData?.hasValidData ? `${aprData.totalApr}%` : '0%' : 'Infinity%'}
         </div>
       </div>
       <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
