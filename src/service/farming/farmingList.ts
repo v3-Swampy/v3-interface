@@ -4,6 +4,26 @@ import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, stableToken
 import { chunk } from 'lodash-es';
 import { timestampSelector } from './timestamp';
 
+/**
+ * 将数组按照指定的长度数组分组
+ * @param array 要分组的数组
+ * @param lengths 每个分组的长度数组
+ * @returns 分组后的数组
+ */
+function chunkByLengths<T>(array: T[] | null | undefined, lengths: number[]): T[][] {
+  if (!array || !lengths.length) return [];
+  const result: T[][] = [];
+  let currentIndex = 0;
+
+  for (const length of lengths) {
+    if (currentIndex >= array.length) break;
+    result.push(array.slice(currentIndex, currentIndex + length));
+    currentIndex += length;
+  }
+
+  return result;
+}
+
 export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
   default: [
@@ -76,20 +96,25 @@ export const poolsQuery = selector({
     const incentiveKeysQuery = await fetchMulticall(
       poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])])
     );
-    const incentiveKeys = (await Promise.all((incentiveKeysQuery ?? []).map(async (res) => {
-      const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
-      const results = await Promise.all((decodeResult?.[0] ?? []).map(async (data: Array<any>) => ({
-        rewardToken: data?.[0],
-        poolAddress: data?.[1],
-        startTime: Number(data?.[2]),
-        endTime: Number(data?.[3]),
-        refundee: data?.[4],
-        status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
-        key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
-        rewardTokenInfo: await getTokenByAddressWithAutoFetch(data?.[0])!,
-      })));
-      return results;
-    }))) as Array<Array<IncentiveKeyDetail>>;
+    const incentiveKeys = (await Promise.all(
+      (incentiveKeysQuery ?? []).map(async (res) => {
+        const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
+        const results = await Promise.all(
+          (decodeResult?.[0] ?? []).map(async (data: Array<any>) => ({
+            rewardToken: data?.[0],
+            poolAddress: data?.[1],
+            startTime: Number(data?.[2]),
+            endTime: Number(data?.[3]),
+            refundee: data?.[4],
+            status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
+            key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
+            rewardTokenInfo: await getTokenByAddressWithAutoFetch(data?.[0])!,
+          }))
+        );
+        return results;
+      })
+    )) as Array<Array<IncentiveKeyDetail>>;
+
     const incentivesQuery = await fetchMulticall(
       incentiveKeys
         .flat()
@@ -98,7 +123,11 @@ export const poolsQuery = selector({
           UniswapV3Staker.func.interface.encodeFunctionData('getIncentiveRewardInfo', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee]]),
         ])
     );
-    const incentives = chunk(incentivesQuery, ...incentiveKeys.map((keys) => keys.length)).map((group) =>
+    // 使用自定义的 chunkByLengths 函数按照每个 pool 的 incentiveKey 数量来分组
+    const incentives = chunkByLengths(
+      incentivesQuery,
+      incentiveKeys.map((keys) => keys.length)
+    ).map((group) =>
       group.map((raw) => {
         const [token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty] = UniswapV3Staker.func.interface.decodeFunctionResult(
           'getIncentiveRewardInfo',
@@ -144,7 +173,6 @@ export const usePools = () => {
 };
 
 export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery);
-
 
 const getLRToken = (token0: Token | null, token1: Token | null) => {
   if (!token0 || !token1) return [];
