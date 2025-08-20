@@ -93,7 +93,8 @@ const MyFarmsItem: React.FC<{
   }, [data?.activeRewards]);
 
   const apr = useMemo(() => {
-    if (!data?.activeRewards?.length || !totalActiveSupply || !rewardTokenPrices) return null;
+    if(data?.activeRewards?.length === 0) return '0%';
+    if (!totalActiveSupply || !rewardTokenPrices) return "Infinity%";
 
     const allActiveRewardRate = data.activeRewards.reduce((sum, reward) => {
       const rewardTokenAddress = reward.rewardTokenInfo?.address;
@@ -211,6 +212,7 @@ const MyFarmsItem: React.FC<{
 const MyFarms = () => {
   const account = useAccount();
   const myFarms = useMyFarms();
+  console.log('MyFarms myFarms:', myFarms);
 
   if (!account || !myFarms?.length) {
     return (
