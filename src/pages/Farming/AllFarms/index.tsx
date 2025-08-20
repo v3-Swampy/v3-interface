@@ -155,7 +155,7 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
     });
 
     data.rewards.forEach(({ token }) => {
-      if (!token?.address) return;
+      if (!token) return;
       const tokenAddress = token.address.toLowerCase();
       const value = rewardTokenValues[tokenAddress]?.value;
       if (!rewardTokenPrices[tokenAddress] || !value)
@@ -224,9 +224,9 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
         <div className={`${classNames.title}`}>{i18n.rewards}</div>
         <div className={cx(classNames.content, 'flex items-center gap-2px')}>
           {data.rewards
-            ?.filter((reward): reward is { token: Token } => !!reward.token && !!reward.token.address)
+            ?.filter((reward): reward is { token: Token } => !!reward.token)
             .map((reward) => (
-              <img key={reward.token.address} src={reward.token.logoURI ?? ''} alt={reward.token.symbol ?? ''} className="w-20px h-20px" />
+              <img key={reward.token.address} src={reward.token.logoURI ?? ''} alt={reward.token.symbol} className="w-20px h-20px" />
             ))}
         </div>
       </div>
@@ -243,7 +243,6 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
 
 const AllFarms = () => {
   const pools = usePools();
-  console.log('AllFarms pools:', pools);
 
   if (!pools) return null;
   return (

@@ -11,6 +11,7 @@ import Spin from '@components/Spin';
 import Positions from './Positions';
 import { useMyFarms, useCanClaim } from '@service/farming';
 import TokenPair from '@modules/Position/TokenPair';
+import { type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useTokenPrice, getTokensPrice } from '@service/pairs&pool';
@@ -184,13 +185,13 @@ const MyFarmsItem: React.FC<{
           <div className={`${classNames.content} leading-20px`}>{inFetchingTokenPrice ? <Spin className="ml-8px text-20px" /> : `$${totalSupply}`}</div>
         </div>
         <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
-          <div className={`${classNames.title}`}>
-            {i18n.rewards}
-          </div>
+          <div className={`${classNames.title}`}>{i18n.rewards}</div>
           <div className={cx(classNames.content, 'flex items-center gap-2px')}>
-            {data.pool.rewards?.map?.((reward) => (
-              <img key={reward.token?.address} src={reward.token?.logoURI} alt={reward.token?.symbol} className="w-20px h-20px" />
-            ))}
+            {data.pool.rewards
+              ?.filter((reward): reward is { token: Token } => !!reward.token)
+              .map((reward: { token: Token }) => (
+                <img key={reward.token.address} src={reward.token.logoURI ?? ''} alt={reward.token.symbol} className="w-20px h-20px" />
+              ))}
           </div>
         </div>
         <div className="flex items-center justify-end col-span-1 lt-mobile:hidden">
@@ -206,7 +207,6 @@ const MyFarmsItem: React.FC<{
     </div>
   );
 };
-
 
 const MyFarms = () => {
   const account = useAccount();
@@ -229,6 +229,5 @@ const MyFarms = () => {
     </div>
   );
 };
-
 
 export default MyFarms;
