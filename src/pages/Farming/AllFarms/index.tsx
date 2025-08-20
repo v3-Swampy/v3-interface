@@ -35,8 +35,6 @@ const transitions = {
   },
 } as const;
 
-
-
 interface APRData {
   rewardTokenAPRs: {
     [tokenAddress: string]: {
@@ -60,9 +58,7 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
       {Object.entries(aprData?.rewardTokenAPRs ?? {}).map(([tokenAddress, { apr, token }]) => (
         <div className="mt-10px flex items-center justify-between text-14px text-black-normal" key={tokenAddress}>
           <span>{token.symbol} Rewards</span>
-          <span>
-            {apr}%
-          </span>
+          <span>{apr}%</span>
         </div>
       ))}
 
@@ -70,9 +66,7 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
 
       <div className="flex items-center justify-between text-18px leading-22px text-black-normal font-medium">
         <span>Total APR</span>
-        <span>
-          {aprData?.totalApr}%
-        </span>
+        <span>{aprData?.totalApr}%</span>
       </div>
     </BorderBox>
   );
@@ -110,7 +104,7 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
 
   const rewardTokenAddresses = useMemo(() => {
     if (!data?.incentiveKeys) return [];
-    const addresses = data.incentiveKeys.map((key) => key.rewardToken);
+    const addresses = data.incentiveKeys.map((key) => key.rewardToken.toLowerCase());
     return [...new Set(addresses)];
   }, [data?.incentiveKeys]);
 
@@ -141,30 +135,41 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
       const incentive = data.incentives[index];
       if (!incentive || key.status !== 'active' || incentive.isEmpty) return;
 
-      const rewardTokenPrice = rewardTokenPrices[key.rewardToken];
+      const rewardTokenAddress = key.rewardToken.toLowerCase();
+
+      const rewardTokenPrice = rewardTokenPrices[rewardTokenAddress];
       if (!rewardTokenPrice) return;
 
-      const rewardToken = data.rewards.find((r) => r.token?.address?.toLowerCase() === key.rewardToken.toLowerCase())?.token;
+      const rewardToken = data.rewards.find((r) => r.token?.address?.toLowerCase() === rewardTokenAddress)?.token;
       if (!rewardToken) return;
 
       const rewardValuePerSecond = new Decimal(incentive.rewardRate.toString()).div(new Decimal(10).pow(rewardToken.decimals)).mul(rewardTokenPrice);
       totalRewardsPerSecond = totalRewardsPerSecond.add(rewardValuePerSecond);
 
-      const tokenAddressKey = key.rewardToken.toLowerCase();
 
-      if (rewardTokenValues[tokenAddressKey]) {
-        rewardTokenValues[tokenAddressKey].value = rewardTokenValues[tokenAddressKey].value.add(rewardValuePerSecond);
+      if (rewardTokenValues[rewardTokenAddress]) {
+        rewardTokenValues[rewardTokenAddress].value = rewardTokenValues[rewardTokenAddress].value.add(rewardValuePerSecond);
       } else {
-        rewardTokenValues[tokenAddressKey] = { value: rewardValuePerSecond, token: rewardToken };
+        rewardTokenValues[rewardTokenAddress] = { value: rewardValuePerSecond, token: rewardToken };
       }
     });
 
-    Object.entries(rewardTokenValues).forEach(([tokenAddress, { value, token }]) => {
-      const baseAPR = value.div(tvl).mul(31536000);
-      rewardTokenAPRs[tokenAddress] = {
-        apr: baseAPR.toFixed(2),
-        token,
-      };
+    data.rewards.forEach(({ token }) => {
+      if (!token?.address) return;
+      const tokenAddress = token.address.toLowerCase();
+      const value = rewardTokenValues[tokenAddress]?.value;
+      if (!rewardTokenPrices[tokenAddress] || !value)
+        rewardTokenAPRs[tokenAddress] = {
+          apr: 'Infinity%',
+          token,
+        };
+      else {
+        const baseAPR = value.div(tvl).mul(31536000);
+        rewardTokenAPRs[tokenAddress] = {
+          apr: baseAPR.toFixed(2),
+          token,
+        };
+      }
     });
 
     const totalBaseAPR = totalRewardsPerSecond.div(tvl).mul(31536000);
@@ -216,13 +221,13 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
         <div className={`${classNames.content}`}>{token0Price === undefined || token1Price === undefined ? <Spin /> : tvlDisplay}</div>
       </div>
       <div className={`col-span-2 lt-mobile:col-span-4 ${classNames.splitLine}`}>
-        <div className={`${classNames.title}`}>
-          {i18n.rewards}
-        </div>
+        <div className={`${classNames.title}`}>{i18n.rewards}</div>
         <div className={cx(classNames.content, 'flex items-center gap-2px')}>
-          {data.rewards?.map?.((reward) => (
-            <img key={reward.token?.address} src={reward.token?.logoURI} alt={reward.token?.symbol} className="w-20px h-20px" />
-          ))}
+          {data.rewards
+            ?.filter((reward): reward is { token: Token } => !!reward.token && !!reward.token.address)
+            .map((reward) => (
+              <img key={reward.token.address} src={reward.token.logoURI ?? ''} alt={reward.token.symbol ?? ''} className="w-20px h-20px" />
+            ))}
         </div>
       </div>
       <div className="flex items-center justify-end col-span-3 lt-mobile:absolute lt-mobile:right-2 lt-mobile:top-4">
@@ -238,6 +243,7 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
 
 const AllFarms = () => {
   const pools = usePools();
+  console.log('AllFarms pools:', pools);
 
   if (!pools) return null;
   return (
