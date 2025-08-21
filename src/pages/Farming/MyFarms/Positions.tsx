@@ -100,15 +100,17 @@ const PositionItem: React.FC<{ data: NonNullable<ReturnType<typeof useMyFarms>>[
       <div className="col-span-3 lt-mobile:col-span-9">
         <div className={`${className.title}`}>{i18n.claimable}</div>
         <div className={`${className.content} flex flex-col gap-[4px]`}>
-          {data.rewards?.map(({ rewardTokenInfo, stakeReward }) => (
-            <div className="flex items-center gap-4px" key={rewardTokenInfo?.address}>
-              <img src={rewardTokenInfo?.logoURI} alt={rewardTokenInfo?.symbol} className="w-20px h-20px" />
-              <span className="text-12px text-black-normal font-medium">
-                {numberWithCommas(trimDecimalZeros(new Decimal(stakeReward.unsettledReward.toString()).div(new Decimal(10).pow(rewardTokenInfo?.decimals ?? 18)).toFixed(2)))}{' '}
-                {rewardTokenInfo?.symbol}
-              </span>
-            </div>
-          ))}
+          {data.rewards.length > 0
+            ? data.rewards?.map(({ rewardTokenInfo, stakeReward }) => (
+                <div className="flex items-center gap-4px" key={rewardTokenInfo?.address}>
+                  <img src={rewardTokenInfo?.logoURI} alt={rewardTokenInfo?.symbol} className="w-20px h-20px" />
+                  <span className="text-12px text-black-normal font-medium">
+                    {numberWithCommas(trimDecimalZeros(new Decimal(stakeReward.unsettledReward.toString()).div(new Decimal(10).pow(rewardTokenInfo?.decimals ?? 18)).toFixed(2)))}{' '}
+                    {rewardTokenInfo?.symbol}
+                  </span>
+                </div>
+              ))
+            : '--'}
         </div>
       </div>
       <div className="flex items-center justify-end col-span-5 lt-mobile:col-span-18 lt-mobile:mt-2 lt-mobile:justify-around">
