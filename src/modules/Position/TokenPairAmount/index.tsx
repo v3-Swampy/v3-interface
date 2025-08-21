@@ -50,8 +50,8 @@ const TokenPairAmount: React.FC<{
   if (!position) return null;
   return (
     <div className="flex flex-col gap-8px w-full">
-      <TokenItem token={leftTokenForUI} amount={amountLeftStr} ratio={typeof ratio == 'number' && !removed ? (!isLeftTokenEqualToken0 ? ratio : 100 - ratio) : undefined} />
-      <TokenItem token={rightTokenForUI} amount={amountRightStr} ratio={typeof ratio == 'number' && !removed ? (!isLeftTokenEqualToken0 ? 100 - ratio : ratio) : undefined} />
+      <TokenItem token={leftTokenForUI} amount={amountLeftStr} ratio={typeof ratio == 'number' && !removed ? (isLeftTokenEqualToken0 ? ratio : 100 - ratio) : undefined} />
+      <TokenItem token={rightTokenForUI} amount={amountRightStr} ratio={typeof ratio == 'number' && !removed ? (isLeftTokenEqualToken0 ? 100 - ratio : ratio) : undefined} />
     </div>
   );
 };
