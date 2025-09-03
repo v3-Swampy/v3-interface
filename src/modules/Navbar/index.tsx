@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import cx from 'clsx';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
@@ -50,27 +50,37 @@ const Navbar: React.FC = () => {
 
 const NavLinks: React.FC = () => {
   const refreshPositions = useRefreshPositions();
+  const location = useLocation();
+  const isWallfreex = location.pathname.includes('wallfreex');
 
   return (
     <>
-      {routes.map((route) => (
-        <NavLink
-          key={route.path}
-          to={route.path}
-          className={({ isActive }) => cx('text-16px font-normal no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
-          style={({ isActive }) => ({ color: isActive ? '#E14E28' : '#222222' })}
-        >
-          <span
-            onClick={() => {
-              if (route.path === 'pool') {
-                refreshPositions();
-              }
-            }}
+      {routes
+        .filter((route) => {
+          // Hide farming and staking routes when URL includes wallfreex
+          if (isWallfreex && (route.path === 'farming' || route.path === 'staking')) {
+            return false;
+          }
+          return true;
+        })
+        .map((route) => (
+          <NavLink
+            key={route.path}
+            to={route.path}
+            className={({ isActive }) => cx('text-16px font-normal no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
+            style={({ isActive }) => ({ color: isActive ? '#E14E28' : '#222222' })}
           >
-            {route.name}
-          </span>
-        </NavLink>
-      ))}
+            <span
+              onClick={() => {
+                if (route.path === 'pool') {
+                  refreshPositions();
+                }
+              }}
+            >
+              {route.name}
+            </span>
+          </NavLink>
+        ))}
     </>
   );
 };

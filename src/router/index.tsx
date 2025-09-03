@@ -63,7 +63,13 @@ const RouteWrapper: React.FC = () => {
   return (
     <>
       <Navbar />
-      <CustomScrollbar className="main-scroller" contentClassName="min-h-full !flex flex-col pb-40px">
+      <CustomScrollbar
+        className="main-scroller"
+        contentClassName="min-h-full !flex flex-col pb-40px"
+        placeholder={undefined}
+        onPointerEnterCapture={undefined}
+        onPointerLeaveCapture={undefined}
+      >
         <Suspense fallback={<PageLevelLoading />}>
           <Outlet />
           <BlockNumber />
