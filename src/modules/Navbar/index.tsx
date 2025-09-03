@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import cx from 'clsx';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
@@ -50,11 +50,12 @@ const Navbar: React.FC = () => {
 
 const NavLinks: React.FC = () => {
   const refreshPositions = useRefreshPositions();
+  const location = useLocation();
 
   const isWallfreex = React.useMemo(() => {
-    const hostname = window.location.hostname;
-    return hostname.includes('wallfreex');
-  }, []);
+    const currentUrl = window.location.href;
+    return currentUrl.includes('wallfreex');
+  }, [location]);
 
   return (
     <>
