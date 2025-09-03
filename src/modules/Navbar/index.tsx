@@ -55,7 +55,7 @@ const NavLinks: React.FC = () => {
   const isWallfreex = React.useMemo(() => {
     const currentUrl = window.location.href;
     return currentUrl.includes('wallfreex');
-  }, [location]);
+  }, []);
 
   return (
     <>
