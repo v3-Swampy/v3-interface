@@ -50,7 +50,11 @@ const Navbar: React.FC = () => {
 
 const NavLinks: React.FC = () => {
   const refreshPositions = useRefreshPositions();
-  const isWallfreex = window.location.hostname.includes('wallfreex');
+
+  const isWallfreex = React.useMemo(() => {
+    const hostname = window.location.hostname;
+    return hostname.includes('wallfreex');
+  }, []);
 
   return (
     <>
