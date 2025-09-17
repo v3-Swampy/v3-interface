@@ -7,7 +7,7 @@ import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
 import SwapPage from '@pages/Swap';
-import { PoolPage, PoolAddLiquidityPage, PoolLiquidityItemPage, FarmingPage, StakingPage, PoolIncreaseLiquidity, PoolRemoveLiquidity } from './lazyPages';
+import { PoolPage, PoolAddLiquidityPage, PoolLiquidityItemPage, FarmingPage, StakingPage, PoolIncreaseLiquidity, PoolRemoveLiquidity, PointsPage, LeaderBoardPage, FRankPage, WRankPage, EarnPointsPage } from './lazyPages';
 
 export const routes = [
   {
@@ -43,6 +43,17 @@ const AppRouter: React.FC = () => {
           </Route>
           <Route path="farming" element={<FarmingPage />} />
           <Route path="staking" element={<StakingPage />} />
+          <Route path="points" element={<PointsPage />}>
+            <Route path="leader-board" element={<LeaderBoardPage />}>
+              <Route path="w-rank" element={<WRankPage />} />
+              <Route path="f-rank" element={<FRankPage />} />
+              <Route path="/points/leader-board/*" element={<Navigate to="/points/leader-board/w-rank" replace />} />
+              <Route path="/points/leader-board/" element={<Navigate to="/points/leader-board/w-rank" replace />} />
+            </Route>
+            <Route path="earn-points" element={<EarnPointsPage />} />
+            <Route path="/points/*" element={<Navigate to="/points/leader-board/w-rank" replace />} />
+            <Route path="/points/" element={<Navigate to="/points/leader-board/w-rank" replace />} />
+          </Route>
           <Route path="*" element={<Navigate to="swap" />} />
           <Route path="/" element={<Navigate to="swap" />} />
         </Route>
