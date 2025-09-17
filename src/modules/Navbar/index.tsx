@@ -3,6 +3,8 @@ import { NavLink } from 'react-router-dom';
 import cx from 'clsx';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
+import Button from '@components/Button';
+import BorderBox from '@components/Box/BorderBox';
 import { ReactComponent as Logo } from '@assets/icons/logo.svg';
 import { ReactComponent as SmallLogo } from '@assets/icons/logo_icon.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
@@ -11,6 +13,8 @@ import { routes } from '@router/index';
 import { useRefreshPositions } from '@service/position';
 export { default as BlockNumber } from '@modules/Navbar/BlockNumber';
 import AccountDetailDropdown from './AccountDetailDropdown';
+import { ReactComponent as FPointIcon } from '@assets/icons/f_point.svg';
+import { ReactComponent as WPointIcon } from '@assets/icons/w_point.svg';
 import './index.css';
 
 const Navbar: React.FC = () => {
@@ -34,7 +38,15 @@ const Navbar: React.FC = () => {
           <NavLinks />
         </div>
 
-        <div className="flex-shrink-0 ml-auto mr-16px flex justify-center items-center w-156px h-40px text-14px rounded-100px text-14px text-black-normal font-normal bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
+        <BorderBox variant="gradient-white" className="flex-shrink-0 ml-auto mr-16px rounded-100px lt-mobile:ml-8px lt-mobile:mr-8px">
+          <div className="flex items-center min-w-144px h-36px text-14px px-8px rounded-100px">
+            <WPointIcon className="w-24px h-24px -mr-4px" />
+            <FPointIcon className="w-24px h-24px mr-4px" />
+            EarnPoints
+          </div>
+        </BorderBox>
+
+        <div className="flex-shrink-0 mr-16px flex justify-center items-center w-156px h-40px text-14px rounded-100px text-14px text-black-normal font-normal bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
           <span className="breathing-light" />
           <ConfluxLogo className="w-24px h-24px mx-4px" />
           <span className="lt-mobile:hidden">Conflux eSpace</span>
