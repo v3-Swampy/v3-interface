@@ -33,6 +33,7 @@ export const PoolItem: React.FC<{
                 fee: data.pairInfo.fee,
               } as any
             }
+            showFee={false}
           />
         </div>
       </div>

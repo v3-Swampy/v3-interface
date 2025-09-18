@@ -6,8 +6,8 @@ import Avatar from '@components/Avatar';
 import Address from '@modules/Address';
 import { ReactComponent as RankIcon } from '@assets/icons/rank.svg';
 
-const linkClass = 'inline-flex justify-center items-center w-96px h-40px rounded-100px text-14px font-medium no-underline border-solid';
-const linkNotActiveClass = 'bg-transparent border-gray-normal text-gray-normal hover:bg-orange-light-hover hover:border-orange-light-hover';
+const linkClass = 'inline-flex justify-center items-center w-96px h-40px rounded-100px text-14px font-medium no-underline border-solid border-1px';
+const linkNotActiveClass = 'bg-transparent border-gray-normal text-gray-normal hover:bg-orange-light-hover hover:border-orange-light';
 const linkActiveClass = 'bg-orange-light border-orange-light text-orange-normal pointer-events-none';
 
 export const RankItem: React.FC<{
