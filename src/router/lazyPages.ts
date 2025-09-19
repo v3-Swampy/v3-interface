@@ -9,6 +9,8 @@ const lazyWithPreload = (factory: Factory) => {
 };
 
 export const FarmingPage = lazyWithPreload(() => import('@pages/Farming'));
+export const AllFarmsPage = lazyWithPreload(() => import('@pages/Farming/AllFarms'));
+export const MyFarmsPage = lazyWithPreload(() => import('@pages/Farming/MyFarms'));
 export const StakingPage = lazyWithPreload(() => import('@pages/Staking'));
 export const PoolPage = lazyWithPreload(() => import('@pages/Pool'));
 export const PoolLiquidityItemPage = lazyWithPreload(() => import('@pages/Pool/LiquidityDetail'));
@@ -25,6 +27,8 @@ export const EarnPointsPage = lazyWithPreload(() => import('@pages/Points/EarnPo
   const preLoadAll = () =>
     setTimeout(() => {
       FarmingPage.preload();
+      AllFarmsPage.preload();
+      MyFarmsPage.preload();
       StakingPage.preload();
       PoolPage.preload();
       PoolLiquidityItemPage.preload();
