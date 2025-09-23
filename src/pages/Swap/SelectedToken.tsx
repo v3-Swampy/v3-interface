@@ -93,8 +93,8 @@ const SelectedToken: React.FC<Props> = ({ type, inputedType, register, setValue,
       {account && currentSelectToken && (
         <div className="mt-8px lt-mobile:mt-6px ml-auto flex items-center w-fit h-20px text-14px lt-mobile:text-13px text-gray-normal">
           {i18n.balance}:{' '}
-          <Balance id={`swap-${type}-balance`} className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals} gas={sourceToken?.address === 'CFX' ? cfxGas : undefined}>
-            {(balance) => (
+          <Balance id={`swap-${type}-balance`} className="ml-2px" address={currentSelectToken.address} decimals={currentSelectToken.decimals} gas={type === 'sourceToken' && sourceToken?.address === 'CFX' ? cfxGas : undefined}>
+          {(balance) => type === 'sourceToken' && (
               <Button
                 className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
                 variant='outlined'

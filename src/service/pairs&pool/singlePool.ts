@@ -165,7 +165,7 @@ export const getPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: 
   const pool = getRecoil(poolState(poolKey));
   if (pool) return pool;
   const poolFetched = await fetchPool({ tokenA, tokenB, fee });
-  setRecoil(poolState(poolKey), pool);
+  setRecoil(poolState(poolKey), poolFetched);
   return poolFetched;
 };
 

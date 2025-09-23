@@ -14,10 +14,18 @@
   @apply border-orange-normal;
 }
 
+.border-box--gray {
+  @apply border-gray-normal;
+}
+
 .border-box--gradient {
   @apply border-transparent;
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
+}
+
+.border-box--orange-light-hover {
+  @apply border-orange-light-hover bg-orange-light-hover;
 }
 
 .border-box--gradient-white {
