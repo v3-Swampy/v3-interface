@@ -25,7 +25,6 @@ const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): 
     }
     const json = await response.json();
     const data = json.data.items;
-    console.log('Fetched user data:', data);
     return data.map((user: any) => ({
       account: user.address,
       wPoints: user.tradePoints,
@@ -45,7 +44,6 @@ const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
     }
     const json = await response.json();
     const data = json.data.items;
-    console.log('Fetched user data:', data);
     return data.map((pool: any) => ({
       address: pool.address,
       wPoints: pool.tradeWeight,
@@ -55,7 +53,7 @@ const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
       token1Address: pool.token1,
     }));
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Error fetching pool data:', error);
     return [];
   }
 }
