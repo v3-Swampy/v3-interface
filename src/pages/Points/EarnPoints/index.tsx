@@ -4,7 +4,6 @@ import BorderBox from '@components/Box/BorderBox';
 import TokenPair from '@modules/Position/TokenPair';
 import { usePoolData, PoolData } from '../LeaderBoard/fetchData';
 import { setTokens as setLiquidityTokens } from '@pages/Pool/AddLiquidity/SelectPair';
-import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
 import { setToken as setSwapToken } from '@service/swap';
 import { ReactComponent as LinkIcon } from '@assets/icons/link3.svg';
 import { getTokenByAddress } from '@service/tokens';
@@ -78,7 +77,6 @@ export const PoolItem: React.FC<{
             "
             onClick={() => {
               setLiquidityTokens(leftToken!, rightToken!);
-              // setCurrentFee(Number());
 
               setTimeout(() => {
                 navigate(`/pool/add_liquidity`);
