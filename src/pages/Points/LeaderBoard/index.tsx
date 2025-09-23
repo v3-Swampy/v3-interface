@@ -11,10 +11,10 @@ const linkNotActiveClass = 'bg-transparent border-gray-normal text-gray-normal h
 const linkActiveClass = 'bg-orange-light border-orange-light text-orange-normal pointer-events-none';
 
 export const RankItem: React.FC<{
-  account: string;
-  wPoints: number | null | undefined;
-  fPoints: number | null | undefined;
-  ranking?: number | null | undefined;
+  account: string | undefined;
+  wPoints: number | undefined;
+  fPoints: number | undefined;
+  ranking?: number
   isMy?: boolean;
 }> = ({ account, wPoints, fPoints, isMy, ranking }) => {
   return (
@@ -35,17 +35,17 @@ export const RankItem: React.FC<{
             {typeof ranking === 'number' && ranking > 3 && `${ranking}`}
             {typeof ranking !== 'number' && '-'}
           </span>
-          <Avatar account={account} size={24} className="mr-8px" />
-          <Address address={account} className="text-14px text-black-normal font-normal" useTooltip />
+          {!!account ? <Avatar account={account} size={24} className="mr-8px" /> : null}
+          {!!account ? <Address address={account} className="text-14px text-black-normal font-normal" useTooltip />: null}
         </div>
       </div>
       <div className="flex flex-col items-start gap-5px">
         <span className="text-12px text-gray-normal">W Points</span>
-        <span className="text-14px text-black-normal font-medium">{wPoints}</span>
+        <span className="text-14px text-black-normal font-medium">{wPoints ?? '-'}</span>
       </div>
       <div className="flex flex-col items-start gap-5px border-0 lt-sm:border-l-2px lt-sm:border-solid lt-sm:border-orange-light lt-sm:pl-8px">
         <span className="text-12px text-gray-normal">F Points</span>
-        <span className="text-14px text-black-normal font-medium">{fPoints}</span>
+        <span className="text-14px text-black-normal font-medium">{fPoints ?? '-'}</span>
       </div>
     </BorderBox>
   );
