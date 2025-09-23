@@ -19,7 +19,7 @@ export interface PoolData {
 
 const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): Promise<UserData[]> => {
   try {
-    const response = await fetch(`http://47.83.194.10:12346/api/users?limit=${limit}&sortField=${sortField}`);
+    const response = await fetch(`https://anchorxonlineportaldevnet.bimwallet.io/points/api/users?limit=${limit}&sortField=${sortField}`);
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
@@ -39,7 +39,7 @@ const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): 
 
 const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
   try {
-    const response = await fetch(`http://47.83.194.10:12346/api/pools?limit=${limit}`);
+    const response = await fetch(`https://anchorxonlineportaldevnet.bimwallet.io/points/api/pools?limit=${limit}`);
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
