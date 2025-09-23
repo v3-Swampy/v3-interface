@@ -1,6 +1,6 @@
-import { useMemo,useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useAccount } from '@service/account';
-interface UserData {
+export interface UserData {
   account: string | undefined;
   wPoints: number | undefined;
   fPoints: number | undefined;
@@ -8,7 +8,16 @@ interface UserData {
   ranking?: number;
 }
 
-export const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): Promise<UserData[]> => {
+export interface PoolData {
+  address: string;
+  token0Address: string;
+  token1Address: string;
+  wPoints: number;
+  fPoints: number;
+  tvl: number;
+}
+
+const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): Promise<UserData[]> => {
   try {
     const response = await fetch(`http://47.83.194.10:12346/api/users?limit=${limit}&sortField=${sortField}`);
     if (!response.ok) {
@@ -27,6 +36,29 @@ export const fetchUserData = async (limit: number = 100, sortField: string = 'tr
     return [];
   }
 };
+
+const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
+  try {
+    const response = await fetch(`http://47.83.194.10:12346/api/pools?limit=${limit}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const json = await response.json();
+    const data = json.data.items;
+    console.log('Fetched user data:', data);
+    return data.map((pool: any) => ({
+      address: pool.address,
+      wPoints: pool.tradeWeight,
+      fPoints: pool.liquidityWeight,
+      tvl: pool.tvl,
+      token0Address: pool.token0,
+      token1Address: pool.token1,
+    }));
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    return [];
+  }
+}
 
 
 export const useUserData = (limit: number, sortField: string): UserData[] => {
@@ -51,4 +83,14 @@ export const useUserData = (limit: number, sortField: string): UserData[] => {
 
 
   return data;
+};
+
+export const usePoolData = (limit: number): PoolData[] => {
+  const [poolData, setPoolData] = useState<PoolData[]>([]);
+
+  useEffect(() => {
+    fetchPools(limit).then(setPoolData);
+  }, []);
+
+  return poolData;
 };

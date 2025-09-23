@@ -1,22 +1,18 @@
 import React from 'react';
 import cx from 'clsx';
 import { NavLink, Outlet } from 'react-router-dom';
+import { UserData } from './fetchData';
 import BorderBox from '@components/Box/BorderBox';
 import Avatar from '@components/Avatar';
 import Address from '@modules/Address';
 import { ReactComponent as RankIcon } from '@assets/icons/rank.svg';
+import { UseWatchProps } from 'react-hook-form';
 
 const linkClass = 'inline-flex justify-center items-center w-96px h-40px rounded-100px text-14px font-medium no-underline border-solid border-1px';
 const linkNotActiveClass = 'bg-transparent border-gray-normal text-gray-normal hover:bg-orange-light-hover hover:border-orange-light';
 const linkActiveClass = 'bg-orange-light border-orange-light text-orange-normal pointer-events-none';
 
-export const RankItem: React.FC<{
-  account: string | undefined;
-  wPoints: number | undefined;
-  fPoints: number | undefined;
-  ranking?: number
-  isMy?: boolean;
-}> = ({ account, wPoints, fPoints, isMy, ranking }) => {
+export const RankItem: React.FC<UserData> = ({ account, wPoints, fPoints, isMy, ranking }) => {
   return (
     <BorderBox
       className="
