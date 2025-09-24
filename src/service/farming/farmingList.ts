@@ -26,6 +26,7 @@ function chunkByLengths<T>(array: T[] | null | undefined, lengths: number[]): T[
 
 export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
+  // TODO: update farming pools address
   default: [
     '0x261C12D6629404797086F06743f3B2E1D63Ef4c7',
     '0xc0D0e6fDB000b62E48db5CCD54A1CFE3c5CB30Ea',
