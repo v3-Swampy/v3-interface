@@ -28,10 +28,10 @@ export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
   // TODO: update farming pools address
   default: [
-    '0x261C12D6629404797086F06743f3B2E1D63Ef4c7',
-    '0xc0D0e6fDB000b62E48db5CCD54A1CFE3c5CB30Ea',
-    '0x4A33468caAFD9220AB0b11e3342bE8AAcC468908',
-    '0xB7CC615ffcE028f541705B796EDff62f2d28BBa4',
+    '0x5d3c14f19776d197642db3f7dde9cb38f7ad1a0a',
+    '0x185a696a1da0e300cbbdd1c3f1f35448c779680c',
+    '0x04989512a2f29bc1d133a03c69ca3dde3313c478',
+    '0x48ca85ec0ca84b63925e1bce68e6796055af289f',
   ],
 });
 
