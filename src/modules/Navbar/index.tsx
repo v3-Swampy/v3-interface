@@ -4,6 +4,7 @@ import cx from 'clsx';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import { ReactComponent as Logo } from '@assets/icons/logo.svg';
+import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo.svg';
 import { ReactComponent as SmallLogo } from '@assets/icons/logo_icon.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
@@ -18,6 +19,11 @@ const Navbar: React.FC = () => {
   const account = useAccount();
   const mainScrollerDistance = useMainScrollerDistance();
 
+  const isWallfreex = React.useMemo(() => {
+    const currentUrl = window.location.href;
+    return currentUrl.includes('wallfreex');
+  }, []);
+
   return (
     <header
       className={cx(
@@ -28,7 +34,7 @@ const Navbar: React.FC = () => {
       <nav className="relative flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
         <NavLink to="/swap" style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined })} className="lt-mobile:h-24px">
           <SmallLogo className="mobile:display-none w-24px h-24px " />
-          <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />
+          {isWallfreex ? <WLogo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />: <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />}
         </NavLink>
 
         <div className="ml-58px inline-flex items-center gap-32px lt-md:display-none">

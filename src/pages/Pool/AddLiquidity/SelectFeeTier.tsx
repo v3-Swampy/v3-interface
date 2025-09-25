@@ -33,9 +33,9 @@ export const setCurrentFee = (fee: FeeAmount) => {
   setRecoil(currentFeeState, fee);
 };
 
-const FeeAmountLengh = Object.values(FeeAmount).length / 2;
-const FeeAmountList = Object.values(FeeAmount).slice(0, FeeAmountLengh) as FeeAmount[];
-const FeeAmountValues = Object.values(FeeAmount).slice(FeeAmountLengh) as number[];
+const FeeAmountLength = Object.values(FeeAmount).length / 2;
+const FeeAmountList = Object.values(FeeAmount).slice(0, FeeAmountLength) as FeeAmount[];
+const FeeAmountValues = Object.values(FeeAmount).slice(FeeAmountLength) as number[];
 
 const SelectDropdown: React.FC<{ setVisible: (visible: boolean) => void }> = ({ setVisible }) => {
   const [currentFee, setCurrentFee] = useRecoilState(currentFeeState);
