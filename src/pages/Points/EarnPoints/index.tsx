@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BorderBox from '@components/Box/BorderBox';
 import TokenPair from '@modules/Position/TokenPair';
@@ -6,13 +6,13 @@ import { usePoolData, PoolData } from '../LeaderBoard/fetchData';
 import { setTokens as setLiquidityTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 import { setToken as setSwapToken } from '@service/swap';
 import { ReactComponent as LinkIcon } from '@assets/icons/link3.svg';
-import { getTokenByAddress } from '@service/tokens';
+import { getTokenByAddress, TokenCFX } from '@service/tokens';
 
 export const PoolItem: React.FC<{
   data: PoolData;
 }> = ({ data }) => {
   const navigate = useNavigate();
-  const {token0Address, token1Address, wPoints, fPoints, tvl} = data;
+  const { token0Address, token1Address, wPoints, fPoints, tvl } = data;
   const leftToken = useMemo(() => getTokenByAddress(token0Address), [token0Address]);
   const rightToken = useMemo(() => getTokenByAddress(token1Address), [token1Address]);
 
@@ -60,8 +60,16 @@ export const PoolItem: React.FC<{
               border-2px border-solid border-orange text-orange-normal text-14px font-medium cursor-pointer whitespace-nowrap
             "
             onClick={() => {
-              setSwapToken({ type: 'sourceToken', token: leftToken });
-              setSwapToken({ type: 'destinationToken', token: rightToken });
+              if (leftToken?.symbol === 'WCFX') {
+                setSwapToken({ type: 'sourceToken', token: TokenCFX });
+              } else {
+                setSwapToken({ type: 'sourceToken', token: leftToken });
+              }
+              if (rightToken?.symbol === 'WCFX') {
+                setSwapToken({ type: 'destinationToken', token: TokenCFX });
+              } else {
+                setSwapToken({ type: 'destinationToken', token: rightToken });
+              }
               setTimeout(() => {
                 navigate('/swap');
               }, 50);
