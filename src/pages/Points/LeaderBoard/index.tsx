@@ -51,7 +51,8 @@ export const RankItem: React.FC<UserData> = ({ account, wPoints, fPoints, isMy, 
 
 const LeaderBoard: React.FC = () => {
   const { updatedAt } = useUserData(20, 'trade');
-  const updatedAtFormatted = useMemo(() => dayjs(updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss'), [updatedAt]);
+  console.log('updatedAt', updatedAt);
+  const updatedAtFormatted = useMemo(() => !updatedAt ? undefined : dayjs(updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss'), [updatedAt]);
 
   return (
     <>
@@ -63,14 +64,16 @@ const LeaderBoard: React.FC = () => {
           F Rank
         </NavLink>
 
-        <span className="ml-auto self-end text-14px text-gray-normal font-medium">
-          Last updated: {updatedAtFormatted}
-          <Tooltip text="Data updates hourly">
-            <span className="w-12px h-12px ml-6px">
-              <InfoIcon className="w-12px h-12px" />
-            </span>
-          </Tooltip>
-        </span>
+        {updatedAtFormatted &&
+          <span className="ml-auto self-end text-14px text-gray-normal font-medium">
+            Last updated: {updatedAtFormatted}
+            <Tooltip text="Data updates hourly">
+              <span className="w-12px h-12px ml-6px">
+                <InfoIcon className="w-12px h-12px" />
+              </span>
+            </Tooltip>
+          </span>
+        }
       </div>
 
       <div className="mt-24px flex flex-col gap-24px lt-md:mt-16px lt-md:gap-16px">
