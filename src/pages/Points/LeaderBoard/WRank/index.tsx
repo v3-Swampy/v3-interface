@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useUserData } from '../fetchData';
 import { RankItem } from '../index';
 
 const WRank: React.FC = () => {
-  const data = useUserData(20, 'trade');
+  const { data } = useUserData(20, 'trade');
 
   return (
     <>

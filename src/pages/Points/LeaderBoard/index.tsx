@@ -1,7 +1,7 @@
 import React from 'react';
 import cx from 'clsx';
 import { NavLink, Outlet } from 'react-router-dom';
-import { UserData } from './fetchData';
+import { UserData, useUserData } from './fetchData';
 import BorderBox from '@components/Box/BorderBox';
 import Avatar from '@components/Avatar';
 import Address from '@modules/Address';
@@ -32,7 +32,7 @@ export const RankItem: React.FC<UserData> = ({ account, wPoints, fPoints, isMy, 
             {typeof ranking !== 'number' && '-'}
           </span>
           {!!account ? <Avatar account={account} size={24} className="mr-8px" /> : null}
-          {!!account ? <Address address={account} className="text-14px text-black-normal font-normal" useTooltip />: null}
+          {!!account ? <Address address={account} className="text-14px text-black-normal font-normal" useTooltip /> : null}
         </div>
       </div>
       <div className="flex flex-col items-start gap-5px">
@@ -48,6 +48,8 @@ export const RankItem: React.FC<UserData> = ({ account, wPoints, fPoints, isMy, 
 };
 
 const LeaderBoard: React.FC = () => {
+  const { updatedAt } = useUserData(20, 'trade');
+  console.log('updatedAt', updatedAt);
   return (
     <>
       <NavLink to="/points/leader-board/w-rank" className={({ isActive }) => cx(linkClass, isActive ? linkActiveClass : linkNotActiveClass)}>

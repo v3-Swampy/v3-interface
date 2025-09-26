@@ -8,6 +8,11 @@ export interface UserData {
   ranking?: number;
 }
 
+interface UserDataResponse {
+  data: UserData[];
+  updatedAt: number;
+}
+
 export interface PoolData {
   address: string;
   token0Address: string;
@@ -17,7 +22,7 @@ export interface PoolData {
   tvl: number;
 }
 
-const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): Promise<UserData[]> => {
+const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): Promise<UserDataResponse> => {
   try {
     const response = await fetch(`https://anchorxonlineportaldevnet.bimwallet.io/points/api/users?limit=${limit}&sortField=${sortField}`);
     if (!response.ok) {
@@ -25,14 +30,22 @@ const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): 
     }
     const json = await response.json();
     const data = json.data.items;
-    return data.map((user: any) => ({
-      account: user.address,
-      wPoints: user.tradePoints,
-      fPoints: user.liquidityPoints,
-    }));
+    const updatedAt = json.data.updatedAt;
+    console.log('Data last updated at:', new Date(updatedAt * 1000).toLocaleString());
+    return {
+      data: data.map((user: any) => ({
+        account: user.address,
+        wPoints: user.tradePoints,
+        fPoints: user.liquidityPoints,
+      })),
+      updatedAt,
+    };
   } catch (error) {
     console.error('Error fetching user data:', error);
-    return [];
+    return {
+      data: [],
+      updatedAt: 0,
+    };
   }
 };
 
@@ -56,15 +69,18 @@ const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
     console.error('Error fetching pool data:', error);
     return [];
   }
-}
+};
 
-
-export const useUserData = (limit: number, sortField: string): UserData[] => {
+export const useUserData = (limit: number, sortField: string): UserDataResponse => {
   const account = useAccount();
   const [userData, setUserData] = useState<UserData[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<number>(0);
 
   useEffect(() => {
-    fetchUserData(limit, sortField).then(setUserData);
+    fetchUserData(limit, sortField).then((res) => {
+      setUserData(res.data);
+      setUpdatedAt(res.updatedAt);
+    });
   }, []);
 
   const data = useMemo(() => {
@@ -79,8 +95,7 @@ export const useUserData = (limit: number, sortField: string): UserData[] => {
     return [{ account, wPoints: undefined, fPoints: undefined, isMy: true }, ...sortedRankData];
   }, [account, userData]);
 
-
-  return data;
+  return { data, updatedAt };
 };
 
 export const usePoolData = (limit: number): PoolData[] => {
