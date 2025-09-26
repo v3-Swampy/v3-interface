@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import cx from 'clsx';
+import dayjs from 'dayjs';
 import { NavLink, Outlet } from 'react-router-dom';
 import { UserData, useUserData } from './fetchData';
 import BorderBox from '@components/Box/BorderBox';
+import Tooltip from '@components/Tooltip';
 import Avatar from '@components/Avatar';
 import Address from '@modules/Address';
 import { ReactComponent as RankIcon } from '@assets/icons/rank.svg';
-import { UseWatchProps } from 'react-hook-form';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 
 const linkClass = 'inline-flex justify-center items-center w-96px h-40px rounded-100px text-14px font-medium no-underline border-solid border-1px';
 const linkNotActiveClass = 'bg-transparent border-gray-normal text-gray-normal hover:bg-orange-light-hover hover:border-orange-light';
@@ -49,15 +51,27 @@ export const RankItem: React.FC<UserData> = ({ account, wPoints, fPoints, isMy, 
 
 const LeaderBoard: React.FC = () => {
   const { updatedAt } = useUserData(20, 'trade');
-  console.log('updatedAt', updatedAt);
+  const updatedAtFormatted = useMemo(() => dayjs(updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss'), [updatedAt]);
+
   return (
     <>
-      <NavLink to="/points/leader-board/w-rank" className={({ isActive }) => cx(linkClass, isActive ? linkActiveClass : linkNotActiveClass)}>
-        W Rank
-      </NavLink>
-      <NavLink to="/points/leader-board/f-rank" className={({ isActive }) => cx(linkClass, isActive ? linkActiveClass : linkNotActiveClass, 'ml-8px')}>
-        F Rank
-      </NavLink>
+      <div className="flex items-center">
+        <NavLink to="/points/leader-board/w-rank" className={({ isActive }) => cx(linkClass, isActive ? linkActiveClass : linkNotActiveClass)}>
+          W Rank
+        </NavLink>
+        <NavLink to="/points/leader-board/f-rank" className={({ isActive }) => cx(linkClass, isActive ? linkActiveClass : linkNotActiveClass, 'ml-8px')}>
+          F Rank
+        </NavLink>
+
+        <span className="ml-auto self-end text-14px text-gray-normal font-medium">
+          Last updated: {updatedAtFormatted}
+          <Tooltip text="Data updates hourly">
+            <span className="w-12px h-12px ml-6px">
+              <InfoIcon className="w-12px h-12px" />
+            </span>
+          </Tooltip>
+        </span>
+      </div>
 
       <div className="mt-24px flex flex-col gap-24px lt-md:mt-16px lt-md:gap-16px">
         <Outlet />
