@@ -46,18 +46,16 @@ const Navbar: React.FC = () => {
         </div>
 
         <NavLink to="/points" className="ml-auto flex-shrink-0 mr-12px no-underline">
-          {({ isActive }) => (
-            <BorderBox className="flex justify-center items-center px-8px h-[40px] rounded-100px" variant={isActive ? 'gradient-white' : 'gray'}>
-              <BorderBox className="flex justify-center items-center w-24px h-24px rounded-full" variant={isActive ? 'gradient-white' : 'gray'}>
-                <span className={cx('text-12px font-extrabold', isActive ? 'text-gradient-orange' : 'text-gray-normal')}>W</span>
+            <BorderBox className="flex justify-center items-center px-8px h-[40px] rounded-100px" variant='gradient-white'>
+              <BorderBox className="flex justify-center items-center w-24px h-24px rounded-full" variant='gradient-white'>
+                <span className='text-12px font-extrabold text-gradient-orange'>W</span>
               </BorderBox>
-              <BorderBox className="ml-[-5px] flex justify-center items-center w-24px h-24px rounded-full bg-[rgb(255,253,251)]" variant={isActive ? 'gradient-white' : 'gray'}>
-                <span className={cx('text-12px font-extrabold', isActive ? 'text-gradient-orange' : 'text-gray-normal')}>F</span>
+              <BorderBox className="ml-[-5px] flex justify-center items-center w-24px h-24px rounded-full bg-[rgb(255,253,251)]" variant='gradient-white'>
+                <span className='text-12px font-extrabold text-gradient-orange'>F</span>
               </BorderBox>
 
-              <span className={cx('ml-[4px] text-14px', isActive ? 'text-gradient-orange' : 'text-gray-normal')}>Earn points</span>
+              <span className='ml-[4px] text-14px text-gradient-orange'>Earn points</span>
             </BorderBox>
-          )}
         </NavLink>
 
         <div className="flex-shrink-0 mr-16px flex justify-center items-center w-156px h-40px text-14px rounded-100px text-14px text-black-normal font-normal bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
