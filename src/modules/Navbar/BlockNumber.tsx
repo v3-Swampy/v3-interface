@@ -23,15 +23,15 @@ const BlockNumber = () => {
   return (
     <footer className="flex justify-between w-full mx-auto xl:max-w-1232px lt-xl:px-24px">
       <div className='flex items-center gap-8px'>
-        <span className='text-14px leading-[20px] text-gray-normal font-medium'>Contact Us : </span>
+        <span className='lt-md:hidden text-14px leading-[20px] text-gray-normal font-medium'>Contact Us : </span>
         <a href="mailto:wallfreex@gmail.com" className='flex items-center text-14px leading-[20px] text-gray-normal font-medium no-underline'>
           <EmailIcon className='w-16px h-16px mr-4px' />
           wallfreex@gmail.com
         </a>
-        <a href="https://discord.com/invite/wallfreex">
+        <a href="https://discord.com/invite/joinwallfreex" target="_blank" rel="noopener noreferrer">
           <DiscordIcon className='w-16px h-16px translate-y-2px' />
         </a>
-        <a href="https://x.com/wallfreex">
+        <a href="https://x.com/WallFreeX" target="_blank" rel="noopener noreferrer">
           <XIcon className='w-16px h-16px translate-y-2px' />
         </a>
       </div>
