@@ -92,9 +92,9 @@ export const handleSwap = async ({
   const recordParams = {
     type: 'Swap',
     tokenA_Address: sourceToken.address,
-    tokenA_Value: Unit.fromStandardUnit(sourceTokenAmount, sourceToken.decimals).toDecimalStandardUnit(5),
+    tokenA_Value: Unit.fromStandardUnit(sourceTokenAmount, sourceToken.decimals).toDecimalStandardUnit(5, sourceToken.decimals),
     tokenB_Address: destinationToken.address,
-    tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5),
+    tokenB_Value: Unit.fromStandardUnit(destinationTokenAmount, destinationToken.decimals).toDecimalStandardUnit(5, destinationToken.decimals),
   } as const;
 
   const txHash = await sendTransaction(transactionParams);
