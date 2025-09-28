@@ -104,8 +104,8 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
   return (
     <div className="mt-24px h-full flex-grow-1 flex flex-col">
       <div className="flex justify-between items-center h-72px lt-mobile:h-64px px-24px lt-mobile:px-16px rounded-20px bg-orange-light-hover">
-        <span className="text-32px lt-mobile:text-24px font-medium lt-mobile:max-w-[calc(100%-80px)] text-ellipsis overflow-hidden">{sourceTokenAmount}</span>
-        <div className={'flex-shrink-0 ml-14px flex items-center text-14px text-black-normal font-medium'}>
+        <span className="text-32px lt-mobile:text-24px font-normal lt-mobile:max-w-[calc(100%-80px)] text-ellipsis overflow-hidden">{sourceTokenAmount}</span>
+        <div className={'flex-shrink-0 ml-14px flex items-center text-14px text-black-normal font-normal'}>
           {<img className="w-24px h-24px mr-4px" src={sourceToken.logoURI} alt={`${sourceToken.symbol} logo`} />}
           {sourceToken.symbol}
         </div>
@@ -116,8 +116,8 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
       </div>
       <div className="flex justify-between items-center h-72px lt-mobile:h-64px px-24px lt-mobile:px-16px rounded-20px bg-orange-light-hover">
-        <span className="text-32px lt-mobile:text-24px font-medium lt-mobile:max-w-[calc(100%-80px)] text-ellipsis overflow-hidden">{destinationTokenAmount}</span>
-        <div className={'flex-shrink-0 ml-14px flex items-center text-14px text-black-normal font-medium'}>
+        <span className="text-32px lt-mobile:text-24px font-normal lt-mobile:max-w-[calc(100%-80px)] text-ellipsis overflow-hidden">{destinationTokenAmount}</span>
+        <div className={'flex-shrink-0 ml-14px flex items-center text-14px text-black-normal font-normal'}>
           {<img className="w-24px h-24px mr-4px" src={destinationToken.logoURI} alt={`${destinationToken.symbol} logo`} />}
           {destinationToken.symbol}
         </div>
@@ -133,7 +133,7 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
       />
 
       {updateTradeFunc === null && (
-        <p className={cx('px-24px text-14px leading-18px text-gray-normal font-medium', isMobile ? 'mt-80px' : 'my-16px')}>
+        <p className={cx('px-24px text-14px leading-18px text-gray-normal font-normal', isMobile ? 'mt-80px' : 'my-16px')}>
           Input is estimated. You will sell at most
           <span className="mx-6px text-black-normal">
             {trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}
@@ -143,7 +143,7 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
       )}
 
       {updateTradeFunc !== null && (
-        <div className={cx('px-24px flex items-center h-40px rounded-8px bg-orange-light text-18px text-orange-normal font-medium', isMobile ? 'mt-76px' : 'mt-12px mb-16px')}>
+        <div className={cx('px-24px flex items-center h-40px rounded-8px bg-orange-light text-18px text-orange-normal font-normal', isMobile ? 'mt-76px' : 'mt-12px mb-16px')}>
           <WarningIcon className="w-24px h-24px mr-12px" />
           Price Updated
           <Button className="ml-auto px-12px h-26px rounded-4px" onClick={updateTradeFunc}>
@@ -155,10 +155,11 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
       <Button
         color="orange"
         fullWidth
-        className={cx('h-48px rounded-100px text-14px', isMobile ? 'mt-16px' : 'mt-auto')}
+        className={cx('h-40px text-18px rounded-100px', isMobile ? 'mt-16px' : 'mt-auto')}
         loading={inTransaction}
         onClick={handleClickConfirm}
         disabled={updateTradeFunc !== null}
+        id="swap-confirm-button"
       >
         {i18n.confirm_swap}
       </Button>

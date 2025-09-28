@@ -5,7 +5,7 @@ import { throttle } from 'lodash-es';
 import { fetchChain } from '@utils/fetch';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { useAccount } from '@service/account';
-import { getTokenByAddress } from '@service/tokens';
+import { getTokenByAddressWithAutoFetch } from '@service/tokens';
 import { useUserActiveStatus, UserActiveStatus } from '@service/userActiveStatus';
 
 const balanceState = atomFamily<string | null, string>({
@@ -14,7 +14,7 @@ const balanceState = atomFamily<string | null, string>({
 
 const fetchBalance = async ({ account, tokenAddress }: { account: string; tokenAddress: string }) => {
   let fetchPromise: Promise<string>;
-  const token = getTokenByAddress(tokenAddress);
+  const token = await getTokenByAddressWithAutoFetch(tokenAddress);
   if (tokenAddress === 'CFX' || token?.symbol === 'WCFX') {
     fetchPromise = fetchChain({
       method: 'eth_getBalance',

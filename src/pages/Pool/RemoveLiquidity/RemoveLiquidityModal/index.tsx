@@ -65,7 +65,14 @@ const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
             rightEarnedFees={rightEarnedFees}
           />
           <AuthConnectButton {...buttonProps}>
-            <Button onClick={handleClickConfirm} type="button" color="orange" fullWidth className={cx("h-48px rounded-100px", isMobile ? 'mt-40px' : 'mt-16px')}>
+            <Button
+              onClick={handleClickConfirm}
+              type="button"
+              color="orange"
+              fullWidth
+              className={cx("h-40px rounded-100px text-18px", isMobile ? 'mt-40px' : 'mt-16px')}
+              id="pool-remove-liquidity-modal-submit-button"
+            >
               Submit
             </Button>
           </AuthConnectButton>

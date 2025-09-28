@@ -97,7 +97,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
             <RecordAction className="text-22px text-black-normal" {...recordParams} />
           </p>
         )}
-        <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-medium">Confirm this transaction in your wallet</p>
+        <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-normal">Confirm this transaction in your wallet</p>
       </div>
     );
   }
@@ -110,7 +110,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
           <p className="leading-28px text-22px text-black-normal">Transaction submitted</p>
           {tokenNeededAdd && (
             <div
-              className="mt-8px mx-auto w-fit px-24px h-40px leading-40px rounded-100px bg-orange-light-hover text-center text-14px text-black-normal font-medium cursor-pointer"
+              className="mt-8px mx-auto w-fit px-24px h-40px leading-40px rounded-100px bg-orange-light-hover text-center text-14px text-black-normal font-normal cursor-pointer"
               onClick={() =>
                 watchAsset({
                   type: 'ERC20',
@@ -129,14 +129,14 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
         </div>
         <a
           href={`${import.meta.env.VITE_ESpaceScanUrl}/tx/${txHash}`}
-          className="absolute left-16px bottom-80px right-16px leading-18px text-center text-14px text-orange-normal font-medium"
+          className="absolute left-16px bottom-80px right-16px leading-18px text-center text-14px text-orange-normal font-normal"
           target="_blank"
           rel="noopener noreferrer"
         >
           View on Block Explorer
         </a>
         {!isMobile && (
-          <Button color="orange" className="absolute left-16px bottom-24px right-16px h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>
+          <Button color="orange" className="absolute left-16px bottom-24px right-16px h-48px rounded-100px text-16px !font-medium" onClick={hidePopup}>
             Close
           </Button>
         )}
@@ -150,10 +150,10 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
         <div className="absolute left-0 w-full top-1/2 lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
           <FailedIcon className="mx-auto block w-70px h-70px mb-80px" />
           <p className="leading-28px text-22px text-black-normal">Transaction Rejected</p>
-          <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-medium opacity-0 pointer-events-none">placeHolder</p>
+          <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-normal opacity-0 pointer-events-none">placeHolder</p>
         </div>
         {!isMobile && (
-          <Button color="orange" className="absolute left-16px bottom-24px right-16px h-48px rounded-100px text-16px !font-bold" onClick={hidePopup}>
+          <Button color="orange" className="absolute left-16px bottom-24px right-16px h-48px rounded-100px text-16px !font-medium" onClick={hidePopup}>
             Close
           </Button>
         )}

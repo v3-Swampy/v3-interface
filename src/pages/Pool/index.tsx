@@ -51,7 +51,7 @@ const PoolContent: React.FC = () => {
     return (
       <>
         <PoolHandIcon className="mt-116px lt-sm:mt-52px block mx-auto w-50.5px h-32px" />
-        <p className="mt-12px lt-sm:mt-20px mb-132px lt-sm:mb-60px leading-28px text-center text-22px lt-sm:text-14px text-black-normal font-medium">
+        <p className="mt-12px lt-sm:mt-20px mb-132px lt-sm:mb-60px leading-28px text-center text-22px lt-sm:text-14px text-black-normal font-normal">
           {i18n.positions_appear_here}
         </p>
       </>
@@ -59,7 +59,7 @@ const PoolContent: React.FC = () => {
   }
   return (
     <>
-      <div className="inline-block mb-10px lt-sm:mb-16px sm:px-24px h-40px leading-40px lt-sm:h-18px lt-sm:leading-18px rounded-100px text-center text-14px text-black-normal font-medium sm:bg-orange-light-hover ">
+      <div className="inline-block mb-10px lt-sm:mb-16px sm:px-24px h-40px leading-40px lt-sm:h-18px lt-sm:leading-18px rounded-100px text-center text-14px text-black-normal font-normal sm:bg-orange-light-hover ">
         {i18n.your_positions} ({positions.length})
       </div>
       <div className="sm:display-none h-1px bg-orange-light" />
@@ -89,11 +89,11 @@ const PoolPage: React.FC = () => {
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
-        <div className="mb-16px lt-mobile:mb-12px flex justify-between items-center pl-16px leading-30px text-24px lt-mobile:text-18px text-orange-normal font-medium">
+        <div className="mb-16px lt-mobile:mb-12px flex justify-between items-center pl-16px leading-30px text-24px lt-mobile:text-18px text-orange-normal font-normal">
           {i18n.pool}
 
           <Link to="/pool/add_liquidity" className="no-underline">
-            <Button color="gradient" className="px-24px h-40px rounded-100px">
+            <Button color="gradient" className="px-24px h-40px text-14px rounded-100px" id="pool-add-new-position">
               <AddIcon className="mr-8px w-12px h-12px" />
               {i18n.new_positions}
             </Button>

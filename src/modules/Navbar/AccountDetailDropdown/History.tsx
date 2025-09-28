@@ -12,9 +12,9 @@ import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
-import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST, useRefreshBoostFactor, useRefreshVeTotalSuppply } from '@service/staking';
-import { useRefreshPoolsQuery } from '@service/farming';
+import { useRefreshPoolsQuery, useRefreshMyFarms } from '@service/farming';
+// import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 
 export const transitions = {
   en: {
@@ -27,8 +27,6 @@ export const transitions = {
     stake_increase_amount: 'Increase staked amount {tokenAValue} {tokenASymbol}',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
-    claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
-    claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
     claim_lp_of_my_farms: 'Claim Reward',
     unstake_lp_of_my_farms: 'Unstake',
     stake_unlock: 'Unlock {tokenASymbol}',
@@ -43,8 +41,6 @@ export const transitions = {
     stake_increase_amount: 'Increase staked {tokenAValue} {tokenASymbol}',
     remove_liquidity: 'Remove liquidity',
     stake_lp_of_all_farms: 'Stake LP',
-    claim_and_unstake_lp_of_my_farms: 'Claim & Unstake',
-    claim_and_stake_lp_of_my_farms: 'Claim & Stake to New',
     claim_lp_of_my_farms: 'Claim Reward',
     unstake_lp_of_my_farms: 'Unstake',
     stake_unlock: 'Unlock {tokenASymbol}',
@@ -61,8 +57,6 @@ export const TransitionsTypeMap = {
   ['Stake_IncreaseAmount']: 'stake_increase_amount',
   ['Position_RemoveLiquidity']: 'remove_liquidity',
   ['AllFarms_StakedLP']: 'stake_lp_of_all_farms',
-  ['MyFarms_ClaimAndUnstake']: 'claim_and_unstake_lp_of_my_farms',
-  ['MyFarms_ClaimAndStake']: 'claim_and_stake_lp_of_my_farms',
   ['MyFarms_Claim']: 'claim_lp_of_my_farms',
   ['MyFarms_Unstake']: 'unstake_lp_of_my_farms',
   ['Stake_Unlock']: 'stake_unlock',
@@ -74,25 +68,27 @@ export const TransitionsTypeMap = {
  */
 export const useRefreshData = () => {
   const refreshPositions = useRefreshPositions();
-  const refreshStakedTokenIds = useRefreshStakedTokenIds();
+  // const refreshStakedTokenIds = useRefreshStakedTokenIds();
   const refreshUserInfo = useRefreshUserInfo();
   const refreshPoolsQuery = useRefreshPoolsQuery();
-  const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
+  // const refreshMyFarmsListQuery = useRefreshMyFarmsListQuery();
   const refreshBalaceOfveVST = useRefreshBalanceOfveVST();
   const refreshTotalStakedVST = useRefreshTotalStakedVST();
   const refreshBoostFactor = useRefreshBoostFactor();
   const refreshVeTotalSuppply = useRefreshVeTotalSuppply();
+  const refreshMyFarms = useRefreshMyFarms();
 
   return {
     refreshPositions,
-    refreshStakedTokenIds,
+    // refreshStakedTokenIds,
     refreshUserInfo,
     refreshPoolsQuery,
-    refreshMyFarmsListQuery,
+    // refreshMyFarmsListQuery,
     refreshBalaceOfveVST,
     refreshTotalStakedVST,
     refreshBoostFactor,
     refreshVeTotalSuppply,
+    refreshMyFarms
   } as const;
 };
 
@@ -107,10 +103,10 @@ export const RefreshTypeMap = {
   ['Stake_IncreaseAmount']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
   ['AllFarms_StakedLP']: ['refreshPoolsQuery', 'refreshPositions', 'refreshStakedTokenIds'],
   ['Position_RemoveLiquidity']: 'refreshPositions',
-  ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
-  ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
-  ['MyFarms_Claim']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
-  ['MyFarms_Unstake']: ['refreshStakedTokenIds', 'refreshMyFarmsListQuery'],
+  // ['MyFarms_ClaimAndUnstake']: 'refreshStakedTokenIds',
+  // ['MyFarms_ClaimAndStake']: ['refreshMyFarmsListQuery'],
+  ['MyFarms_Claim']: ['refreshPoolsQuery', 'refreshMyFarms'],
+  ['MyFarms_Unstake']: ['refreshPoolsQuery', 'refreshMyFarms'],
   ['Stake_Unlock']: ['refreshUserInfo', 'refreshBoostFactor', 'refreshTotalStakedVST', 'refreshVeTotalSuppply'],
   // ['Stake_IncreaseAmount']: ['refreshPositions', 'xxx]   If you want to update multiple data, just pass an array
 } as Record<HistoryRecord['type'], RefreshKey | Array<RefreshKey>>;
@@ -186,7 +182,7 @@ const History: React.FC = () => {
   return (
     <>
       <div className="mt-26px mb-16px flex items-center">
-        <span className="text-14px text-black-normal font-medium">Transactions</span>
+        <span className="text-14px text-black-normal font-normal">Transactions</span>
         {hasPending && (
           <span className="ml-4px inline-block flex justify-center items-center w-20px h-20px rounded-4px bg-orange-light">
             <Spin className="text-12px text-orange-normal" />
@@ -198,7 +194,7 @@ const History: React.FC = () => {
         </Button>
       </div>
       <CustomScrollbar className="max-h-294px">
-        {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-medium">No transaction history</p>}
+        {history.length === 0 && <p className="leading-46px text-center text-12px text-black-light font-normal">No transaction history</p>}
         <FixedSizeList width="100%" height={height} itemCount={history.length} itemSize={46} outerElementType={CustomScrollbar}>
           {Record}
         </FixedSizeList>

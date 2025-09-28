@@ -32,11 +32,11 @@ const Drawer: React.FC<{ Content: ReactNode | Function; title: string; subTitle?
 
     return (
       <div className={cx('px-16px p-24px pb-40px h-full rounded-tl-16px rounded-tr-16px', className)}>
-        <div className="flex justify-between items-center leading-18px text-14px text-black-normal font-medium">
+        <div className="flex justify-between items-center leading-18px text-14px text-black-normal font-normal">
           {title}
           <CloseBoldIcon className="w-12px h-12px cursor-pointer" onClick={hidePopup} />
         </div>
-        {subTitle && <div className="text-14px font-500 leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
+        {subTitle && <div className="text-14px font-normal leading-18px font-not-italic color-gray-normal mt-1">{subTitle}</div>}
 
         {renderReactNode(Content)}
       </div>

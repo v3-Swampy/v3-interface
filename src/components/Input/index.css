@@ -3,11 +3,15 @@
 }
 
 .input {
-  @apply w-full font-medium bg-transparent border-none transition-colors placeholder-gray-normal;
+  @apply w-full font-normal bg-transparent border-none transition-colors placeholder-gray-normal;
   color: inherit;
   font-size: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.input.dynamic-font-size {
+  font-size: var(--dynamic-font-size, inherit) !important;
 }
 
 .input:not(:placeholder-shown) + .clear-icon {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import 'rc-slider/assets/index.css';
 
 import PageWrapper from '@components/Layout/PageWrapper';
@@ -122,12 +122,13 @@ const RemoveLiquidity: React.FC = () => {
     setRightRemoveAmount(rightTotalAmount.mul(removePercent).div(100));
   }, [removePercent, setLeftRemoveAmount, leftTotalAmount, rightTotalAmount]);
 
-  if (!tokenId || !position || !status || status === PositionStatus.Closed) return <div />;
-
+  if (!tokenId || !position || !status) return null;
+  if (status === PositionStatus.Closed) return <Navigate to="/pool" replace />;
+  
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
-        <div className="mb-16px lt-mobile:mb-12px flex items-center h-40px pl-8px pr-16px text-24px lt-mobile:text-18px text-orange-normal font-medium whitespace-nowrap">
+        <div className="mb-16px lt-mobile:mb-12px flex items-center h-40px pl-8px pr-16px text-24px lt-mobile:text-18px text-orange-normal font-normal whitespace-nowrap">
           <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
             <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.remove_liquidity}
@@ -151,8 +152,9 @@ const RemoveLiquidity: React.FC = () => {
             onClick={onClickPreview}
             disabled={!removePercent}
             type="button"
-            className="h-40px max-w-394px w-full rounded-100px mt-32px mx-auto flex"
+            className="h-40px text-18px max-w-394px w-full rounded-100px mt-32px mx-auto flex"
             color={removePercent ? 'gradient' : 'orange'}
+            id="pool-remove-liquidity-preview-button"
           >
             {i18n.preview}
           </Button>

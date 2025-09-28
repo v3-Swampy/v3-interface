@@ -81,14 +81,14 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
 
         <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
           <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
-          <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-medium">
+          <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-normal">
             Fee Tier
             <span>{previewPosition.fee / 10000}%</span>
           </p>
         </div>
 
         <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
-        <Button color="orange" fullWidth className="mt-16px h-48px rounded-100px text-14px" loading={inTransaction} onClick={handleClickConfirm}>
+        <Button color="orange" fullWidth className="mt-16px h-40px rounded-100px text-18px" loading={inTransaction} onClick={handleClickConfirm} id="pool-liquidity-preview-modal-submit-button">
           {i18n.add}
         </Button>
       </Suspense>
@@ -102,7 +102,7 @@ const showLiquidityPreviewModal = (props: Props) => {
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
     onSuccess: (navigate) => navigate('/pool'),
-    height: 'full'
+    height: 'full',
   });
 };
 

@@ -9,23 +9,37 @@ const lazyWithPreload = (factory: Factory) => {
 };
 
 export const FarmingPage = lazyWithPreload(() => import('@pages/Farming'));
+export const AllFarmsPage = lazyWithPreload(() => import('@pages/Farming/AllFarms'));
+export const MyFarmsPage = lazyWithPreload(() => import('@pages/Farming/MyFarms'));
 export const StakingPage = lazyWithPreload(() => import('@pages/Staking'));
 export const PoolPage = lazyWithPreload(() => import('@pages/Pool'));
 export const PoolLiquidityItemPage = lazyWithPreload(() => import('@pages/Pool/LiquidityDetail'));
 export const PoolAddLiquidityPage = lazyWithPreload(() => import('@pages/Pool/AddLiquidity'));
 export const PoolIncreaseLiquidity = lazyWithPreload(() => import('@pages/Pool/IncreaseLiquidity'));
 export const PoolRemoveLiquidity = lazyWithPreload(() => import('@pages/Pool/RemoveLiquidity'));
+export const PointsPage = lazyWithPreload(() => import('@pages/Points'));
+export const LeaderBoardPage = lazyWithPreload(() => import('@pages/Points/LeaderBoard'));
+export const FRankPage = lazyWithPreload(() => import('@pages/Points/LeaderBoard/FRank'));
+export const WRankPage = lazyWithPreload(() => import('@pages/Points/LeaderBoard/WRank'));
+export const EarnPointsPage = lazyWithPreload(() => import('@pages/Points/EarnPoints'));
 
 (function () {
   const preLoadAll = () =>
     setTimeout(() => {
       FarmingPage.preload();
+      AllFarmsPage.preload();
+      MyFarmsPage.preload();
       StakingPage.preload();
       PoolPage.preload();
       PoolLiquidityItemPage.preload();
       PoolAddLiquidityPage.preload();
       PoolIncreaseLiquidity.preload();
       PoolRemoveLiquidity.preload();
+      PointsPage.preload();
+      LeaderBoardPage.preload();
+      FRankPage.preload();
+      WRankPage.preload();
+      EarnPointsPage.preload();
     }, 2000);
 
   try {

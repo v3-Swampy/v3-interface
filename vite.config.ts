@@ -77,37 +77,29 @@ export default defineConfig({
       '@components': resolve(__dirname, 'src/components'),
       '@service': resolve(__dirname, 'src/service'),
       '@constants': resolve(__dirname, 'src/constants'),
-      events: 'rollup-plugin-node-polyfills/polyfills/events',
       jsbi: 'jsbi/dist/jsbi-cjs.js',
     },
   },
-  build: {
-    minify: false,
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        },
-      },
-    },
-  },
   optimizeDeps: {
+    include: ['buffer'],
     esbuildOptions: {
       define: {
         global: 'globalThis',
       },
     },
   },
+  define: {
+    global: 'globalThis',
+    'process.env.NODE_DEBUG': false,
+  },
   server: {
     proxy: {
-      '/v1': {
-        target: 'https://api.vswap.finance',
+      '/prod': {
+        target: 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com',
         changeOrigin: true,
         secure: false,
         headers: {
-          Referer: 'https://api.vswap.finance',
+          Referer: 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com',
         },
       },
     },

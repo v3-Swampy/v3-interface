@@ -26,7 +26,7 @@ const PriceImpactWarning: React.FC<Props> = ({ largerPriceImpact }) => {
     <span className="text-black-light">Price impact warning</span>
     <Tooltip text={i18n.price_impact_tips} placement="bottom" interactive delay={[888, 333]}>
       <div className="flex items-center">
-        <span className="text-black-normal font-bold">{largerPriceImpact ? largerPriceImpact?.mul(100)?.toDecimalMinUnit(2) : '--'}%</span>
+        <span className="text-black-normal font-medium">{largerPriceImpact ? largerPriceImpact?.mul(100)?.toDecimalMinUnit(2) : '--'}%</span>
         <InfoIcon className="w-12px h-12px ml-6px mb-2px" />
       </div>
     </Tooltip>

@@ -57,7 +57,7 @@ const DurationSelect: React.FC<Props> = ({ register, setValue, currentStakeDurat
 
   return (
     <>
-      <p className="pl-8px mb-8px text-14px text-black-normal font-medium">{i18n.stake_duration}</p>
+      <p className="pl-8px mb-8px text-14px text-black-normal font-normal">{i18n.stake_duration}</p>
       <div className="p-16px pb-20px rounded-20px bg-orange-light-hover">
         <Input className="text-24px" disabled type="text" defaultValue={defaultDurationText} {...register('VST-stake-duration-text')} />
 
@@ -86,7 +86,7 @@ const Duration: React.FC<{
   return (
     <div
       className={cx(
-        'h-32px px-10px leading-32px rounded-100px border-1px border-solid border-gray-light hover:bg-orange-light-hover text-14px text-gray-light hover:text-orange-normal font-medium cursor-pointer transition-colors',
+        'h-32px px-10px leading-32px rounded-100px border-1px border-solid border-gray-light hover:bg-orange-light-hover text-14px text-gray-light hover:text-orange-normal font-normal cursor-pointer transition-colors',
         isCurrentSelect && 'bg-orange-light-hover !text-orange-normal pointer-events-none'
       )}
       onClick={() => onClick(duration.asSeconds(), { value, unit })}

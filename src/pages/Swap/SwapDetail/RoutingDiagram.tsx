@@ -12,7 +12,7 @@ const Pool: React.FC<{ tokenIn: Token | null; tokenOut: Token | null; feeAmount:
           <img className="w-24px h-24px lt-mobile:w-18px lt-mobile:h-18px" src={tokenIn?.logoURI} alt={`${tokenIn?.logoURI} icon`} />
           <img className="-ml-8px lt-mobile:-ml-6px w-24px h-24px lt-mobile:w-18px lt-mobile:h-18px" src={tokenOut?.logoURI} alt={`${tokenOut?.logoURI} icon`} />
         </div>
-        <span className="text-black-normal text-14px lt-mobile:text-12px font-medium">{feeAmount / 10000}%</span>
+        <span className="text-black-normal text-14px lt-mobile:text-12px font-normal">{feeAmount / 10000}%</span>
       </div>
     </Tooltip>
   );

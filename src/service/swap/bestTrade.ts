@@ -103,14 +103,19 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
     } else {
       throw new Error('NO_ROUTE');
     }
+  }).catch(err => {
+    console.log('err', err);
+    throw err;
   });
 };
 
 const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
   fetch(
-    `${isLocalDev ? 'v1' : 'https://api.vswap.finance/v1'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${tokenInWrappered.chainId}&tokenOutAddress=${
-      tokenOutWrappered.address
-    }&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'}`
+    `${isLocalDev ? 'prod' : 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
+      tokenInWrappered.chainId
+    }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
+      tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'
+    }`
   )
     .then((res) => res.json())
     .then((res) => {
@@ -165,6 +170,7 @@ export const fetchBestTrade = async ({
       };
     } catch (err) {
       const errStr = String(err);
+      console.log('errStr', errStr);
       const isNoRoute = errStr?.includes('Failed to generate client side quote');
       const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get');
       if (fetchMethod === 'priorityMethod' && isNetworkError) {
@@ -242,8 +248,9 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
         });
       } catch (err) {
         const errStr = String(err);
+        console.log('errStr', errStr);
         const isNoRoute = errStr?.includes('Failed to generate client side quote');
-        const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get') || errStr?.includes('SyntaxError');
+        const isNetworkError = errStr?.includes('Failed to fetch') || errStr?.includes('Failed to get') || errStr?.includes('SyntaxError') || errStr?.includes('Unexpected error');
         if (fetchMethod === 'priorityMethod' && isNetworkError) {
           runFetch('secondaryMethod');
         } else {
@@ -276,6 +283,55 @@ export const useTokenPrice = (tokenAddress: string | undefined, amount: string =
     return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
   }
   return null;
+};
+
+export const getTokensPrice = async (tokenAddresses: string[], amount: string = '1'): Promise<{ [address: string]: string | null }> => {
+  const pricePromises = tokenAddresses.map(async (tokenAddress) => {
+    try {
+      const token = getWrapperTokenByAddress(tokenAddress);
+      // 如果是USDT，直接返回amount
+      if (isTokenEqual(token, TokenUSDT)) {
+        return { address: tokenAddress, price: amount || null };
+      }
+
+      // 如果tokenAddress为空或token不存在
+      if (!tokenAddress || !token) {
+        return { address: tokenAddress, price: null };
+      }
+
+      // 如果amount为空
+      if (!amount) {
+        return { address: tokenAddress, price: null };
+      }
+
+      // 获取交易结果
+      const result = await fetchBestTrade({
+        tradeType: TradeType.EXACT_INPUT,
+        amount,
+        tokenIn: token,
+        tokenOut: TokenUSDT
+      });
+
+      if (result.state === TradeState.VALID) {
+        const price = result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
+        return { address: tokenAddress, price };
+      }
+
+      return { address: tokenAddress, price: null };
+    } catch (error) {
+      console.warn(`Failed to fetch price for ${tokenAddress}:`, error);
+      return { address: tokenAddress, price: null };
+    }
+  });
+
+  const results = await Promise.all(pricePromises);
+  const priceMap: { [address: string]: string | null } = {};
+
+  results.forEach(({ address, price }) => {
+    priceMap[address] = price;
+  });
+
+  return priceMap;
 };
 
 function calcTradeFromData({

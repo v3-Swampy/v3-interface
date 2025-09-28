@@ -2,7 +2,7 @@ import React, { memo, useRef, useMemo, useLayoutEffect } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type UseFormGetValues, type FieldValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
-import Input from '@components/Input';
+import Input, { defaultDynamicFontSize } from '@components/Input';
 import Button from '@components/Button';
 import Balance from '@modules/Balance';
 import { isTokenEqual, type Token } from '@service/tokens';
@@ -16,7 +16,7 @@ const transitions = {
   en: {
     deposit_amounts: 'Deposit Amounts',
     balance: 'Balance',
-    max: 'MAX',
+    max: 'Max',
     outof_range: 'The market price is outside your specified price range. Single-asset deposit only.',
     outof_range_tip: 'Your position will not earn fees or be used in trades until the market price moves into your range.',
   },
@@ -124,7 +124,7 @@ const DepositAmount: React.FC<
         <>
           <div className="flex justify-between items-center">
             <Input
-              className="text-24px"
+              className="text-24px pr-32px lt-mobile:text-16px"
               clearIcon
               disabled={!isRangeValid}
               placeholder="0"
@@ -137,10 +137,13 @@ const DepositAmount: React.FC<
               min={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
               step={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
               onBlur={(evt) => changePairAmount.current(evt.target.value)}
+              decimals={token?.decimals}
+              dynamicFontSize={defaultDynamicFontSize}
+              preventMinus
             />
 
             {token && (
-              <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-medium">
+              <div className="flex-shrink-0 ml-14px flex items-center min-w-80px h-40px px-8px rounded-100px bg-orange-light text-14px text-black-normal font-normal">
                 {<img className="w-24px h-24px mr-4px" src={token.logoURI} alt={`${token.symbol} logo`} />}
                 {token.symbol}
               </div>
@@ -150,10 +153,11 @@ const DepositAmount: React.FC<
           {account && token && (
             <div className="mt-8px ml-auto flex items-center w-fit h-20px text-14px text-gray-normal">
               {i18n.balance}:{' '}
-              <Balance className="ml-2px" address={token.address} decimals={token.decimals}>
+              <Balance className="ml-2px" address={token.address} decimals={token.decimals} id={`${type}-balance`}>
                 {(balance) => (
                   <Button
-                    className="ml-12px px-8px h-20px rounded-4px text-14px font-medium"
+                    className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
+                    variant='outlined'
                     color="orange"
                     disabled={!balance || balance === '0'}
                     onClick={() => {
@@ -161,6 +165,7 @@ const DepositAmount: React.FC<
                       changePairAmount.current(balance ?? '');
                     }}
                     type="button"
+                    id={`${type}-max-button`}
                   >
                     {i18n.max}
                   </Button>
@@ -229,7 +234,7 @@ const DepositAmounts: React.FC<Props> = ({
 
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
-      <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-medium">{title || i18n.deposit_amounts}</p>
+      <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-normal">{title || i18n.deposit_amounts}</p>
       <DepositAmount
         tokenA={tokenA}
         token={tokenA}

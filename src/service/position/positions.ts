@@ -5,8 +5,8 @@ import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, Pool } from '@service/pairs&pool';
 import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
-import { poolState, generatePoolKey } from '@service/pairs&pool/singlePool';
-import { computePoolAddress, usePool } from '@service/pairs&pool';
+import { getPool } from '@service/pairs&pool/singlePool';
+import { computePoolAddress } from '@service/pairs&pool';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -53,6 +53,7 @@ export interface PositionForUI extends Position {
   // position token0 ratio
   ratio?: number;
   pool?: Pool | null | undefined;
+  positionStatus?: PositionStatus;
 }
 
 const positionBalanceQuery = selector({
@@ -148,33 +149,33 @@ export const positionsQueryByTokenIds = selectorFamily({
   key: `positionsQueryByTokenIds-${import.meta.env.MODE}`,
   get:
     (tokenIdParams: Array<number>) =>
-    async ({ get }) => {
-      const account = get(accountState);
-      if (!account || !tokenIdParams?.length) return [];
-      const tokenIds = [...tokenIdParams];
+      async ({ get }) => {
+        const account = get(accountState);
+        if (!account || !tokenIdParams?.length) return [];
+        const tokenIds = [...tokenIdParams];
 
-      const positionsResult = await fetchMulticall(
-        tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
-      );
-
-      if (Array.isArray(positionsResult)) {
-        const tmpRes = await Promise.all(
-          positionsResult?.map(async (singleRes, index) => {
-            const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-            const position = await decodePosition(tokenIds[index], decodeRes);
-
-            return position;
-          })
+        const positionsResult = await fetchMulticall(
+          tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
         );
-        return tmpRes.map((position) => {
-          const { token0, token1, fee } = position;
-          const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
-          return enhancePositionForUI(position, pool);
-        });
-      }
 
-      return [];
-    },
+        if (Array.isArray(positionsResult)) {
+          const tmpRes = await Promise.all(
+            positionsResult?.map(async (singleRes, index) => {
+              const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+              const position = await decodePosition(tokenIds[index], decodeRes);
+
+              return position;
+            })
+          );
+          return await Promise.all(tmpRes.map(async (position) => {
+            const { token0, token1, fee } = position;
+            const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
+            return enhancePositionForUI(position, pool);
+          }));
+        }
+
+        return [];
+      },
 });
 
 export const positionsQuery = selector<Array<Position>>({
@@ -187,14 +188,15 @@ export const positionsQuery = selector<Array<Position>>({
 
 export const PositionsForUISelector = selector<Array<PositionForUI>>({
   key: `PositionListForUI-${import.meta.env.MODE}`,
-  get: ({ get }) => {
+  get: async ({ get }) => {
     const positions = get(positionsQuery);
     if (!positions) return [];
-    return positions.map((position) => {
+    const enhancedPositions = await Promise.all(positions.map(async (position) => {
       const { token0, token1, fee } = position;
-      const pool = get(poolState(generatePoolKey({ tokenA: token0, tokenB: token1, fee })));
+      const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
       return enhancePositionForUI(position, pool);
-    });
+    }));
+    return enhancedPositions.reverse();
   },
 });
 
@@ -218,11 +220,19 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
   const upper = new Unit(1.0001).pow(new Unit(tickUpper));
-  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool.token0Price.mul(`1e${token1.decimals-token0.decimals}`), upper }) : [undefined, undefined];
+  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool.token0Price.mul(`1e${token1.decimals - token0.decimals}`), upper }) : [undefined, undefined];
   const ratio = lower && pool && upper ? calcRatio(lower, pool.token0Price, upper) : undefined;
 
   const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
   const unwrapToken1 = getUnwrapperTokenByAddress(position.token1.address);
+
+  const tickCurrent = pool?.tickCurrent;
+
+  const positionStatus = liquidity === '0'
+    ? PositionStatus.Closed
+    : typeof tickCurrent !== 'number'
+      ? undefined
+      : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange
 
   if (
     // if token0 is a dollar-stable asset, set it as the quote token
@@ -241,6 +251,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
       leftToken: unwrapToken0,
       priceLowerForUI: invertPrice(priceUpper),
       priceUpperForUI: invertPrice(priceLower),
+      positionStatus,
       pool,
     };
   }
@@ -253,6 +264,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
     leftToken: unwrapToken1,
     priceLowerForUI: priceLower,
     priceUpperForUI: priceUpper,
+    positionStatus,
     pool,
   };
 };
@@ -262,18 +274,16 @@ export const createPreviewPositionForUI = (
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
 
-export const usePositionStatus = (position: PositionForUI) => {
-  const { token0, token1, fee, liquidity, tickLower, tickUpper } = position ?? {};
+export const usePositionStatus = (position: PositionForUI) => useMemo(() => getPositionStatus(position), [position]);
 
-  const { pool } = usePool({ tokenA: token0, tokenB: token1, fee });
+
+export const getPositionStatus = (position: PositionForUI) => {
+  const { liquidity, tickLower, tickUpper, pool } = position ?? {};
   const tickCurrent = pool?.tickCurrent;
-  return useMemo(() => {
-    return liquidity === '0'
-      ? PositionStatus.Closed
-      : typeof tickCurrent !== 'number'
+
+  return liquidity === '0'
+    ? PositionStatus.Closed
+    : typeof tickCurrent !== 'number'
       ? undefined
-      : tickCurrent < tickLower || tickCurrent > tickUpper
-      ? PositionStatus.OutOfRange
-      : PositionStatus.InRange;
-  }, [position]);
+      : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
 };

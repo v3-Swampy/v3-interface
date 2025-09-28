@@ -8,7 +8,7 @@ import { getWrapperTokenByAddress, type Token } from '@service/tokens';
 import { FeeAmount, Pool, isPoolEqual } from './';
 import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
-import _ from 'lodash-es';
+import { chunk } from 'lodash-es';
 import { type Position } from '@service/position';
 
 /**
@@ -50,7 +50,7 @@ export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' |
     .filter((p) => p !== null)
     .flat();
 
-  const resOfPool = _.chunk(await fetchMulticall(multicallsOfPool as any), 2).map(([slot0, liquidity], index) => {
+  const resOfPool = chunk(await fetchMulticall(multicallsOfPool as any), 2).map(([slot0, liquidity], index) => {
     const { token0, token1, fee } = positions[index];
     const wrapperedTokenA = getWrapperTokenByAddress(token0?.address)!;
     const wrapperedTokenB = getWrapperTokenByAddress(token1?.address)!;
@@ -72,7 +72,6 @@ export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' |
 
     return pool;
   });
-
   return resOfPool;
 };
 
@@ -105,6 +104,7 @@ export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB
   ]).then((res) => {
     const slots = res?.[0] && res?.[0] !== '0x' ? poolContract.func.interface.decodeFunctionResult('slot0', res[0]) : null;
     const liquidityRes = res?.[1] && res?.[1] !== '0x' ? poolContract.func.interface.decodeFunctionResult('liquidity', res[1]) : null;
+
     return createPool({
       ...params,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
@@ -165,7 +165,7 @@ export const getPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB: 
   const pool = getRecoil(poolState(poolKey));
   if (pool) return pool;
   const poolFetched = await fetchPool({ tokenA, tokenB, fee });
-  setRecoil(poolState(poolKey), pool);
+  setRecoil(poolState(poolKey), poolFetched);
   return poolFetched;
 };
 

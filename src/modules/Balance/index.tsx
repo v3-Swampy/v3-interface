@@ -20,6 +20,7 @@ interface Props extends Omit<ComponentProps<'div'>, 'children'> {
   placement?: PopperProps['placement'];
   children?: (balance?: string) => React.ReactNode;
   gas?: Unit;
+  id?: string;
 }
 
 const abbrStr = {
