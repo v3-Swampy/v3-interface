@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Spin from '@components/Spin';
 import BorderBox from '@components/Box/BorderBox';
 import TokenPair from '@modules/Position/TokenPair';
 import { usePoolData, PoolData } from '../LeaderBoard/fetchData';
 import { setTokens as setLiquidityTokens } from '@pages/Pool/AddLiquidity/SelectPair';
+import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
 import { setToken as setSwapToken } from '@service/swap';
 import { ReactComponent as LinkIcon } from '@assets/icons/link3.svg';
 import { getTokenByAddress, TokenCFX } from '@service/tokens';
@@ -41,15 +43,15 @@ export const PoolItem: React.FC<{
       </div>
       <div className="flex flex-col items-start gap-8px border-0 lt-md:border-l-2px lt-md:border-solid lt-md:border-orange-light lt-md:pl-8px">
         <span className="text-12px text-gray-normal">TVL</span>
-        <span className="text-14px text-black-normal font-medium">{'$ ' + tvl}</span>
+        <span className="text-14px text-black-normal font-medium">${tvl}</span>
       </div>
       <div className="flex flex-col items-start gap-8px border-0 lt-md:border-l-2px lt-md:border-solid lt-md:border-orange-light lt-md:pl-8px">
         <span className="text-12px text-gray-normal">W Points</span>
-        <span className="text-14px text-black-normal font-medium">{wPoints + 'x'}</span>
+        <span className="text-14px text-black-normal font-medium">{`${wPoints}x`}</span>
       </div>
       <div className="flex flex-col items-start gap-8px border-0 lt-md:border-l-2px lt-md:border-solid lt-md:border-orange-light lt-md:pl-8px">
         <span className="text-12px text-gray-normal">F Points</span>
-        <span className="text-14px text-black-normal font-medium">{fPoints + 'x'}</span>
+        <span className="text-14px text-black-normal font-medium">{`${fPoints}x`}</span>
       </div>
       <div className="flex flex-col items-start gap-8px lt-md:col-span-4 lt-md:w-full lt-sm:col-span-3 lt-sm:w-full">
         <span className="text-12px text-gray-normal opacity-0 lt-md:hidden">Actions</span>
@@ -85,7 +87,7 @@ export const PoolItem: React.FC<{
             "
             onClick={() => {
               setLiquidityTokens(leftToken!, rightToken!);
-
+              // setCurrentFee(Number(data.fee));
               setTimeout(() => {
                 navigate(`/pool/add_liquidity`);
               }, 50);
@@ -102,12 +104,11 @@ export const PoolItem: React.FC<{
 
 const EarnPoints: React.FC = () => {
   const pools = usePoolData(20);
-  if (!pools) return null;
-  console.log('pools', pools);
 
   return (
     <div className="flex flex-col gap-24px lt-md:gap-16px">
-      {pools.map((pool) => (
+      {!pools?.length && <Spin className="my-[48px] text-48px self-center" />}
+      {pools?.map?.((pool) => (
         <PoolItem key={pool.address} data={pool} />
       ))}
     </div>

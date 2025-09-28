@@ -1,7 +1,8 @@
 import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
-import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenVST, type Token } from '@service/tokens';
+import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, stableTokens, baseTokens, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
+import { isProduction } from '@utils/is';
 import { timestampSelector } from './timestamp';
 
 /**
@@ -26,12 +27,14 @@ function chunkByLengths<T>(array: T[] | null | undefined, lengths: number[]): T[
 
 export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
-  default: [
-    '0x5D3c14F19776d197642Db3f7dde9cb38f7AD1a0A',
-    '0x185A696a1Da0e300CBbdd1c3f1f35448c779680C',
-    '0x04989512a2f29BC1D133A03c69cA3dDe3313c478',
-    '0x48CA85EC0ca84B63925E1bcE68e6796055af289f',
-  ],
+  default: isProduction
+    ? ['0x6857285eb6b3feb1d007a57b1DFDD76B2fAb0D0a', '0x6806c2808b68b74206A0Cbe00dDe2d0e26216308', '0x108920614FD13CeaAf52026E76D18C480e88AA2A']
+    : [
+        '0x5D3c14F19776d197642Db3f7dde9cb38f7AD1a0A',
+        '0x185A696a1Da0e300CBbdd1c3f1f35448c779680C',
+        '0x04989512a2f29BC1D133A03c69cA3dDe3313c478',
+        '0x48CA85EC0ca84B63925E1bcE68e6796055af289f',
+      ],
 });
 
 export interface IncentiveKey {

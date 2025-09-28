@@ -84,15 +84,18 @@ export const useUserData = (limit: number, sortField: string): UserDataResponse 
   }, []);
 
   const data = useMemo(() => {
+    if (!userData?.length && !account) {
+      return [];
+    }
     const sortedRankData = userData?.map((item, index) => ({ ...item, ranking: index + 1 }));
     if (!account) {
-      return [{ account: undefined, wPoints: undefined, fPoints: undefined, isMy: true }, ...sortedRankData];
+      return [{ account: undefined, wPoints: undefined, fPoints: undefined, isMy: true }, ...(sortedRankData ?? [])];
     }
-    const existingUser = sortedRankData.find((user) => user.account?.toLowerCase() === account.toLowerCase());
+    const existingUser = sortedRankData?.find((user) => user.account?.toLowerCase() === account.toLowerCase());
     if (existingUser) {
-      return [{ ...existingUser, isMy: true }, ...sortedRankData.filter((user) => user.account?.toLowerCase() !== account.toLowerCase())];
+      return [{ ...existingUser, isMy: true }, ...(sortedRankData?.filter((user) => user.account?.toLowerCase() !== account.toLowerCase()) ?? [])];
     }
-    return [{ account, wPoints: undefined, fPoints: undefined, isMy: true }, ...sortedRankData];
+    return [{ account, wPoints: undefined, fPoints: undefined, isMy: true }, ...(sortedRankData ?? [])];
   }, [account, userData]);
 
   return { data, updatedAt };

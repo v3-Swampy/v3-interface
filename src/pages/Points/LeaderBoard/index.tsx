@@ -51,7 +51,6 @@ export const RankItem: React.FC<UserData> = ({ account, wPoints, fPoints, isMy, 
 
 const LeaderBoard: React.FC = () => {
   const { updatedAt } = useUserData(20, 'trade');
-  console.log('updatedAt', updatedAt);
   const updatedAtFormatted = useMemo(() => !updatedAt ? undefined : dayjs(updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss'), [updatedAt]);
 
   return (
