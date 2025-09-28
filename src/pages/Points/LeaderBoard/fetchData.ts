@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useAccount } from '@service/account';
+import { isProduction } from '@utils/is';
 export interface UserData {
   account: string | undefined;
   wPoints: number | undefined;
@@ -24,7 +25,11 @@ export interface PoolData {
 
 const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): Promise<UserDataResponse> => {
   try {
-    const response = await fetch(`https://anchorxonlineportaldevnet.bimwallet.io/points/api/users?limit=${limit}&sortField=${sortField}`);
+    const response = await fetch(
+      isProduction
+        ? `/points/api/users?limit=${limit}&sortField=${sortField}`
+        : `https://anchorxonlineportaldevnet.bimwallet.io/points/api/users?limit=${limit}&sortField=${sortField}`
+    );
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
@@ -51,7 +56,7 @@ const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): 
 
 const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
   try {
-    const response = await fetch(`https://anchorxonlineportaldevnet.bimwallet.io/points/api/pools?limit=${limit}`);
+    const response = await fetch(isProduction ? `/points/api/pools?limit=${limit}` : `https://anchorxonlineportaldevnet.bimwallet.io/points/api/pools?limit=${limit}`);
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
