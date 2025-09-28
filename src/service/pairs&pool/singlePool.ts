@@ -125,6 +125,7 @@ export const usePool = ({ tokenA, tokenB, fee }: { tokenA: Token | null | undefi
   const userActiveStatus = useUserActiveStatus();
   const poolKey = generatePoolKey({ tokenA, tokenB, fee });
   const [{ state, contents }, setPool] = useRecoilStateLoadable(poolState(poolKey));
+
   const fetchAndSetPool = useCallback(
     throttle(
       () =>

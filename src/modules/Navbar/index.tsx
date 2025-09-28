@@ -23,7 +23,6 @@ const Navbar: React.FC = () => {
   const mainScrollerDistance = useMainScrollerDistance();
 
   const isWallfreex = React.useMemo(() => {
-    return true;
     const currentUrl = window.location.href;
     return currentUrl.includes('wallfreex');
   }, []);
