@@ -107,7 +107,7 @@ const EarnPoints: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-24px lt-md:gap-16px">
-      {!pools?.length && <Spin className="my-[48px] text-48px self-center" />}
+      {pools === undefined && <Spin className="my-[48px] text-48px self-center" />}
       {pools?.map?.((pool) => (
         <PoolItem key={pool.address} data={pool} />
       ))}

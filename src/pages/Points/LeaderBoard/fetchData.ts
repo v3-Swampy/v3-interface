@@ -10,7 +10,7 @@ export interface UserData {
 }
 
 interface UserDataResponse {
-  data: UserData[];
+  data: UserData[] | undefined;
   updatedAt: number;
 }
 
@@ -78,7 +78,7 @@ const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
 
 export const useUserData = (limit: number, sortField: string): UserDataResponse => {
   const account = useAccount();
-  const [userData, setUserData] = useState<UserData[]>([]);
+  const [userData, setUserData] = useState<UserData[] | undefined>(undefined);
   const [updatedAt, setUpdatedAt] = useState<number>(0);
 
   useEffect(() => {
@@ -89,8 +89,8 @@ export const useUserData = (limit: number, sortField: string): UserDataResponse 
   }, []);
 
   const data = useMemo(() => {
-    if (!userData?.length && !account) {
-      return [];
+    if (userData === undefined) {
+      return undefined;
     }
     const sortedRankData = userData?.map((item, index) => ({ ...item, ranking: index + 1 }));
     if (!account) {
@@ -106,8 +106,8 @@ export const useUserData = (limit: number, sortField: string): UserDataResponse 
   return { data, updatedAt };
 };
 
-export const usePoolData = (limit: number): PoolData[] => {
-  const [poolData, setPoolData] = useState<PoolData[]>([]);
+export const usePoolData = (limit: number): PoolData[] | undefined => {
+  const [poolData, setPoolData] = useState<PoolData[] | undefined>(undefined);
 
   useEffect(() => {
     fetchPools(limit).then(setPoolData);

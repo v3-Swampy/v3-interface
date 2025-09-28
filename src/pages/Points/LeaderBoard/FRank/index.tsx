@@ -7,7 +7,7 @@ const FRank: React.FC = () => {
   const { data } = useUserData(20, 'liquidity');
   return (
     <>
-      {!data?.length && <Spin className="my-[48px] text-48px self-center" />}
+      {data === undefined && <Spin className="my-[48px] text-48px self-center" />}
       {data?.map((item) => (
         <RankItem key={item.account ?? 'my-account'} {...item} />
       ))}
