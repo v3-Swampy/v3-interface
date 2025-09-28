@@ -4,11 +4,13 @@ import cx from 'clsx';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Button from '@components/Button';
-import BorderBox from '@components/Box/BorderBox';
 import { ReactComponent as Logo } from '@assets/icons/logo.svg';
+import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo.svg';
 import { ReactComponent as SmallLogo } from '@assets/icons/logo_icon.svg';
+import { ReactComponent as WSmallLogo } from '@assets/icons/WallFree X-logo-small.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
+import BorderBox from '@components/Box/BorderBox';
 import { routes } from '@router/index';
 import { useRefreshPositions } from '@service/position';
 export { default as BlockNumber } from '@modules/Navbar/BlockNumber';
@@ -21,6 +23,11 @@ const Navbar: React.FC = () => {
   const account = useAccount();
   const mainScrollerDistance = useMainScrollerDistance();
 
+  const isWallfreex = React.useMemo(() => {
+    const currentUrl = window.location.href;
+    return currentUrl.includes('wallfreex');
+  }, []);
+
   return (
     <header
       className={cx(
@@ -30,21 +37,28 @@ const Navbar: React.FC = () => {
     >
       <nav className="relative flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
         <NavLink to="/swap" style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined })} className="lt-mobile:h-24px">
-          <SmallLogo className="mobile:display-none w-24px h-24px " />
-          <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />
+          {isWallfreex ? <WSmallLogo className="mobile:display-none w-24px h-24px " /> :<SmallLogo className="mobile:display-none w-24px h-24px " />}
+          {isWallfreex ? <WLogo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />: <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />}
         </NavLink>
 
         <div className="ml-58px inline-flex items-center gap-32px lt-md:display-none">
           <NavLinks />
         </div>
 
-        <BorderBox variant="gradient-white" className="flex-shrink-0 ml-auto mr-16px rounded-100px lt-mobile:ml-8px lt-mobile:mr-8px">
-          <div className="flex items-center min-w-144px h-36px text-14px px-8px rounded-100px">
-            <WPointIcon className="w-24px h-24px -mr-4px" />
-            <FPointIcon className="w-24px h-24px mr-4px" />
-            EarnPoints
-          </div>
-        </BorderBox>
+        <NavLink to="/points" className="ml-auto flex-shrink-0 mr-12px no-underline">
+          {({ isActive }) => (
+            <BorderBox className="flex justify-center items-center px-8px h-[40px] rounded-100px" variant={isActive ? 'gradient-white' : 'gray'}>
+              <BorderBox className="flex justify-center items-center w-24px h-24px rounded-full" variant={isActive ? 'gradient-white' : 'gray'}>
+                <span className={cx('text-12px font-extrabold', isActive ? 'text-gradient-orange' : 'text-gray-normal')}>W</span>
+              </BorderBox>
+              <BorderBox className="ml-[-5px] flex justify-center items-center w-24px h-24px rounded-full bg-[rgb(255,253,251)]" variant={isActive ? 'gradient-white' : 'gray'}>
+                <span className={cx('text-12px font-extrabold', isActive ? 'text-gradient-orange' : 'text-gray-normal')}>F</span>
+              </BorderBox>
+
+              <span className={cx('ml-[4px] text-14px', isActive ? 'text-gradient-orange' : 'text-gray-normal')}>Earn points</span>
+            </BorderBox>
+          )}
+        </NavLink>
 
         <div className="flex-shrink-0 mr-16px flex justify-center items-center w-156px h-40px text-14px rounded-100px text-14px text-black-normal font-normal bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
           <span className="breathing-light" />

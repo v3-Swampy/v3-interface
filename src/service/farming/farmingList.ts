@@ -27,10 +27,10 @@ function chunkByLengths<T>(array: T[] | null | undefined, lengths: number[]): T[
 export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
   default: [
-    '0x261C12D6629404797086F06743f3B2E1D63Ef4c7',
-    '0xc0D0e6fDB000b62E48db5CCD54A1CFE3c5CB30Ea',
-    '0x4A33468caAFD9220AB0b11e3342bE8AAcC468908',
-    '0xB7CC615ffcE028f541705B796EDff62f2d28BBa4',
+    '0x5D3c14F19776d197642Db3f7dde9cb38f7AD1a0A',
+    '0x185A696a1Da0e300CBbdd1c3f1f35448c779680C',
+    '0x04989512a2f29BC1D133A03c69cA3dDe3313c478',
+    '0x48CA85EC0ca84B63925E1bcE68e6796055af289f',
   ],
 });
 

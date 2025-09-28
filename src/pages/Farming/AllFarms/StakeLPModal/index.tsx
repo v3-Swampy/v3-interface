@@ -129,7 +129,7 @@ const StakeModal: React.FC<Props> = ({ poolAddress, pairInfo, incentiveKeys }) =
   }, [incentiveKeys]);
 
   const fPositions = useMemo(() => {
-    return positions.filter((p) => p.address === poolAddress && p.liquidity !== '0');
+    return positions.filter((p) => p.address.toLowerCase() === poolAddress.toLowerCase() && p.liquidity !== '0');
   }, [positions, poolAddress]);
 
   const classNameLink = useMemo(() => {
