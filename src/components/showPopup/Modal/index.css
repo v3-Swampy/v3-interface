@@ -1,0 +1,12 @@
+.modal-wrapper {
+  left: 50%;
+  top: 340px;
+  transform: translate(-50%);
+}
+
+@media screen and (max-height: 1080px) {
+  .modal-wrapper {
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}

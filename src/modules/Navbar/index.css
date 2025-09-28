@@ -1,0 +1,40 @@
+.breathing-light {
+  @apply relative inline-block text-[10px] w-[1em] h-[1em];
+}
+
+.breathing-light::after,
+.breathing-light::before {
+  @apply absolute w-full h-full rounded-full left-0 top-0 bg-[#009595];
+
+  content: '';
+  animation: breathing-light-spin 2s ease-in-out infinite;
+}
+
+.breathing-light::after {
+  animation-delay: 1s;
+}
+
+@keyframes breathing-light-spin {
+  0%,
+  100% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.history-record > strong, .history-record > b {
+  @apply text-black-normal
+}
+
+.router-link-inactive > span {
+  pointer-events: none;
+}
+
+.router-link-active > span {
+  pointer-events: auto;
+}

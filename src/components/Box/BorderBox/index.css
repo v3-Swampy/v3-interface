@@ -1,0 +1,45 @@
+.border-box {
+  @apply border-2px border-solid transition-colors lt-mobile:border-1px;
+}
+
+.border-box--none {
+  @apply !border-none;
+}
+
+.border-box--transparent {
+  @apply border-transparent;
+}
+
+.border-box--orange {
+  @apply border-orange-normal;
+}
+
+.border-box--gray {
+  @apply border-gray-normal;
+}
+
+.border-box--gradient {
+  @apply border-transparent;
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+}
+
+.border-box--orange-light-hover {
+  @apply border-orange-light-hover bg-orange-light-hover;
+}
+
+.border-box--gradient-white {
+  background-image: linear-gradient(to right, #fffdfa, #fffdfa), linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
+}
+
+.border-box--gradient-orange-light-hover {
+  background-image: linear-gradient(to right, #fff5e7, #fff5e7), linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
+}
+
+.border-box--gradient.border-box--withInput {
+  background-image: linear-gradient(to right, #24203b, #24203b), linear-gradient(90.83deg, #6667abcc 12.22%, #bbbbbbcc 59.3%, #96d8decc 89.06%);
+}
+
+.border-box--gradient.border-box--withInput:focus-within {
+  background-image: linear-gradient(to right, #24203b, #24203b), linear-gradient(90.83deg, #6667ab 12.22%, #bbbbbb 59.3%, #96d8de 89.06%);
+}

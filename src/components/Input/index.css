@@ -1,0 +1,35 @@
+.input-wrapper {
+  @apply relative inline-flex w-full h-fit text-black-normal;
+}
+
+.input {
+  @apply w-full font-normal bg-transparent border-none transition-colors placeholder-gray-normal;
+  color: inherit;
+  font-size: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.input.dynamic-font-size {
+  font-size: var(--dynamic-font-size, inherit) !important;
+}
+
+.input:not(:placeholder-shown) + .clear-icon {
+  @apply flex;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  appearance: none !important;
+  margin: 0;
+}
+
+input {
+  outline: none;
+  border: none;
+  background: transparent;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}

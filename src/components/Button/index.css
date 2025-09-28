@@ -1,0 +1,158 @@
+/** common **/
+.button {
+  @apply relative inline-flex justify-center items-center whitespace-nowrap outline-none transition-colors transition-opacity font-normal no-underline cursor-pointer;
+  font-family: 'Outfit';
+}
+
+button.button {
+  flex: 0 0 auto;
+}
+
+button.absolute {
+  position: absolute;
+}
+
+.button--fullWidth {
+  @apply flex w-full;
+}
+
+/** disabled & loading **/
+.button.is-disabled,
+.button.is-loading {
+  @apply pointer-events-none;
+}
+
+.is-loading {
+  @apply hover:opacity-90;
+}
+
+button.button.is-disabled:not(.is-loading),
+a.button.is-disabled:not(.is-loading) {
+  @apply bg-gray-normal bg-opacity-50 border-transparent text-white-normal;
+}
+
+a.button--text.is-disabled,
+button.button--text.is-disabled {
+  @apply bg-transparent text-#A9ABB2;
+}
+
+/* contained button */
+.button--contained {
+  @apply border-none;
+}
+
+.button--contained.button--orange {
+  @apply bg-orange-normal text-white-normal;
+}
+
+.button--contained.button--orange:hover,
+.button--contained.button--orange:focus-visible {
+  @apply bg-orange-normal text-white-normal;
+}
+
+.button--contained.button--orange-light {
+  @apply bg-orange-light text-black-normal;
+}
+
+.button--contained.button--orange-light:hover,
+.button--contained.button--orange-light:focus-visible {
+  @apply bg-orange-light text-black-normal;
+}
+
+.button--contained.button--gradient:not(.is-disabled), .button--contained.button--gradient.is-loading {
+  @apply text-white-normal;
+  background: linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
+}
+
+.button--contained.button--gradient:hover:not(.is-disabled),
+.button--contained.button--gradient:hover:not(.is-loading),
+.button--contained.button--gradient:focus-visible:not(.is-disabled),
+.button--contained.button--gradient:focus-visible:not(.is-loading) {
+  background: linear-gradient(94.16deg, #ee9b27 -1.32%, #e14d28 46.7%, #6f84b8 95.78%);
+}
+
+/* text button */
+.button--text {
+  @apply border-none;
+}
+
+.button--text.button--orange {
+  @apply bg-transparent bg-opacity-100 text-orange-normal;
+}
+
+.button--text.button--orange:hover,
+.button--text.button--orange:focus-visible {
+  @apply bg-orange-normal bg-opacity-25;
+}
+
+/* outlined button */
+.button--outlined {
+  @apply bg-transparent;
+}
+
+.button--outlined.button--orange {
+  @apply border-2px border-solid border-orange-normal text-orange-normal;
+}
+
+.button--outlined.button--orange:hover,
+.button--outlined.button--orange:focus-visible {
+  @apply border-orange-normal text-orange-normal;
+}
+
+.button--outlined.button--gray {
+  @apply border-2px border-solid border-gray-normal text-gray-normal;
+}
+
+.button--outlined.button--gray:hover,
+.button--outlined.button--gray:focus-visible {
+  @apply border-gray-normal text-gray-normal;
+}
+
+.button__content {
+  @apply inline-flex items-center h-full;
+}
+
+/** loading **/
+.is-loading > .button__content,
+.is-loading > .button__icon {
+  @apply opacity-0;
+}
+
+.button__loading {
+  @apply !absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-1.6em;
+}
+
+/** start end icon **/
+.button__icon + .button__content {
+  @apply ml-[.25em];
+}
+
+.button__content + .button__icon {
+  @apply ml-[.25em];
+}
+
+.button__icon {
+  @apply w-fit h-fit;
+}
+
+.button__icon > svg {
+  @apply w-[1.6em] h-[1.6em];
+}
+
+/** click effect **/
+.button::after {
+  @apply absolute inset-0 rounded-[inherit] opacity-0;
+  box-shadow: 0 0 0 6px currentColor;
+  transition: 0.4s;
+  content: '';
+}
+
+.button.button:active:not(.button--text):not(.button--link)::after {
+  @apply opacity-60;
+  box-shadow: none;
+  transition: 0s;
+}
+
+.button--contained.button--orange::after {
+  box-shadow: 0 0 0 6px #d0d0e5;
+}

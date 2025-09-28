@@ -1,0 +1,20 @@
+.switch-slider {
+  @apply transition-colors duration-200;
+}
+
+.switch-slider::before {
+  @apply block w-24px h-24px rounded-full bg-gray-normal translate-x-0 transition-all duration-200;
+  content: ' ';
+}
+
+.switch-input ~ .switch-slider {
+  @apply border-gray-normal bg-white-normal;
+}
+
+.switch-input:checked ~ .switch-slider::before {
+  @apply bg-#FFF5E7 translate-x-20px;
+}
+
+.switch-input:checked ~ .switch-slider {
+  @apply border-#FFE9CB bg-#FFE9CB;
+}
