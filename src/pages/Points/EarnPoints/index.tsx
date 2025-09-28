@@ -41,15 +41,15 @@ export const PoolItem: React.FC<{
       </div>
       <div className="flex flex-col items-start gap-8px border-0 lt-md:border-l-2px lt-md:border-solid lt-md:border-orange-light lt-md:pl-8px">
         <span className="text-12px text-gray-normal">TVL</span>
-        <span className="text-14px text-black-normal font-medium">{tvl}</span>
+        <span className="text-14px text-black-normal font-medium">{'$ ' + tvl}</span>
       </div>
       <div className="flex flex-col items-start gap-8px border-0 lt-md:border-l-2px lt-md:border-solid lt-md:border-orange-light lt-md:pl-8px">
         <span className="text-12px text-gray-normal">W Points</span>
-        <span className="text-14px text-black-normal font-medium">{wPoints}</span>
+        <span className="text-14px text-black-normal font-medium">{wPoints + 'x'}</span>
       </div>
       <div className="flex flex-col items-start gap-8px border-0 lt-md:border-l-2px lt-md:border-solid lt-md:border-orange-light lt-md:pl-8px">
         <span className="text-12px text-gray-normal">F Points</span>
-        <span className="text-14px text-black-normal font-medium">{fPoints}</span>
+        <span className="text-14px text-black-normal font-medium">{fPoints + 'x'}</span>
       </div>
       <div className="flex flex-col items-start gap-8px lt-md:col-span-4 lt-md:w-full lt-sm:col-span-3 lt-sm:w-full">
         <span className="text-12px text-gray-normal opacity-0 lt-md:hidden">Actions</span>
