@@ -3,20 +3,19 @@ import { NavLink } from 'react-router-dom';
 import cx from 'clsx';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
-import Button from '@components/Button';
 import { ReactComponent as Logo } from '@assets/icons/logo.svg';
-import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo.svg';
+import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo-beta.svg';
 import { ReactComponent as SmallLogo } from '@assets/icons/logo_icon.svg';
 import { ReactComponent as WSmallLogo } from '@assets/icons/WallFree X-logo-small.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
+import { ReactComponent as WIcon } from '@assets/icons/w_point.svg';
+import { ReactComponent as FIcon } from '@assets/icons/f_point.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
 import BorderBox from '@components/Box/BorderBox';
 import { routes } from '@router/index';
 import { useRefreshPositions } from '@service/position';
 export { default as BlockNumber } from '@modules/Navbar/BlockNumber';
 import AccountDetailDropdown from './AccountDetailDropdown';
-import { ReactComponent as FPointIcon } from '@assets/icons/f_point.svg';
-import { ReactComponent as WPointIcon } from '@assets/icons/w_point.svg';
 import './index.css';
 
 const Navbar: React.FC = () => {
@@ -24,6 +23,7 @@ const Navbar: React.FC = () => {
   const mainScrollerDistance = useMainScrollerDistance();
 
   const isWallfreex = React.useMemo(() => {
+    return true;
     const currentUrl = window.location.href;
     return currentUrl.includes('wallfreex');
   }, []);
@@ -41,27 +41,23 @@ const Navbar: React.FC = () => {
           {isWallfreex ? <WLogo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />: <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />}
         </NavLink>
 
-        <div className="ml-58px inline-flex items-center gap-32px lt-md:display-none">
+        <div className={cx("inline-flex items-center gap-32px lt-lg:gap-16px lt-md:display-none", isWallfreex ? 'ml-32px' : 'ml-58px')}>
           <NavLinks />
         </div>
 
-        <NavLink to="/points" className="ml-auto flex-shrink-0 mr-12px no-underline">
-            <BorderBox className="flex justify-center items-center px-8px h-[40px] rounded-100px" variant='gradient-white'>
-              <BorderBox className="flex justify-center items-center w-24px h-24px rounded-full" variant='gradient-white'>
-                <span className='text-12px font-extrabold text-gradient-orange'>W</span>
-              </BorderBox>
-              <BorderBox className="ml-[-5px] flex justify-center items-center w-24px h-24px rounded-full bg-[rgb(255,253,251)]" variant='gradient-white'>
-                <span className='text-12px font-extrabold text-gradient-orange'>F</span>
-              </BorderBox>
+        <NavLink to="/points" className="ml-auto flex-shrink-0 mr-12px lt-sm:mr-8px no-underline">
+          <BorderBox className="flex justify-center items-center mobile:px-8px h-[40px] rounded-100px lt-mobile:border-none! lt-mobile:bg-none!" variant='gradient-white'>
+            <WIcon className="w-24px h-24px" />
+            <FIcon className="-ml-4px w-24px h-24px" />
 
-              <span className='ml-[4px] text-14px text-gradient-orange'>Earn points</span>
-            </BorderBox>
+            <span className='ml-[4px] text-14px text-gradient-orange lt-mobile:hidden'>Earn points</span>
+          </BorderBox>
         </NavLink>
 
-        <div className="flex-shrink-0 mr-16px flex justify-center items-center w-156px h-40px text-14px rounded-100px text-14px text-black-normal font-normal bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
+        <div className="flex-shrink-0 mr-16px flex justify-center items-center lg:w-156px px-[8px] h-40px text-14px rounded-100px text-14px text-black-normal font-normal bg-orange-light-hover lt-mobile:w-auto lt-mobile:!bg-transparent lt-mobile:mr-0 lt-mobile:h-24px lt-mobile:w-24px">
           <span className="breathing-light" />
           <ConfluxLogo className="w-24px h-24px mx-4px" />
-          <span className="lt-mobile:hidden">Conflux eSpace</span>
+          <span className="lt-lg:hidden">Conflux eSpace</span>
         </div>
 
         <AuthConnectButton className="flex-shrink-0 min-w-144px h-40px text-14px px-8px rounded-100px" color="gradient">

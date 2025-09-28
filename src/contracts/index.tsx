@@ -28,7 +28,7 @@ export const NonfungiblePositionManager = createContract(
   NonfungiblePositionManagerABI
 );
 
-export const MulticallContract = createContract(isProduction ? '0x9f208d7226f05b4f43d0d36eb21d8545c3143685' : '0xd59149a01f910c3c448e41718134baeae55fa784', MulticallABI);
+export const MulticallContract = createContract(isProduction ? '0x680f7dee91e6c44a1150bc6dacccdad046dd0164' : '0xd59149a01f910c3c448e41718134baeae55fa784', MulticallABI);
 
 export const UniswapV3Factory = createContract(isProduction ? '0x50caddc77c6727bdd3c78b428c149bf110b4f595' : '0x7aa9221ca91f857289ff89d795e759d1a8236d0b', UniswapV3FactoryABI);
 

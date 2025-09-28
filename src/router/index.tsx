@@ -81,7 +81,7 @@ const RouteWrapper: React.FC = () => {
       <Navbar />
       <CustomScrollbar
         className="main-scroller"
-        contentClassName="min-h-full !flex flex-col pb-40px"
+        contentClassName="min-h-full !flex flex-col pb-40px lt-md:pb-64px"
         placeholder={undefined}
         onPointerEnterCapture={undefined}
         onPointerLeaveCapture={undefined}
