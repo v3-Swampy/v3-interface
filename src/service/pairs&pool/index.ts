@@ -36,6 +36,7 @@ export class Pool implements PoolProps {
   public tickCurrent: number | null;
   public token0Price: Unit | null;
   public token1Price: Unit | null;
+  public ratioToken0Price: Unit | null;
   constructor({ tokenA, tokenB, fee, address, sqrtPriceX96, liquidity, tickCurrent }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token }) {
     const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
     this.token0 = token0;
@@ -53,6 +54,11 @@ export class Pool implements PoolProps {
           .div(new Unit(`1e${token1.decimals}`))
           .div(Q192Unit);
     this.token1Price = !sqrtPriceX96 ? null : new Unit(1).div(this.token0Price!);
+    this.ratioToken0Price = !sqrtPriceX96
+      ? null
+      : new Unit(sqrtPriceX96)
+          .mul(new Unit(sqrtPriceX96))
+          .div(Q192Unit);
   }
 
   public priceOf = (token: Token) => {
