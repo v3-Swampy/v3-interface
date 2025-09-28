@@ -55,7 +55,7 @@ const LeaderBoard: React.FC = () => {
 
   return (
     <>
-      <div className="flex items-center">
+      <div className="flex items-center lt-mobile:flex-wrap">
         <NavLink to="/points/leader-board/w-rank" className={({ isActive }) => cx(linkClass, isActive ? linkActiveClass : linkNotActiveClass)}>
           W Rank
         </NavLink>
@@ -64,11 +64,11 @@ const LeaderBoard: React.FC = () => {
         </NavLink>
 
         {updatedAtFormatted &&
-          <span className="ml-auto self-end text-14px text-gray-normal font-medium">
+          <span className="mobile:ml-auto self-end text-14px lt-sm:text-12px text-gray-normal font-medium whitespace-nowrap lt-mobile:mt-16px">
             Last updated: {updatedAtFormatted}
             <Tooltip text="Data updates hourly">
               <span className="w-12px h-12px ml-6px">
-                <InfoIcon className="w-12px h-12px" />
+                <InfoIcon className="w-12px h-12px lt-mobile:translate-y-2px" />
               </span>
             </Tooltip>
           </span>
