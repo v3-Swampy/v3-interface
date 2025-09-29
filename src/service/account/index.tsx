@@ -7,7 +7,7 @@ export * from './Network';
 
 
 export const accountState = atom<string | null | undefined>({
-  key: 'account-vSwap',
+  key: 'account-WallFreeX',
   default: undefined,
   effects: [
     ({ setSelf, trigger }) => {

@@ -5,7 +5,7 @@ import { persistAtomWithDefault } from '@utils/recoilUtils';
 
 type Local = 'en' | 'zh';
 const localeState = atom<Local>({
-  key: `localeState-vSwap-${import.meta.env.MODE}`,
+  key: `localeState-WallFreeX-${import.meta.env.MODE}`,
   default: 'en',
   effects: [persistAtomWithDefault('en')],
 });
