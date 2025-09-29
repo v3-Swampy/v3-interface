@@ -102,6 +102,15 @@ export default defineConfig({
           Referer: 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com',
         },
       },
+      '/points/api': {
+        target: 'https://app.wallfreex.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/points\/api/, '/points/api'),
+        headers: {
+          Referer: 'https://app.wallfreex.com',
+        },
+      },
     },
   },
 });

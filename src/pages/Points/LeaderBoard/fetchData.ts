@@ -21,6 +21,7 @@ export interface PoolData {
   wPoints: number;
   fPoints: number;
   tvl: number;
+  fee: number;
 }
 
 const fetchUserData = async (limit: number = 100, sortField: string = 'trade'): Promise<UserDataResponse> => {
@@ -69,6 +70,7 @@ const fetchPools = async (limit: number = 100): Promise<PoolData[]> => {
       tvl: pool.tvl,
       token0Address: pool.token0,
       token1Address: pool.token1,
+      fee: pool.fee,
     }));
   } catch (error) {
     console.error('Error fetching pool data:', error);
