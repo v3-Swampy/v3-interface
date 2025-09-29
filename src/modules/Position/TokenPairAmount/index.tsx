@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo} from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { type PositionForUI } from '@service/position';
 import { trimDecimalZeros } from '@utils/numberUtils';
@@ -46,12 +46,14 @@ const TokenPairAmount: React.FC<{
   const amountLeftStr = trimDecimalZeros(amountLeft?.toDecimalStandardUnit(5, leftTokenForUI?.decimals));
   const amountRightStr = trimDecimalZeros(amountRight?.toDecimalStandardUnit(5, rightTokenForUI?.decimals));
   const removed = liquidity === '0';
-
+  
+  const anotherRatio = useMemo(() => typeof ratio !== 'number' ? undefined : Number((100 - ratio).toFixed(2)), [ratio]);
+  
   if (!position) return null;
   return (
     <div className="flex flex-col gap-8px w-full">
-      <TokenItem token={leftTokenForUI} amount={amountLeftStr} ratio={typeof ratio == 'number' && !removed ? (isLeftTokenEqualToken0 ? ratio : 100 - ratio) : undefined} />
-      <TokenItem token={rightTokenForUI} amount={amountRightStr} ratio={typeof ratio == 'number' && !removed ? (isLeftTokenEqualToken0 ? 100 - ratio : ratio) : undefined} />
+      <TokenItem token={leftTokenForUI} amount={amountLeftStr} ratio={typeof ratio == 'number' && !removed ? (isLeftTokenEqualToken0 ? ratio : anotherRatio) : undefined} />
+      <TokenItem token={rightTokenForUI} amount={amountRightStr} ratio={typeof ratio == 'number' && !removed ? (isLeftTokenEqualToken0 ? anotherRatio : ratio) : undefined} />
     </div>
   );
 };
