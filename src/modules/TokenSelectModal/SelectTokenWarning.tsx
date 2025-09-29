@@ -14,13 +14,13 @@ const transitions = {
     cancel: 'Cancel',
     confirm: 'I understand',
     warning: 'Warning',
-    add_warning_desc: "{tokenSymbol} isn't traded on leading U.S centralized exchanges or frequently swapped on vSwap. Always conduct your own research before trading.",
+    add_warning_desc: "{tokenSymbol} isn't traded on leading U.S centralized exchanges or frequently swapped on WallFreeX. Always conduct your own research before trading.",
   },
   zh: {
     cancel: 'Cancel',
     confirm: 'I understand',
     warning: 'Warning',
-    add_warning_desc: "{tokenSymbol} isn't traded on leading U.S centralized exchanges or frequently swapped on vSwap. Always conduct your own research before trading.",
+    add_warning_desc: "{tokenSymbol} isn't traded on leading U.S centralized exchanges or frequently swapped on WallFreeX. Always conduct your own research before trading.",
   },
 } as const;
 

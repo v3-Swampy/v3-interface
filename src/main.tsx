@@ -26,7 +26,7 @@ const WalletConnectProvider = createWalletConnectProvider({
   projectId: '4e899f779e6ccef67d25e3804ace4af1',
   targetChainId: `eip155:${targetChainId}`,
   metadata: {
-    name: "vSwap Finance",
+    name: "WallFreeX Finance",
     description:
       "A concentrated liquidity DEX on Conflux eSpace",
     url: window.location.host,

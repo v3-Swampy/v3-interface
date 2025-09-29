@@ -145,32 +145,25 @@ export const calcAmountFromPrice = ({
   return [amount0, amount1];
 };
 
-export const calcRatio = (lower: Unit, current: Unit | null | undefined, upper: Unit) => {
-  try {
-    if (!current) {
-      return undefined;
-    }
-    if (!current.greaterThan(lower)) {
-      return 100;
-    } else if (!current.lessThan(upper)) {
-      return 0;
-    }
+export const calcRatio = (sqrtPriceX96: string, lower: number, upper: number) => {
+  const sqrtPriceX96Decimal = new Decimal(sqrtPriceX96);
+  const pow96 = new Decimal(2).pow(96);
+  const sqrtPrice = sqrtPriceX96Decimal.div(pow96);
+  const sqrt1_0001 = new Decimal(1.0001).sqrt();
+  
+  const upperPrice = sqrt1_0001.pow(upper);
+  let token0Weight = new Decimal(1).sub(sqrtPrice.div(upperPrice));
+  
+  const lowerPrice = sqrt1_0001.pow(lower);
+  let token1Weight = new Decimal(1).sub(lowerPrice.div(sqrtPrice));
+  
+  token0Weight = Decimal.max(0, token0Weight);
+  token1Weight = Decimal.max(0, token1Weight);
+  
+  const totalWeight = token0Weight.add(token1Weight);
+  const token0Ratio = totalWeight.gt(0) ? token0Weight.div(totalWeight).mul(100).toDecimalPlaces(2, Decimal.ROUND_DOWN).toNumber() : 0;
 
-    const a = Number.parseFloat(lower.toDecimalMinUnit(15));
-    const b = Number.parseFloat(upper.toDecimalMinUnit(15));
-    const c = Number.parseFloat(current.toDecimalMinUnit(15));
-
-    // console.log('ratio', a, b, c);
-
-    const ratio = Math.floor((1 / ((Math.sqrt(a * b) - Math.sqrt(b * c)) / (c - Math.sqrt(b * c)) + 1)) * 100);
-
-    if (ratio < 0 || ratio > 100) {
-      throw Error('Out of range');
-    }
-    return ratio;
-  } catch {
-    return undefined;
-  }
+  return token0Ratio;
 };
 
 export const findClosestValidTick = ({ fee, searchTick }: { fee: FeeAmount; searchTick: Unit | string | number }) => {

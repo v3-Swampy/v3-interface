@@ -37,7 +37,7 @@ export const PoolItem: React.FC<{
                 rightToken,
               } as any
             }
-            showFee={false}
+            showFee={data.fee}
           />
         </div>
       </div>
@@ -62,16 +62,9 @@ export const PoolItem: React.FC<{
               border-2px border-solid border-orange text-orange-normal text-14px font-medium cursor-pointer whitespace-nowrap
             "
             onClick={() => {
-              if (leftToken?.symbol === 'WCFX') {
-                setSwapToken({ type: 'sourceToken', token: TokenCFX });
-              } else {
-                setSwapToken({ type: 'sourceToken', token: leftToken });
-              }
-              if (rightToken?.symbol === 'WCFX') {
-                setSwapToken({ type: 'destinationToken', token: TokenCFX });
-              } else {
-                setSwapToken({ type: 'destinationToken', token: rightToken });
-              }
+              setSwapToken({ type: 'sourceToken', token: leftToken?.symbol === 'WCFX' ? TokenCFX : leftToken! });
+              setSwapToken({ type: 'destinationToken', token: rightToken?.symbol === 'WCFX' ? TokenCFX : rightToken! });
+
               setTimeout(() => {
                 navigate('/swap');
               }, 50);
@@ -86,8 +79,8 @@ export const PoolItem: React.FC<{
               border-2px border-solid border-orange text-orange-normal text-14px font-medium cursor-pointer whitespace-nowrap
             "
             onClick={() => {
-              setLiquidityTokens(leftToken!, rightToken!);
-              // setCurrentFee(Number(data.fee));
+              setLiquidityTokens(leftToken?.symbol === 'WCFX' ? TokenCFX : leftToken!, rightToken?.symbol === 'WCFX' ? TokenCFX : rightToken!);
+              setCurrentFee(Number(data.fee));
               setTimeout(() => {
                 navigate(`/pool/add_liquidity`);
               }, 50);

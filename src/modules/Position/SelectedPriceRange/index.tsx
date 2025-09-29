@@ -58,7 +58,7 @@ const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null
       <p className="text-24px leading-30px font-normal">{displayPrice}</p>
       <p className="text-gray-normal text-12px leading-15px font-normal">{`${tokenA?.symbol} ${i18n.per} ${tokenB?.symbol}`}</p>
       <p className="max-w-172px text-12px leading-15px text-center font-normal">
-        {compiled(i18n.price_desc, { tokenSymbol: type === PriceType.Min ? tokenA?.symbol ?? '' : tokenB?.symbol ?? '' })}
+        {compiled(i18n.price_desc, { tokenSymbol: type === PriceType.Min ? tokenB?.symbol ?? '' : tokenA?.symbol ?? '' })}
       </p>
     </div>
   );
