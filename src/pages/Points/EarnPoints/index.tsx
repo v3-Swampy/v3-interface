@@ -37,7 +37,7 @@ export const PoolItem: React.FC<{
                 rightToken,
               } as any
             }
-            showFee={false}
+            showFee={data.fee}
           />
         </div>
       </div>
@@ -87,7 +87,7 @@ export const PoolItem: React.FC<{
             "
             onClick={() => {
               setLiquidityTokens(leftToken!, rightToken!);
-              // setCurrentFee(Number(data.fee));
+              setCurrentFee(Number(data.fee));
               setTimeout(() => {
                 navigate(`/pool/add_liquidity`);
               }, 50);

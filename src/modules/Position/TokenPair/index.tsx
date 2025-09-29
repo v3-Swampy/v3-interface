@@ -9,7 +9,7 @@ import { type Token } from '@service/tokens';
 interface Props extends ComponentProps<'div'> {
   position: PositionForUI;
   inverted?: boolean;
-  showFee?: boolean;
+  showFee?: false | number;
   leftToken?: Token;
   rightToken?: Token;
   symbolClassName?: string;
@@ -27,9 +27,9 @@ const TokenPair: React.FC<Props> = ({ position, leftToken, rightToken, inverted 
       <span className={`mx-4px text-black-normal font-medium ${symbolClassName}`}>
         {leftTokenForUI?.symbol} / {rightTokenForUI?.symbol}
       </span>
-      {showFee && (
+      {showFee !== false && (
         <span className={`inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-normal ${feeClassName}`}>
-          {fee / 10000}%
+          {(typeof showFee === 'number' ? showFee : fee) / 10000}%
         </span>
       )}
     </div>
