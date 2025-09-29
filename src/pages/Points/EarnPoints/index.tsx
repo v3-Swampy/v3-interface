@@ -22,7 +22,7 @@ export const PoolItem: React.FC<{
     <BorderBox
       className="
         md:h-84px lt-md:py-16px px-32px lt-md:px-8px items-center rounded-16px
-        grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr] lt-md:grid-cols-[2fr_1fr_1fr_1fr] lt-sm:grid-cols-3
+        grid grid-cols-[3fr_1fr_.75fr_.75fr_1fr] lt-md:grid-cols-[2fr_1fr_1fr_1fr] lt-sm:grid-cols-3
         lt-md:gap-16px
       "
       variant="orange-light-hover"
@@ -58,7 +58,7 @@ export const PoolItem: React.FC<{
         <div className="flex items-center gap-8px lt-md:w-full lt-sm:w-full">
           <div
             className="
-              h-32px px-32px inline-flex justify-center items-center gap-2px rounded-100px
+              h-32px px-16px inline-flex justify-center items-center gap-2px rounded-100px
               border-2px border-solid border-orange text-orange-normal text-14px font-medium cursor-pointer whitespace-nowrap
             "
             onClick={() => {
@@ -75,7 +75,7 @@ export const PoolItem: React.FC<{
           </div>
           <div
             className="
-              h-32px px-32px inline-flex justify-center items-center gap-2px rounded-100px
+              h-32px px-16px inline-flex justify-center items-center gap-2px rounded-100px
               border-2px border-solid border-orange text-orange-normal text-14px font-medium cursor-pointer whitespace-nowrap
             "
             onClick={() => {
