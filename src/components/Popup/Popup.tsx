@@ -139,13 +139,14 @@ const PopupContainer = forwardRef<PopupMethods>((_, ref) => {
         ItemWrapperClassName={cx('itemWrapperClassName', itemWrapperClassName)}
         ItemWrapperStyle={itemWrapperStyle}
       >
-        {(popup) => (
+        {({ key, ...popup }) => (
           <PopupItem
             handleClose={() => {
-              popPopup(popup.key);
+              popPopup(key);
               popup?.onClose?.();
             }}
             {...popup}
+            key={key}
           />
         )}
       </List>

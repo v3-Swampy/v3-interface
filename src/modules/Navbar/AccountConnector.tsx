@@ -15,12 +15,11 @@ const ConnectWallet: React.FC<ComponentProps<'div'> & { icon?: string; name: str
 
 const prioritySorter = createPrioritySorter(['Fluent', 'MetaMask', 'WalletConnect']);
 
-
 const ConnectModalContent: React.FC = () => {
   const wallets = useRegisteredWallets(prioritySorter);
 
   return (
-    <div className="flex justify-center items-center gap-20px pt-20px pb-22px lt-md:justify-center flex-wrap">
+    <div className="flex items-center gap-20px pt-20px pb-22px flex-wrap">
       {wallets.map((wallet) => (
         <ConnectWallet key={wallet.walletName} connect={() => connect(wallet.walletName)} icon={wallet.walletIcon} name={wallet.walletName} />
       ))}

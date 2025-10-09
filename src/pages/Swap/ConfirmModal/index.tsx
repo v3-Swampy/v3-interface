@@ -132,16 +132,6 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
         fromPreview
       />
 
-      {updateTradeFunc === null && (
-        <p className={cx('px-24px text-14px leading-18px text-gray-normal font-normal', isMobile ? 'mt-80px' : 'my-16px')}>
-          Input is estimated. You will sell at most
-          <span className="mx-6px text-black-normal">
-            {trimDecimalZeros(Unit.fromStandardUnit(sourceTokenAmount).toDecimalStandardUnit(5))} {sourceToken.symbol}
-          </span>
-          or the transaction will revert.
-        </p>
-      )}
-
       {updateTradeFunc !== null && (
         <div className={cx('px-24px flex items-center h-40px rounded-8px bg-orange-light text-18px text-orange-normal font-normal', isMobile ? 'mt-76px' : 'mt-12px mb-16px')}>
           <WarningIcon className="w-24px h-24px mr-12px" />
