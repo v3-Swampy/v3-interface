@@ -15,7 +15,7 @@ const Tooltip: React.FC<Omit<Props, 'Content'> & { text?: string }> = ({
 }) => {
   return (
     <Popper
-      className="max-w-[320px] px-[8px] py-[6px] rounded-[4px] bg-[rgba(34,34,34,0.90)] text-[14px] text-[#FFFDFA] leading-normal"
+      className="max-w-[360px] px-[8px] py-[6px] rounded-[4px] bg-[rgba(34,34,34,0.90)] text-[14px] text-[#FFFDFA] leading-normal"
       visible={visible}
       placement={placement}
       animationType={animationType}
