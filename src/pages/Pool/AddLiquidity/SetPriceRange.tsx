@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useLayoutEffect } from 'react';
+import React, { memo, useCallback, useMemo, useLayoutEffect, useEffect } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues, type UseFormGetValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
@@ -105,6 +105,14 @@ const RangeInput: React.FC<
     }
     return recommendVal;
   }, [priceTokenA]);
+  
+  useEffect(() => {
+    const value = getValues();
+    const priceStr = value[`price-${type}`];
+    if (!priceStr) {
+      setValue(`price-${type}`, placeholder);
+    }
+  }, [placeholder]);
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
@@ -213,7 +221,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
   const isBothTokenSelected = !!tokenA && !!tokenB;
 
   const fee = useCurrentFee();
-  const { state, pool } = usePool({ tokenA, tokenB, fee });
+  const { pool } = usePool({ tokenA, tokenB, fee });
   const priceTokenA = useMemo(
     () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
     [tokenA?.address, pool, priceInit]
