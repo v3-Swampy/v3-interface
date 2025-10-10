@@ -205,7 +205,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
                 </Tooltip>
                 <span className="w-0 flex-1 flex">
                   <Tooltip text={slippageAmount} className="break-all">
-                    <span className="flex-1 w-0 truncate">{slippageAmount}</span>
+                    <span className="flex-1 w-0 truncate text-right">{slippageAmount}</span>
                   </Tooltip>
                   <span className="shrink-0">{tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}</span>
                 </span>
