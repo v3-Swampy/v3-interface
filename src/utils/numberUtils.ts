@@ -1,3 +1,5 @@
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+
 export const numFormat = (num?: string) => {
   if (!num) return '';
   const [int, dec] = num.split('.');
@@ -33,4 +35,23 @@ export const numberWithCommas = (x: number | string) => {
 export const addZeroToDay = (x: number | string | undefined) => {
   if (String(x).length == 1) return '0' + x;
   return x + '';
+};
+
+export const formatDisplayAmount = (
+  amount: string | number | Unit | undefined,
+  options: {
+    decimals?: number;
+    minNum?: number | string;
+    toFixed?: number;
+    unit?: string;
+  } = {}
+) => {
+  if (amount === undefined) return amount;
+  const { decimals = 0, minNum = '0.00001', toFixed = 5, unit = '' } = options;
+  const amountUnit = new Unit(amount).div(Unit.pow(10, decimals));
+  if (amountUnit.equals(0)) return `${unit}0`;
+  if (minNum && amountUnit.lessThan(minNum)) {
+    return `<${unit}${minNum}`;
+  }
+  return `${unit}${amountUnit.toDecimalMinUnit(toFixed)}`;
 };
