@@ -1,5 +1,4 @@
-import React, { memo, useState, useCallback, useMemo, useEffect } from 'react';
-import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import React, { memo, useState, useCallback, useMemo } from 'react';
 import cx from 'clsx';
 import Tooltip from '@components/Tooltip';
 import Accordion from '@components/Accordion';
@@ -8,13 +7,14 @@ import useI18n from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { isTokenEqual } from '@service/tokens';
 import { TradeState, TradeType, type useBestTrade } from '@service/pairs&pool';
-import { getSlippageTolerance, useSlippageTolerance } from '@service/settings';
-import { trimDecimalZeros } from '@utils/numberUtils';
+import { useSlippageTolerance } from '@service/settings';
+import { formatDisplayAmount, trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
 import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
 import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 import { ReactComponent as StationIcon } from '@assets/icons/station.svg';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 
 const transitions = {
   en: {
@@ -55,8 +55,8 @@ interface Props {
 
 const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinationTokenUSDPrice, fromPreview, sourceTokenAmount, destinationTokenAmount }) => {
   const i18n = useI18n(transitions);
-  const slippage = getSlippageTolerance() || 0;
   const { value: slippageForUi } = useSlippageTolerance();
+  const slippage = useMemo(() => +new Unit(slippageForUi).div(100).toDecimalMinUnit(), [slippageForUi]);
   const sourceToken = useSourceToken();
   const destinationToken = useDestinationToken();
   const isBothTokenSelected = sourceToken && destinationToken;
@@ -78,11 +78,11 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
 
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
 
-  const networkFee = bestTrade.trade?.networkFeeByAmount
-    ? bestTrade.trade?.networkFeeByAmount.toDecimalMinUnit(5) === '0.00000'
-      ? '<$0.00001'
-      : '$' + bestTrade.trade?.networkFeeByAmount.toDecimalMinUnit(5)
-    : undefined;
+  const networkFee = formatDisplayAmount(bestTrade.trade?.networkFeeByAmount, {
+    minNum: '0.00001',
+    toFixed: 5,
+    unit: '$',
+  });
 
   const slippageAmount = useMemo(() => {
     let amount = '0';
@@ -94,7 +94,11 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
       amount = getAmountInMaximumDecimal(bestTrade?.trade?.amountIn ?? '0', slippage);
       decimals = sourceToken?.decimals;
     }
-    return new Unit(amount).toDecimalStandardUnit(5, decimals);
+    return formatDisplayAmount(amount, {
+      decimals,
+      minNum: '0.00001',
+      toFixed: 5,
+    });
   }, [tradeType, TradeType, bestTrade, slippage, sourceToken, destinationToken]);
 
   const isInputedAmount = sourceTokenAmount && destinationTokenAmount;
@@ -138,7 +142,11 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
           ) : (
             <>
               <div className="ml-24px lt-mobile:ml-16px relative leading-18px text-14px text-black-normal font-normal cursor-ew-resize" onClick={handleClickAccordionTitle}>
-                {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;{`${toTokenPrice?.toDecimalMinUnit(5)} ${toToken?.symbol}`}
+                {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;
+                {`${formatDisplayAmount(toTokenPrice, {
+                  toFixed: 5,
+                  minNum: '0.00001',
+                })} ${toToken?.symbol}`}
                 {fromTokenUSDPrice && <>&nbsp;&nbsp;(${trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))})</>}
               </div>
               {networkFee && (
@@ -166,7 +174,12 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
             </span>
           </Tooltip>
           <span className="font-normal text-black-normal">
-            {bestTrade.trade?.amountOut?.toDecimalStandardUnit(5, destinationToken?.decimals)} {destinationToken?.symbol}
+            {formatDisplayAmount(bestTrade.trade?.amountOut, {
+              decimals: destinationToken.decimals,
+              toFixed: 5,
+              minNum: '0.00001',
+            })}{' '}
+            {destinationToken?.symbol}
           </span>
         </div>
 
@@ -177,23 +190,26 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
               <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
             </span>
           </Tooltip>
-          <span className="text-gray-normal">{bestTrade?.trade?.priceImpact?.mul(100).toDecimalMinUnit(2)}%</span>
+          <span className="text-gray-normal">{formatDisplayAmount(bestTrade?.trade?.priceImpact?.mul(100), { toFixed: 2, minNum: '0.01' })}%</span>
         </div>
 
         {tradeType !== undefined && (
           <div className="mt-8px flex justify-between items-center leading-18px text-14px text-gray-normal whitespace-nowrap">
             <div className="w-full">
-              <Tooltip text={tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received_tooltip : i18n.maximum_send_tooltip} zIndex={fromPreview ? 10001 : undefined}>
-                <div className="flex justify-between items-center whitespace-nowrap">
-                  <span className="flex items-center max-w-60% whitespace-normal">
+              <div className="flex justify-between items-center whitespace-nowrap">
+                <Tooltip text={tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received_tooltip : i18n.maximum_send_tooltip} zIndex={fromPreview ? 10001 : undefined}>
+                  <span className="flex items-center max-w-60% whitespace-normal shrink-0">
                     {tradeType === TradeType.EXACT_INPUT ? i18n.minimum_received : i18n.maximum_send} ({slippageForUi} %)
                     <InfoIcon className="w-12px h-12px ml-6px flex-shrink-0" />
                   </span>
-                  <span>
-                    {slippageAmount} {tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}
-                  </span>
-                </div>
-              </Tooltip>
+                </Tooltip>
+                <span className="w-0 flex-1 flex">
+                  <Tooltip text={slippageAmount} className="break-all">
+                    <span className="flex-1 w-0 truncate text-right">{slippageAmount}</span>
+                  </Tooltip>
+                  <span className="shrink-0">{tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}</span>
+                </span>
+              </div>
             </div>
           </div>
         )}
