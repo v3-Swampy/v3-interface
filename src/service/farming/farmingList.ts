@@ -29,12 +29,7 @@ export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
   default: isProduction
     ? ['0x6857285eb6b3feb1d007a57b1DFDD76B2fAb0D0a', '0x6806c2808b68b74206A0Cbe00dDe2d0e26216308', '0x108920614FD13CeaAf52026E76D18C480e88AA2A']
-    : [
-        '0x5D3c14F19776d197642Db3f7dde9cb38f7AD1a0A',
-        '0x185A696a1Da0e300CBbdd1c3f1f35448c779680C',
-        '0x04989512a2f29BC1D133A03c69cA3dDe3313c478',
-        '0x48CA85EC0ca84B63925E1bcE68e6796055af289f',
-      ],
+    : ['0x98dA44bdf4A4727E2fD47325d0782e380a0cc9aB', '0xD12d737E8561dF7A780876B2489FE4571aF2E1EB'],
 });
 
 export interface IncentiveKey {
