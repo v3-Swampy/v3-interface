@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { selector, useRecoilValue, selectorFamily } from 'recoil';
 import { accountState } from '@service/account';
 import { fetchPointPools, fetchPointRank, fetchUserPoints } from './apis';
+import { useAutoRefreshData } from '@utils/recoilUtils';
 
 export * from './types';
 
@@ -49,3 +50,30 @@ export const useUserRank = (limit: number, sortField: string) => {
   return userPointWithRank;
 };
 export const usePointPools = (limit: number) => useRecoilValue(pointPoolsQuery(limit));
+
+export const useAutoRefreshUserPoints = () =>
+  useAutoRefreshData({
+    recoilValue: userPointsQuery,
+    // 30 minutes
+    interval: 1000 * 60 * 30,
+    refreshImmediately: true,
+  });
+
+export const useAutoRefreshPointRank = (limit: number, sortField: string) =>
+  useAutoRefreshData({
+    recoilValue: pointRankQuery({
+      limit,
+      sortField,
+    }),
+    // 30 minutes
+    interval: 1000 * 60 * 30,
+    refreshImmediately: true,
+  });
+
+export const useAutoRefreshPointPools = (limit: number) =>
+  useAutoRefreshData({
+    recoilValue: pointPoolsQuery(limit),
+    // 30 minutes
+    interval: 1000 * 60 * 30,
+    refreshImmediately: true,
+  });
