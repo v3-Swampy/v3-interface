@@ -70,17 +70,17 @@ const Navbar: React.FC = () => {
 const NavLinks: React.FC = () => {
   const refreshPositions = useRefreshPositions();
 
-  const isWallfreex = React.useMemo(() => {
+  const isWallfreexMainnet = React.useMemo(() => {
     const currentUrl = window.location.href;
-    return currentUrl.includes('wallfreex');
+    return currentUrl.includes('wallfreex') && !currentUrl.includes('test') ;
   }, []);
 
   return (
     <>
       {routes
         .filter((route) => {
-          // Hide farming and staking routes when URL includes wallfreex
-          if (isWallfreex && (route.path === 'farming' || route.path === 'staking')) {
+          // Hide farming and staking routes when URL includes 'wallfreex' and on conflux mainnet
+          if (isWallfreexMainnet && (route.path === 'farming' || route.path === 'staking')) {
             return false;
           }
           return true;
