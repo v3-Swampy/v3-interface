@@ -1,8 +1,7 @@
-import React, { useCallback, Suspense } from 'react';
+import React from 'react';
 import cx from 'clsx';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
-import Spin from '@components/Spin';
 import { NavLink, Outlet } from 'react-router-dom';
 
 const PointsPage: React.FC = () => {
