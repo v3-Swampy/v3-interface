@@ -7,7 +7,7 @@ import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
 import { setToken as setSwapToken } from '@service/swap';
 import { ReactComponent as LinkIcon } from '@assets/icons/link3.svg';
 import { getTokenByAddress, TokenCFX } from '@service/tokens';
-import { PoolData, usePointPools } from '@service/points';
+import { PoolData, useAutoRefreshPointPools, usePointPools } from '@service/points';
 import Spin from '@components/Spin';
 import Delay from '@components/Delay';
 
@@ -97,6 +97,7 @@ const PoolItem: React.FC<{
 };
 
 const EarnPointsContent: React.FC = () => {
+  useAutoRefreshPointPools(20);
   const pools = usePointPools(20);
 
   return (
