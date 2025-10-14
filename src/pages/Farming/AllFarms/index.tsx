@@ -160,7 +160,7 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
       const value = rewardTokenValues[tokenAddress]?.value;
       if (!rewardTokenPrices[tokenAddress] || !value)
         rewardTokenAPRs[tokenAddress] = {
-          apr: 'Infinity%',
+          apr: 'Infinity',
           token,
         };
       else {
