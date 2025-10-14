@@ -1,4 +1,4 @@
-import { useUserRank } from '@service/points';
+import { useAutoRefreshUserPoints, useUserRank } from '@service/points';
 import { RankItem } from './RankItem';
 import React, { Suspense } from 'react';
 import { useAccount } from '@service/account';
@@ -8,6 +8,7 @@ const UserPointPlaceholder: React.FC<{ account: string }> = ({ account }) => {
 };
 
 const UserPointContent: React.FC<{ limit: number; sortField: string }> = ({ limit, sortField }) => {
+  useAutoRefreshUserPoints();
   const userPoint = useUserRank(limit, sortField);
   if (!userPoint) return null;
   return <RankItem {...userPoint} isPinned />;
