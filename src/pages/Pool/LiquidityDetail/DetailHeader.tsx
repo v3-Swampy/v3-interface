@@ -36,7 +36,7 @@ const DetailHeader: React.FC = () => {
         <TokenPair position={position} inverted={inverted} />
         <Status position={position} />
       </div>
-      {isOwner && (
+      {isOwner && status && status !== PositionStatus.Closed && (
         <div className="flex md:justify-end gap-16px lt-mobile:gap-12px lt-mini:gap-8px lt-md:w-full lt-md:mt-24px">
           <Button
             className="px-24px h-40px rounded-100px text-14px font-normal !text-orange-normal lt-md:max-w-50%"
@@ -46,16 +46,14 @@ const DetailHeader: React.FC = () => {
           >
             {i18n.increase_liquidity}
           </Button>
-          {status && status !== PositionStatus.Closed && (
-            <Button
-              className="px-24px h-40px rounded-100px text-14px font-normal lt-md:max-w-50%"
-              color="gradient"
-              onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}
-              id="pool-goto-remove-liquidity"
-            >
-              {i18n.remove_liquidity}
-            </Button>
-          )}
+          <Button
+            className="px-24px h-40px rounded-100px text-14px font-normal lt-md:max-w-50%"
+            color="gradient"
+            onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}
+            id="pool-goto-remove-liquidity"
+          >
+            {i18n.remove_liquidity}
+          </Button>
         </div>
       )}
     </div>
