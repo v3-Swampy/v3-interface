@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import { usePosition, usePositionFees, useIsPositionOwner } from '@service/position';
 import { useTokenPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
-import { formatDisplayAmount, trimDecimalZeros } from '@utils/numberUtils';
+import { formatDisplayAmount } from '@utils/numberUtils';
 import showCollectFeesModal from './CollectFeesModal';
 
 const transitions = {
@@ -33,14 +33,12 @@ const UnclaimedFees: React.FC = () => {
   const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '0';
   const fee =
     token0Fee && token1Fee
-      ? trimDecimalZeros(
-          formatDisplayAmount(new Unit(token0Fee).add(token1Fee), {
-            decimals: 0,
-            minNum: '0.00001',
-            toFixed: 5,
-            unit: '$',
-          })
-        )
+      ? formatDisplayAmount(new Unit(token0Fee).add(token1Fee), {
+          decimals: 0,
+          minNum: '0.00001',
+          toFixed: 5,
+          unit: '$',
+        })
       : '-';
   const isOwner = useIsPositionOwner(Number(tokenId));
 
