@@ -37,7 +37,34 @@ export const addZeroToDay = (x: number | string | undefined) => {
   return x + '';
 };
 
-export const formatDisplayAmount = (
+export function formatDisplayAmount(
+  amount: undefined,
+  options: {
+    decimals?: number;
+    minNum?: number | string;
+    toFixed?: number;
+    unit?: string;
+  }
+): undefined;
+export function formatDisplayAmount(
+  amount: string | number | Unit,
+  options: {
+    decimals?: number;
+    minNum?: number | string;
+    toFixed?: number;
+    unit?: string;
+  }
+): string;
+export function formatDisplayAmount(
+  amount: string | number | Unit | undefined,
+  options: {
+    decimals?: number;
+    minNum?: number | string;
+    toFixed?: number;
+    unit?: string;
+  }
+): string | undefined;
+export function formatDisplayAmount(
   amount: string | number | Unit | undefined,
   options: {
     decimals?: number;
@@ -45,7 +72,7 @@ export const formatDisplayAmount = (
     toFixed?: number;
     unit?: string;
   } = {}
-) => {
+) {
   if (amount === undefined) return amount;
   const { decimals = 0, minNum = '0.00001', toFixed = 5, unit = '' } = options;
   const amountUnit = new Unit(amount).div(Unit.pow(10, decimals));
@@ -54,4 +81,4 @@ export const formatDisplayAmount = (
     return `<${unit}${minNum}`;
   }
   return `${unit}${amountUnit.toDecimalMinUnit(toFixed)}`;
-};
+}

@@ -1,7 +1,7 @@
-import React, { useMemo} from 'react';
+import React, { useMemo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { type PositionForUI } from '@service/position';
-import { trimDecimalZeros } from '@utils/numberUtils';
+import { formatDisplayAmount, trimDecimalZeros } from '@utils/numberUtils';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { useInvertedState } from '../invertedState';
 
@@ -42,13 +42,25 @@ const TokenPairAmount: React.FC<{
   const isLeftTokenEqualToken0 = isTokenEqual(leftTokenForUI, token0);
 
   const amountLeft = leftAmount ? leftAmount : isLeftTokenEqualToken0 ? new Unit(amount0 ?? '0') : new Unit(amount1 ?? '0');
-  const amountRight = rightAmount ? rightAmount: isLeftTokenEqualToken0 ? new Unit(amount1 ?? '0') : new Unit(amount0 ?? '0');
-  const amountLeftStr = trimDecimalZeros(amountLeft?.toDecimalStandardUnit(5, leftTokenForUI?.decimals));
-  const amountRightStr = trimDecimalZeros(amountRight?.toDecimalStandardUnit(5, rightTokenForUI?.decimals));
+  const amountRight = rightAmount ? rightAmount : isLeftTokenEqualToken0 ? new Unit(amount1 ?? '0') : new Unit(amount0 ?? '0');
+  const amountLeftStr = trimDecimalZeros(
+    formatDisplayAmount(amountLeft, {
+      decimals: leftTokenForUI?.decimals,
+      minNum: '0.00001',
+      toFixed: 5,
+    })
+  );
+  const amountRightStr = trimDecimalZeros(
+    formatDisplayAmount(amountRight, {
+      decimals: rightTokenForUI?.decimals,
+      minNum: '0.00001',
+      toFixed: 5,
+    })
+  );
   const removed = liquidity === '0';
-  
-  const anotherRatio = useMemo(() => typeof ratio !== 'number' ? undefined : Number((100 - ratio).toFixed(2)), [ratio]);
-  
+
+  const anotherRatio = useMemo(() => (typeof ratio !== 'number' ? undefined : Number((100 - ratio).toFixed(2))), [ratio]);
+
   if (!position) return null;
   return (
     <div className="flex flex-col gap-8px w-full">

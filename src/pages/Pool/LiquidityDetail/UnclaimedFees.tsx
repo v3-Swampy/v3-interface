@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import { usePosition, usePositionFees, useIsPositionOwner } from '@service/position';
 import { useTokenPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
-import { trimDecimalZeros } from '@utils/numberUtils';
+import { formatDisplayAmount, trimDecimalZeros } from '@utils/numberUtils';
 import showCollectFeesModal from './CollectFeesModal';
 
 const transitions = {
@@ -31,16 +31,28 @@ const UnclaimedFees: React.FC = () => {
   const token1Price = useTokenPrice(token1?.address);
   const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '0';
   const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '0';
-  const fee = token0Fee && token1Fee ? trimDecimalZeros(new Unit(token0Fee).add(token1Fee).toDecimalMinUnit(5)) : '-';
+  const fee =
+    token0Fee && token1Fee
+      ? trimDecimalZeros(
+          formatDisplayAmount(new Unit(token0Fee).add(token1Fee), {
+            decimals: 0,
+            minNum: '0.00001',
+            toFixed: 5,
+            unit: '$',
+          })
+        )
+      : '-';
   const isOwner = useIsPositionOwner(Number(tokenId));
 
-  if (!position) null;
+  if (!position) return null;
   return (
     <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
           <span className="inline-block mb-8px text-14px leading-18px">{i18n.unclaimed_fees}</span>
-          <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">{!token0Price || !token1Price ? <Spin /> : `$${fee}`}</span>
+          <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
+            {!token0Price || !token1Price ? <Spin /> : fee}
+          </span>
         </div>
         {isOwner && (token0Fee !== '0' || token1Fee !== '0') && (
           <Button
