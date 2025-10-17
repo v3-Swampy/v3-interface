@@ -6,7 +6,7 @@ import useI18n from '@hooks/useI18n';
 import { usePosition } from '@service/position';
 import { useTokenPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
-import { formatDisplayAmount, trimDecimalZeros } from '@utils/numberUtils';
+import { formatDisplayAmount } from '@utils/numberUtils';
 
 const transitions = {
   en: {
@@ -30,14 +30,12 @@ const Liquidity: React.FC = () => {
   const token1Liquidity = token1Price && amount1 ? amount1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '';
   const liquidity =
     token0Liquidity && token1Liquidity
-      ? trimDecimalZeros(
-          formatDisplayAmount(new Unit(token0Liquidity).add(token1Liquidity), {
-            decimals: 0,
-            minNum: '0.00001',
-            toFixed: 5,
-            unit: '$',
-          })
-        )
+      ? formatDisplayAmount(new Unit(token0Liquidity).add(token1Liquidity), {
+          decimals: 0,
+          minNum: '0.00001',
+          toFixed: 5,
+          unit: '$',
+        })
       : '-';
 
   // price 0 and price1 need the best routing api, xxx USDC/token is the token price
