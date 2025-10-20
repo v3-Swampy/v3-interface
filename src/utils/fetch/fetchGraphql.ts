@@ -6,3 +6,10 @@ const client = new ApolloClient({
 });
 
 export const fetchGraphql = client.query;
+
+const stakerClient = new ApolloClient({
+  uri: import.meta.env.VITE_StakerGraphqlUrl,
+  cache: new InMemoryCache(),
+});
+
+export const fetchStakerGraphql = stakerClient.query;
