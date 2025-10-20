@@ -139,14 +139,12 @@ const RangeInput: React.FC<
           setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
           return;
         }
+        setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
       } catch {
         setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
-        return;
       } finally {
         resetSelectedRange();
       }
-      setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
-      resetSelectedRange();
     },
     [fee, tokenA?.address, tokenB?.address, resetSelectedRange]
   );
@@ -162,7 +160,7 @@ const RangeInput: React.FC<
     const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit(5));
     setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
     resetSelectedRange();
-  }, [fee, tokenA?.address, tokenB?.address]);
+  }, [fee, tokenA?.address, tokenB?.address, resetSelectedRange]);
 
   const handleClickAdd = useCallback(() => {
     if (!tokenA || !tokenB) return;
