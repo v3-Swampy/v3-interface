@@ -4,7 +4,17 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, Pool } from '@service/pairs&pool';
-import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenUSDT, isTokenEqual, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
+import {
+  getTokenByAddress,
+  getUnwrapperTokenByAddress,
+  stableTokens,
+  baseTokens,
+  TokenUSDT,
+  isTokenEqual,
+  fetchTokenInfoByAddress,
+  addTokenToList,
+  type Token,
+} from '@service/tokens';
 import { getPool } from '@service/pairs&pool/singlePool';
 import { computePoolAddress } from '@service/pairs&pool';
 
@@ -149,33 +159,35 @@ export const positionsQueryByTokenIds = selectorFamily({
   key: `positionsQueryByTokenIds-${import.meta.env.MODE}`,
   get:
     (tokenIdParams: Array<number>) =>
-      async ({ get }) => {
-        const account = get(accountState);
-        if (!account || !tokenIdParams?.length) return [];
-        const tokenIds = [...tokenIdParams];
+    async ({ get }) => {
+      const account = get(accountState);
+      if (!account || !tokenIdParams?.length) return [];
+      const tokenIds = [...tokenIdParams];
 
-        const positionsResult = await fetchMulticall(
-          tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+      const positionsResult = await fetchMulticall(
+        tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+      );
+
+      if (Array.isArray(positionsResult)) {
+        const tmpRes = await Promise.all(
+          positionsResult?.map(async (singleRes, index) => {
+            const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
+            const position = await decodePosition(tokenIds[index], decodeRes);
+
+            return position;
+          })
         );
-
-        if (Array.isArray(positionsResult)) {
-          const tmpRes = await Promise.all(
-            positionsResult?.map(async (singleRes, index) => {
-              const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
-              const position = await decodePosition(tokenIds[index], decodeRes);
-
-              return position;
-            })
-          );
-          return await Promise.all(tmpRes.map(async (position) => {
+        return await Promise.all(
+          tmpRes.map(async (position) => {
             const { token0, token1, fee } = position;
             const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
             return enhancePositionForUI(position, pool);
-          }));
-        }
+          })
+        );
+      }
 
-        return [];
-      },
+      return [];
+    },
 });
 
 export const positionsQuery = selector<Array<Position>>({
@@ -191,11 +203,13 @@ export const PositionsForUISelector = selector<Array<PositionForUI>>({
   get: async ({ get }) => {
     const positions = get(positionsQuery);
     if (!positions) return [];
-    const enhancedPositions = await Promise.all(positions.map(async (position) => {
-      const { token0, token1, fee } = position;
-      const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
-      return enhancePositionForUI(position, pool);
-    }));
+    const enhancedPositions = await Promise.all(
+      positions.map(async (position) => {
+        const { token0, token1, fee } = position;
+        const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
+        return enhancePositionForUI(position, pool);
+      })
+    );
     return enhancedPositions.reverse();
   },
 });
@@ -220,7 +234,10 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
   const upper = new Unit(1.0001).pow(new Unit(tickUpper));
-  const [amount0, amount1] = pool?.token0Price && liquidity ? calcAmountFromPrice({ liquidity, lower, current: pool.token0Price.mul(`1e${token1.decimals - token0.decimals}`), upper }) : [undefined, undefined];
+  const [amount0, amount1] =
+    pool?.token0Price && liquidity
+      ? calcAmountFromPrice({ liquidity, lower, current: pool.token0Price.mul(`1e${token1.decimals - token0.decimals}`), upper })
+      : [undefined, undefined];
   const ratio = tickLower && pool?.sqrtPriceX96 && tickUpper ? calcRatio(pool.sqrtPriceX96, tickLower, tickUpper) : undefined;
 
   const unwrapToken0 = getUnwrapperTokenByAddress(position.token0.address);
@@ -228,15 +245,19 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 
   const tickCurrent = pool?.tickCurrent;
 
-  const positionStatus = liquidity === '0'
-    ? PositionStatus.Closed
-    : typeof tickCurrent !== 'number'
+  const positionStatus =
+    liquidity === '0'
+      ? PositionStatus.Closed
+      : typeof tickCurrent !== 'number'
       ? undefined
-      : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange
+      : tickCurrent < tickLower || tickCurrent > tickUpper
+      ? PositionStatus.OutOfRange
+      : PositionStatus.InRange;
 
   if (
     // if token0 is a dollar-stable asset, set it as the quote token
-    stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token0.address.toLowerCase()) && !isTokenEqual(token1, TokenUSDT)
+    stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token0.address.toLowerCase()) &&
+    !isTokenEqual(token1, TokenUSDT)
   ) {
     return {
       ...position,
@@ -252,7 +273,10 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
     };
   }
   // if token0 is an CFX asset && token1 is not a stable asset, set it as the quote token
-  else if (baseTokens.some((baseToken) => baseToken?.address.toLowerCase() === token0.address.toLowerCase()) && !stableTokens.find((stableToken) => stableToken?.address.toLowerCase() === token1.address.toLowerCase())) {
+  else if (
+    baseTokens.some((baseToken) => baseToken?.address.toLowerCase() === token0.address.toLowerCase()) &&
+    !stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token1.address.toLowerCase())
+  ) {
     return {
       ...position,
       amount0,
@@ -266,8 +290,12 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
       pool,
     };
   }
-  // if both prices are below 1, invert price display
-  else if(priceLower.lessThan(new Unit(1))) {
+  // if both prices are below 1 &&  token1 is not a stable asset and not a base token, invert price display
+  else if (
+    priceLower.lessThan(new Unit(1)) &&
+    !stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token1.address.toLowerCase()) &&
+    !baseTokens.some((baseToken) => baseToken?.address.toLowerCase() === token1.address.toLowerCase())
+  ) {
     return {
       ...position,
       amount0,
@@ -302,7 +330,6 @@ export const createPreviewPositionForUI = (
 
 export const usePositionStatus = (position: PositionForUI) => useMemo(() => getPositionStatus(position), [position]);
 
-
 export const getPositionStatus = (position: PositionForUI) => {
   const { liquidity, tickLower, tickUpper, pool } = position ?? {};
   const tickCurrent = pool?.tickCurrent;
@@ -310,6 +337,8 @@ export const getPositionStatus = (position: PositionForUI) => {
   return liquidity === '0'
     ? PositionStatus.Closed
     : typeof tickCurrent !== 'number'
-      ? undefined
-      : tickCurrent < tickLower || tickCurrent > tickUpper ? PositionStatus.OutOfRange : PositionStatus.InRange;
+    ? undefined
+    : tickCurrent < tickLower || tickCurrent > tickUpper
+    ? PositionStatus.OutOfRange
+    : PositionStatus.InRange;
 };
