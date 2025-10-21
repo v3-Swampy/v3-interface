@@ -76,7 +76,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
         </div>
 
         <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
-          <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} tokenId={previewPosition.id} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} leftToken={leftToken} rightToken={rightToken} />
           <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-normal">
             Fee Tier
             <span>{previewPosition.fee / 10000}%</span>

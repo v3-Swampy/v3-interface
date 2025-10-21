@@ -47,7 +47,7 @@ const Liquidity: React.FC = () => {
       <span className="inline-block text-32px h-40px leading-40px mb-24px w-full overflow-hidden text-ellipsis whitespace-nowrap">
         {!token0Price || !token1Price ? <Spin /> : liquidity}
       </span>
-      <TokenPairAmount amount0={amount0} amount1={amount1} ratio={ratio} position={position} tokenId={tokenId} />
+      <TokenPairAmount amount0={amount0} amount1={amount1} ratio={ratio} position={position} />
     </div>
   );
 };
