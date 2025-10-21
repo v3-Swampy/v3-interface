@@ -1,9 +1,10 @@
 import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
-import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, stableTokens, baseTokens, type Token } from '@service/tokens';
+import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { isProduction } from '@utils/is';
 import { timestampSelector } from './timestamp';
+import { getTokenPriority } from '@service/position/positions';
 
 /**
  * 将数组按照指定的长度数组分组
@@ -176,12 +177,12 @@ const getLRToken = (token0: Token | null, token1: Token | null) => {
   if (!token0 || !token1) return [];
   const unwrapToken0 = getUnwrapperTokenByAddress(token0.address);
   const unwrapToken1 = getUnwrapperTokenByAddress(token1.address);
-  const checkedLR =
-    // if token0 is a dollar-stable asset, set it as the quote token
-    stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
-    // if token1 is an ETH-/BTC-stable asset, set it as the base token
-    baseTokens.some((baseToken) => baseToken?.address === token1.address);
-  const leftToken = checkedLR ? unwrapToken0 : unwrapToken1;
-  const rightToken = checkedLR ? unwrapToken1 : unwrapToken0;
-  return [leftToken, rightToken];
+  const token0Priority = getTokenPriority(token0);
+  const token1Priority = getTokenPriority(token1);
+
+  if (token0Priority < token1Priority) return [unwrapToken1, unwrapToken0];
+
+  if (token0Priority > token1Priority) return [unwrapToken0, unwrapToken1];
+
+  return [unwrapToken0, unwrapToken1];
 };

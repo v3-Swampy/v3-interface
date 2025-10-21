@@ -85,10 +85,10 @@ export const deleteFromCommonTokens = (token: Token, setRecoilState?: SetRecoilS
 };
 
 const stableSymbols = ['USDT', 'AxCNH', 'USDC'];
-const baseSymbols = ['WCFX'];
+const nativeSymbols = ['WCFX'];
 
 export const stableTokens = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
-export const baseTokens = baseSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
+export const nativeTokens = nativeSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
 export const VST = cachedTokens.find((token) => token.symbol === 'VST');
 
 const wrapperTokenMap = new Map<string, Token>();

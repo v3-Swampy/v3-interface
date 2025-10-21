@@ -8,7 +8,7 @@ import {
   getTokenByAddress,
   getUnwrapperTokenByAddress,
   stableTokens,
-  baseTokens,
+  nativeTokens,
   TokenUSDT,
   isTokenEqual,
   fetchTokenInfoByAddress,
@@ -230,6 +230,16 @@ export const usePositionByTokenId = (tokenId: number) => useRecoilValue(position
 
 export const usePositionsForUI = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(PositionsForUISelector);
 
+export const getTokenPriority = (token: Token) => {
+  if (isTokenEqual(token, TokenUSDT)) return 0;
+  // e.g. USDC, AxCNH
+  if (stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token.address.toLowerCase())) return 1;
+  // cfx
+  if (nativeTokens.some((nativeToken) => nativeToken?.address.toLowerCase() === token.address.toLowerCase())) return 2;
+
+  return 3;
+};
+
 export const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
@@ -254,62 +264,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
       ? PositionStatus.OutOfRange
       : PositionStatus.InRange;
 
-  if (
-    // if token0 is a dollar-stable asset, set it as the quote token
-    stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token0.address.toLowerCase()) &&
-    !isTokenEqual(token1, TokenUSDT)
-  ) {
-    return {
-      ...position,
-      amount0,
-      amount1,
-      ratio,
-      rightToken: unwrapToken0,
-      leftToken: unwrapToken1,
-      priceLowerForUI: invertPrice(priceUpper),
-      priceUpperForUI: invertPrice(priceLower),
-      positionStatus,
-      pool,
-    };
-  }
-  // if token0 is an CFX asset && token1 is not a stable asset, set it as the quote token
-  else if (
-    baseTokens.some((baseToken) => baseToken?.address.toLowerCase() === token0.address.toLowerCase()) &&
-    !stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token1.address.toLowerCase())
-  ) {
-    return {
-      ...position,
-      amount0,
-      amount1,
-      ratio,
-      rightToken: unwrapToken0,
-      leftToken: unwrapToken1,
-      priceLowerForUI: invertPrice(priceUpper),
-      priceUpperForUI: invertPrice(priceLower),
-      positionStatus,
-      pool,
-    };
-  }
-  // if both prices are below 1 &&  token1 is not a stable asset and not a base token, invert price display
-  else if (
-    priceLower.lessThan(new Unit(1)) &&
-    !stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token1.address.toLowerCase()) &&
-    !baseTokens.some((baseToken) => baseToken?.address.toLowerCase() === token1.address.toLowerCase())
-  ) {
-    return {
-      ...position,
-      amount0,
-      amount1,
-      ratio,
-      rightToken: unwrapToken0,
-      leftToken: unwrapToken1,
-      priceLowerForUI: invertPrice(priceUpper),
-      priceUpperForUI: invertPrice(priceLower),
-      positionStatus,
-      pool,
-    };
-  }
-  return {
+  const originPosition = {
     ...position,
     amount0,
     amount1,
@@ -321,6 +276,29 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
     positionStatus,
     pool,
   };
+
+  const invertPosition = {
+    ...position,
+    amount0,
+    amount1,
+    ratio,
+    rightToken: unwrapToken0,
+    leftToken: unwrapToken1,
+    priceLowerForUI: invertPrice(priceUpper),
+    priceUpperForUI: invertPrice(priceLower),
+    positionStatus,
+    pool,
+  };
+
+  const token0Priority = getTokenPriority(token0);
+  const token1Priority = getTokenPriority(token1);
+
+  if (token0Priority < token1Priority) return invertPosition;
+
+  if (token0Priority > token1Priority) return originPosition;
+
+  if (priceLower.lessThan(new Unit(1))) return invertPosition;
+  return originPosition;
 };
 
 export const createPreviewPositionForUI = (
