@@ -62,7 +62,7 @@ const UnclaimedFees: React.FC = () => {
           </Button>
         )}
       </div>
-      <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} tokenId={tokenId} />
+      <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} />
     </div>
   );
 };
