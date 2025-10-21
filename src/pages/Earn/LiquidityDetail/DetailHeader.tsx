@@ -1,12 +1,10 @@
 import React from 'react';
-import { useRecoilState } from 'recoil';
 import { useParams, useNavigate } from 'react-router-dom';
 import Button from '@components/Button';
 import Status from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
 import { type PositionForUI, PositionStatus, usePosition, useIsPositionOwner, usePositionStatus } from '@service/position';
-import { useInvertedState } from '@modules/Position/invertedState';
 
 const transitions = {
   en: {
@@ -24,7 +22,6 @@ const DetailHeader: React.FC = () => {
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
   const navigate = useNavigate();
-  const [inverted] = useInvertedState(tokenId);
   const isOwner = useIsPositionOwner(Number(tokenId));
   const status = usePositionStatus(position as PositionForUI);
 
@@ -33,7 +30,7 @@ const DetailHeader: React.FC = () => {
   return (
     <div className="flex lt-md:flex-wrap justify-between">
       <div className="ml-16p flex mobile:gap-22px lt-mobile:w-full lt-mobile:justify-between">
-        <TokenPair position={position} inverted={inverted} />
+        <TokenPair position={position} />
         <Status position={position} />
       </div>
       {isOwner && status && status !== PositionStatus.Closed && (

@@ -4,7 +4,7 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
 import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, Pool } from '@service/pairs&pool';
-import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
+import { getTokenByAddress, getUnwrapperTokenByAddress, stableTokens, baseTokens, TokenUSDT, isTokenEqual, fetchTokenInfoByAddress, addTokenToList, type Token } from '@service/tokens';
 import { getPool } from '@service/pairs&pool/singlePool';
 import { computePoolAddress } from '@service/pairs&pool';
 
@@ -236,19 +236,45 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 
   if (
     // if token0 is a dollar-stable asset, set it as the quote token
-    stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
-    // if token1 is an ETH-/BTC-stable asset, set it as the base token
-    baseTokens.some((baseToken) => baseToken?.address === token1.address) ||
-    // if both prices are below 1, invert
-    priceUpper.lessThan(new Unit(1))
+    stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token0.address.toLowerCase()) && !isTokenEqual(token1, TokenUSDT)
   ) {
     return {
       ...position,
       amount0,
       amount1,
       ratio,
-      rightToken: unwrapToken1,
-      leftToken: unwrapToken0,
+      rightToken: unwrapToken0,
+      leftToken: unwrapToken1,
+      priceLowerForUI: invertPrice(priceUpper),
+      priceUpperForUI: invertPrice(priceLower),
+      positionStatus,
+      pool,
+    };
+  }
+  // if token0 is an CFX asset && token1 is not a stable asset, set it as the quote token
+  else if (baseTokens.some((baseToken) => baseToken?.address.toLowerCase() === token0.address.toLowerCase()) && !stableTokens.find((stableToken) => stableToken?.address.toLowerCase() === token1.address.toLowerCase())) {
+    return {
+      ...position,
+      amount0,
+      amount1,
+      ratio,
+      rightToken: unwrapToken0,
+      leftToken: unwrapToken1,
+      priceLowerForUI: invertPrice(priceUpper),
+      priceUpperForUI: invertPrice(priceLower),
+      positionStatus,
+      pool,
+    };
+  }
+  // if both prices are below 1, invert price display
+  else if(priceLower.lessThan(new Unit(1))) {
+    return {
+      ...position,
+      amount0,
+      amount1,
+      ratio,
+      rightToken: unwrapToken0,
+      leftToken: unwrapToken1,
       priceLowerForUI: invertPrice(priceUpper),
       priceUpperForUI: invertPrice(priceLower),
       positionStatus,
@@ -260,8 +286,8 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
     amount0,
     amount1,
     ratio,
-    rightToken: unwrapToken0,
-    leftToken: unwrapToken1,
+    rightToken: unwrapToken1,
+    leftToken: unwrapToken0,
     priceLowerForUI: priceLower,
     priceUpperForUI: priceUpper,
     positionStatus,
@@ -270,7 +296,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 };
 
 export const createPreviewPositionForUI = (
-  position: Pick<Position, 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
+  position: Pick<Position, 'id' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
 

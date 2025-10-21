@@ -3,7 +3,6 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { type PositionForUI } from '@service/position';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { type Token, isTokenEqual } from '@service/tokens';
-import { useInvertedState } from '../invertedState';
 
 const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; ratio: number | undefined }> = ({ token, amount, ratio }) => {
   return (
@@ -34,11 +33,8 @@ const TokenPairAmount: React.FC<{
   rightAmount?: Unit;
 }> = ({ amount0, amount1, ratio, position, tokenId, leftToken, rightToken, leftAmount, rightAmount }) => {
   const { token0, liquidity } = position ?? {};
-  // ui token pair revert button
-  const [inverted] = useInvertedState(tokenId);
-  // ui init display is inverted with token1/token0
-  const leftTokenForUI = leftToken ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
-  const rightTokenForUI = rightToken ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
+  const leftTokenForUI = leftToken ? leftToken : position?.leftToken;
+  const rightTokenForUI = rightToken ? rightToken : position?.rightToken;
   const isLeftTokenEqualToken0 = isTokenEqual(leftTokenForUI, token0);
 
   const amountLeft = leftAmount ? leftAmount : isLeftTokenEqualToken0 ? new Unit(amount0 ?? '0') : new Unit(amount1 ?? '0');
