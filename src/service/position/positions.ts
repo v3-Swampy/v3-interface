@@ -296,7 +296,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 };
 
 export const createPreviewPositionForUI = (
-  position: Pick<Position, 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
+  position: Pick<Position, 'id' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
 
