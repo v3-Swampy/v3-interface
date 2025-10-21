@@ -71,12 +71,12 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
     <div className={cx(isMobile ? 'mt-12px max-h-[calc(100vh-150px)] overflow-scroll drawer-inner-scroller' : 'mt-24px')}>
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
-          <TokenPair className="!text-18px" position={previewPosition} showFee={false} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPair className="!text-18px" position={previewPosition} showFee={false} />
           <Status position={previewPosition} />
         </div>
 
         <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
-          <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} tokenId={previewPosition.id} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} leftToken={leftToken} rightToken={rightToken} />
           <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-normal">
             Fee Tier
             <span>{previewPosition.fee / 10000}%</span>

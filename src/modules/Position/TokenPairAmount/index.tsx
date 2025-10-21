@@ -26,12 +26,11 @@ const TokenPairAmount: React.FC<{
   amount1?: Unit;
   ratio?: number;
   position: PositionForUI | undefined;
-  tokenId: number | string | undefined;
   leftToken?: Token;
   rightToken?: Token;
   leftAmount?: Unit;
   rightAmount?: Unit;
-}> = ({ amount0, amount1, ratio, position, tokenId, leftToken, rightToken, leftAmount, rightAmount }) => {
+}> = ({ amount0, amount1, ratio, position, leftToken, rightToken, leftAmount, rightAmount }) => {
   const { token0, liquidity } = position ?? {};
   const leftTokenForUI = leftToken ? leftToken : position?.leftToken;
   const rightTokenForUI = rightToken ? rightToken : position?.rightToken;
