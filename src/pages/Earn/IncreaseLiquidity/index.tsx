@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useInvertedState } from '@modules/Position/invertedState';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
@@ -9,8 +8,6 @@ import useInTransaction from '@hooks/useInTransaction';
 import Settings from '@modules/Settings';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import DepositAmounts from '@modules/Position/DepositAmounts';
-import { invertPrice } from '@service/pairs&pool';
-import { isTokenEqual } from '@service/tokens';
 import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClickSubmitIncreasePositionLiquidity } from '@service/position';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import PairInfo from './PairInfo';
@@ -34,29 +31,23 @@ const IncreaseLiquidity: React.FC = () => {
   const amountTokenB = watch('amount-tokenB', '') as string;
 
   const { tokenId } = useParams();
-  const [inverted] = useInvertedState(tokenId);
 
   const position = usePosition(Number(tokenId));
-  const { token0, leftToken, rightToken, fee, priceLower: _priceLower, priceUpper: _priceUpper } = position ?? {};
-  const leftTokenForUI = !inverted ? leftToken : rightToken;
-  const rightTokenForUI = !inverted ? rightToken : leftToken;
-  const isLeftTokenEqualToken0 = isTokenEqual(leftTokenForUI, token0);
-  const priceLower = isLeftTokenEqualToken0 ? _priceLower : invertPrice(_priceUpper);
-  const priceUpper = isLeftTokenEqualToken0 ? _priceUpper : invertPrice(_priceLower);
+  const { leftToken, rightToken, fee, priceLower, priceUpper } = position ?? {};
 
   const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitIncreasePositionLiquidity } = useInTransaction(_handleClickSubmitIncreasePositionLiquidity);
   const onSubmit = useCallback(
     withForm(async (data) => {
-      if (!position || !tokenId || !leftTokenForUI || !rightTokenForUI) return;
+      if (!position || !tokenId || !leftToken || !rightToken) return;
       handleClickSubmitIncreasePositionLiquidity({
         ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; fee: string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
         tokenId: Number(tokenId),
-        tokenA: leftTokenForUI,
-        tokenB: rightTokenForUI,
+        tokenA: leftToken,
+        tokenB: rightToken,
         position,
       });
     }),
-    [position, tokenId, leftTokenForUI, rightTokenForUI]
+    [position, tokenId, leftToken, rightToken]
   );
 
   return (
@@ -78,8 +69,8 @@ const IncreaseLiquidity: React.FC = () => {
                 register={register}
                 setValue={setValue}
                 getValues={getValues}
-                tokenA={leftTokenForUI}
-                tokenB={rightTokenForUI}
+                tokenA={leftToken}
+                tokenB={rightToken}
                 priceLower={priceLower}
                 priceUpper={priceUpper}
                 fee={fee}
@@ -88,7 +79,7 @@ const IncreaseLiquidity: React.FC = () => {
             </div>
             <div className="w-426px flex-grow-1 flex-shrink-1 flex flex-col justify-between lt-md:w-full">
               <SelectedPriceRange position={position} tokenId={tokenId} />
-              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} tokenA={leftToken} tokenB={rightToken} />
             </div>
           </BorderBox>
         </form>

@@ -34,7 +34,6 @@ interface Props {
   rightToken: Token;
   leftAmount: Unit;
   rightAmount: Unit;
-  inverted: boolean;
   priceInit?: string;
   previewPosition: PositionForUI;
   previewUniqueId: string;
@@ -54,7 +53,6 @@ interface Props {
 
 const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   setNextInfo,
-  inverted,
   leftAmount,
   rightAmount,
   priceInit,
@@ -75,7 +73,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
     <div className={cx(isMobile ? 'mt-12px max-h-[calc(100vh-150px)] overflow-scroll drawer-inner-scroller' : 'mt-24px')}>
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
-          <TokenPair className="!text-18px" position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPair className="!text-18px" position={previewPosition} showFee={false} leftToken={leftToken} rightToken={rightToken} />
           <Status position={previewPosition} />
         </div>
 

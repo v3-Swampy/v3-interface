@@ -17,8 +17,8 @@ interface Props extends ComponentProps<'div'> {
 }
 const TokenPair: React.FC<Props> = ({ position, leftToken, rightToken, inverted = false, showFee = true, className, symbolClassName, feeClassName, ...props }) => {
   const { fee } = position;
-  const leftTokenForUI = leftToken ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
-  const rightTokenForUI = rightToken ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
+  const leftTokenForUI = leftToken ? leftToken : position?.leftToken;
+  const rightTokenForUI = rightToken ? rightToken : position?.rightToken;
 
   return (
     <div className={cx('flex items-center text-14px', className)} {...props}>

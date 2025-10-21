@@ -84,8 +84,8 @@ export const deleteFromCommonTokens = (token: Token, setRecoilState?: SetRecoilS
   (setRecoilState ?? setRecoil)(commonTokensState, [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()]);
 };
 
-const stableSymbols = ['USDT'];
-const baseSymbols = ['WCFX', 'WBTC'];
+const stableSymbols = ['USDT', 'AxCNH', 'USDC'];
+const baseSymbols = ['WCFX'];
 
 export const stableTokens = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
 export const baseTokens = baseSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
