@@ -8,6 +8,9 @@ const lazyWithPreload = (factory: Factory) => {
   return Component;
 };
 
+export const EarnPage = lazyWithPreload(() => import('@pages/Earn'));
+export const AllPoolsPage = lazyWithPreload(() => import('@pages/Earn/AllPools'));
+export const MyPositionsPage = lazyWithPreload(() => import('@pages/Earn/MyPositions'));
 export const FarmingPage = lazyWithPreload(() => import('@pages/Farming'));
 export const AllFarmsPage = lazyWithPreload(() => import('@pages/Farming/AllFarms'));
 export const MyFarmsPage = lazyWithPreload(() => import('@pages/Farming/MyFarms'));
@@ -26,6 +29,9 @@ export const EarnPointsPage = lazyWithPreload(() => import('@pages/Points/EarnPo
 (function () {
   const preLoadAll = () =>
     setTimeout(() => {
+      EarnPage.preload();
+      AllPoolsPage.preload();
+      MyPositionsPage.preload();
       FarmingPage.preload();
       AllFarmsPage.preload();
       MyFarmsPage.preload();
