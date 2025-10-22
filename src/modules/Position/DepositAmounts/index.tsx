@@ -91,7 +91,7 @@ const DepositAmount: React.FC<
 
   const priceTokenAFixed8 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(8) : null), [priceTokenA]);
   const priceLowerAFixed8 = useMemo(() => (priceLower ? priceLower.toDecimalMinUnit(8) : null), [priceLower]);
-  const priceUppperAFixed8 = useMemo(() => (priceUpper ? priceUpper.toDecimalMinUnit(8) : null), [priceUpper]);
+  const priceUpperAFixed8 = useMemo(() => (priceUpper ? priceUpper.toDecimalMinUnit(8) : null), [priceUpper]);
   useLayoutEffect(() => {
     if (type === 'tokenB') return;
     const value = getValues();
@@ -101,7 +101,7 @@ const DepositAmount: React.FC<
       return;
     }
     changePairAmount.current(amountTokenA);
-  }, [priceTokenAFixed8, priceLowerAFixed8, priceUppperAFixed8]);
+  }, [priceTokenAFixed8, priceLowerAFixed8, priceUpperAFixed8]);
 
   useLayoutEffect(() => {
     const value = getValues();
@@ -215,7 +215,7 @@ const DepositAmounts: React.FC<Props> = ({
     }
   }, [_priceUpper]);
 
-  const { state, pool } = usePool({ tokenA, tokenB, fee });
+  const { pool } = usePool({ tokenA, tokenB, fee });
 
   const priceTokenA = useMemo(
     () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
