@@ -297,7 +297,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 
   if (token0Priority > token1Priority) return originPosition;
 
-  if (priceLower.lessThan(new Unit(1))) return invertPosition;
+  if (priceUpper.lessThan(new Unit(1))) return invertPosition;
   return originPosition;
 };
 
