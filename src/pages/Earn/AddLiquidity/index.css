@@ -1,0 +1,3 @@
+.add-liquidity-price-input:focus-within > .add-liquidity-price-infinity {
+  display: none;
+}

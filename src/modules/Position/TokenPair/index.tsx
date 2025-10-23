@@ -8,17 +8,16 @@ import { type Token } from '@service/tokens';
 
 interface Props extends ComponentProps<'div'> {
   position: PositionForUI;
-  inverted?: boolean;
   showFee?: false | number;
   leftToken?: Token;
   rightToken?: Token;
   symbolClassName?: string;
   feeClassName?: string;
 }
-const TokenPair: React.FC<Props> = ({ position, leftToken, rightToken, inverted = false, showFee = true, className, symbolClassName, feeClassName, ...props }) => {
+const TokenPair: React.FC<Props> = ({ position, leftToken, rightToken, showFee = true, className, symbolClassName, feeClassName, ...props }) => {
   const { fee } = position;
-  const leftTokenForUI = leftToken ? leftToken : !inverted ? position?.leftToken : position?.rightToken;
-  const rightTokenForUI = rightToken ? rightToken : !inverted ? position?.rightToken : position?.leftToken;
+  const leftTokenForUI = leftToken ? leftToken : position?.leftToken;
+  const rightTokenForUI = rightToken ? rightToken : position?.rightToken;
 
   return (
     <div className={cx('flex items-center text-14px', className)} {...props}>
