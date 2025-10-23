@@ -89,7 +89,6 @@ export default defineConfig({
     },
   },
   define: {
-    global: 'globalThis',
     'process.env.NODE_DEBUG': false,
   },
   server: {
