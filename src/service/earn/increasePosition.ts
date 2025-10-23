@@ -1,5 +1,4 @@
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { uniqueId } from 'lodash-es';
 import { NonfungiblePositionManager } from '@contracts/index';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
@@ -7,7 +6,6 @@ import { getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage } from '@service/settings';
-import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
 
@@ -65,9 +63,6 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
       token1AmountUnit.toDecimalMinUnit()
     );
 
-    const previewUniqueId = uniqueId();
-    const inverted = token0?.address === tokenA?.address;
-    setInvertedState(previewUniqueId, inverted);
     const dataWithoutCFX = NonfungiblePositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
       {
         tokenId,
