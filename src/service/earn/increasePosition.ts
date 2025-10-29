@@ -78,7 +78,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
 
     const transactionParams = {
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
-      data: data,
+      data,
       to: AutoPositionManager.address,
     };
 

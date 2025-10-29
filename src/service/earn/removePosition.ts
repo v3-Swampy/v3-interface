@@ -1,4 +1,4 @@
-import { NonfungiblePositionManager } from '@contracts/index';
+import { AutoPositionManager } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { getDeadline } from '@service/settings';
 import { getAccount, sendTransaction } from '@service/account';
@@ -31,7 +31,7 @@ export const handleSubmitRemoveLiquidity = async ({
 
   const liquidity = new Unit(positionLiquidity).mul(removePercent).div(100).toDecimalMinUnit(0);
 
-  const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('decreaseLiquidity', [
+  const data = AutoPositionManager.func.interface.encodeFunctionData('decreaseLiquidity', [
     {
       tokenId: tokenIdHexString,
       liquidity: new Unit(liquidity).toHexMinUnit(),
@@ -40,22 +40,10 @@ export const handleSubmitRemoveLiquidity = async ({
       deadline: getDeadline(),
     },
   ]);
-  const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
-  const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
-    {
-      tokenId: tokenIdHexString,
-      recipient: hasWCFX ? ZeroAddress : account, // some tokens might fail if transferred to address(0)
-      amount0Max: MAX_UINT128.toHexMinUnit(),
-      amount1Max: MAX_UINT128.toHexMinUnit(),
-    },
-  ]);
-  const data2 = NonfungiblePositionManager.func.interface.encodeFunctionData('unwrapWETH9', [0, account]);
-
-  const data3 = NonfungiblePositionManager.func.interface.encodeFunctionData('sweepToken', [token0.symbol === 'WCFX' ? token1.address : token0.address, 0, account]);
 
   const transactionParams = {
-    data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2, data3] : [data0, data1]]),
-    to: NonfungiblePositionManager.address,
+    data,
+    to: AutoPositionManager.address,
   }
 
   const recordParams = {
