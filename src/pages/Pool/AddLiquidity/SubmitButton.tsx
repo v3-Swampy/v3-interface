@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '@components/Button';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import AuthTokenButton from '@modules/AuthTokenButton';
-import { AutoPositionManager } from '@contracts/index';
+import { NonfungiblePositionManager } from '@contracts/index';
 import { useTokenA, useTokenB } from './SelectPair';
 import useI18n from '@hooks/useI18n';
 
@@ -29,8 +29,8 @@ const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSub
 
   return (
     <AuthConnectButton id="pool-add-liquidity-auth-connect" {...buttonProps}>
-      <AuthTokenButton id="pool-add-liquidity-auth-erc20info-tokenA" {...buttonProps} tokenAddress={tokenA?.address} contractAddress={AutoPositionManager.address} amount={amountTokenA}>
-        <AuthTokenButton id="pool-add-liquidity-auth-erc20info-tokenB" {...buttonProps} tokenAddress={tokenB?.address} contractAddress={AutoPositionManager.address} amount={amountTokenB}>
+      <AuthTokenButton id="pool-add-liquidity-auth-erc20info-tokenA" {...buttonProps} tokenAddress={tokenA?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenA}>
+        <AuthTokenButton id="pool-add-liquidity-auth-erc20info-tokenB" {...buttonProps} tokenAddress={tokenB?.address} contractAddress={NonfungiblePositionManager.address} amount={amountTokenB}>
           <Button id="pool-add-liquidity-submit-button" {...buttonProps} loading={inSubmitCreate} disabled={disabled}>
             {i18n.preview}
           </Button>

@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '@components/Button';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import AuthTokenButton from '@modules/AuthTokenButton';
-import { AutoPositionManager } from '@contracts/index';
+import { NonfungiblePositionManager } from '@contracts/index';
 import { type Token } from '@service/tokens';
 import useI18n from '@hooks/useI18n';
 
@@ -31,14 +31,14 @@ const SubmitButton: React.FC<{ amountTokenA: string; amountTokenB: string; inSub
       <AuthTokenButton
         {...buttonProps}
         tokenAddress={tokenA?.address}
-        contractAddress={AutoPositionManager.address}
+        contractAddress={NonfungiblePositionManager.address}
         amount={amountTokenA}
         id="pool-increase-liquidity-auth-erc20info-tokenA"
       >
         <AuthTokenButton
           {...buttonProps}
           tokenAddress={tokenB?.address}
-          contractAddress={AutoPositionManager.address}
+          contractAddress={NonfungiblePositionManager.address}
           amount={amountTokenB}
           id="pool-increase-liquidity-auth-erc20info-tokenB"
         >

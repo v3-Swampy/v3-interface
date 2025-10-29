@@ -2,7 +2,7 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NavigateFunction } from 'react-router-dom';
 import { uniqueId } from 'lodash-es';
 import Decimal from 'decimal.js';
-import { AutoPositionManager } from '@contracts/index';
+import { NonfungiblePositionManager } from '@contracts/index';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
 import { FeeAmount, getPool } from '@service/pairs&pool';
@@ -95,7 +95,8 @@ export const handleClickSubmitCreatePosition = async ({
     );
     const previewUniqueId = uniqueId();
 
-    const data = AutoPositionManager.func.interface.encodeFunctionData('mint', [
+    const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
+    const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('mint', [
       {
         token0: token0.address,
         token1: token1.address,
@@ -109,15 +110,15 @@ export const handleClickSubmitCreatePosition = async ({
         recipient: account,
         deadline: getDeadline(),
       },
-      sqrtPriceX96,
     ]);
+    const data2 = NonfungiblePositionManager.func.interface.encodeFunctionData('refundETH');
 
     const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
 
     const transactionParams = {
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
-      data: data,
-      to: AutoPositionManager.address,
+      data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0, data1]]),
+      to: NonfungiblePositionManager.address,
     };
 
     const recordParams = {
