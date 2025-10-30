@@ -372,6 +372,8 @@ const myFarmsQuery = selector({
 
     const positions = get(positionsQueryByTokenIds(userPositions.flat()));
 
+    console.log('positions in myFarmsQuery:', userPositions);
+
     const userPositionsWithIncentiveKey = userPositions.map((tokenIds, index) => {
       const pool = pools[index];
       return tokenIds.flatMap((tokenId) =>

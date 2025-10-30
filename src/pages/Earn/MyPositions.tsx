@@ -6,7 +6,7 @@ import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePositionsForUI, useRefreshPositions, useFarmsOnly } from '@service/earn';
+import { type PositionForUI, usePositionsForUI, useRefreshPositions, useFarmsOnly, useMyFarms } from '@service/earn';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { BetaLpGuide } from './BetaLpGuide';
 import cx from 'clsx';
@@ -136,6 +136,8 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 const PositionsContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
+  const myFarms = useMyFarms();
+  console.log('myFarms in MyPositions:', myFarms);
 
   if (!positions?.length) {
     return (

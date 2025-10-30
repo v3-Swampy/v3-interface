@@ -5,7 +5,7 @@ import { chunk } from 'lodash-es';
 import { isProduction } from '@utils/is';
 import { getTokenPriority } from '@service/position/positions';
 import { getPoolLatestDayDataByPools } from './apis';
-import { timestampSelector } from '@service/farming';
+import { timestampSelector } from '@service/earn';
 
 /**
  * 将数组按照指定的长度数组分组
