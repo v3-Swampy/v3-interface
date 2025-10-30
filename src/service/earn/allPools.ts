@@ -1,10 +1,11 @@
-import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
+import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
 import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { isProduction } from '@utils/is';
-import { timestampSelector } from './timestamp';
 import { getTokenPriority } from '@service/position/positions';
+import { getPoolLatestDayDataByPools } from './apis';
+import { timestampSelector } from '@service/farming';
 
 /**
  * 将数组按照指定的长度数组分组
@@ -27,7 +28,7 @@ function chunkByLengths<T>(array: T[] | null | undefined, lengths: number[]): T[
 }
 
 export const farmingPoolsAddress = atom<Array<string>>({
-  key: `farmingPoolsAddress-${import.meta.env.MODE}`,
+  key: `earn-farmingPoolsAddress-${import.meta.env.MODE}`,
   default: isProduction
     ? ['0x6857285eb6b3feb1d007a57b1DFDD76B2fAb0D0a', '0x6806c2808b68b74206A0Cbe00dDe2d0e26216308', '0x108920614FD13CeaAf52026E76D18C480e88AA2A']
     : ['0x6A24a7818b666732e5b5Bcb719F07926961B341E', '0xE1074D1068c05D7f5b9c27b7CA9e5fD0933c073D', '0x320bDBC3ba3db966c70d3f54222b902e56270066', '0xb5BD827D40d284170d0773c9aAC7f2E37d48C6A3', '0x393BA3679Ac5701a3181e2506bA189162e644101', '0x7510CEE7eeB84d6eEFD333b9b587a89F2f898893'],
@@ -47,10 +48,27 @@ export interface IncentiveKeyDetail extends IncentiveKey {
   rewardTokenInfo: Token;
 }
 
+export const poolLatestDayDataByPoolIds = selectorFamily({
+  key: `poolLatestDayDataByPoolIds-${import.meta.env.MODE}`,
+  get:
+    (poolIdParams: string[]) =>
+    async ({ get }) => {
+      let poolIds: string[] | undefined = undefined;
+      if (poolIdParams?.length > 0) {
+        poolIds = poolIdParams.map((poolId) => poolId.toLowerCase());
+      }
+
+      const res = await getPoolLatestDayDataByPools(poolIds);
+
+      return res;
+    },
+});
+
 export const poolsQuery = selector({
-  key: `farmingPoolsQuery-${import.meta.env.MODE}`,
+  key: `earn-poolsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const poolsAddress = get(farmingPoolsAddress);
+    const poolDayData = get(poolLatestDayDataByPoolIds(poolsAddress));
     const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
     const pairsInfoQuery = await fetchMulticall(
       pairContracts
@@ -139,6 +157,7 @@ export const poolsQuery = selector({
     const pools = poolsAddress
       ? await Promise.all(
           poolsAddress.map(async (poolAddress, index) => {
+            const dayData = poolDayData.find((d) => d.id.toLowerCase() === poolAddress.toLowerCase());
             const rewardTokenAddresses = incentiveKeys[index].filter((key: IncentiveKeyDetail) => key.status === 'active').map((key: IncentiveKeyDetail) => key.rewardToken);
             const rewards = await Promise.all(
               [...new Set(rewardTokenAddresses)].map(async (address) => ({
@@ -148,6 +167,7 @@ export const poolsQuery = selector({
 
             return {
               poolAddress,
+              dayData: dayData?.poolDayData[0],
               pairInfo: {
                 fee: pairsInfo[index].fee,
                 token0: tokensDetail[index].token0,

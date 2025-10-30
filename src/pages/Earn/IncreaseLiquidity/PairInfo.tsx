@@ -2,7 +2,7 @@ import React from 'react';
 import useI18n from '@hooks/useI18n';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
-import { type PositionForUI } from '@service/position';
+import { type PositionForUI } from '@service/earn';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
 
 const transitions = {

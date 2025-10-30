@@ -1,7 +1,7 @@
 import React from 'react';
 import cx from 'clsx';
 import useI18n from '@hooks/useI18n';
-import { usePosition } from '@service/position';
+import { usePosition } from '@service/earn';
 import { trimDecimalZeros } from '@utils/numberUtils';
 
 const transitions = {

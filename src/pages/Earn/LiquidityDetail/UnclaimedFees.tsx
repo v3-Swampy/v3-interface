@@ -4,7 +4,7 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
 import Button from '@components/Button';
-import { usePosition, usePositionFees, useIsPositionOwner } from '@service/position';
+import { usePosition, usePositionFees, useIsPositionOwner } from '@service/earn';
 import { useTokenPrice } from '@service/pairs&pool';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
 import { formatDisplayAmount } from '@utils/numberUtils';

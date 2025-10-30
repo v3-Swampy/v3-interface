@@ -5,9 +5,9 @@ import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modul
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Button from '@components/Button';
 import useInTransaction from '@hooks/useInTransaction';
-import { type PositionForUI } from '@service/position';
+import { type PositionForUI } from '@service/earn';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
-import { handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/position';
+import { handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/earn';
 
 const transitions = {
   en: {

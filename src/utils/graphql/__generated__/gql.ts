@@ -15,11 +15,11 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  */
 type Documents = {
     "\n  query PoolsLatestDayDataQuery($where: Pool_filter) {\n    pools(where: $where) {\n      id\n      poolDayData(first: 1, orderBy: date, orderDirection: desc) {\n        id\n        volumeUSD\n        date\n      }\n    }\n  }\n": typeof types.PoolsLatestDayDataQueryDocument,
-    "\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n": typeof types.UserDepositsQueryDocument,
+    "\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(orderBy: id, orderDirection: desc, where: $where) {\n      id\n    }\n  }\n": typeof types.UserPositionIDsQueryDocument,
 };
 const documents: Documents = {
     "\n  query PoolsLatestDayDataQuery($where: Pool_filter) {\n    pools(where: $where) {\n      id\n      poolDayData(first: 1, orderBy: date, orderDirection: desc) {\n        id\n        volumeUSD\n        date\n      }\n    }\n  }\n": types.PoolsLatestDayDataQueryDocument,
-    "\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n": types.UserDepositsQueryDocument,
+    "\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(orderBy: id, orderDirection: desc, where: $where) {\n      id\n    }\n  }\n": types.UserPositionIDsQueryDocument,
 };
 
 /**
@@ -43,7 +43,7 @@ export function gql(source: "\n  query PoolsLatestDayDataQuery($where: Pool_filt
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n"): (typeof documents)["\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n"];
+export function gql(source: "\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(orderBy: id, orderDirection: desc, where: $where) {\n      id\n    }\n  }\n"): (typeof documents)["\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(orderBy: id, orderDirection: desc, where: $where) {\n      id\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

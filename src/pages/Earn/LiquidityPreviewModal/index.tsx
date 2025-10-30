@@ -8,9 +8,9 @@ import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
-import { type PositionForUI } from '@service/position';
+import { type PositionForUI } from '@service/earn';
 import { type Token } from '@service/tokens';
-import { handleCreatePosition as _handleCreatePosition, handleIncreasePositionLiquidity as _handleIncreasePositionLiquidity } from '@service/position';
+import { handleCreatePosition as _handleCreatePosition, handleIncreasePositionLiquidity as _handleIncreasePositionLiquidity } from '@service/earn';
 import useInTransaction from '@hooks/useInTransaction';
 import { isMobile } from '@utils/is';
 

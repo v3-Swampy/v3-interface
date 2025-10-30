@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
-import { usePosition } from '@service/position';
+import { usePosition } from '@service/earn';
 import { useAccount } from '@service/account';
 import useI18n from '@hooks/useI18n';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';

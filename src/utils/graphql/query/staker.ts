@@ -1,13 +1,9 @@
 import { gql } from '../__generated__';
 
-export const getUserDepositsGQL = gql(/* GraphQL */ `
-  query UserDepositsQuery($where: Deposit_filter) {
-    deposits(where: $where, orderBy: id, orderDirection: desc) {
+export const getUserPositionIDsGQL = gql(/* GraphQL */ `
+  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {
+    managedPositions(orderBy: id, orderDirection: desc, where: $where) {
       id
-      owner
-      pool
-      blockNumber
-      blockTimestamp
     }
   }
 `);

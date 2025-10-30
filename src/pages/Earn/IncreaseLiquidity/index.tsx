@@ -8,7 +8,7 @@ import useInTransaction from '@hooks/useInTransaction';
 import Settings from '@modules/Settings';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import DepositAmounts from '@modules/Position/DepositAmounts';
-import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClickSubmitIncreasePositionLiquidity } from '@service/position';
+import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClickSubmitIncreasePositionLiquidity } from '@service/earn';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import PairInfo from './PairInfo';
 import SubmitButton from './SubmitButton';
