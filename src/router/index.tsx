@@ -11,12 +11,12 @@ import {
   PoolPage,
   PoolAddLiquidityPage,
   PoolLiquidityItemPage,
+  PoolIncreaseLiquidity,
+  PoolRemoveLiquidity,
   FarmingPage,
   AllFarmsPage,
   MyFarmsPage,
   StakingPage,
-  PoolIncreaseLiquidity,
-  PoolRemoveLiquidity,
   PointsPage,
   LeaderBoardPage,
   FRankPage,
@@ -29,6 +29,10 @@ import {
   EarnRemoveLiquidity,
   EarnIncreaseLiquidity,
   EarnPositionDetailPage,
+  EarnPoolLiquidityItemPage,
+  EarnPoolAddLiquidityPage,
+  EarnPoolIncreaseLiquidity,
+  EarnPoolRemoveLiquidity,
 } from './lazyPages';
 
 export const routes = [
@@ -84,6 +88,12 @@ const AppRouter: React.FC = () => {
             <Route path="remove_liquidity/:tokenId" element={<EarnRemoveLiquidity />} />
             <Route path="/earn/*" element={<Navigate to="/earn/all-pools" replace />} />
             <Route path="/earn/" element={<Navigate to="/earn/all-pools" replace />} />
+          </Route>
+          <Route path="earn/pool">
+            <Route path="add_liquidity" element={<EarnPoolAddLiquidityPage />} />
+            <Route path=":tokenId" element={<EarnPoolLiquidityItemPage />} />
+            <Route path="increase_liquidity/:tokenId" element={<EarnPoolIncreaseLiquidity />} />
+            <Route path="remove_liquidity/:tokenId" element={<EarnPoolRemoveLiquidity />} />
           </Route>
           <Route path="staking" element={<StakingPage />} />
           <Route path="points" element={<PointsPage />}>

@@ -112,7 +112,7 @@ export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(
 export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerQuery(+tokenId));
 
 export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesQuery(+tokenId));
-export const useRefreshPositionFees = (tokenId: number | undefined) => useRecoilRefresher_UNSTABLE(positionFeesQuery(tokenId ? + tokenId : -1));
+export const useRefreshPositionFees = (tokenId: number | string | undefined) => useRecoilRefresher_UNSTABLE(positionFeesQuery(tokenId ? + tokenId : -1));
 
 export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(+tokenId));
 

@@ -36,11 +36,12 @@ enum PriceType {
   Min,
   Max,
 }
-const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null | undefined; tokenB: Token | null | undefined; type: PriceType; }> = ({
+const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null | undefined; tokenB: Token | null | undefined; type: PriceType; isTiny?: boolean }> = ({
   price,
   tokenA,
   tokenB,
   type,
+  isTiny = false,
 }) => {
   const i18n = useI18n(transitions);
   const displayPrice = useMemo(() => {
@@ -53,11 +54,11 @@ const PriceItem: React.FC<{ price: Unit | null | undefined; tokenA: Token | null
   }, [tokenA?.address, tokenB?.address, price]);
 
   return (
-    <div className="lt-md:w-full flex md:flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px p-10px">
+    <div className={cx('lt-md:w-full flex md:flex-1 flex-col items-center border-2px border-orange-light border-solid rounded-10px ', isTiny ? 'py-10px px-2px' : 'p-10px')}>
       <p className="font-normal">{type === PriceType.Min ? i18n.min_price : i18n.max_price}</p>
       <p className="text-24px leading-30px font-normal">{displayPrice}</p>
       <p className="text-gray-normal text-12px leading-15px font-normal">{`${tokenB?.symbol} ${i18n.per} ${tokenA?.symbol}`}</p>
-       {/* always left with cheap tokens */}
+      {/* always left with cheap tokens */}
       <p className="max-w-172px text-12px leading-15px text-center font-normal">
         {compiled(i18n.price_desc, { tokenSymbol: type === PriceType.Min ? tokenA?.symbol ?? '' : tokenB?.symbol ?? '' })}
       </p>
@@ -72,7 +73,8 @@ const SelectedPriceRange: React.FC<{
   leftToken?: Token;
   rightToken?: Token;
   priceInit?: string;
-}> = ({ position, tokenId, showInvertButton = true, leftToken, rightToken, priceInit }) => {
+  isTiny?: boolean;
+}> = ({ position, tokenId, showInvertButton = true, leftToken, rightToken, priceInit, isTiny = false }) => {
   const i18n = useI18n(transitions);
 
   const { token0, token1, fee, priceLower, priceUpper } = position ?? {};
@@ -86,7 +88,7 @@ const SelectedPriceRange: React.FC<{
 
   if (!position) return null;
   return (
-    <div className="flex flex-col text-black-normal text-14px leading-18px">
+    <div className={cx('flex flex-col text-black-normal text-14px leading-18px', isTiny && 'flex-grow-1')}>
       <div className="flex items-center justify-between mb-8px font-normal">
         <span>{i18n.selected_range}</span>
         {showInvertButton && position?.leftToken && position?.rightToken && (
@@ -104,19 +106,22 @@ const SelectedPriceRange: React.FC<{
         )}
       </div>
       <div className="flex lt-md:flex-wrap items-stretch mb-16px">
-        <PriceItem type={PriceType.Min} price={isLeftTokenEqualToken0 ? priceLower : invertPrice(priceUpper)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+        <PriceItem type={PriceType.Min} price={isLeftTokenEqualToken0 ? priceLower : invertPrice(priceUpper)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} isTiny={isTiny} />
         <div className="lt-md:w-full flex items-center justify-center">
-          <ExchangeIcon className="w-24px h-24px lt-md:w-20px lt-md:h-20px text-gray-normal md:mx-8px lt-md:my-4px lt-md:rotate-90deg" />
+          <ExchangeIcon className={cx('text-gray-normal lt-md:my-4px lt-md:rotate-90deg', isTiny ? 'w-17px h-17px' : 'w-24px h-24px lt-md:w-20px lt-md:h-20px md:mx-8px')} />
         </div>
-        <PriceItem type={PriceType.Max} price={isLeftTokenEqualToken0 ? priceUpper : invertPrice(priceLower)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} />
+        <PriceItem type={PriceType.Max} price={isLeftTokenEqualToken0 ? priceUpper : invertPrice(priceLower)} tokenA={leftTokenForUI} tokenB={rightTokenForUI} isTiny={isTiny} />
       </div>
-      <div className="flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal">
+      <div
+        className={cx(
+          'flex flex-col border-2px border-orange-light border-solid rounded-10px p-12px items-center w-full text-14px leading-18px text-black-normal',
+          isTiny && 'flex-grow-1 justify-center'
+        )}
+      >
         <p className="font-normal">{i18n.current_price}</p>
         {leftTokenForUI && rightTokenForUI && (
           <p className="text-24px leading-30px font-normal">
-            {trimDecimalZeros(
-              fromPreview && !!priceInit ? priceInit : pool?.priceOf(leftTokenForUI)?.toDecimalMinUnit(5)!
-            ) ?? '-'}
+            {trimDecimalZeros(fromPreview && !!priceInit ? priceInit : pool?.priceOf(leftTokenForUI)?.toDecimalMinUnit(5)!) ?? '-'}
           </p>
         )}
         <p className="text-gray-normal text-12px leading-15px text-center font-normal">{`${rightTokenForUI?.symbol} ${i18n.per} ${leftTokenForUI?.symbol}`}</p>

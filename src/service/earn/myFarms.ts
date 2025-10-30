@@ -1,11 +1,11 @@
 import { selector, selectorFamily, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { groupBy, map, } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
-import { fetchChain } from '@utils/fetch';
+import { fetchChain } from '@cfx-kit/dapp-utils/dist/fetch';
 import { accountState } from '@service/account';
 import { type Token } from '@service/tokens';
 import { positionsQueryByTokenIds } from '@service/earn';
-import { poolsQuery, type IncentiveKeyDetail } from '@service/earn/allPools';
+import { poolsQuery, type IncentiveKeyDetail } from './allPools';
 
 const mergeStakeRewardsByToken = <T extends {
   stakeReward: {
@@ -51,9 +51,9 @@ const myFarmsQuery = selector({
 
     const pools = get(poolsQuery);
     if (!pools) return null;
-    console.log('pools', pools);
+
     const userPositionsQueryMulticall = await fetchChain<string>({
-      rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
+      url: import.meta.env.VITE_ESpaceRpcUrl,
       method: 'eth_call',
       params: [
         {
@@ -74,7 +74,6 @@ const myFarmsQuery = selector({
       Array.from(UniswapV3Staker.func.interface.decodeFunctionResult('getUserPositions', item as string)?.[0] as bigint[]).map(bigintValue => Number(bigintValue))
     );
 
-    console.log('userPositions', userPositionsQuery);
     const positions = get(positionsQueryByTokenIds(userPositions.flat()));
 
     const userPositionsWithIncentiveKey = userPositions.map((tokenIds, index) => {
@@ -91,7 +90,7 @@ const myFarmsQuery = selector({
     }).flat();
 
     const stakeRewardsQueryMulticall = await fetchChain<string>({
-      rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
+      url: import.meta.env.VITE_ESpaceRpcUrl,
       method: 'eth_call',
       params: [
         {

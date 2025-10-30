@@ -107,7 +107,7 @@ export const useHistory = () => {
   return history ?? [];
 };
 
-export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) => {
+export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>, thenFunc?: () => void) => {
   if (!record.txHash) return;
   const account = getAccount();
   setRecoil(historyState(account ?? 'not-login-in'), (history) => {
@@ -118,6 +118,7 @@ export const addRecordToHistory = async (record: Omit<HistoryRecord, 'status'>) 
 
   const [receiptPromise] = waitTransactionReceipt(record.txHash);
   await receiptPromise;
+  thenFunc?.();
 };
 
 export const clearHistory = () => {
