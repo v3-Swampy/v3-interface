@@ -49,7 +49,7 @@ export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
     else return null;
   });
 
-export const VotingEscrowContract = createContract(isProduction ? '0x8c08623a7b31520b3871a91f676e4c38080684a6' : '0x77199cE56736Eb4A67a1b249F66Aed8541AAE6f2', VotingEscrowABI);
+export const VotingEscrowContract = createContract(isProduction ? '0x8c08623a7b31520b3871a91f676e4c38080684a6' : '0x97DA4e2C169553D4dccB7ce7F0F2C7fA6AFEFD0c', VotingEscrowABI);
 
 export const createPairContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PairABI);
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
