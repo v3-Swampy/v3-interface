@@ -6,7 +6,7 @@ import 'rc-slider/assets/index.css';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, PositionStatus, usePosition, usePositionFees, handleSubmitRemoveLiquidity, usePositionStatus } from '@service/position';
+import { PositionForUI, PositionStatus, usePosition, usePositionFees, handleSubmitRemoveLiquidity, usePositionStatus } from '@service/earn';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';

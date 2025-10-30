@@ -9,7 +9,7 @@ import Button from '@components/Button';
 import Settings from '@modules/Settings';
 import useI18n from '@hooks/useI18n';
 import useInTransaction from '@hooks/useInTransaction';
-import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/position';
+import { handleClickSubmitCreatePosition as _handleClickSubmitCreatePosition } from '@service/earn';
 import SelectPair, { useTokenA, useTokenB, swapTokenAB, resetToken } from './SelectPair';
 import DepositAmounts from '@modules/Position/DepositAmounts';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';

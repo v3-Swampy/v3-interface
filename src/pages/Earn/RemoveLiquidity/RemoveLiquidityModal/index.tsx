@@ -6,7 +6,7 @@ import AuthConnectButton from '@modules/AuthConnectButton';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { toI18n } from '@hooks/useI18n';
 import useInTransaction from '@hooks/useInTransaction';
-import { handleSendTransaction } from '@service/position';
+import { handleSendTransaction } from '@service/earn';
 import { isMobile } from '@utils/is';
 
 const buttonProps = {

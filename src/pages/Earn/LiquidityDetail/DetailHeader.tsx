@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import Status from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, PositionStatus, usePosition, useIsPositionOwner, usePositionStatus } from '@service/position';
+import { type PositionForUI, PositionStatus, usePosition, useIsPositionOwner, usePositionStatus } from '@service/earn';
 
 const transitions = {
   en: {

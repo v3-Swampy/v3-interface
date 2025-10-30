@@ -7,7 +7,29 @@ import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
 import SwapPage from '@pages/Swap';
-import { PoolPage, PoolAddLiquidityPage, PoolLiquidityItemPage, FarmingPage, AllFarmsPage, MyFarmsPage, StakingPage, PoolIncreaseLiquidity, PoolRemoveLiquidity, PointsPage, LeaderBoardPage, FRankPage, WRankPage, EarnPointsPage, EarnPage, AllPoolsPage, MyPositionsPage } from './lazyPages';
+import {
+  PoolPage,
+  PoolAddLiquidityPage,
+  PoolLiquidityItemPage,
+  FarmingPage,
+  AllFarmsPage,
+  MyFarmsPage,
+  StakingPage,
+  PoolIncreaseLiquidity,
+  PoolRemoveLiquidity,
+  PointsPage,
+  LeaderBoardPage,
+  FRankPage,
+  WRankPage,
+  EarnPointsPage,
+  EarnPage,
+  EarnAllPoolsPage,
+  EarnMyPositionsPage,
+  EarnAddLiquidityPage,
+  EarnRemoveLiquidity,
+  EarnIncreaseLiquidity,
+  EarnPositionDetailPage,
+} from './lazyPages';
 
 export const routes = [
   {
@@ -45,15 +67,21 @@ const AppRouter: React.FC = () => {
             <Route path="increase_liquidity/:tokenId" element={<PoolIncreaseLiquidity />} />
             <Route path="remove_liquidity/:tokenId" element={<PoolRemoveLiquidity />} />
           </Route>
-          <Route path="farming" element={<FarmingPage />} >
+          <Route path="farming" element={<FarmingPage />}>
             <Route path="all-farms" element={<AllFarmsPage />} />
             <Route path="my-farms" element={<MyFarmsPage />} />
             <Route path="/farming/*" element={<Navigate to="/farming/all-farms" replace />} />
             <Route path="/farming/" element={<Navigate to="/farming/all-farms" replace />} />
           </Route>
-          <Route path="earn" element={<EarnPage />} >
-            <Route path="all-pools" element={<AllPoolsPage />} />
-            <Route path="my-positions" element={<MyPositionsPage />} />
+          <Route path="earn">
+            <Route element={<EarnPage />}>
+              <Route path="all-pools" element={<EarnAllPoolsPage />} />
+              <Route path="my-positions" element={<EarnMyPositionsPage />} />
+            </Route>
+            <Route path="my-positions/:tokenId" element={<EarnPositionDetailPage />} />
+            <Route path="add_liquidity" element={<EarnAddLiquidityPage />} />
+            <Route path="increase_liquidity/:tokenId" element={<EarnIncreaseLiquidity />} />
+            <Route path="remove_liquidity/:tokenId" element={<EarnRemoveLiquidity />} />
             <Route path="/earn/*" element={<Navigate to="/earn/all-pools" replace />} />
             <Route path="/earn/" element={<Navigate to="/earn/all-pools" replace />} />
           </Route>
