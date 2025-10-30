@@ -1,7 +1,7 @@
 import { selector, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { groupBy, map, } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
-import { fetchChain } from '@cfx-kit/dapp-utils/dist/fetch';
+import { fetchChain } from '@utils/fetch';
 import { accountState } from '@service/account';
 import { type Token } from '@service/tokens';
 import { positionsQueryByTokenIds } from '@service/position';
@@ -53,7 +53,6 @@ const myFarmsQuery = selector({
     if (!pools) return null;
 
     const userPositionsQueryMulticall = await fetchChain<string>({
-      url: 'https://evmtestnet.confluxrpc.com',
       method: 'eth_call',
       params: [
         {
@@ -90,7 +89,6 @@ const myFarmsQuery = selector({
     }).flat();
 
     const stakeRewardsQueryMulticall = await fetchChain<string>({
-      url: 'https://evmtestnet.confluxrpc.com',
       method: 'eth_call',
       params: [
         {

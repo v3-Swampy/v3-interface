@@ -13,10 +13,10 @@ import UnclaimedFees from './UnclaimedFees';
 
 const transitions = {
   en: {
-    back_to_pools: 'Back to Pools',
+    back_to_positions: 'Back to My Positions',
   },
   zh: {
-    back_to_pools: '返回矿池',
+    back_to_positions: '返回我的头寸',
   },
 } as const;
 
@@ -37,9 +37,9 @@ const LiquidityDetail: React.FC = () => {
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
         <div className="mb-16px lt-mobile:mb-12px flex items-center pl-8px pr-16px">
-          <Link to="/pool" className="mr-auto inline-flex items-center no-underline leading-40px text-24px lt-mobile:text-18px text-gray-normal font-normal">
+          <Link to="/earn/my-positions" className="mr-auto inline-flex items-center no-underline leading-40px text-24px lt-mobile:text-18px text-gray-normal font-normal">
             <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
-            {i18n.back_to_pools}
+            {i18n.back_to_positions}
           </Link>
         </div>
         <BorderBox className="w-full p-16px pt-24px rounded-28px flex flex-col gap-16px" variant="gradient-white">

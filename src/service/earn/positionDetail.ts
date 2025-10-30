@@ -1,7 +1,7 @@
 import { selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { getRecoil } from 'recoil-nexus';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager } from '@contracts/index';
+import { NonfungiblePositionManager, UniswapV3Staker, AutoPositionManager } from '@contracts/index';
 import { sendTransaction } from '@service/account';
 import { PositionForUI, PositionsForUISelector } from './positions';
 import { accountState } from '@service/account';
@@ -25,7 +25,8 @@ const positionSelector = selectorFamily<PositionForUI | undefined, number>({
 export const positionOwnerQuery = selectorFamily({
   key: `positionOwnerQuery-${import.meta.env.MODE}`,
   get: (tokenId: number) => async () => {
-    return (await NonfungiblePositionManager.func.ownerOf(tokenId)) as string;
+    const result = await UniswapV3Staker.func.deposits(tokenId);
+    return result[0] as string; // 明确取第一个返回值 owner
   },
 });
 
@@ -45,8 +46,8 @@ export const positionFeesQuery = selectorFamily({
     async ({ get }) => {
       const owner = get(positionOwnerQuery(tokenId));
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
-      if (NonfungiblePositionManager && tokenIdHexString && owner) {
-        return await NonfungiblePositionManager.func.collect
+      if (AutoPositionManager && tokenIdHexString && owner) {
+        return await AutoPositionManager.func.collect
           .staticCall(
             {
               tokenId: tokenIdHexString,
