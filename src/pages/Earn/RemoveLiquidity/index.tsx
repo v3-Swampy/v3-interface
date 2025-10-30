@@ -123,7 +123,7 @@ const RemoveLiquidity: React.FC = () => {
   }, [removePercent, setLeftRemoveAmount, leftTotalAmount, rightTotalAmount]);
 
   if (!tokenId || !position || !status) return null;
-  if (status === PositionStatus.Closed) return <Navigate to="/pool" replace />;
+  if (status === PositionStatus.Closed) return <Navigate to="/earn/my-positions" replace />;
 
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">

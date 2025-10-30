@@ -29,7 +29,7 @@ const LiquidityDetail: React.FC = () => {
   const account = useAccount();
   useEffect(() => {
     if (!account) {
-      navigate('/pool')
+      navigate('/earn/my-positions');
     }
   }, [account]);
 
