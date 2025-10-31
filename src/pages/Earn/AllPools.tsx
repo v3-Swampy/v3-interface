@@ -272,7 +272,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
 
 const AllPools = () => {
   const pools = usePools();
-
+  console.log('pools', pools);
   if (!pools) return null;
   return (
     <div className="mt-6 lt-mobile:mt-4">

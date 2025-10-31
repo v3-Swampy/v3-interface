@@ -5,7 +5,7 @@ import { chunk } from 'lodash-es';
 import { isProduction } from '@utils/is';
 import { getTokenPriority } from '@service/position/positions';
 import { getPoolLatestDayDataByPools } from './apis';
-import { timestampSelector } from '@service/earn';
+import { getTimestamp } from './timestamp';
 
 /**
  * 将数组按照指定的长度数组分组
@@ -109,7 +109,7 @@ export const poolsQuery = selector({
       };
     });
 
-    const timestamp = get(timestampSelector);
+    const timestamp = await getTimestamp();
     const incentiveKeysQuery = await fetchMulticall(
       poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])])
     );

@@ -51,7 +51,6 @@ const myFarmsQuery = selector({
 
     const pools = get(poolsQuery);
     if (!pools) return null;
-    console.log('pools', pools);
     const userPositionsQueryMulticall = await fetchChain<string>({
       rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
       method: 'eth_call',

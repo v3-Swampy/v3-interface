@@ -21,6 +21,7 @@ import { groupBy, map, } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import { poolsQuery, type IncentiveKeyDetail } from './allPools';
+import { getUserFarmInfoOfPosition } from './myFarmInfo';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -166,7 +167,12 @@ export const positionsQueryByTokenIds = selectorFamily({
           tmpRes.map(async (position) => {
             const { token0, token1, fee } = position;
             const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
-            return enhancePositionForUI(position, pool);
+            const enhancedPosition = enhancePositionForUI(position, pool);
+            if (pool) {
+              const userFarmInfo = await getUserFarmInfoOfPosition({ position: enhancedPosition, pool });
+              if (userFarmInfo) return { ...enhancedPosition, userFarmInfo };
+            }
+            return enhancedPosition;
           })
         );
       }
@@ -192,7 +198,12 @@ export const PositionsForUISelector = selector<Array<PositionForUI>>({
       positions.map(async (position) => {
         const { token0, token1, fee } = position;
         const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
-        return enhancePositionForUI(position, pool);
+        const enhancedPosition = enhancePositionForUI(position, pool);
+        if (pool) {
+          const userFarmInfo = await getUserFarmInfoOfPosition({ position: enhancedPosition, pool });
+          if (userFarmInfo) return { ...enhancedPosition, userFarmInfo };
+        }
+        return enhancedPosition;
       })
     );
     return enhancedPositions.reverse();
