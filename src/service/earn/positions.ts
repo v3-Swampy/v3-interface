@@ -17,10 +17,11 @@ import {
 } from '@service/tokens';
 import { getUserPositionIDs } from './apis';
 
-import { groupBy, map, } from 'lodash-es';
+import { groupBy, map } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import { poolsQuery, type IncentiveKeyDetail } from './allPools';
+import { usePositionFeesMulticall } from './positionDetail';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -68,6 +69,16 @@ export interface PositionForUI extends Position {
   ratio?: number;
   pool?: Pool | null | undefined;
   positionStatus?: PositionStatus;
+}
+
+export interface PositionEnhanced {
+  tokenId: number;
+  position: PositionForUI;
+  isPositionActive: boolean;
+  stakedIncentiveKeys: any[]; // 根据实际的 IncentiveKey 类型调整
+  activeIncentiveKeys: any[]; // 根据实际的 IncentiveKey 类型调整
+  activeRewards: any[]; // 根据实际的奖励类型调整
+  rewards: any[]; // 根据实际的奖励类型调整
 }
 
 const tokenIdsQuery = selector<Array<number> | []>({
@@ -304,31 +315,38 @@ export const getPositionStatus = (position: PositionForUI) => {
     : PositionStatus.InRange;
 };
 
-const mergeStakeRewardsByToken = <T extends {
-  stakeReward: {
-    liquidity: bigint;
-    boostedLiquidity: bigint;
-    rewardsPerSecondX32: bigint;
-    unsettledReward: bigint;
-  }; rewardTokenInfo?: Token; incentiveKey?: IncentiveKeyDetail
-}>(
+const mergeStakeRewardsByToken = <
+  T extends {
+    stakeReward: {
+      liquidity: bigint;
+      boostedLiquidity: bigint;
+      rewardsPerSecondX32: bigint;
+      unsettledReward: bigint;
+    };
+    rewardTokenInfo?: Token;
+    incentiveKey?: IncentiveKeyDetail;
+  }
+>(
   items: T[],
   getRewardTokenKey: (item: T) => string
 ) => {
   const groupedByRewardToken = groupBy(items, getRewardTokenKey);
 
   return map(groupedByRewardToken, (rewardTokenItems) => {
-    const mergedStakeReward = rewardTokenItems.reduce((acc, item) => ({
-      liquidity: acc.liquidity + item.stakeReward.liquidity,
-      boostedLiquidity: acc.boostedLiquidity + item.stakeReward.boostedLiquidity,
-      rewardsPerSecondX32: acc.rewardsPerSecondX32 + item.stakeReward.rewardsPerSecondX32,
-      unsettledReward: acc.unsettledReward + item.stakeReward.unsettledReward,
-    }), {
-      liquidity: 0n,
-      boostedLiquidity: 0n,
-      rewardsPerSecondX32: 0n,
-      unsettledReward: 0n,
-    });
+    const mergedStakeReward = rewardTokenItems.reduce(
+      (acc, item) => ({
+        liquidity: acc.liquidity + item.stakeReward.liquidity,
+        boostedLiquidity: acc.boostedLiquidity + item.stakeReward.boostedLiquidity,
+        rewardsPerSecondX32: acc.rewardsPerSecondX32 + item.stakeReward.rewardsPerSecondX32,
+        unsettledReward: acc.unsettledReward + item.stakeReward.unsettledReward,
+      }),
+      {
+        liquidity: 0n,
+        boostedLiquidity: 0n,
+        rewardsPerSecondX32: 0n,
+        unsettledReward: 0n,
+      }
+    );
 
     return {
       stakeReward: mergedStakeReward,
@@ -337,55 +355,31 @@ const mergeStakeRewardsByToken = <T extends {
   });
 };
 
-
 export type Rewards = ReturnType<typeof mergeStakeRewardsByToken>;
 
-const myFarmsQuery = selector({
-  key: `myFarmsQuery-${import.meta.env.MODE}`,
+const myPositionsQuery = selector({
+  key: `myPositionsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
-    const account = get(accountState);
-    if (!account) return null;
-
     const pools = get(poolsQuery);
     if (!pools) return null;
 
-    const userPositionsQueryMulticall = await fetchChain<string>({
-      method: 'eth_call',
-      params: [
-        {
-          from: '0x000000000000000000000000000000000000fe01',
-          to: UniswapV3Staker.address,
-          data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
-            pools.map(({ poolAddress }) =>
-              UniswapV3Staker.func.interface.encodeFunctionData('getUserPositions', [account, poolAddress])
-            )
-          ])
-        },
-        'latest'
-      ]
-    });
+    const positionsForUI = get(PositionsForUISelector);
 
-    const userPositionsQuery = UniswapV3Staker.func.interface.decodeFunctionResult('multicall', userPositionsQueryMulticall)?.[0];
-    const userPositions = Array.from(userPositionsQuery).map((item) =>
-      Array.from(UniswapV3Staker.func.interface.decodeFunctionResult('getUserPositions', item as string)?.[0] as bigint[]).map(bigintValue => Number(bigintValue))
+    console.log('positions in myFarmsQuery:', positionsForUI);
+
+    const allFees = usePositionFeesMulticall(
+      positionsForUI.map((position) => position.id)
     );
 
-    const positions = get(positionsQueryByTokenIds(userPositions.flat()));
-
-    console.log('positions in myFarmsQuery:', userPositions);
-
-    const userPositionsWithIncentiveKey = userPositions.map((tokenIds, index) => {
-      const pool = pools[index];
-      return tokenIds.flatMap((tokenId) =>
-        pool.incentiveKeys.map((incentiveKey) =>
-        ({
-          pool,
-          position: positions.find(position => position.id === tokenId)!,
-          incentiveKey
-        })
-        )
-      );
-    }).flat();
+    const userPositionsWithIncentiveKey = positionsForUI.map((position) => {
+      const pool = pools.find((p) => p.poolAddress === position?.pool?.address);
+      if (!pool || !pool.incentiveKeys) return [];
+      return pool.incentiveKeys.map((incentiveKey) => ({
+        pool,
+        position,
+        incentiveKey,
+      }));
+    });
 
     const stakeRewardsQueryMulticall = await fetchChain<string>({
       method: 'eth_call',
@@ -394,19 +388,22 @@ const myFarmsQuery = selector({
           from: '0x000000000000000000000000000000000000fe01',
           to: UniswapV3Staker.address,
           data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
-            userPositionsWithIncentiveKey.map(({ incentiveKey, position }) =>
-              UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, position.id])
-            )
-          ])
+            userPositionsWithIncentiveKey
+              .flat()
+              .map(({ incentiveKey, position }) => UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, position.id])),
+          ]),
         },
-        'latest'
-      ]
+        'latest',
+      ],
     });
 
     const stakeRewardsQuery = UniswapV3Staker.func.interface.decodeFunctionResult('multicall', stakeRewardsQueryMulticall)?.[0];
 
     const stakeRewards = Array.from(stakeRewardsQuery).map((item) => {
-      const [liquidity, boostedLiquidity, rewardsPerSecondX32, unsettledReward] = UniswapV3Staker.func.interface.decodeFunctionResult('getStakeRewardInfo', item as string) as Array<bigint>;
+      const [liquidity, boostedLiquidity, rewardsPerSecondX32, unsettledReward] = UniswapV3Staker.func.interface.decodeFunctionResult(
+        'getStakeRewardInfo',
+        item as string
+      ) as Array<bigint>;
       return {
         liquidity,
         boostedLiquidity,
@@ -415,55 +412,40 @@ const myFarmsQuery = selector({
       };
     });
 
-    const myFarmsResult = userPositionsWithIncentiveKey.map((userPositionWithIncentiveKey, index) => ({
+    const positionsWithRewards = userPositionsWithIncentiveKey.flat().map((userPositionWithIncentiveKey, index) => ({
       ...userPositionWithIncentiveKey,
       stakeReward: stakeRewards[index],
     }));
 
-    const groupedByPool = groupBy(myFarmsResult, item => item.pool.poolAddress);
+    const groupedByTokenId = groupBy(positionsWithRewards, (item) => item.position.id);
 
-    const groupedFarms = map(groupedByPool, (items) => {
-      const groupedByTokenId = groupBy(items, item => item.position.id);
+    const positions = map(groupedByTokenId, (positions, positionId) => {
+      const activeRewards = mergeStakeRewardsByToken(
+        positions.filter((item) => item.incentiveKey.status === 'active' && item.position.positionStatus === 'InRange'),
+        (item) => item.incentiveKey.rewardToken.toLowerCase()
+      );
 
-      const positions = map(groupedByTokenId, (incentiveItems, positionId) => {
-        const activeRewards = mergeStakeRewardsByToken(
-          incentiveItems.filter((item) => item.incentiveKey.status === 'active' && item.position.positionStatus === 'InRange'),
-          item => item.incentiveKey.rewardToken.toLowerCase()
-        );
+      const rewards = mergeStakeRewardsByToken(
+        positions.filter((item) => item.stakeReward.unsettledReward > 0n),
+        (item) => item.incentiveKey.rewardToken.toLowerCase()
+      );
 
-        const rewards = mergeStakeRewardsByToken(
-          incentiveItems.filter((item) => item.stakeReward.unsettledReward > 0n),
-          item => item.incentiveKey.rewardToken.toLowerCase()
-        );
-
-        return {
-          tokenId: Number(positionId),
-          position: incentiveItems[0].position,
-          isPositionActive: incentiveItems[0].position.positionStatus === 'InRange' && items.some(item => item.incentiveKey.status === 'active'),
-          stakedIncentiveKeys: incentiveItems.filter((item) => item.stakeReward.boostedLiquidity > 0n).map((item) => item.incentiveKey),
-          activeIncentiveKeys: incentiveItems.filter((item) => item.incentiveKey.status === 'active').map((item) => item.incentiveKey),
-          activeRewards,
-          rewards,
-        };
-      });
 
       return {
-        pool: items[0].pool,
-        positions,
-        rewards: mergeStakeRewardsByToken(
-          positions.flatMap(pos => pos.rewards),
-          reward => reward.rewardTokenInfo?.address?.toLowerCase() ?? ''
-        ),
-        activeRewards: mergeStakeRewardsByToken(
-          positions.flatMap(pos => pos.activeRewards),
-          reward => reward.rewardTokenInfo?.address?.toLowerCase() ?? ''
-        ),
+        tokenId: Number(positionId),
+        position: positions[0].position,
+        isPositionActive: positions[0].position.positionStatus === 'InRange' && positions.some((item) => item.incentiveKey.status === 'active'),
+        stakedIncentiveKeys: positions.filter((item) => item.stakeReward.boostedLiquidity > 0n).map((item) => item.incentiveKey),
+        activeIncentiveKeys: positions.filter((item) => item.incentiveKey.status === 'active').map((item) => item.incentiveKey),
+        activeRewards,
+        rewards,
+        fee: allFees[Number(positionId)],
       };
     });
-    return groupedFarms;
+
+    return positions;
   },
 });
 
-export const useMyFarms = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myFarmsQuery);
-export const useRefreshMyFarms = () => useRecoilRefresher_UNSTABLE(myFarmsQuery);
-
+export const useMyPositions = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myPositionsQuery);
+export const useRefreshMyPositions = () => useRecoilRefresher_UNSTABLE(myPositionsQuery);

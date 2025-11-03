@@ -1,19 +1,20 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import dayjs from 'dayjs';
 import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, usePositionsForUI, useRefreshPositions, useFarmsOnly, useMyFarms } from '@service/earn';
+import { type PositionForUI, type PositionEnhanced, usePositionsForUI, useRefreshPositions, useFarmsOnly, useMyPositions } from '@service/earn';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { BetaLpGuide } from './BetaLpGuide';
 import cx from 'clsx';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
 import FarmIcon from '@assets/imgs/farm.png';
-import { invertPrice } from '@service/pairs&pool';
+import { invertPrice, useTokenPrice } from '@service/pairs&pool';
 
 const classNames = {
   title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-mobile:mb-4px',
@@ -50,10 +51,27 @@ const transitions = {
   },
 } as const;
 
-const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
+const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positionEnhanced }) => {
+  const position: PositionForUI = positionEnhanced.position;
   const i18n = useI18n(transitions);
   const [inverted, setInverted] = useState(false);
-  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool } = position;
+  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1 } = position;
+
+
+  const token0Price = useTokenPrice(token0?.address);
+  const token1Price = useTokenPrice(token1?.address);
+
+  const token0Liquidity = token0Price && amount0 ? amount0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '';
+  const token1Liquidity = token1Price && amount1 ? amount1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '';
+  const liquidity =
+    token0Liquidity && token1Liquidity
+      ? formatDisplayAmount(new Unit(token0Liquidity).add(token1Liquidity), {
+          decimals: 0,
+          minNum: '0.00001',
+          toFixed: 5,
+          unit: '$',
+        })
+      : '-';
 
   const currentPrice = useMemo(() => {
     const priceToken = inverted ? rightToken : leftToken;
@@ -119,7 +137,7 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
         </div>
         <div className={`col-span-4 lt-mobile:col-span-8 flex flex-col items-center lt-mobile:items-start`}>
           <div className={`${classNames.title}`}>{i18n.liquidity}</div>
-          <div className={`${classNames.content}`}>'Liquidity'</div>
+          <div className={`${classNames.content}`}>{liquidity}</div>
         </div>
         <div className={`col-span-4 lt-mobile:col-span-8 ${classNames.splitLine}`}>
           <div className={`${classNames.title}`}>{i18n.unclaimedValue}</div>
@@ -135,11 +153,9 @@ const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
 
 const PositionsContent: React.FC = () => {
   const i18n = useI18n(transitions);
-  const positions = usePositionsForUI();
-  const myFarms = useMyFarms();
-  console.log('myFarms in MyPositions:', myFarms);
+  const myPositions = useMyPositions();
 
-  if (!positions?.length) {
+  if (!myPositions?.length) {
     return (
       <>
         <PoolHandIcon className="mt-116px lt-sm:mt-52px block mx-auto w-50.5px h-32px" />
@@ -152,8 +168,8 @@ const PositionsContent: React.FC = () => {
   }
   return (
     <>
-      {positions.map((position) => (
-        <PositionItem key={position.id} position={position} />
+      {myPositions.map((positionEnhanced) => (
+        <PositionItem key={positionEnhanced.tokenId} positionEnhanced={positionEnhanced} />
       ))}
       <BetaLpGuide />
     </>
