@@ -31,7 +31,7 @@ const transitions = {
 
 const PositionItem: React.FC<{ position: PositionForUI }> = ({ position }) => {
   return (
-    <Link to={String(position.id)} className="no-underline">
+    <Link to={String(position.tokenId)} className="no-underline">
       <div className="mt-6px lt-sm:mt-8px sm:px-24px lt-sm:py-8px sm:h-80px rounded-16px flex lt-sm:flex-wrap-reverse justify-between items-center hover:bg-orange-light-hover cursor-pointer transition-colors">
         <div className="lt-sm:w-full lt-sm:mt-8px">
           <TokenPair position={position} />
@@ -65,7 +65,7 @@ const PoolContent: React.FC = () => {
       <div className="sm:display-none h-1px bg-orange-light" />
 
       {positions.map((position) => (
-        <PositionItem key={position.id} position={position} />
+        <PositionItem key={position.tokenId} position={position} />
       ))}
     </>
   );
