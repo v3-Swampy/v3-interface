@@ -74,7 +74,7 @@ export interface PositionEnhanced extends PositionForUI {
   activeRewards?: any[];
   unsettledRewards?: any[];
   allRewards?: any[];
-  fees?: [Unit, Unit];
+  unclaimedFees?: [Unit, Unit];
 }
 
 const tokenIdsQuery = selector<Array<number> | []>({
@@ -179,18 +179,18 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
   get: async ({ get }) => {
     const positions = get(positionsQuery);
     if (!positions) return [];
-    const allFees = getMyPositionsFees(positions.map((position) => position.tokenId));
+    const myPositionsFees = getMyPositionsFees(positions.map((position) => position.tokenId));
     const enhancedPositions = await Promise.all(
       positions.map(async (position) => {
         const { token0, token1, fee } = position;
         const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
         const positionForUI = enhancePositionForUI(position, pool);
-        const fees = allFees[position.tokenId];
+        const unclaimedFees = myPositionsFees[position.tokenId];
         if (pool) {
           const userFarmInfo = await getUserFarmInfoOfPosition({ position: positionForUI, pool });
-          if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, fees };
+          if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, unclaimedFees };
         }
-        return { ...positionForUI, fees };
+        return { ...positionForUI, unclaimedFees };
       })
     );
     return enhancedPositions.reverse();

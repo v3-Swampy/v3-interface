@@ -55,7 +55,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   const position: PositionEnhanced = positionEnhanced;
   const i18n = useI18n(transitions);
   const [inverted, setInverted] = useState(false);
-  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, fees, unsettledRewards } = position;
+  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, unclaimedFees, unsettledRewards } = position;
 
   const token0Price = useTokenPrice(token0?.address);
   const token1Price = useTokenPrice(token1?.address);
@@ -99,10 +99,10 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     return [priceLowerStr, priceUpperStr];
   }, [inverted, priceUpperForUI, priceLowerForUI]);
 
-  const [fee0, fee1] = fees || [undefined, undefined];
+  const [fee0, fee1] = unclaimedFees || [undefined, undefined];
   const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '0';
   const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '0';
-  const fee = token0Fee && token1Fee ? new Unit(token0Fee).add(token1Fee) : '-';
+  const unclaimedFeesValue = token0Fee && token1Fee ? new Unit(token0Fee).add(token1Fee) : '-';
 
   const unsettledRewardValues = unsettledRewards?.map((reward) => {
     const rewardTokenPrice = useTokenPrice(reward?.rewardToken?.address);
@@ -114,8 +114,8 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   const unsettledRewardsValue = unsettledRewardValues && unsettledRewardValues.length > 0 ? unsettledRewardValues.reduce((acc, curr) => acc.add(curr), new Unit(0)) : '-';
 
   const unclaimedValue =
-    unsettledRewardsValue !== '-' && fee !== '-'
-      ? formatDisplayAmount(unsettledRewardsValue.add(fee), {
+    unsettledRewardsValue !== '-' && unclaimedFeesValue !== '-'
+      ? formatDisplayAmount(unsettledRewardsValue.add(unclaimedFeesValue), {
           decimals: 0,
           minNum: '0.00001',
           toFixed: 5,
