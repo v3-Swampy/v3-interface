@@ -105,9 +105,9 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   const unclaimedFeesValue = token0Fee && token1Fee ? new Unit(token0Fee).add(token1Fee) : '-';
 
   const unsettledRewardValues = unsettledRewards?.map((reward) => {
-    const rewardTokenPrice = useTokenPrice(reward?.rewardToken?.address);
-    if (rewardTokenPrice && reward.unsettledReward) {
-      return reward.unsettledReward.mul(rewardTokenPrice).toDecimalStandardUnit(undefined, reward.rewardToken.decimals);
+    const rewardTokenPrice = useTokenPrice(reward?.rewardTokenInfo?.address);
+    if (rewardTokenPrice && reward.stakeReward.unsettledReward) {
+      return new Unit(reward.stakeReward.unsettledReward).mul(rewardTokenPrice).div(new Unit(10).pow(reward.rewardTokenInfo?.decimals ?? 18));
     }
     return new Unit(0);
   });
