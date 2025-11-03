@@ -4,7 +4,7 @@ import { type PositionForUI } from '@service/position';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { type Token, isTokenEqual } from '@service/tokens';
 
-const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; ratio: number | undefined }> = ({ token, amount, ratio }) => {
+export const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; ratio?: number | undefined }> = ({ token, amount, ratio }) => {
   return (
     <div className="flex items-center justify-between text-14px leading-18px font-medium text-black-normal w-full">
       <div className="flex items-center">

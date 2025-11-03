@@ -67,15 +67,7 @@ export interface PositionForUI extends Position {
   positionStatus?: PositionStatus;
 }
 
-export interface PositionEnhanced extends PositionForUI {
-  isRewardActive?: boolean;
-  stakedIncentiveKeys?: any[];
-  activeIncentiveKeys?: any[];
-  activeRewards?: any[];
-  unsettledRewards?: any[];
-  allRewards?: any[];
-  unclaimedFees?: [Unit, Unit];
-}
+export type PositionEnhanced = PositionForUI & Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: [Unit, Unit] };
 
 const tokenIdsQuery = selector<Array<number> | []>({
   key: `earn-tokenIdsQuery-${import.meta.env.MODE}`,

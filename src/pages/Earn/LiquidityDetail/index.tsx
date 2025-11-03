@@ -56,7 +56,6 @@ const LiquidityDetail: React.FC = () => {
             <div className="w-full flex flex-col gap-16px">
               <UnclaimedFees />
               <UnclaimedRewards />
-              <UnclaimedRewards />
             </div>
           </div>
 
