@@ -16,7 +16,7 @@ import {
   type Token,
 } from '@service/tokens';
 import { getUserPositionIDs } from './apis';
-import { getMyPositionsFees } from './positionDetail';
+import { getPositionFees } from './positionDetail';
 import { getUserFarmInfoOfPosition } from './myFarmInfo';
 
 export enum PositionStatus {
@@ -67,7 +67,8 @@ export interface PositionForUI extends Position {
   positionStatus?: PositionStatus;
 }
 
-export type PositionEnhanced = PositionForUI & Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: [Unit, Unit] };
+export type PositionEnhanced = PositionForUI &
+  Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: readonly [Unit, Unit] | readonly [undefined, undefined] };
 
 const tokenIdsQuery = selector<Array<number> | []>({
   key: `earn-tokenIdsQuery-${import.meta.env.MODE}`,
@@ -170,14 +171,14 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
   key: `earn-PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
+    console.log('PositionsForUISelector positions', positions);
     if (!positions) return [];
-    const myPositionsFees = getMyPositionsFees(positions.map((position) => position.tokenId));
     const enhancedPositions = await Promise.all(
       positions.map(async (position) => {
         const { token0, token1, fee } = position;
         const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
         const positionForUI = enhancePositionForUI(position, pool);
-        const unclaimedFees = myPositionsFees[position.tokenId];
+        const unclaimedFees = await getPositionFees(position.tokenId);
         if (pool) {
           const userFarmInfo = await getUserFarmInfoOfPosition({ position: positionForUI, pool });
           if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, unclaimedFees };
@@ -272,7 +273,6 @@ export const createPreviewPositionForUI = (
 export const usePositionStatus = (position: PositionEnhanced) => useMemo(() => getPositionStatus(position), [position]);
 
 const getPositionStatus = (position: PositionEnhanced) => {
-  console.log('getPositionStatus position', position);
   const { liquidity, tickLower, tickUpper, pool } = position ?? {};
   const tickCurrent = pool?.tickCurrent;
 
@@ -284,7 +284,3 @@ const getPositionStatus = (position: PositionEnhanced) => {
     ? PositionStatus.OutOfRange
     : PositionStatus.InRange;
 };
-
-
-
-

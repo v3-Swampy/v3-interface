@@ -81,7 +81,7 @@ const UnclaimedRewards: React.FC = () => {
               {unsettledRewardsTotalPrice === undefined ? <Spin /> : unsettledRewardsTotalPrice ?? '-'}
             </span>
           </div>
-          {position.activeRewards?.length > 0 && (
+          {unsettledRewardsTotalPrice && Number(unsettledRewardsTotalPrice.slice(1)) > 0 && isOwner && (
             <Button
               className="px-24px h-40px rounded-100px text-14px font-normal"
               color="gradient"

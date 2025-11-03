@@ -39,61 +39,6 @@ export const isPositionOwnerSelector = selectorFamily({
     },
 });
 
-export const positionFeesMulticallSelector = selectorFamily({
-  key: `positionFeesMulticall-${import.meta.env.MODE}`,
-  get: (tokenIds: number[]) => async ({ get }) => {
-    if (!tokenIds.length) return {};
-
-    // 假设所有 tokenId 都属于同一个 owner，只需要获取一次
-    const owner = get(positionOwnerSelector(tokenIds[0]));
-    if (!owner) return {};
-
-    // 构建 multicall 数据
-    const callsData = tokenIds.map((tokenId) => {
-      const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
-
-      if (!owner) return null;
-
-      return AutoPositionManager.func.interface.encodeFunctionData('collect', [
-        {
-          tokenId: tokenIdHexString,
-          recipient: owner,
-          amount0Max: MAX_UINT128.toHexMinUnit(),
-          amount1Max: MAX_UINT128.toHexMinUnit(),
-        },
-      ]);
-    }).filter(Boolean);
-
-    if (!callsData.length) return {};
-
-    try {
-      // 执行 multicall
-      const results = await AutoPositionManager.func.multicall.staticCall(callsData, { from: owner });
-
-      // 解析结果
-      const feesMap: Record<number, [Unit, Unit] | undefined> = {};
-
-      tokenIds.forEach((tokenId, index) => {
-        if (results[index]) {
-          const decodedResult = AutoPositionManager.func.interface.decodeFunctionResult(
-            'collect',
-            results[index]
-          );
-          feesMap[tokenId] = [new Unit(decodedResult[0]), new Unit(decodedResult[1])] as const;
-        } else {
-          feesMap[tokenId] = undefined;
-        }
-      });
-
-      return feesMap;
-    } catch (error) {
-      console.error('Multicall position fees failed:', error);
-      // 返回空对象，单个查询可以作为 fallback
-      return {};
-    }
-  },
-});
-
 
 export const positionFeesSelector = selectorFamily({
   key: `positionFees-${import.meta.env.MODE}`,
@@ -114,6 +59,7 @@ export const positionFeesSelector = selectorFamily({
             { from: owner } // need to simulate the call as the owner
           )
           .then((results) => {
+            console.log('positionFeesSelector results', results);
             return [new Unit(results[0]), new Unit(results[1])] as const;
           });
       }
@@ -168,15 +114,6 @@ export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(
 
 export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerSelector(+tokenId));
 
-// 添加批量查询的 hook
-export const usePositionFeesMulticall = (tokenIds: number[]) =>
-  useRecoilValue(positionFeesMulticallSelector(tokenIds));
-
-// 添加批量刷新的 hook
-export const useRefreshPositionFeesMulticall = (tokenIds: number[]) =>
-  useRecoilRefresher_UNSTABLE(positionFeesMulticallSelector(tokenIds));
-
-
 export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesSelector(+tokenId));
 export const useRefreshPositionFees = (tokenId: number | string | undefined) => useRecoilRefresher_UNSTABLE(positionFeesSelector(tokenId ? + tokenId : -1));
 
@@ -187,5 +124,3 @@ export const getPositionOwner = (tokenId: number) => getRecoil(positionOwnerSele
 export const getPosition = (tokenId: number) => getRecoil(positionSelector(+tokenId));
 
 export const getPositionFees = (tokenId: number) => getRecoil(positionFeesSelector(+tokenId));
-
-export const getMyPositionsFees = (tokenIds: number[]) =>  getRecoil(positionFeesMulticallSelector(tokenIds));
