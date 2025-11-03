@@ -6,7 +6,7 @@ import AuthConnectButton from '@modules/AuthConnectButton';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import { toI18n } from '@hooks/useI18n';
 import useInTransaction from '@hooks/useInTransaction';
-import { handleSendTransaction } from '@service/earn';
+import { handleSendTransaction, useRefreshPositionFees } from '@service/earn';
 import { isMobile } from '@utils/is';
 
 const buttonProps = {
@@ -50,9 +50,12 @@ const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
   recordParams,
 }) => {
   const { execTransaction: handleRemoveLiquidity } = useInTransaction(handleSendTransaction);
+  const refreshPositionFees = useRefreshPositionFees(tokenId);
+
   const handleClickConfirm = useCallback(async () => {
-    setNextInfo({ sendTransaction: () => handleRemoveLiquidity(transactionParams), recordParams });
+    setNextInfo({ sendTransaction: () => handleRemoveLiquidity(transactionParams), recordParams, thenFunc: refreshPositionFees });
   }, []);
+
   return (
     <>
       <Suspense fallback={'...'}>

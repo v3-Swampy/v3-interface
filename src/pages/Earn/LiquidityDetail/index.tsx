@@ -5,11 +5,13 @@ import BorderBox from '@components/Box/BorderBox';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { usePosition } from '@service/earn';
 import { useAccount } from '@service/account';
+import { usePositionFarmingDetail } from '@service/farming/myFarms';
 import useI18n from '@hooks/useI18n';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';
+import UnclaimedRewards from './UnclaimedRewards';
 
 const transitions = {
   en: {
@@ -24,6 +26,8 @@ const LiquidityDetail: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
+  const farmingDetail = usePositionFarmingDetail(Number(tokenId));
+
 
   const navigate = useNavigate();
   const account = useAccount();
@@ -44,11 +48,18 @@ const LiquidityDetail: React.FC = () => {
         </div>
         <BorderBox className="w-full p-16px pt-24px rounded-28px flex flex-col gap-16px" variant="gradient-white">
           <DetailHeader />
-          <div className="flex gap-16px lt-md:flex-wrap">
-            <Liquidity />
-            <UnclaimedFees />
+          <div className='flex gap-16px'>
+            <div className="w-full flex flex-col gap-16px">
+              <Liquidity />
+              <SelectedPriceRange position={position} tokenId={tokenId} isTiny />
+            </div>
+            <div className="w-full flex flex-col gap-16px">
+              <UnclaimedFees />
+              <UnclaimedRewards />
+              <UnclaimedRewards />
+            </div>
           </div>
-          <SelectedPriceRange position={position} tokenId={tokenId} />
+
         </BorderBox>
       </div>
     </PageWrapper>

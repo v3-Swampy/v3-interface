@@ -29,6 +29,10 @@ export const LeaderBoardPage = lazyWithPreload(() => import('@pages/Points/Leade
 export const FRankPage = lazyWithPreload(() => import('@pages/Points/LeaderBoard/FRank'));
 export const WRankPage = lazyWithPreload(() => import('@pages/Points/LeaderBoard/WRank'));
 export const EarnPointsPage = lazyWithPreload(() => import('@pages/Points/EarnPoints'));
+export const EarnPoolLiquidityItemPage = lazyWithPreload(() => import('@pages/Earn/LiquidityDetail'));
+export const EarnPoolAddLiquidityPage = lazyWithPreload(() => import('@pages/Earn/AddLiquidity'));
+export const EarnPoolIncreaseLiquidity = lazyWithPreload(() => import('@pages/Earn/IncreaseLiquidity'));
+export const EarnPoolRemoveLiquidity = lazyWithPreload(() => import('@pages/Earn/RemoveLiquidity'));
 
 (function () {
   const preLoadAll = () =>
@@ -54,6 +58,10 @@ export const EarnPointsPage = lazyWithPreload(() => import('@pages/Points/EarnPo
       FRankPage.preload();
       WRankPage.preload();
       EarnPointsPage.preload();
+      EarnPoolLiquidityItemPage.preload();
+      EarnPoolAddLiquidityPage.preload();
+      EarnPoolIncreaseLiquidity.preload();
+      EarnPoolRemoveLiquidity.preload();
     }, 2000);
 
   try {

@@ -1,11 +1,11 @@
-import { selector, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE } from 'recoil';
+import { selector, selectorFamily, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { groupBy, map, } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import { accountState } from '@service/account';
 import { type Token } from '@service/tokens';
 import { positionsQueryByTokenIds } from '@service/position';
-import { poolsQuery, type IncentiveKeyDetail } from './farmingList';
+import { poolsQuery, type IncentiveKeyDetail } from '@service/earn/allPools';
 
 const mergeStakeRewardsByToken = <T extends {
   stakeReward: {
@@ -53,6 +53,7 @@ const myFarmsQuery = selector({
     if (!pools) return null;
 
     const userPositionsQueryMulticall = await fetchChain<string>({
+      rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
       method: 'eth_call',
       params: [
         {
@@ -73,6 +74,7 @@ const myFarmsQuery = selector({
       Array.from(UniswapV3Staker.func.interface.decodeFunctionResult('getUserPositions', item as string)?.[0] as bigint[]).map(bigintValue => Number(bigintValue))
     );
 
+    console.log('userPositions', userPositionsQuery);
     const positions = get(positionsQueryByTokenIds(userPositions.flat()));
 
     const userPositionsWithIncentiveKey = userPositions.map((tokenIds, index) => {
@@ -81,7 +83,7 @@ const myFarmsQuery = selector({
         pool.incentiveKeys.map((incentiveKey) =>
         ({
           pool,
-          position: positions.find(position => position.id === tokenId)!,
+          position: positions.find(position => position.tokenId === tokenId)!,
           incentiveKey
         })
         )
@@ -89,6 +91,7 @@ const myFarmsQuery = selector({
     }).flat();
 
     const stakeRewardsQueryMulticall = await fetchChain<string>({
+      rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
       method: 'eth_call',
       params: [
         {
@@ -96,7 +99,7 @@ const myFarmsQuery = selector({
           to: UniswapV3Staker.address,
           data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
             userPositionsWithIncentiveKey.map(({ incentiveKey, position }) =>
-              UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, position.id])
+              UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, position.tokenId])
             )
           ])
         },
@@ -124,7 +127,7 @@ const myFarmsQuery = selector({
     const groupedByPool = groupBy(myFarmsResult, item => item.pool.poolAddress);
 
     const groupedFarms = map(groupedByPool, (items) => {
-      const groupedByTokenId = groupBy(items, item => item.position.id);
+      const groupedByTokenId = groupBy(items, item => item.position.tokenId);
 
       const positions = map(groupedByTokenId, (incentiveItems, positionId) => {
         const activeRewards = mergeStakeRewardsByToken(
@@ -167,3 +170,36 @@ const myFarmsQuery = selector({
 
 export const useMyFarms = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myFarmsQuery);
 export const useRefreshMyFarms = () => useRecoilRefresher_UNSTABLE(myFarmsQuery);
+
+// 从 useMyFarms 返回值推导类型
+export type Farm = NonNullable<ReturnType<typeof useMyFarms>>[number];
+export type Position = Farm['positions'][number];
+
+const positionFarmingDetailQuery = selectorFamily({
+  key: `positionFarmingDetailQuery-${import.meta.env.MODE}`,
+  get:
+    (tokenId: number) =>
+    ({ get }) => {
+      const myFarms = get(myFarmsQuery);
+      if (!myFarms) return null;
+      console.log('tokenId', tokenId);
+      console.log('myFarms', myFarms);
+      // 查找包含指定 tokenId 的 farm
+      const farm = myFarms.find((farm) => 
+        farm.positions.some((position) => Number(position.tokenId) === Number(tokenId))
+      );
+      if (!farm) return null;
+
+      // 从 farm 中找到具体的 position
+      const position = farm.positions.find((position) => Number(position.tokenId) === Number(tokenId));
+      if (!position) return null;
+
+      // 返回完整的信息
+      return position;
+    },
+});
+
+export const usePositionFarmingDetail = (tokenId: number) => 
+  useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(positionFarmingDetailQuery(tokenId));
+export const useRefreshPositionFarmingDetail = (tokenId: number) => 
+  useRecoilRefresher_UNSTABLE(positionFarmingDetailQuery(tokenId));

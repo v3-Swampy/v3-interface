@@ -3,7 +3,7 @@ import { getRecoil } from 'recoil-nexus';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, UniswapV3Staker, AutoPositionManager } from '@contracts/index';
 import { sendTransaction } from '@service/account';
-import { PositionForUI, PositionsForUISelector } from './positions';
+import { PositionEnhanced, PositionsForUISelector } from './positions';
 import { accountState } from '@service/account';
 import { addRecordToHistory } from '@service/history';
 import { ZeroAddress } from '@service/swap';
@@ -11,19 +11,19 @@ import Decimal from 'decimal.js';
 
 export const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
 
-const positionSelector = selectorFamily<PositionForUI | undefined, number>({
+const positionSelector = selectorFamily<PositionEnhanced | undefined, number>({
   key: `PositionDetailForUI-${import.meta.env.MODE}`,
   get:
     (tokenId: number) =>
     ({ get }) => {
       const positions = get(PositionsForUISelector);
       if (!positions) return undefined;
-      return positions.find((position) => position.id === tokenId);
+      return positions.find((position) => position.tokenId === tokenId);
     },
 });
 
-export const positionOwnerQuery = selectorFamily({
-  key: `positionOwnerQuery-${import.meta.env.MODE}`,
+export const positionOwnerSelector = selectorFamily({
+  key: `positionOwner-${import.meta.env.MODE}`,
   get: (tokenId: number) => async () => {
     const result = await UniswapV3Staker.func.deposits(tokenId);
     return result[0] as string; // 明确取第一个返回值 owner
@@ -35,17 +35,17 @@ export const isPositionOwnerSelector = selectorFamily({
   get:
     (tokenId: number) =>
     ({ get }) => {
-      return get(accountState)?.toLowerCase() === get(positionOwnerQuery(tokenId))?.toLowerCase();
+      return get(accountState)?.toLowerCase() === get(positionOwnerSelector(tokenId))?.toLowerCase();
     },
 });
 
-export const positionFeesMulticallQuery = selectorFamily({
-  key: `positionFeesMulticallQuery-${import.meta.env.MODE}`,
+export const positionFeesMulticallSelector = selectorFamily({
+  key: `positionFeesMulticall-${import.meta.env.MODE}`,
   get: (tokenIds: number[]) => async ({ get }) => {
     if (!tokenIds.length) return {};
 
     // 假设所有 tokenId 都属于同一个 owner，只需要获取一次
-    const owner = get(positionOwnerQuery(tokenIds[0]));
+    const owner = get(positionOwnerSelector(tokenIds[0]));
     if (!owner) return {};
 
     // 构建 multicall 数据
@@ -71,7 +71,7 @@ export const positionFeesMulticallQuery = selectorFamily({
       const results = await AutoPositionManager.func.multicall.staticCall(callsData, { from: owner });
 
       // 解析结果
-      const feesMap: Record<number, readonly [Unit | undefined, Unit | undefined]> = {};
+      const feesMap: Record<number, [Unit, Unit] | undefined> = {};
 
       tokenIds.forEach((tokenId, index) => {
         if (results[index]) {
@@ -81,7 +81,7 @@ export const positionFeesMulticallQuery = selectorFamily({
           );
           feesMap[tokenId] = [new Unit(decodedResult[0]), new Unit(decodedResult[1])] as const;
         } else {
-          feesMap[tokenId] = [undefined, undefined] as const;
+          feesMap[tokenId] = undefined;
         }
       });
 
@@ -95,12 +95,12 @@ export const positionFeesMulticallQuery = selectorFamily({
 });
 
 
-export const positionFeesQuery = selectorFamily({
-  key: `positionFeesQuery-${import.meta.env.MODE}`,
+export const positionFeesSelector = selectorFamily({
+  key: `positionFees-${import.meta.env.MODE}`,
   get:
     (tokenId: number) =>
     async ({ get }) => {
-      const owner = get(positionOwnerQuery(tokenId));
+      const owner = get(positionOwnerSelector(tokenId));
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
       if (AutoPositionManager && tokenIdHexString && owner) {
         return await AutoPositionManager.func.collect
@@ -166,24 +166,26 @@ export const handleCollectFees = async ({ tokenId, refreshPositionFees }: { toke
 
 export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(+tokenId));
 
-export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerQuery(+tokenId));
+export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerSelector(+tokenId));
 
 // 添加批量查询的 hook
-export const usePositionFeesMulticall = (tokenIds: number[]) => 
-  useRecoilValue(positionFeesMulticallQuery(tokenIds));
+export const usePositionFeesMulticall = (tokenIds: number[]) =>
+  useRecoilValue(positionFeesMulticallSelector(tokenIds));
 
 // 添加批量刷新的 hook
-export const useRefreshPositionFeesMulticall = (tokenIds: number[]) => 
-  useRecoilRefresher_UNSTABLE(positionFeesMulticallQuery(tokenIds));
+export const useRefreshPositionFeesMulticall = (tokenIds: number[]) =>
+  useRecoilRefresher_UNSTABLE(positionFeesMulticallSelector(tokenIds));
 
 
-export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesQuery(+tokenId));
-export const useRefreshPositionFees = (tokenId: number | undefined) => useRecoilRefresher_UNSTABLE(positionFeesQuery(tokenId ? + tokenId : -1));
+export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesSelector(+tokenId));
+export const useRefreshPositionFees = (tokenId: number | string | undefined) => useRecoilRefresher_UNSTABLE(positionFeesSelector(tokenId ? + tokenId : -1));
 
 export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(+tokenId));
 
-export const getPositionOwner = (tokenId: number) => getRecoil(positionOwnerQuery(+tokenId));
+export const getPositionOwner = (tokenId: number) => getRecoil(positionOwnerSelector(+tokenId));
 
 export const getPosition = (tokenId: number) => getRecoil(positionSelector(+tokenId));
 
-export const getPositionFees = (tokenId: number) => getRecoil(positionFeesQuery(+tokenId));
+export const getPositionFees = (tokenId: number) => getRecoil(positionFeesSelector(+tokenId));
+
+export const getMyPositionsFees = (tokenIds: number[]) =>  getRecoil(positionFeesMulticallSelector(tokenIds));

@@ -18,7 +18,7 @@ const positionSelector = selectorFamily<PositionForUI | undefined, number>({
     ({ get }) => {
       const positions = get(PositionsForUISelector);
       if (!positions) return undefined;
-      return positions.find((position) => position.id === tokenId);
+      return positions.find((position) => position.tokenId === tokenId);
     },
 });
 
@@ -112,7 +112,7 @@ export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(
 export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerQuery(+tokenId));
 
 export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesQuery(+tokenId));
-export const useRefreshPositionFees = (tokenId: number | undefined) => useRecoilRefresher_UNSTABLE(positionFeesQuery(tokenId ? + tokenId : -1));
+export const useRefreshPositionFees = (tokenId: number | string | undefined) => useRecoilRefresher_UNSTABLE(positionFeesQuery(tokenId ? + tokenId : -1));
 
 export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(+tokenId));
 

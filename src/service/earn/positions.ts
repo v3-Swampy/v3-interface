@@ -16,12 +16,8 @@ import {
   type Token,
 } from '@service/tokens';
 import { getUserPositionIDs } from './apis';
-
-import { groupBy, map } from 'lodash-es';
-import { UniswapV3Staker } from '@contracts/index';
-import { fetchChain } from '@utils/fetch';
-import { poolsQuery, type IncentiveKeyDetail } from './allPools';
-import { usePositionFeesMulticall } from './positionDetail';
+import { getMyPositionsFees } from './positionDetail';
+import { getUserFarmInfoOfPosition } from './myFarmInfo';
 
 export enum PositionStatus {
   InRange = 'InRange',
@@ -30,7 +26,7 @@ export enum PositionStatus {
 }
 
 export interface Position {
-  id: number;
+  tokenId: number;
   address: string;
   nonce: number;
   operator: string;
@@ -71,14 +67,14 @@ export interface PositionForUI extends Position {
   positionStatus?: PositionStatus;
 }
 
-export interface PositionEnhanced {
-  tokenId: number;
-  position: PositionForUI;
-  isPositionActive: boolean;
-  stakedIncentiveKeys: any[]; // 根据实际的 IncentiveKey 类型调整
-  activeIncentiveKeys: any[]; // 根据实际的 IncentiveKey 类型调整
-  activeRewards: any[]; // 根据实际的奖励类型调整
-  rewards: any[]; // 根据实际的奖励类型调整
+export interface PositionEnhanced extends PositionForUI {
+  isRewardActive?: boolean;
+  stakedIncentiveKeys?: any[];
+  activeIncentiveKeys?: any[];
+  activeRewards?: any[];
+  unsettledRewards?: any[];
+  allRewards?: any[];
+  fees?: [Unit, Unit];
 }
 
 const tokenIdsQuery = selector<Array<number> | []>({
@@ -91,7 +87,7 @@ const tokenIdsQuery = selector<Array<number> | []>({
   },
 });
 
-export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => {
+const decodePosition = async (tokenId: number, decodeRes: Array<any>) => {
   let token0 = getTokenByAddress(decodeRes?.[2])!;
   let token1 = getTokenByAddress(decodeRes?.[3])!;
   if (!token0) {
@@ -112,7 +108,7 @@ export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => 
   });
 
   const position: Position = {
-    id: tokenId,
+    tokenId: tokenId,
     address: address,
     nonce: Number(decodeRes?.[0]),
     operator: String(decodeRes?.[1]),
@@ -142,16 +138,7 @@ export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => 
   return position;
 };
 
-export const positionQueryByTokenId = selectorFamily({
-  key: `earn-positionQueryByTokenId-${import.meta.env.MODE}`,
-  get: (tokenId: number) => async () => {
-    const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
-    const position = await decodePosition(tokenId, decodeRes);
-    return position;
-  },
-});
-
-export const positionsQueryByTokenIds = selectorFamily({
+const positionsQueryByTokenIds = selectorFamily({
   key: `earn-positionsQueryByTokenIds-${import.meta.env.MODE}`,
   get:
     (tokenIdParams: Array<number>) =>
@@ -165,19 +152,12 @@ export const positionsQueryByTokenIds = selectorFamily({
       );
 
       if (Array.isArray(positionsResult)) {
-        const tmpRes = await Promise.all(
+        return Promise.all(
           positionsResult?.map(async (singleRes, index) => {
             const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
             const position = await decodePosition(tokenIds[index], decodeRes);
 
             return position;
-          })
-        );
-        return await Promise.all(
-          tmpRes.map(async (position) => {
-            const { token0, token1, fee } = position;
-            const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
-            return enhancePositionForUI(position, pool);
           })
         );
       }
@@ -186,7 +166,7 @@ export const positionsQueryByTokenIds = selectorFamily({
     },
 });
 
-export const positionsQuery = selector<Array<Position>>({
+const positionsQuery = selector<Array<Position>>({
   key: `earn-PositionListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const tokenIds = get(tokenIdsQuery);
@@ -194,37 +174,34 @@ export const positionsQuery = selector<Array<Position>>({
   },
 });
 
-export const PositionsForUISelector = selector<Array<PositionForUI>>({
+export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
   key: `earn-PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
     if (!positions) return [];
+    const allFees = getMyPositionsFees(positions.map((position) => position.tokenId));
     const enhancedPositions = await Promise.all(
       positions.map(async (position) => {
         const { token0, token1, fee } = position;
         const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
-        return enhancePositionForUI(position, pool);
+        const positionForUI = enhancePositionForUI(position, pool);
+        const fees = allFees[position.tokenId];
+        if (pool) {
+          const userFarmInfo = await getUserFarmInfoOfPosition({ position: positionForUI, pool });
+          if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, fees };
+        }
+        return { ...positionForUI, fees };
       })
     );
     return enhancedPositions.reverse();
   },
 });
 
-export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
-
-export const usePositions = (tokenIds?: Array<number>) => {
-  const allPositions = useRecoilValue(positionsQuery);
-  const filterPositions = useMemo(() => (tokenIds ? allPositions.filter((position) => tokenIds.includes(position.id)) : allPositions), [allPositions, tokenIds]);
-  return filterPositions;
-};
-
-export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQuery);
-
-export const usePositionByTokenId = (tokenId: number) => useRecoilValue(positionQueryByTokenId(+tokenId));
+export const useRefreshPositionsForUI = () => useRecoilRefresher_UNSTABLE(PositionsForUISelector);
 
 export const usePositionsForUI = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(PositionsForUISelector);
 
-export const getTokenPriority = (token: Token) => {
+const getTokenPriority = (token: Token) => {
   if (isTokenEqual(token, TokenUSDT)) return 0;
   // e.g. USDC, AxCNH
   if (stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token.address.toLowerCase())) return 1;
@@ -234,7 +211,7 @@ export const getTokenPriority = (token: Token) => {
   return 3;
 };
 
-export const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
+const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
   const upper = new Unit(1.0001).pow(new Unit(tickUpper));
@@ -296,13 +273,14 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 };
 
 export const createPreviewPositionForUI = (
-  position: Pick<Position, 'id' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
+  position: Pick<Position, 'tokenId' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
 
-export const usePositionStatus = (position: PositionForUI) => useMemo(() => getPositionStatus(position), [position]);
+export const usePositionStatus = (position: PositionEnhanced) => useMemo(() => getPositionStatus(position), [position]);
 
-export const getPositionStatus = (position: PositionForUI) => {
+const getPositionStatus = (position: PositionEnhanced) => {
+  console.log('getPositionStatus position', position);
   const { liquidity, tickLower, tickUpper, pool } = position ?? {};
   const tickCurrent = pool?.tickCurrent;
 
@@ -315,137 +293,6 @@ export const getPositionStatus = (position: PositionForUI) => {
     : PositionStatus.InRange;
 };
 
-const mergeStakeRewardsByToken = <
-  T extends {
-    stakeReward: {
-      liquidity: bigint;
-      boostedLiquidity: bigint;
-      rewardsPerSecondX32: bigint;
-      unsettledReward: bigint;
-    };
-    rewardTokenInfo?: Token;
-    incentiveKey?: IncentiveKeyDetail;
-  }
->(
-  items: T[],
-  getRewardTokenKey: (item: T) => string
-) => {
-  const groupedByRewardToken = groupBy(items, getRewardTokenKey);
-
-  return map(groupedByRewardToken, (rewardTokenItems) => {
-    const mergedStakeReward = rewardTokenItems.reduce(
-      (acc, item) => ({
-        liquidity: acc.liquidity + item.stakeReward.liquidity,
-        boostedLiquidity: acc.boostedLiquidity + item.stakeReward.boostedLiquidity,
-        rewardsPerSecondX32: acc.rewardsPerSecondX32 + item.stakeReward.rewardsPerSecondX32,
-        unsettledReward: acc.unsettledReward + item.stakeReward.unsettledReward,
-      }),
-      {
-        liquidity: 0n,
-        boostedLiquidity: 0n,
-        rewardsPerSecondX32: 0n,
-        unsettledReward: 0n,
-      }
-    );
-
-    return {
-      stakeReward: mergedStakeReward,
-      rewardTokenInfo: rewardTokenItems[0].rewardTokenInfo || rewardTokenItems[0].incentiveKey?.rewardTokenInfo,
-    };
-  });
-};
-
-export type Rewards = ReturnType<typeof mergeStakeRewardsByToken>;
-
-const myPositionsQuery = selector({
-  key: `myPositionsQuery-${import.meta.env.MODE}`,
-  get: async ({ get }) => {
-    const pools = get(poolsQuery);
-    if (!pools) return null;
-
-    const positionsForUI = get(PositionsForUISelector);
-
-    console.log('positions in myFarmsQuery:', positionsForUI);
-
-    const allFees = usePositionFeesMulticall(
-      positionsForUI.map((position) => position.id)
-    );
-
-    const userPositionsWithIncentiveKey = positionsForUI.map((position) => {
-      const pool = pools.find((p) => p.poolAddress === position?.pool?.address);
-      if (!pool || !pool.incentiveKeys) return [];
-      return pool.incentiveKeys.map((incentiveKey) => ({
-        pool,
-        position,
-        incentiveKey,
-      }));
-    });
-
-    const stakeRewardsQueryMulticall = await fetchChain<string>({
-      method: 'eth_call',
-      params: [
-        {
-          from: '0x000000000000000000000000000000000000fe01',
-          to: UniswapV3Staker.address,
-          data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
-            userPositionsWithIncentiveKey
-              .flat()
-              .map(({ incentiveKey, position }) => UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, position.id])),
-          ]),
-        },
-        'latest',
-      ],
-    });
-
-    const stakeRewardsQuery = UniswapV3Staker.func.interface.decodeFunctionResult('multicall', stakeRewardsQueryMulticall)?.[0];
-
-    const stakeRewards = Array.from(stakeRewardsQuery).map((item) => {
-      const [liquidity, boostedLiquidity, rewardsPerSecondX32, unsettledReward] = UniswapV3Staker.func.interface.decodeFunctionResult(
-        'getStakeRewardInfo',
-        item as string
-      ) as Array<bigint>;
-      return {
-        liquidity,
-        boostedLiquidity,
-        rewardsPerSecondX32,
-        unsettledReward,
-      };
-    });
-
-    const positionsWithRewards = userPositionsWithIncentiveKey.flat().map((userPositionWithIncentiveKey, index) => ({
-      ...userPositionWithIncentiveKey,
-      stakeReward: stakeRewards[index],
-    }));
-
-    const groupedByTokenId = groupBy(positionsWithRewards, (item) => item.position.id);
-
-    const positions = map(groupedByTokenId, (positions, positionId) => {
-      const activeRewards = mergeStakeRewardsByToken(
-        positions.filter((item) => item.incentiveKey.status === 'active' && item.position.positionStatus === 'InRange'),
-        (item) => item.incentiveKey.rewardToken.toLowerCase()
-      );
-
-      const rewards = mergeStakeRewardsByToken(
-        positions.filter((item) => item.stakeReward.unsettledReward > 0n),
-        (item) => item.incentiveKey.rewardToken.toLowerCase()
-      );
 
 
-      return {
-        tokenId: Number(positionId),
-        position: positions[0].position,
-        isPositionActive: positions[0].position.positionStatus === 'InRange' && positions.some((item) => item.incentiveKey.status === 'active'),
-        stakedIncentiveKeys: positions.filter((item) => item.stakeReward.boostedLiquidity > 0n).map((item) => item.incentiveKey),
-        activeIncentiveKeys: positions.filter((item) => item.incentiveKey.status === 'active').map((item) => item.incentiveKey),
-        activeRewards,
-        rewards,
-        fee: allFees[Number(positionId)],
-      };
-    });
 
-    return positions;
-  },
-});
-
-export const useMyPositions = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(myPositionsQuery);
-export const useRefreshMyPositions = () => useRecoilRefresher_UNSTABLE(myPositionsQuery);

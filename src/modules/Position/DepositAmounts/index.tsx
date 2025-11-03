@@ -232,14 +232,16 @@ const DepositAmounts: React.FC<Props> = ({
     setValue('amount-tokenB', '');
   }, [tokenA?.address, tokenB?.address, account]);
 
+  const token0 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB) : null;
+  const firstToken = token0 === tokenA ? { token: tokenA, pairToken: tokenB, type: 'tokenA' as const } : { token: tokenB, pairToken: tokenA, type: 'tokenB' as const };
+  const secondToken = token0 === tokenA ? { token: tokenB, pairToken: tokenA, type: 'tokenB' as const } : { token: tokenA, pairToken: tokenB, type: 'tokenA' as const };
+
   return (
     <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-normal">{title || i18n.deposit_amounts}</p>
       <DepositAmount
         tokenA={tokenA}
-        token={tokenA}
-        pairToken={tokenB}
-        type="tokenA"
+        {...firstToken}
         priceTokenA={priceTokenA}
         priceLower={priceLower}
         priceUpper={priceUpper}
@@ -254,9 +256,7 @@ const DepositAmounts: React.FC<Props> = ({
       />
       <DepositAmount
         tokenA={tokenA}
-        token={tokenB}
-        pairToken={tokenA}
-        type="tokenB"
+        {...secondToken}
         priceTokenA={priceTokenA}
         priceLower={priceLower}
         priceUpper={priceUpper}

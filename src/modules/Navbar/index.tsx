@@ -13,7 +13,7 @@ import { ReactComponent as FIcon } from '@assets/icons/f_point.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
 import BorderBox from '@components/Box/BorderBox';
 import { routes } from '@router/index';
-import { useRefreshPositions } from '@service/position';
+import { useRefreshPositionsForUI } from '@service/earn';
 export { default as BlockNumber } from '@modules/Navbar/BlockNumber';
 import AccountDetailDropdown from './AccountDetailDropdown';
 import './index.css';
@@ -68,7 +68,7 @@ const Navbar: React.FC = () => {
 };
 
 const NavLinks: React.FC = () => {
-  const refreshPositions = useRefreshPositions();
+  const refreshPositions = useRefreshPositionsForUI();
 
   const isWallfreexMainnet = React.useMemo(() => {
     const currentUrl = window.location.href;

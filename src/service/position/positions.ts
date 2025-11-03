@@ -25,7 +25,7 @@ export enum PositionStatus {
 }
 
 export interface Position {
-  id: number;
+  tokenId: number;
   address: string;
   nonce: number;
   operator: string;
@@ -116,7 +116,7 @@ export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => 
   });
 
   const position: Position = {
-    id: tokenId,
+    tokenId: tokenId,
     address: address,
     nonce: Number(decodeRes?.[0]),
     operator: String(decodeRes?.[1]),
@@ -167,7 +167,6 @@ export const positionsQueryByTokenIds = selectorFamily({
       const positionsResult = await fetchMulticall(
         tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
       );
-
       if (Array.isArray(positionsResult)) {
         const tmpRes = await Promise.all(
           positionsResult?.map(async (singleRes, index) => {
@@ -220,7 +219,7 @@ export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
 
 export const usePositions = (tokenIds?: Array<number>) => {
   const allPositions = useRecoilValue(positionsQuery);
-  const filterPositions = useMemo(() => (tokenIds ? allPositions.filter((position) => tokenIds.includes(position.id)) : allPositions), [allPositions, tokenIds]);
+  const filterPositions = useMemo(() => (tokenIds ? allPositions.filter((position) => tokenIds.includes(position.tokenId)) : allPositions), [allPositions, tokenIds]);
   return filterPositions;
 };
 
@@ -302,7 +301,7 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 };
 
 export const createPreviewPositionForUI = (
-  position: Pick<Position, 'id' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
+  position: Pick<Position, 'tokenId' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
 

@@ -10,6 +10,7 @@ import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
 import { chunk } from 'lodash-es';
 import { type Position } from '@service/position';
+import { getFarmingInfoOfPool } from '@service/earn/farmingInfo';
 
 /**
  * fetch pools info.
@@ -65,6 +66,7 @@ export const fetchPools = async (positions: Pick<Position, 'token0' | 'token1' |
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
       tickCurrent: slots?.[1] !== undefined ? +slots?.[1].toString() : null,
+      farmingInfo: null
     });
 
     const poolKey = generatePoolKey({ tokenA: wrapperedTokenA, tokenB: wrapperedTokenB, fee });
@@ -98,6 +100,8 @@ export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB
 
   const poolAddress = computePoolAddress(params);
   const poolContract = createPoolContract(poolAddress);
+  const farmingInfo = await getFarmingInfoOfPool(poolAddress);
+
   return await fetchMulticall([
     [poolContract.address, poolContract.func.interface.encodeFunctionData('slot0')],
     [poolContract.address, poolContract.func.interface.encodeFunctionData('liquidity')],
@@ -109,12 +113,12 @@ export const fetchPool = async ({ tokenA, tokenB, fee }: { tokenA: Token; tokenB
       return null;
     }
 
-
     return createPool({
       ...params,
       sqrtPriceX96: slots?.[0] ? slots?.[0]?.toString() : null,
       liquidity: liquidityRes?.[0] ? liquidityRes?.[0].toString() : null,
       tickCurrent: slots?.[1] !== undefined ? +slots?.[1].toString() : null,
+      farmingInfo,
     });
   });
 };
@@ -191,6 +195,7 @@ export const createPool = ({
   sqrtPriceX96,
   liquidity,
   tickCurrent,
+  farmingInfo,
 }: {
   tokenA: Token;
   tokenB: Token;
@@ -198,6 +203,7 @@ export const createPool = ({
   sqrtPriceX96: string | null;
   liquidity: string | null;
   tickCurrent: number | null;
+  farmingInfo: Awaited<ReturnType<typeof getFarmingInfoOfPool>> | null;
 }) => {
   const wrapperedTokenA = getWrapperTokenByAddress(tokenA?.address)!;
   const wrapperedTokenB = getWrapperTokenByAddress(tokenB?.address)!;
@@ -209,5 +215,6 @@ export const createPool = ({
     sqrtPriceX96,
     liquidity,
     tickCurrent,
+    farmingInfo,
   });
 };

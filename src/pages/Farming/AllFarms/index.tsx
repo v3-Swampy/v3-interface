@@ -243,7 +243,6 @@ const AllFarmsItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[nu
 
 const AllFarms = () => {
   const pools = usePools();
-
   if (!pools) return null;
   return (
     <div className="mt-6 lt-mobile:mt-4">
