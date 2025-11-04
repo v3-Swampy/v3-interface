@@ -4,7 +4,7 @@ import Decimal from 'decimal.js';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
-import { usePosition, usePositionFees, useIsPositionOwner } from '@service/earn';
+import { usePosition, useIsPositionOwner } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { getTokensPrice } from '@service/pairs&pool';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
@@ -25,20 +25,19 @@ const UnclaimedRewards: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
-  const [fee0, fee1] = usePositionFees(Number(tokenId));
 
   const activeRewardsInfo = useMemo(
     () =>
       position?.activeRewards?.map((reward) => {
-        const rewardPerSecond = new Decimal(reward.stakeReward.rewardsPerSecondX32.toString()).div(Math.pow(2, 32))
-        const rewardPerDay = new Unit(rewardPerSecond).mul(86400)
-        return ({
+        const rewardPerSecond = new Decimal(reward.stakeReward.rewardsPerSecondX32.toString()).div(Math.pow(2, 32));
+        const rewardPerDay = new Unit(rewardPerSecond).mul(86400);
+        return {
           wrapperTokenAddress: reward.rewardTokenInfo.address,
           token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
           unsettledReward: new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(6, reward.rewardTokenInfo.decimals),
           rewardPerDay: rewardPerDay.toDecimalMinUnit(),
           rewardPerDayDisplay: rewardPerDay.toDecimalStandardUnit(6, reward.rewardTokenInfo.decimals),
-        })
+        };
       }) ?? [],
     [position?.activeRewards]
   );
@@ -55,17 +54,16 @@ const UnclaimedRewards: React.FC = () => {
           if (!price) return acc;
           return acc.add(new Unit(price).mul(new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(undefined, reward.rewardTokenInfo.decimals)));
         }, new Unit(0)) ?? new Unit(0);
-        const _expectedRewardPerDayTotalPrice =
-          activeRewardsInfo?.reduce((acc, reward) => {
-            const price = prices[reward.wrapperTokenAddress];
-            if (!price) return acc;
-            return acc.add(new Unit(price).mul(new Unit(reward.rewardPerDay).toDecimalStandardUnit(undefined, reward.token.decimals)));
-          }, new Unit(0)) ?? new Unit(0);
-        setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
-        setExpectedRewardPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
+      const _expectedRewardPerDayTotalPrice =
+        activeRewardsInfo?.reduce((acc, reward) => {
+          const price = prices[reward.wrapperTokenAddress];
+          if (!price) return acc;
+          return acc.add(new Unit(price).mul(new Unit(reward.rewardPerDay).toDecimalStandardUnit(undefined, reward.token.decimals)));
+        }, new Unit(0)) ?? new Unit(0);
+      setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
+      setExpectedRewardPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
     });
   }, [activeRewardsInfo]);
-
 
   const isOwner = useIsPositionOwner(Number(tokenId));
   if (!position || !position.activeRewards?.length || !isOwner) return null;

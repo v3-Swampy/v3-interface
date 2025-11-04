@@ -1,31 +1,32 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n, { toI18n } from '@hooks/useI18n';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import Button from '@components/Button';
 import useInTransaction from '@hooks/useInTransaction';
-import { type PositionForUI } from '@service/earn';
-import TokenPairAmount from '@modules/Position/TokenPairAmount';
-import { handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/earn';
+import { TokenItem } from '@modules/Position/TokenPairAmount';
+import { type PositionEnhanced, handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/earn';
+import { getUnwrapperTokenByAddress, isTokenEqual } from '@service/tokens';
+import AmountDetail from '@pages/Pool/RemoveLiquidity/AmountDetail';
 
 const transitions = {
   en: {
-    title: 'Claim fees',
+    title: 'Claim Fees & Rewards',
     collect: 'Collect',
-    collect_tip: 'Collecting fees will withdraw currently available fees for you.',
+    collect_tip: 'Collecting will withdraw all your available fees and rewards.',
   },
   zh: {
-    title: '提取收益',
+    title: '提取收益和奖励',
     collect: '提取',
-    collect_tip: 'Collecting fees will withdraw currently available fees for you.',
+    collect_tip: '提取将提取您所有可用的费用和奖励。',
   },
 } as const;
 
 interface CommonProps {
   fee0?: Unit;
   fee1?: Unit;
-  position: PositionForUI | undefined;
+  position: PositionEnhanced | undefined;
   tokenId?: number;
 }
 type Props = ConfirmModalInnerProps & CommonProps;
@@ -36,6 +37,68 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const { token0, token1 } = position || {};
   const refreshPositionFees = useRefreshPositionFees(tokenId);
 
+  const activeRewardsInfo = useMemo(
+    () =>
+      position?.activeRewards?.map((reward) => {
+        return {
+          token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
+          unsettledReward: new Unit(reward.stakeReward.unsettledReward),
+        };
+      }) ?? [],
+    [position?.activeRewards]
+  );
+
+  const feesInfo = useMemo(() => {
+    const fees = [];
+    if (token0 && fee0) {
+      fees.push({ token: getUnwrapperTokenByAddress(token0.address) ?? token0, fee: fee0.toDecimalStandardUnit(6, token0.decimals) });
+    }
+    if (token1 && fee1) {
+      fees.push({ token: getUnwrapperTokenByAddress(token1.address) ?? token1, amount: fee1.toDecimalStandardUnit(6, token1.decimals) });
+    }
+    return fees;
+  }, [token0, token1, fee0, fee1]);
+
+  // 合并 feesInfo 和 activeRewardsInfo，相同 token 的 amount 相加
+  const mergedRewardsInfo = useMemo(() => {
+    const mergedMap = new Map();
+
+    // 先添加 fees
+    feesInfo.forEach(({ token, fee }) => {
+      if (token && fee) {
+        mergedMap.set(token.address.toLowerCase(), {
+          token,
+          amount: fee,
+        });
+      }
+    });
+
+    // 再添加 activeRewards，如果有相同 token 则相加
+    activeRewardsInfo.forEach(({ token, unsettledReward }) => {
+      if (token && unsettledReward) {
+        const key = token.address.toLowerCase();
+        const existing = mergedMap.get(key);
+
+        if (existing) {
+          // 相同 token，amount 相加
+
+          mergedMap.set(key, {
+            token,
+            amount: unsettledReward.add(new Unit(existing.fee)).toDecimalStandardUnit(6, token.decimals),
+          });
+        } else {
+          // 不同 token，直接添加
+          mergedMap.set(key, {
+            token,
+            amount: unsettledReward.toDecimalStandardUnit(6, token.decimals),
+          });
+        }
+      }
+    });
+
+    return Array.from(mergedMap.values());
+  }, [feesInfo, activeRewardsInfo]);
+
   const onSubmit = useCallback(async () => {
     if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0.equals(0) && fee1.equals(0))) return;
     setNextInfo({
@@ -45,8 +108,10 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 
   return (
     <div className="mt-24px flex flex-col h-full flex-grow-1">
-      <div className="flex p-16px bg-orange-light-hover rounded-20px mb-16px">
-        <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} />
+      <div className="flex flex-col gap-8px p-16px bg-orange-light-hover rounded-20px mb-16px">
+        {mergedRewardsInfo.map(({ token, amount }) => (
+          <TokenItem key={token.address} token={token} amount={amount} />
+        ))}
       </div>
       <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
       <AuthConnectButton {...buttonProps}>
