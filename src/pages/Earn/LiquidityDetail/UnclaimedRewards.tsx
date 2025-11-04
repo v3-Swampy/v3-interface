@@ -34,9 +34,13 @@ const UnclaimedRewards: React.FC = () => {
         return {
           wrapperTokenAddress: reward.rewardTokenInfo.address,
           token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
-          unsettledReward: new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(6, reward.rewardTokenInfo.decimals),
-          rewardPerDay: rewardPerDay.toDecimalMinUnit(),
-          rewardPerDayDisplay: rewardPerDay.toDecimalStandardUnit(6, reward.rewardTokenInfo.decimals),
+          unsettledReward: new Unit(reward.stakeReward.unsettledReward),
+          rewardPerDay: rewardPerDay,
+          rewardPerDayDisplay: formatDisplayAmount(rewardPerDay, {
+            decimals: reward.rewardTokenInfo.decimals,
+            minNum: '0.000001',
+            toFixed: 6,
+          }),
         };
       }) ?? [],
     [position?.activeRewards]
@@ -46,19 +50,19 @@ const UnclaimedRewards: React.FC = () => {
   const [expectedRewardPerDayTotalPrice, setExpectedRewardPerDayTotalPrice] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!position?.activeRewards?.length) return;
-    getTokensPrice(position?.activeRewards.map((reward, index) => reward.rewardTokenInfo.address)).then((prices) => {
+    if (!activeRewardsInfo?.length) return;
+    getTokensPrice(activeRewardsInfo.map((reward) => reward.token.address)).then((prices) => {
       const _unsettledRewardsTotalPrice =
-        position?.activeRewards?.reduce((acc, reward) => {
-          const price = prices[reward.rewardTokenInfo.address];
+        activeRewardsInfo?.reduce((acc, reward) => {
+          const price = prices[reward.token.address];
           if (!price) return acc;
-          return acc.add(new Unit(price).mul(new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(undefined, reward.rewardTokenInfo.decimals)));
+          return acc.add(new Unit(price).mul(reward.unsettledReward).toDecimalStandardUnit(undefined, reward.token.decimals));
         }, new Unit(0)) ?? new Unit(0);
       const _expectedRewardPerDayTotalPrice =
         activeRewardsInfo?.reduce((acc, reward) => {
           const price = prices[reward.wrapperTokenAddress];
           if (!price) return acc;
-          return acc.add(new Unit(price).mul(new Unit(reward.rewardPerDay).toDecimalStandardUnit(undefined, reward.token.decimals)));
+          return acc.add(new Unit(price).mul(reward.rewardPerDay).toDecimalStandardUnit(undefined, reward.token.decimals));
         }, new Unit(0)) ?? new Unit(0);
       setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
       setExpectedRewardPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
@@ -80,7 +84,15 @@ const UnclaimedRewards: React.FC = () => {
         </div>
         <div className="flex flex-col gap-8px w-full">
           {activeRewardsInfo.map(({ token, unsettledReward }) => (
-            <TokenItem key={token.address} token={token} amount={unsettledReward} />
+            <TokenItem
+              key={token.address}
+              token={token}
+              amount={formatDisplayAmount(unsettledReward, {
+                decimals: token.decimals,
+                minNum: '0.000001',
+                toFixed: 6,
+              })}
+            />
           ))}
         </div>
       </div>

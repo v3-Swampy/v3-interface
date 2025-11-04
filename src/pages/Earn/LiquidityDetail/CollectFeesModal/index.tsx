@@ -7,8 +7,9 @@ import Button from '@components/Button';
 import useInTransaction from '@hooks/useInTransaction';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type PositionEnhanced, handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/earn';
-import { getUnwrapperTokenByAddress, isTokenEqual } from '@service/tokens';
+import { getUnwrapperTokenByAddress, isTokenEqual, Token } from '@service/tokens';
 import AmountDetail from '@pages/Pool/RemoveLiquidity/AmountDetail';
+import { formatDisplayAmount } from '@utils/numberUtils';
 
 const transitions = {
   en: {
@@ -51,17 +52,17 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const feesInfo = useMemo(() => {
     const fees = [];
     if (token0 && fee0) {
-      fees.push({ token: getUnwrapperTokenByAddress(token0.address) ?? token0, fee: fee0.toDecimalStandardUnit(6, token0.decimals) });
+      fees.push({ token: getUnwrapperTokenByAddress(token0.address) ?? token0, fee: fee0 });
     }
     if (token1 && fee1) {
-      fees.push({ token: getUnwrapperTokenByAddress(token1.address) ?? token1, amount: fee1.toDecimalStandardUnit(6, token1.decimals) });
+      fees.push({ token: getUnwrapperTokenByAddress(token1.address) ?? token1, fee: fee1 });
     }
     return fees;
   }, [token0, token1, fee0, fee1]);
 
   // 合并 feesInfo 和 activeRewardsInfo，相同 token 的 amount 相加
   const mergedRewardsInfo = useMemo(() => {
-    const mergedMap = new Map();
+    const mergedMap = new Map<string, { token: Token; amount: Unit }>();
 
     // 先添加 fees
     feesInfo.forEach(({ token, fee }) => {
@@ -81,16 +82,15 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 
         if (existing) {
           // 相同 token，amount 相加
-
           mergedMap.set(key, {
             token,
-            amount: unsettledReward.add(new Unit(existing.fee)).toDecimalStandardUnit(6, token.decimals),
+            amount: unsettledReward.add(existing.amount),
           });
         } else {
           // 不同 token，直接添加
           mergedMap.set(key, {
             token,
-            amount: unsettledReward.toDecimalStandardUnit(6, token.decimals),
+            amount: unsettledReward,
           });
         }
       }
@@ -110,7 +110,15 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
     <div className="mt-24px flex flex-col h-full flex-grow-1">
       <div className="flex flex-col gap-8px p-16px bg-orange-light-hover rounded-20px mb-16px">
         {mergedRewardsInfo.map(({ token, amount }) => (
-          <TokenItem key={token.address} token={token} amount={amount} />
+          <TokenItem
+            key={token.address}
+            token={token}
+            amount={formatDisplayAmount(amount, {
+              decimals: token.decimals,
+              minNum: '0.000001',
+              toFixed: 6,
+            })}
+          />
         ))}
       </div>
       <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
