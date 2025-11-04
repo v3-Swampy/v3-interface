@@ -14,7 +14,6 @@ import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositions } from '@service/position';
 import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST, useRefreshBoostFactor, useRefreshVeTotalSuppply } from '@service/staking';
 import { useRefreshPoolsQuery, useRefreshMyFarms } from '@service/farming';
-// import { useRefreshStakedTokenIds, useRefreshMyFarmsListQuery } from '@service/farming/myFarms';
 
 export const transitions = {
   en: {

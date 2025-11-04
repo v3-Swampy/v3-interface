@@ -5,7 +5,6 @@ import BorderBox from '@components/Box/BorderBox';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { usePosition } from '@service/earn';
 import { useAccount } from '@service/account';
-import { usePositionFarmingDetail } from '@service/farming/myFarms';
 import useI18n from '@hooks/useI18n';
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import DetailHeader from './DetailHeader';
@@ -26,7 +25,6 @@ const LiquidityDetail: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
-  const farmingDetail = usePositionFarmingDetail(Number(tokenId));
 
 
   const navigate = useNavigate();

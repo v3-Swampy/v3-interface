@@ -14,6 +14,7 @@ import { type Token } from '@service/tokens';
 import FarmIcon from '@assets/imgs/farm.png';
 import { useNavigate } from 'react-router-dom';
 import { setTokens } from './AddLiquidity/SelectPair';
+import { useFarmsOnly } from '@service/earn';
 
 const classNames = {
   title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-mobile:mb-4px',
@@ -162,6 +163,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
 
     data.incentiveKeys.forEach((key, index) => {
       const incentive = data.incentives[index];
+      console.log('incentive', incentive, key);
       if (!incentive || key.status !== 'active' || incentive.isEmpty) return;
 
       const rewardTokenAddress = key.rewardToken.toLowerCase();
@@ -277,11 +279,13 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
 
 const AllPools = () => {
   const pools = usePools();
+  const [onlyFarms] = useFarmsOnly();
   console.log('pools', pools);
   if (!pools) return null;
+  const filteredPools = onlyFarms ? pools.filter((pool) => pool.incentiveKeys.some((key) => key.status === 'active')) : pools;
   return (
     <div className="mt-6 lt-mobile:mt-4">
-      {pools.map((p) => (
+      {filteredPools.map((p) => (
         <PoolItem key={p.poolAddress} data={p} />
       ))}
     </div>

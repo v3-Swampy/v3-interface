@@ -4,13 +4,11 @@ import Decimal from 'decimal.js';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
-import Button from '@components/Button';
 import { usePosition, usePositionFees, useIsPositionOwner } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { getTokensPrice } from '@service/pairs&pool';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { formatDisplayAmount } from '@utils/numberUtils';
-import showCollectFeesModal from './CollectFeesModal';
 
 const transitions = {
   en: {
@@ -81,15 +79,6 @@ const UnclaimedRewards: React.FC = () => {
               {unsettledRewardsTotalPrice === undefined ? <Spin /> : unsettledRewardsTotalPrice ?? '-'}
             </span>
           </div>
-          {unsettledRewardsTotalPrice && Number(unsettledRewardsTotalPrice.slice(1)) > 0 && isOwner && (
-            <Button
-              className="px-24px h-40px rounded-100px text-14px font-normal"
-              color="gradient"
-              onClick={() => showCollectFeesModal({ position, fee0, fee1, tokenId: Number(tokenId) })}
-            >
-              {i18n.claim_rewards}
-            </Button>
-          )}
         </div>
         <div className="flex flex-col gap-8px w-full">
           {activeRewardsInfo.map(({ token, unsettledReward }) => (

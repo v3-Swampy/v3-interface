@@ -7,7 +7,7 @@ import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, type PositionEnhanced, usePositionsForUI, useRefreshPositionsForUI, useFarmsOnly } from '@service/earn';
+import { type PositionEnhanced, usePositionsForUI, useRefreshPositionsForUI, useFarmsOnly } from '@service/earn';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
 import { BetaLpGuide } from './BetaLpGuide';
 import cx from 'clsx';
@@ -177,9 +177,13 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
 const PositionsContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
+  const [onlyFarms] = useFarmsOnly();
+  const filteredPositions = onlyFarms
+    ? positions?.filter((position) => position.isRewardActive)
+    : positions;
 
   console.log('positions', positions);
-  if (!positions?.length) {
+  if (!filteredPositions?.length) {
     return (
       <>
         <PoolHandIcon className="mt-116px lt-sm:mt-52px block mx-auto w-50.5px h-32px" />
@@ -192,7 +196,7 @@ const PositionsContent: React.FC = () => {
   }
   return (
     <>
-      {positions.map((positionEnhanced: PositionEnhanced) => (
+      {filteredPositions.map((positionEnhanced: PositionEnhanced) => (
         <PositionItem key={positionEnhanced.tokenId} positionEnhanced={positionEnhanced} />
       ))}
       <BetaLpGuide />

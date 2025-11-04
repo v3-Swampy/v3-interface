@@ -5,7 +5,7 @@ import { fetchChain } from '@utils/fetch';
 import { accountState } from '@service/account';
 import { type Token } from '@service/tokens';
 import { positionsQueryByTokenIds } from '@service/position';
-import { poolsQuery, type IncentiveKeyDetail } from '@service/earn/allPools';
+import { poolsQuery, type IncentiveKeyDetail } from '@service/farming';
 
 const mergeStakeRewardsByToken = <T extends {
   stakeReward: {
