@@ -1,9 +1,11 @@
+import { Incentive } from './../../utils/graphql/__generated__/graphql';
 import { groupBy, map } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import type { IncentiveKeyDetail } from './farmingInfo';
 import type { PositionForUI } from './positions';
 import type { Pool } from '@service/pairs&pool';
+import { getPools } from './allPools';
 
 const mergeStakeRewardsByToken = <
   T extends {
@@ -43,8 +45,9 @@ const mergeStakeRewardsByToken = <
 };
 
 export const getUserFarmInfoOfPosition = async ({ position, pool }: { position: PositionForUI; pool: Pool }) => {
-  if (!position || !pool?.farmingInfo) return null;
-  const { incentiveKeys } = pool.farmingInfo;
+  if (!position || !pool) return null;
+  const pools = await getPools([pool.address]);
+  const incentiveKeys = pools?.[0]?.incentiveKeys || [];
 
   const stakeRewardsQueryMulticall = await fetchChain<string>({
     rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
@@ -90,11 +93,11 @@ export const getUserFarmInfoOfPosition = async ({ position, pool }: { position: 
   );
 
   return {
-    isRewardActive,// whether the position can earn farming rewards now
-    stakedIncentiveKeys,// all incentive keys with staked liquidity
-    activeIncentiveKeys,// active incentive keys when position is in range
-    activeRewards,// all active incentive keys stake rewards
-    unsettledRewards,// all incentive keys unsettled rewards
-    allRewards: stakeRewards,// all incentive keys stake rewards
+    isRewardActive, // whether the position can earn farming rewards now
+    stakedIncentiveKeys, // all incentive keys with staked liquidity
+    activeIncentiveKeys, // active incentive keys when position is in range
+    activeRewards, // all active incentive keys stake rewards
+    unsettledRewards, // all incentive keys unsettled rewards
+    allRewards: stakeRewards, // all incentive keys stake rewards
   };
 };

@@ -39,7 +39,6 @@ export const isPositionOwnerSelector = selectorFamily({
     },
 });
 
-
 export const positionFeesSelector = selectorFamily({
   key: `positionFees-${import.meta.env.MODE}`,
   get:
@@ -47,6 +46,12 @@ export const positionFeesSelector = selectorFamily({
     async ({ get }) => {
       const owner = get(positionOwnerSelector(tokenId));
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
+      console.log({
+        tokenId: tokenIdHexString,
+        recipient: owner, // some tokens might fail if transferred to address(0)
+        amount0Max: MAX_UINT128.toHexMinUnit(),
+        amount1Max: MAX_UINT128.toHexMinUnit(),
+      });
       if (AutoPositionManager && tokenIdHexString && owner) {
         return await AutoPositionManager.func.collect
           .staticCall(
@@ -115,7 +120,7 @@ export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(
 export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerSelector(+tokenId));
 
 export const usePositionFees = (tokenId: number) => useRecoilValue(positionFeesSelector(+tokenId));
-export const useRefreshPositionFees = (tokenId: number | string | undefined) => useRecoilRefresher_UNSTABLE(positionFeesSelector(tokenId ? + tokenId : -1));
+export const useRefreshPositionFees = (tokenId: number | string | undefined) => useRecoilRefresher_UNSTABLE(positionFeesSelector(tokenId ? +tokenId : -1));
 
 export const useIsPositionOwner = (tokenId: number) => useRecoilValue(isPositionOwnerSelector(+tokenId));
 

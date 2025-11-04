@@ -167,6 +167,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
       const rewardTokenAddress = key.rewardToken.toLowerCase();
 
       const rewardTokenPrice = rewardTokenPrices[rewardTokenAddress];
+      console.log(rewardTokenPrices, 'rewardTokenPrices');
       if (!rewardTokenPrice) return;
 
       const rewardToken = data.rewards.find((r) => r.token?.address?.toLowerCase() === rewardTokenAddress)?.token;
@@ -200,7 +201,11 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
       }
     });
 
-    const totalBaseAPR = totalRewardsPerSecond.div(tvl).mul(31536000).add(feeAprDecimal);
+    const totalBaseAPR = tvl.isZero() ? new Decimal(0) : totalRewardsPerSecond.div(tvl).mul(31536000).add(feeAprDecimal);
+
+    console.log('tvl', tvl.toString());
+    console.log('feeAprDecimal', feeAprDecimal.toString());
+    console.log('totalBaseAPR', totalBaseAPR.toString());
 
     const totalApr = totalBaseAPR.toFixed(2);
 
@@ -243,7 +248,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
             </span>
           </Dropdown>
         </div>
-        <div className={`${classNames.content}`}>{rewardTokenPrices === undefined ? <Spin /> : aprData?.hasValidData ? `${aprData.totalApr}%` : '0%'}</div>
+        <div className={`${classNames.content}`}>{rewardTokenPrices === undefined ? <Spin /> : aprData?.hasValidData ? `${aprData.totalApr}%` : '--'}</div>
       </div>
       <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>{i18n.tvl}</div>

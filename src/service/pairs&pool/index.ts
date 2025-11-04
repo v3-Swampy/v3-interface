@@ -7,7 +7,6 @@ export { default as computePoolAddress } from './computePoolAddress';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
-import { getFarmingInfoOfPool } from '@service/earn/farmingInfo';
 
 const Q192Unit = new Unit(new Decimal(2).toPower(192).toString());
 
@@ -37,7 +36,6 @@ export class Pool implements PoolProps {
   public tickCurrent: number | null;
   public token0Price: Unit | null;
   public token1Price: Unit | null;
-  public farmingInfo: Awaited<ReturnType<typeof getFarmingInfoOfPool>> | null;
   constructor({
     tokenA,
     tokenB,
@@ -46,8 +44,7 @@ export class Pool implements PoolProps {
     sqrtPriceX96,
     liquidity,
     tickCurrent,
-    farmingInfo,
-  }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token; farmingInfo: Awaited<ReturnType<typeof getFarmingInfoOfPool>> | null }) {
+  }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token; }) {
     const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
     this.token0 = token0;
     this.token1 = token1;
@@ -56,7 +53,6 @@ export class Pool implements PoolProps {
     this.sqrtPriceX96 = sqrtPriceX96;
     this.liquidity = liquidity;
     this.tickCurrent = tickCurrent;
-    this.farmingInfo = farmingInfo;
     this.token0Price = !sqrtPriceX96
       ? null
       : new Unit(sqrtPriceX96)

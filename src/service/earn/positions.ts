@@ -171,7 +171,6 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
   key: `earn-PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
-    console.log('PositionsForUISelector positions', positions);
     if (!positions) return [];
     const enhancedPositions = await Promise.all(
       positions.map(async (position) => {
@@ -194,7 +193,7 @@ export const useRefreshPositionsForUI = () => useRecoilRefresher_UNSTABLE(Positi
 
 export const usePositionsForUI = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(PositionsForUISelector);
 
-const getTokenPriority = (token: Token) => {
+export const getTokenPriority = (token: Token) => {
   if (isTokenEqual(token, TokenUSDT)) return 0;
   // e.g. USDC, AxCNH
   if (stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token.address.toLowerCase())) return 1;

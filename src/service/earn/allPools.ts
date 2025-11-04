@@ -3,9 +3,10 @@ import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/
 import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { isProduction } from '@utils/is';
-import { getTokenPriority } from '@service/position/positions';
+import { getTokenPriority } from '@service/earn/positions';
 import { getPoolLatestDayDataByPools } from './apis';
 import { getTimestamp } from './timestamp';
+import { getRecoil } from 'recoil-nexus';
 
 /**
  * 将数组按照指定的长度数组分组
@@ -31,7 +32,14 @@ export const farmingPoolsAddress = atom<Array<string>>({
   key: `earn-farmingPoolsAddress-${import.meta.env.MODE}`,
   default: isProduction
     ? ['0x6857285eb6b3feb1d007a57b1DFDD76B2fAb0D0a', '0x6806c2808b68b74206A0Cbe00dDe2d0e26216308', '0x108920614FD13CeaAf52026E76D18C480e88AA2A']
-    : ['0x6A24a7818b666732e5b5Bcb719F07926961B341E', '0xE1074D1068c05D7f5b9c27b7CA9e5fD0933c073D', '0x320bDBC3ba3db966c70d3f54222b902e56270066', '0xb5BD827D40d284170d0773c9aAC7f2E37d48C6A3', '0x393BA3679Ac5701a3181e2506bA189162e644101', '0x7510CEE7eeB84d6eEFD333b9b587a89F2f898893'],
+    : [
+        '0x6A24a7818b666732e5b5Bcb719F07926961B341E',
+        '0xE1074D1068c05D7f5b9c27b7CA9e5fD0933c073D',
+        '0x320bDBC3ba3db966c70d3f54222b902e56270066',
+        '0xb5BD827D40d284170d0773c9aAC7f2E37d48C6A3',
+        '0x393BA3679Ac5701a3181e2506bA189162e644101',
+        '0x7510CEE7eeB84d6eEFD333b9b587a89F2f898893',
+      ],
 });
 
 export interface IncentiveKey {
@@ -64,134 +72,135 @@ export const poolLatestDayDataByPoolIds = selectorFamily({
     },
 });
 
-export const poolsQuery = selector({
+export const poolsQuery = selectorFamily({
   key: `earn-poolsQuery-${import.meta.env.MODE}`,
-  get: async ({ get }) => {
-    const poolsAddress = get(farmingPoolsAddress);
-    const poolDayData = get(poolLatestDayDataByPoolIds(poolsAddress));
-    const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
-    const pairsInfoQuery = await fetchMulticall(
-      pairContracts
-        .map((pairContract) => {
-          return [
-            [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
-            [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
-            [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
-          ];
-        })
-        .flat()
-    );
-    const pairsInfo = pairsInfoQuery
-      ? chunk(pairsInfoQuery, 3).map((r, i) => {
-          return {
-            token0Address: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
-            token1Address: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
-            fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
-          };
-        })
-      : [];
-
-    const tokensDetail = await Promise.all(
-      pairsInfo.map(async (info) => {
-        const [token0, token1] = await Promise.all([getTokenByAddressWithAutoFetch(info.token0Address), getTokenByAddressWithAutoFetch(info.token1Address)]);
-        return {
-          token0,
-          token1,
-        };
-      })
-    );
-
-    const leftAndRightTokens = tokensDetail.map((token) => {
-      const [leftToken, rightToken] = getLRToken(token.token0, token.token1);
-      return {
-        leftToken,
-        rightToken,
-      };
-    });
-
-    const timestamp = await getTimestamp();
-    const incentiveKeysQuery = await fetchMulticall(
-      poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])])
-    );
-    const incentiveKeys = (await Promise.all(
-      (incentiveKeysQuery ?? []).map(async (res) => {
-        const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
-        const results = await Promise.all(
-          (decodeResult?.[0] ?? []).map(async (data: Array<any>) => ({
-            rewardToken: data?.[0],
-            poolAddress: data?.[1],
-            startTime: Number(data?.[2]),
-            endTime: Number(data?.[3]),
-            refundee: data?.[4],
-            status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
-            key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
-            rewardTokenInfo: await getTokenByAddressWithAutoFetch(data?.[0])!,
-          }))
-        );
-        return results;
-      })
-    )) as Array<Array<IncentiveKeyDetail>>;
-
-    const incentivesQuery = await fetchMulticall(
-      incentiveKeys
-        .flat()
-        .map((key: IncentiveKeyDetail) => [
-          UniswapV3Staker.address,
-          UniswapV3Staker.func.interface.encodeFunctionData('getIncentiveRewardInfo', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee]]),
-        ])
-    );
-    // 使用自定义的 chunkByLengths 函数按照每个 pool 的 incentiveKey 数量来分组
-    const incentives = chunkByLengths(
-      incentivesQuery,
-      incentiveKeys.map((keys) => keys.length)
-    ).map((group) =>
-      group.map((raw) => {
-        const [token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty] = UniswapV3Staker.func.interface.decodeFunctionResult(
-          'getIncentiveRewardInfo',
-          raw
-        ) as unknown as [bigint, bigint, bigint, bigint, boolean];
-        return { token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty };
-      })
-    );
-
-    const pools = poolsAddress
-      ? await Promise.all(
-          poolsAddress.map(async (poolAddress, index) => {
-            const dayData = poolDayData.find((d) => d.id.toLowerCase() === poolAddress.toLowerCase());
-            const rewardTokenAddresses = incentiveKeys[index].filter((key: IncentiveKeyDetail) => key.status === 'active').map((key: IncentiveKeyDetail) => key.rewardToken);
-            const rewards = await Promise.all(
-              [...new Set(rewardTokenAddresses)].map(async (address) => ({
-                token: await getTokenByAddressWithAutoFetch(address),
-              }))
-            );
-
+  get:
+    (queryPoolsAddress: string[] | undefined) =>
+    async ({ get }) => {
+      const poolsAddress: string[] = queryPoolsAddress || get(farmingPoolsAddress);
+      const poolDayData = get(poolLatestDayDataByPoolIds(poolsAddress));
+      const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
+      const pairsInfoQuery = await fetchMulticall(
+        pairContracts
+          .map((pairContract) => {
+            return [
+              [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
+              [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
+              [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
+            ];
+          })
+          .flat()
+      );
+      const pairsInfo = pairsInfoQuery
+        ? chunk(pairsInfoQuery, 3).map((r, i) => {
             return {
-              poolAddress,
-              dayData: dayData?.poolDayData[0],
-              pairInfo: {
-                fee: pairsInfo[index].fee,
-                token0: tokensDetail[index].token0,
-                token1: tokensDetail[index].token1,
-                leftToken: leftAndRightTokens[index].leftToken,
-                rightToken: leftAndRightTokens[index].rightToken,
-              },
-              incentiveKeys: incentiveKeys?.[index] ?? [],
-              incentives: incentives?.[index] ?? [],
-              rewards,
+              token0Address: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
+              token1Address: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
+              fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
             };
           })
-        )
-      : null;
+        : [];
 
-    return pools;
-  },
+      const tokensDetail = await Promise.all(
+        pairsInfo.map(async (info) => {
+          const [token0, token1] = await Promise.all([getTokenByAddressWithAutoFetch(info.token0Address), getTokenByAddressWithAutoFetch(info.token1Address)]);
+          return {
+            token0,
+            token1,
+          };
+        })
+      );
+
+      const leftAndRightTokens = tokensDetail.map((token) => {
+        const [leftToken, rightToken] = getLRToken(token.token0, token.token1);
+        return {
+          leftToken,
+          rightToken,
+        };
+      });
+
+      const timestamp = await getTimestamp();
+      const incentiveKeysQuery = await fetchMulticall(
+        poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])])
+      );
+      const incentiveKeys = (await Promise.all(
+        (incentiveKeysQuery ?? []).map(async (res) => {
+          const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
+          const results = await Promise.all(
+            (decodeResult?.[0] ?? []).map(async (data: Array<any>) => ({
+              rewardToken: data?.[0],
+              poolAddress: data?.[1],
+              startTime: Number(data?.[2]),
+              endTime: Number(data?.[3]),
+              refundee: data?.[4],
+              status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
+              key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
+              rewardTokenInfo: await getTokenByAddressWithAutoFetch(data?.[0])!,
+            }))
+          );
+          return results;
+        })
+      )) as Array<Array<IncentiveKeyDetail>>;
+
+      const incentivesQuery = await fetchMulticall(
+        incentiveKeys
+          .flat()
+          .map((key: IncentiveKeyDetail) => [
+            UniswapV3Staker.address,
+            UniswapV3Staker.func.interface.encodeFunctionData('getIncentiveRewardInfo', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee]]),
+          ])
+      );
+      // 使用自定义的 chunkByLengths 函数按照每个 pool 的 incentiveKey 数量来分组
+      const incentives = chunkByLengths(
+        incentivesQuery,
+        incentiveKeys.map((keys) => keys.length)
+      ).map((group) =>
+        group.map((raw) => {
+          const [token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty] = UniswapV3Staker.func.interface.decodeFunctionResult(
+            'getIncentiveRewardInfo',
+            raw
+          ) as unknown as [bigint, bigint, bigint, bigint, boolean];
+          return { token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty };
+        })
+      );
+
+      const pools = poolsAddress
+        ? await Promise.all(
+            poolsAddress.map(async (poolAddress, index) => {
+              const dayData = poolDayData.find((d) => d.id.toLowerCase() === poolAddress.toLowerCase());
+              const rewardTokenAddresses = incentiveKeys[index].filter((key: IncentiveKeyDetail) => key.status === 'active').map((key: IncentiveKeyDetail) => key.rewardToken);
+              const rewards = await Promise.all(
+                [...new Set(rewardTokenAddresses)].map(async (address) => ({
+                  token: await getTokenByAddressWithAutoFetch(address),
+                }))
+              );
+
+              return {
+                poolAddress,
+                dayData: dayData?.poolDayData[0],
+                pairInfo: {
+                  fee: pairsInfo[index].fee,
+                  token0: tokensDetail[index].token0,
+                  token1: tokensDetail[index].token1,
+                  leftToken: leftAndRightTokens[index].leftToken,
+                  rightToken: leftAndRightTokens[index].rightToken,
+                },
+                incentiveKeys: incentiveKeys?.[index] ?? [],
+                incentives: incentives?.[index] ?? [],
+                rewards,
+              };
+            })
+          )
+        : null;
+
+      return pools;
+    },
 });
 
-export const usePools = () => {
-  return useRecoilValue(poolsQuery);
-};
+export const usePools = (queryPoolsAddress?: string[]) => useRecoilValue(poolsQuery(queryPoolsAddress));
+export const getPools = (queryPoolsAddress?: string[]) => getRecoil(poolsQuery(queryPoolsAddress));
 
-export const useRefreshPoolsQuery = () => useRecoilRefresher_UNSTABLE(poolsQuery);
+export const useRefreshPoolsQuery = (queryPoolsAddress?: string[]) => useRecoilRefresher_UNSTABLE(poolsQuery(queryPoolsAddress));
 
 const getLRToken = (token0: Token | null, token1: Token | null) => {
   if (!token0 || !token1) return [];
