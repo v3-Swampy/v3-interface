@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import dayjs from 'dayjs';
@@ -15,6 +15,7 @@ import { formatDisplayAmount } from '@utils/numberUtils';
 import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
 import FarmIcon from '@assets/imgs/farm.png';
 import { invertPrice, useTokenPrice } from '@service/pairs&pool';
+import { useInvertedState } from '@modules/Position/invertedState';
 
 const classNames = {
   title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-mobile:mb-4px',
@@ -54,7 +55,7 @@ const transitions = {
 const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positionEnhanced }) => {
   const position: PositionEnhanced = positionEnhanced;
   const i18n = useI18n(transitions);
-  const [inverted, setInverted] = useState(false);
+  const [inverted, setInverted] = useInvertedState(position.tokenId);
   const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, unclaimedFees, unsettledRewards } = position;
 
   const token0Price = useTokenPrice(token0?.address);
@@ -81,6 +82,9 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
       minNum: '0.00001',
     });
   }, [pool, inverted, leftToken, rightToken]);
+
+  const leftTokenForUI = !inverted ? leftToken : rightToken;
+  const rightTokenForUI = !inverted ? rightToken : leftToken;
 
   const [priceLowerStr, priceUpperStr] = useMemo(() => {
     const priceLower = inverted ? invertPrice(priceUpperForUI) : priceLowerForUI;
@@ -155,7 +159,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
               {priceUpperStr}
               {leftToken?.symbol}
             </div>
-            <div className={cx('text-center lt-mobile:text-left', classNames.desc)}>{currentPrice}</div>
+            <div className={cx('text-center lt-mobile:text-left', classNames.desc)}>{`${currentPrice} ${leftTokenForUI?.symbol} per ${rightTokenForUI?.symbol}`}</div>
           </div>
         </div>
         <div className={`col-span-4 lt-mobile:col-span-8 flex flex-col items-center lt-mobile:items-start`}>
@@ -178,9 +182,7 @@ const PositionsContent: React.FC = () => {
   const i18n = useI18n(transitions);
   const positions = usePositionsForUI();
   const [onlyFarms] = useFarmsOnly();
-  const filteredPositions = onlyFarms
-    ? positions?.filter((position) => position.isRewardActive)
-    : positions;
+  const filteredPositions = onlyFarms ? positions?.filter((position) => position.isRewardActive) : positions;
 
   console.log('positions', positions);
   if (!filteredPositions?.length) {
