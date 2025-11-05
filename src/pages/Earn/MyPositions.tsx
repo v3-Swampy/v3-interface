@@ -71,7 +71,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
           toFixed: 5,
           unit: '$',
         })
-      : '-';
+      : undefined;
 
   const currentPrice = useMemo(() => {
     const priceToken = inverted ? rightToken : leftToken;
@@ -104,28 +104,53 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   }, [inverted, priceUpperForUI, priceLowerForUI]);
 
   const [fee0, fee1] = unclaimedFees || [undefined, undefined];
-  const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '0';
-  const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '0';
-  const unclaimedFeesValue = token0Fee && token1Fee ? new Unit(token0Fee).add(token1Fee) : '-';
+  const token0Fee = token0Price && fee0 ? fee0.mul(token0Price).toDecimalStandardUnit(undefined, token0?.decimals) : '';
+  const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '';
+  const unclaimedFeesValue = token0Fee && token1Fee ? new Unit(token0Fee).add(token1Fee) : undefined;
 
   const unsettledRewardValues = unsettledRewards?.map((reward) => {
     const rewardTokenPrice = useTokenPrice(reward?.rewardTokenInfo?.address);
     if (rewardTokenPrice && reward.stakeReward.unsettledReward) {
       return new Unit(reward.stakeReward.unsettledReward).mul(rewardTokenPrice).div(new Unit(10).pow(reward.rewardTokenInfo?.decimals ?? 18));
     }
-    return new Unit(0);
+    return undefined;
   });
-  const unsettledRewardsValue = unsettledRewardValues && unsettledRewardValues.length > 0 ? unsettledRewardValues.reduce((acc, curr) => acc.add(curr), new Unit(0)) : '-';
 
-  const unclaimedValue =
-    unsettledRewardsValue !== '-' && unclaimedFeesValue !== '-'
-      ? formatDisplayAmount(unsettledRewardsValue.add(unclaimedFeesValue), {
-          decimals: 0,
-          minNum: '0.00001',
-          toFixed: 5,
-          unit: '$',
-        })
-      : '-';
+  const unsettledRewardsValue = useMemo(() => {
+    if (!unsettledRewardValues || unsettledRewardValues.length === 0) {
+      return undefined;
+    }
+
+    // 检查是否所有值都是 undefined
+    const validValues = unsettledRewardValues.filter((value) => value !== undefined);
+    if (validValues.length === 0) {
+      return undefined;
+    }
+
+    // 计算有效值的总和
+    return validValues.reduce<Unit>((acc, curr) => {
+      return acc.add(curr!);
+    }, new Unit(0));
+  }, [unsettledRewardValues]);
+
+  const unclaimedValue = useMemo(() => {
+    if(unclaimedFeesValue === undefined && unsettledRewardsValue === undefined) {
+      return undefined;
+    }
+    let total = new Unit(0);
+    if (unclaimedFeesValue !== undefined) {
+      total = total.add(unclaimedFeesValue as Unit);
+    }
+    if (unsettledRewardsValue !== undefined) {
+      total = total.add(unsettledRewardsValue as Unit);
+    }
+    return formatDisplayAmount(total, {
+      decimals: 0,
+      minNum: '0.00001',
+      toFixed: 5,
+      unit: '$',
+    });
+  }, [unclaimedFeesValue, unsettledRewardsValue]);
 
   return (
     <Link to={String(position.tokenId)} className="no-underline">
@@ -164,11 +189,11 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
         </div>
         <div className={`col-span-4 lt-mobile:col-span-8 flex flex-col items-center lt-mobile:items-start`}>
           <div className={`${classNames.title}`}>{i18n.liquidity}</div>
-          <div className={`${classNames.content}`}>{liquidity}</div>
+          <div className={`${classNames.content}`}>{liquidity === undefined ? <Spin /> : liquidity ?? '-'}</div>
         </div>
         <div className={`col-span-4 lt-mobile:col-span-8 ${classNames.splitLine}`}>
           <div className={`${classNames.title}`}>{i18n.unclaimedValue}</div>
-          <div className={cx(classNames.content)}>{unclaimedValue}</div>
+          <div className={cx(classNames.content)}>{unclaimedValue === undefined ? <Spin /> : unclaimedValue ?? '-'}</div>
         </div>
         <div className={`col-span-4 lt-mobile:col-span-8 flex flex-col items-center justify-center lt-mobile:items-start ${classNames.splitLine}`}>
           <PositionStatus position={position} />
