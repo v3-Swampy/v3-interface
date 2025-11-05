@@ -71,9 +71,9 @@ const UnclaimedFees: React.FC = () => {
         {isOwner && (
           <Button
             className="px-24px h-40px rounded-100px text-14px font-normal"
-            disabled={token0Fee === '0' && token1Fee === '0' && unsettledRewardsTotalPrice?.equals(new Unit(0))}
+            disabled={token0Fee === '0' && token1Fee === '0' && unsettledRewardsTotalPrice?.equals(0)}
             color="gradient"
-            onClick={() => showCollectFeesModal({ position, fee0, fee1, tokenId: Number(tokenId) })}
+            onClick={() => showCollectFeesModal({ position, fee0, fee1, tokenId: Number(tokenId), unsettledRewardsTotalPrice })}
           >
             {i18n.collect_fees}
           </Button>

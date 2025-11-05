@@ -83,7 +83,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
           </p>
         </div>
 
-        <SelectedPriceRange position={previewPosition} tokenId={previewPosition.id} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
+        <SelectedPriceRange position={previewPosition} tokenId={previewPosition.tokenId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
         <Button color="orange" fullWidth className="mt-16px h-40px rounded-100px text-18px" loading={inTransaction} onClick={handleClickConfirm} id="pool-liquidity-preview-modal-submit-button">
           {i18n.add}
         </Button>

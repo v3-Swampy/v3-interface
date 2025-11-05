@@ -1,15 +1,20 @@
 import { selectorFamily, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { getRecoil } from 'recoil-nexus';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager, UniswapV3Staker, AutoPositionManager } from '@contracts/index';
+import { UniswapV3Staker, AutoPositionManager } from '@contracts/index';
 import { sendTransaction } from '@service/account';
 import { PositionEnhanced, PositionsForUISelector } from './positions';
 import { accountState } from '@service/account';
 import { addRecordToHistory } from '@service/history';
-import { ZeroAddress } from '@service/swap';
+import { Token } from '@service/tokens';
 import Decimal from 'decimal.js';
 
 export const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
+
+export interface MergedRewardInfo {
+  token: Token;
+  amount: Unit;
+}
 
 const positionSelector = selectorFamily<PositionEnhanced | undefined, number>({
   key: `PositionDetailForUI-${import.meta.env.MODE}`,
@@ -65,7 +70,7 @@ export const positionFeesSelector = selectorFamily({
     },
 });
 
-export const handleCollectFees = async ({ tokenId, refreshPositionFees }: { tokenId: number; refreshPositionFees: VoidFunction }) => {
+export const handleCollectFees = async ({ tokenId, refreshPositionFees, mergedRewardsInfo }: { tokenId: number; refreshPositionFees: VoidFunction; mergedRewardsInfo: MergedRewardInfo[] }) => {
   const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
   const owner = getPositionOwner(tokenId);
   const position = getPosition(tokenId);
@@ -73,26 +78,18 @@ export const handleCollectFees = async ({ tokenId, refreshPositionFees }: { toke
 
   if (!owner || !position || (!fee0 && !fee1)) return '';
   const { token0, token1 } = position;
-  const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
-  const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('collect', [
+  const data = AutoPositionManager.func.interface.encodeFunctionData('collect', [
     {
       tokenId: tokenIdHexString,
-      recipient: hasWCFX ? ZeroAddress : owner, // some tokens might fail if transferred to address(0)
+      recipient: owner,
       amount0Max: MAX_UINT128.toHexMinUnit(),
       amount1Max: MAX_UINT128.toHexMinUnit(),
     },
   ]);
-  const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('unwrapWETH9', [token0.symbol === 'WCFX' ? fee0.toHexMinUnit() : fee1.toHexMinUnit(), owner]);
-
-  const data2 = NonfungiblePositionManager.func.interface.encodeFunctionData('sweepToken', [
-    token0.symbol === 'WCFX' ? token1.address : token0.address,
-    token0.symbol === 'WCFX' ? fee1.toHexMinUnit() : fee0.toHexMinUnit(),
-    owner,
-  ]);
 
   const transactionParams = {
-    data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [hasWCFX ? [data0, data1, data2] : [data0]]),
-    to: NonfungiblePositionManager.address,
+    data: data,
+    to: AutoPositionManager.address,
   };
   const txHash = await sendTransaction(transactionParams);
   addRecordToHistory({
