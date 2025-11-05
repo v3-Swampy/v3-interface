@@ -2,10 +2,9 @@ import { Incentive } from './../../utils/graphql/__generated__/graphql';
 import { groupBy, map } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
-import type { IncentiveKeyDetail } from './farmingInfo';
 import type { PositionForUI } from './positions';
 import type { Pool } from '@service/pairs&pool';
-import { getPools } from './allPools';
+import { getPools, IncentiveKeyDetail } from './allPools';
 
 const mergeStakeRewardsByToken = <
   T extends {
