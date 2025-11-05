@@ -48,6 +48,7 @@ export const handleSubmitRemoveLiquidity = async ({
 
   const recordParams = {
     type: 'Position_RemoveLiquidity',
+    positionId: `${tokenId}`,
   } as const;
 
   showRemoveLiquidityModal({

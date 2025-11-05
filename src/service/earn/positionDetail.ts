@@ -77,7 +77,7 @@ export const handleCollectFees = async ({ tokenId, refreshPositionFees, mergedRe
   const [fee0, fee1] = getPositionFees(tokenId);
 
   if (!owner || !position || (!fee0 && !fee1)) return '';
-  const { token0, token1 } = position;
+  // const { token0, token1 } = position;
   const data = AutoPositionManager.func.interface.encodeFunctionData('collect', [
     {
       tokenId: tokenIdHexString,
@@ -95,10 +95,7 @@ export const handleCollectFees = async ({ tokenId, refreshPositionFees, mergedRe
   addRecordToHistory({
     txHash,
     type: 'Position_CollectFees',
-    tokenA_Address: token0.address,
-    tokenA_Value: fee0 ? new Unit(fee0)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
-    tokenB_Address: token1.address,
-    tokenB_Value: fee1 ? new Unit(fee1)?.toDecimalStandardUnit(undefined, token0.decimals) : '',
+    positionId: `${tokenId}`,
   }).then(() => {
     refreshPositionFees();
   });

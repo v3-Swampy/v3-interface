@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import cx from 'clsx';
+import { getUnwrapperTokenByAddress } from '@service/tokens';
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n from '@hooks/useI18n';
 import { usePosition } from '@service/earn';
 import { trimDecimalZeros } from '@utils/numberUtils';
@@ -44,6 +46,15 @@ const AmountDetail: React.FC<{
   const { leftToken, rightToken } = position || {};
   const i18n = useI18n(transitions);
 
+  const activeRewardsInfo = useMemo(
+    () =>
+      position?.activeRewards?.map((reward) => ({
+        token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
+        unsettledReward: new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(6, reward.rewardTokenInfo.decimals),
+      })) ?? [],
+    [position?.activeRewards]
+  );
+
   return (
     <div className="bg-orange-light-hover  rounded-20px px-16px py-18px mt-16px">
       <AmountItem
@@ -73,6 +84,18 @@ const AmountDetail: React.FC<{
         logoURI={rightToken?.logoURI || ''}
         className="mt-8px"
       />
+      {
+         activeRewardsInfo?.length > 0 && activeRewardsInfo?.map((reward) => (
+          <AmountItem
+            key={reward.token.address}
+            title={`${reward.token.symbol} rewards earned`}
+            tokenSymbol={reward.token.symbol}
+            amount={reward.unsettledReward}
+            logoURI={reward.token.logoURI ?? ''}
+            className="mt-8px"
+          />
+        ))
+      }
     </div>
   );
 };

@@ -37,6 +37,7 @@ export interface HistoryRecord {
   tokenB_Address?: string;
   tokenB_Value?: string;
   refreshParams?: any | Array<any>;
+  positionId?: string;
 }
 
 const historyState = atomFamily<Array<HistoryRecord>, string>({
