@@ -26,7 +26,6 @@ const LiquidityDetail: React.FC = () => {
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
 
-
   const navigate = useNavigate();
   const account = useAccount();
   useEffect(() => {
@@ -35,6 +34,7 @@ const LiquidityDetail: React.FC = () => {
     }
   }, [account]);
 
+  const isPositionHasRewards = !!position?.activeRewards?.length;
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
@@ -46,17 +46,26 @@ const LiquidityDetail: React.FC = () => {
         </div>
         <BorderBox className="w-full p-16px pt-24px rounded-28px flex flex-col gap-16px" variant="gradient-white">
           <DetailHeader />
-          <div className='flex gap-16px'>
-            <div className="w-full flex flex-col gap-16px">
-              <Liquidity />
-              <SelectedPriceRange position={position} tokenId={tokenId} isTiny />
+          {isPositionHasRewards ? (
+            <div className="flex gap-16px">
+              <div className="w-full flex flex-col gap-16px">
+                <Liquidity />
+                <SelectedPriceRange position={position} tokenId={tokenId} isTiny />
+              </div>
+              <div className="w-full flex flex-col gap-16px">
+                <UnclaimedFees />
+                <UnclaimedRewards />
+              </div>
             </div>
-            <div className="w-full flex flex-col gap-16px">
-              <UnclaimedFees />
-              <UnclaimedRewards />
-            </div>
-          </div>
-
+          ) : (
+            <>
+              <div className="flex gap-16px lt-md:flex-wrap">
+                <Liquidity />
+                <UnclaimedFees />
+              </div>
+              <SelectedPriceRange position={position} tokenId={tokenId} />
+            </>
+          )}
         </BorderBox>
       </div>
     </PageWrapper>
