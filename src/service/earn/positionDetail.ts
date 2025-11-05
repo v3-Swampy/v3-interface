@@ -46,12 +46,6 @@ export const positionFeesSelector = selectorFamily({
     async ({ get }) => {
       const owner = get(positionOwnerSelector(tokenId));
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
-      console.log({
-        tokenId: tokenIdHexString,
-        recipient: owner, // some tokens might fail if transferred to address(0)
-        amount0Max: MAX_UINT128.toHexMinUnit(),
-        amount1Max: MAX_UINT128.toHexMinUnit(),
-      });
       if (AutoPositionManager && tokenIdHexString && owner) {
         return await AutoPositionManager.func.collect
           .staticCall(
@@ -64,7 +58,6 @@ export const positionFeesSelector = selectorFamily({
             { from: owner } // need to simulate the call as the owner
           )
           .then((results) => {
-            console.log('positionFeesSelector results', results);
             return [new Unit(results[0]), new Unit(results[1])] as const;
           });
       }

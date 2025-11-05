@@ -32,7 +32,6 @@ const UnclaimedRewards: React.FC = () => {
         const rewardPerSecond = new Decimal(reward.stakeReward.rewardsPerSecondX32.toString()).div(Math.pow(2, 32));
         const rewardPerDay = new Unit(rewardPerSecond).mul(86400);
         return {
-          wrapperTokenAddress: reward.rewardTokenInfo.address,
           token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
           unsettledReward: new Unit(reward.stakeReward.unsettledReward),
           rewardPerDay: rewardPerDay,
@@ -60,10 +59,11 @@ const UnclaimedRewards: React.FC = () => {
         }, new Unit(0)) ?? new Unit(0);
       const _expectedRewardPerDayTotalPrice =
         activeRewardsInfo?.reduce((acc, reward) => {
-          const price = prices[reward.wrapperTokenAddress];
+          const price = prices[reward.token.address];
           if (!price) return acc;
           return acc.add(new Unit(price).mul(reward.rewardPerDay).toDecimalStandardUnit(undefined, reward.token.decimals));
         }, new Unit(0)) ?? new Unit(0);
+        console.log('_expectedRewardPerDayTotalPrice', _expectedRewardPerDayTotalPrice.toString());
       setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
       setExpectedRewardPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
     });
