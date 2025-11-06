@@ -232,8 +232,7 @@ const PositionsContent: React.FC = () => {
 };
 
 let lastRefreshTime: dayjs.Dayjs | null = null;
-const PoolPage: React.FC = () => {
-  const [onlyFarms] = useFarmsOnly();
+const MyPositions: React.FC = () => {
   const refreshPositions = useRefreshPositionsForUI();
   useEffect(() => {
     if (lastRefreshTime) {
@@ -259,4 +258,4 @@ const PoolPage: React.FC = () => {
   );
 };
 
-export default PoolPage;
+export default MyPositions;
