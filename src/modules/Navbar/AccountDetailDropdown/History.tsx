@@ -20,11 +20,11 @@ export const transitions = {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
-    position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
+    position_collect_fees: 'Collect all fees and rewards of position-{positionId}',
     stake_create_lock: 'Stake {tokenAValue} {tokenASymbol}',
     stake_increase_unlock_time: 'Increase unlock time',
     stake_increase_amount: 'Increase staked amount {tokenAValue} {tokenASymbol}',
-    remove_liquidity: 'Remove liquidity',
+    remove_liquidity: 'Remove liquidity of position-{positionId}',
     stake_lp_of_all_farms: 'Stake LP',
     claim_lp_of_my_farms: 'Claim Reward',
     unstake_lp_of_my_farms: 'Unstake',
@@ -34,11 +34,11 @@ export const transitions = {
     swap: 'Swapped <b>{tokenAValue} {tokenASymbol}</b> for <b>{tokenBValue} {tokenBSymbol}</b>',
     position_add_liquidity: 'Add <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
     position_increase_liquidity: 'Increase <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b> liquidity to the pool',
-    position_collect_fees: 'Collect <b>{tokenAValue} {tokenASymbol}</b> and <b>{tokenBValue} {tokenBSymbol}</b>',
+    position_collect_fees: 'Collect all fees and rewards of position-{positionId}',
     stake_create_lock: 'Stake {tokenAValue} {tokenASymbol}',
     stake_increase_unlock_time: 'Increase unlock time {tokenAValue}',
     stake_increase_amount: 'Increase staked {tokenAValue} {tokenASymbol}',
-    remove_liquidity: 'Remove liquidity',
+    remove_liquidity: 'Remove liquidity of position-{positionId}',
     stake_lp_of_all_farms: 'Stake LP',
     claim_lp_of_my_farms: 'Claim Reward',
     unstake_lp_of_my_farms: 'Unstake',
@@ -117,6 +117,7 @@ export const RecordAction: React.FC<Omit<HistoryRecord, 'status' | 'txHash'> & {
   tokenA_Value,
   tokenB_Address,
   tokenB_Value,
+  positionId,
 }) => {
   const i18n = useI18n(transitions);
   const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
@@ -131,6 +132,7 @@ export const RecordAction: React.FC<Omit<HistoryRecord, 'status' | 'txHash'> & {
           tokenASymbol: tokenA?.symbol ?? '',
           tokenBValue: trimDecimalZeros(tokenB_Value ? Number(tokenB_Value).toFixed(4) : ''),
           tokenBSymbol: tokenB?.symbol ?? '',
+          positionId: positionId ?? '',
         }),
       }}
     />

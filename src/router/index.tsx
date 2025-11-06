@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import React, { Suspense, useEffect } from 'react';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import CustomScrollbar from 'custom-react-scrollbar';
 import TopLevelErrorBoundary from '@modules/TopLevelErrorBoundary';
 import Navbar, { FooterBar, BlockNumber } from '@modules/Navbar';
@@ -7,6 +7,7 @@ import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
 import SwapPage from '@pages/Swap';
+import { EarnRedirect, saveEarnPath } from './EarnRedirect';
 import {
   PoolPage,
   PoolAddLiquidityPage,
@@ -86,8 +87,8 @@ const AppRouter: React.FC = () => {
             <Route path="add_liquidity" element={<EarnAddLiquidityPage />} />
             <Route path="increase_liquidity/:tokenId" element={<EarnIncreaseLiquidity />} />
             <Route path="remove_liquidity/:tokenId" element={<EarnRemoveLiquidity />} />
-            <Route path="/earn/*" element={<Navigate to="/earn/all-pools" replace />} />
-            <Route path="/earn/" element={<Navigate to="/earn/all-pools" replace />} />
+            <Route path="/earn/*" element={<EarnRedirect />} />
+            <Route path="/earn/" element={<EarnRedirect />} />
           </Route>
           <Route path="earn/pool">
             <Route path="add_liquidity" element={<EarnPoolAddLiquidityPage />} />
@@ -123,6 +124,12 @@ const PageLevelLoading: React.FC = () => (
 
 const RouteWrapper: React.FC = () => {
   useSetMainScroller();
+  const location = useLocation();
+
+  // 在路由层面统一监听并保存 Earn 路径
+  useEffect(() => {
+    saveEarnPath(location.pathname);
+  }, [location.pathname]);
 
   return (
     <>
