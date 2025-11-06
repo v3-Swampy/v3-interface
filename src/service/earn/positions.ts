@@ -18,12 +18,7 @@ import {
 import { getUserPositionIDs } from './apis';
 import { getPositionFees } from './positionDetail';
 import { getUserFarmInfoOfPosition } from './myFarmInfo';
-
-export enum PositionStatus {
-  InRange = 'InRange',
-  OutOfRange = 'OutOfRange',
-  Closed = 'Closed',
-}
+import { PositionStatus } from '@type/position';
 
 export interface Position {
   tokenId: number;
@@ -185,7 +180,11 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
         return { ...positionForUI, unclaimedFees };
       })
     );
-    return enhancedPositions.reverse();
+    enhancedPositions.sort((a, b) => {
+      if (a.positionStatus === PositionStatus.Closed && b.positionStatus !== PositionStatus.Closed) return 1;
+      return -1;
+    });
+    return enhancedPositions;
   },
 });
 

@@ -32,7 +32,14 @@ export const getUserPositionIDs = async (owner?: string) => {
         },
       },
     });
-    return (res.data.managedPositions ?? []).map((i) => Number(i.id)).filter((i) => !isNaN(i));
+    return (
+      (res.data.managedPositions ?? [])
+        // id in subgraph is string, convert to number
+        .map((i) => Number(i.id))
+        .filter((i) => !isNaN(i))
+        // id in subgraph is string, query sort is invalid, so sort manually
+        .sort((a, b) => b - a)
+    );
   } catch (error) {
     console.log('getUserPositionIDs error', error);
     return [];

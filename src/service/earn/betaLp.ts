@@ -1,5 +1,7 @@
 import { showToast } from '@components/showPopup';
-import { fetchMulticall, NonfungiblePositionManager } from '@contracts/index';
+import { sendTransaction } from '@service/account';
+import { AutoPositionManager, fetchMulticall, NonfungiblePositionManager } from '@contracts/index';
+import { addRecordToHistory } from '@service/history';
 
 const getUserUnstakeLpTokens = async ({ account }: { account: string }) => {
   const positionBalanceRes = await NonfungiblePositionManager.func.balanceOf(account);
@@ -24,8 +26,18 @@ export const importBetaLp = async ({ account }: { account: string }) => {
       showToast(`You don’t have any Open Beta positions left to import.`, { type: 'warning' });
       return;
     }
-    console.log('TODO Import and return tx hash', tokenIds);
+
+    const calldatas = tokenIds.map((tokenId) => NonfungiblePositionManager.func.interface.encodeFunctionData('safeTransferFrom', [account, AutoPositionManager.address, tokenId]));
+    const txHash = await sendTransaction({
+      to: NonfungiblePositionManager.address,
+      data: NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [calldatas]),
+    });
+    addRecordToHistory({
+      txHash,
+      type: 'ImportBetaLP',
+    });
+    return txHash;
   } catch (error) {
-    showToast(`Import Failed: ${error}`, { type: 'error' });
+    showToast(`Import Failed: ${(error as Error)?.message ?? 'unknown error'}`, { type: 'error' });
   }
 };

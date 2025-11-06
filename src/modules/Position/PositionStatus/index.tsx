@@ -1,10 +1,11 @@
 import React, { type ComponentProps } from 'react';
 import cx from 'clsx';
 import useI18n from '@hooks/useI18n';
-import { PositionStatus, type PositionEnhanced, usePositionStatus } from '@service/earn';
+import { type PositionEnhanced, usePositionStatus } from '@service/earn';
 import { ReactComponent as SuccessIcon } from '@assets/icons/pool_success.svg';
 import { ReactComponent as WarningIcon } from '@assets/icons/pool_warning.svg';
 import { ReactComponent as ErrorIcon } from '@assets/icons/pool_error.svg';
+import { PositionStatus } from '@type/position';
 
 const transitions = {
   en: {
@@ -20,17 +21,17 @@ const transitions = {
 } as const;
 
 const PositionStatusMap = {
-  [PositionStatus?.InRange]: {
+  [PositionStatus.InRange]: {
     Icon: <SuccessIcon className="ml-4px w-18px h-18px" />,
     color: '#009595',
     text: 'in_range',
   },
-  [PositionStatus?.OutOfRange]: {
+  [PositionStatus.OutOfRange]: {
     Icon: <WarningIcon className="ml-4px w-18px h-18px" />,
     color: '#FFB75D',
     text: 'out_of_range',
   },
-  [PositionStatus?.Closed]: {
+  [PositionStatus.Closed]: {
     Icon: <ErrorIcon className="ml-4px w-18px h-18px" />,
     color: '#C2C4D0',
     text: 'closed',
