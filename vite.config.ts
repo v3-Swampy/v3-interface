@@ -77,6 +77,7 @@ export default defineConfig({
       '@components': resolve(__dirname, 'src/components'),
       '@service': resolve(__dirname, 'src/service'),
       '@constants': resolve(__dirname, 'src/constants'),
+      '@type': resolve(__dirname, 'src/types'),
       jsbi: 'jsbi/dist/jsbi-cjs.js',
     },
   },

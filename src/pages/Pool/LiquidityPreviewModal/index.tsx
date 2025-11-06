@@ -97,7 +97,7 @@ const showLiquidityPreviewModal = (props: Props) => {
     title: toI18n(transitions)[props.recordParams.type === 'Position_AddLiquidity' ? 'create_title' : 'increase_title'],
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
-    onSuccess: (navigate) => navigate('/pool'),
+    onSuccess: (navigate) => navigate('/earn/my-positions'),
     height: 'full',
   });
 };

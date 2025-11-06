@@ -24,7 +24,7 @@ interface Props {
 }
 
 const currentFeeState = atom<FeeAmount>({
-  key: `pool-currentFeeState-${import.meta.env.MODE}`,
+  key: `earn-currentFeeState-${import.meta.env.MODE}`,
   effects: [persistAtomWithDefault(FeeAmount.LOW)],
 });
 export const useCurrentFee = () => useRecoilValue(currentFeeState);

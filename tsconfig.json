@@ -28,6 +28,7 @@
       "@service/*": ["./src/service/*"],
       "@contracts/*": ["./src/contracts/*"],
       "@constants/*": ["./src/constants/*"],
+      "@type/*": ["./src/types/*"],
     }
   },
   "include": ["src"],

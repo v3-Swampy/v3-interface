@@ -17,12 +17,7 @@ import {
 } from '@service/tokens';
 import { getPool } from '@service/pairs&pool/singlePool';
 import { computePoolAddress } from '@service/pairs&pool';
-
-export enum PositionStatus {
-  InRange = 'InRange',
-  OutOfRange = 'OutOfRange',
-  Closed = 'Closed',
-}
+import { PositionStatus } from '@type/position';
 
 export interface Position {
   tokenId: number;
