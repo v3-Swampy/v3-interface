@@ -15,6 +15,7 @@ import FarmIcon from '@assets/imgs/farm.png';
 import { useNavigate } from 'react-router-dom';
 import { setTokens } from './AddLiquidity/SelectPair';
 import { useFarmsOnly } from '@service/earn';
+import { setCurrentFee } from './AddLiquidity/SelectFeeTier';
 
 const classNames = {
   title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-mobile:mb-4px',
@@ -267,6 +268,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
           onClick={() => {
             if (!data.pairInfo.leftToken || !data.pairInfo.rightToken) return;
             setTokens(data.pairInfo.leftToken, data.pairInfo.rightToken);
+            setCurrentFee(data.pairInfo.fee);
             navigate('/earn/add_liquidity');
           }}
         >
