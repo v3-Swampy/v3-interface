@@ -6,7 +6,7 @@ import { getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage } from '@service/settings';
-import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
+import showLiquidityPreviewModal from '@pages/Earn/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
 
 export const handleClickSubmitIncreasePositionLiquidity = async ({

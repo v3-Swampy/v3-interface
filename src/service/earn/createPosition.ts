@@ -10,7 +10,7 @@ import { type Token } from '@service/tokens';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage, getExpertModeState } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import { addRecordToHistory } from '@service/history';
-import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
+import showLiquidityPreviewModal from '@pages/Earn/LiquidityPreviewModal';
 import { hidePopup } from '@components/showPopup';
 import showGasLimitModal from '@modules/ConfirmTransactionModal/showGasLimitModal';
 import { createPreviewPositionForUI } from './positions';
