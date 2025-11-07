@@ -7,3 +7,12 @@ export const getUserPositionIDsGQL = gql(/* GraphQL */ `
     }
   }
 `);
+
+export const getPoolIncentivesGQL = gql(/* GraphQL */ `
+  query PoolIncentivesQuery($where: Incentive_filter = {}) {
+    incentives(where: $where) {
+      pool
+      rewardToken
+    }
+  }
+`);

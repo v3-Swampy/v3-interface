@@ -1,8 +1,7 @@
 import { fetchGraphql, fetchStakerGraphql } from '@utils/fetch';
 import { getPoolsLatestDayDataGQL } from '@utils/graphql/query/pools';
-import { getUserPositionIDsGQL } from '@utils/graphql/query/staker';
+import { getPoolIncentivesGQL, getUserPositionIDsGQL } from '@utils/graphql/query/staker';
 
-/** example */
 export const getPoolLatestDayDataByPools = async (ids?: string[]) => {
   try {
     const res = await fetchGraphql({
@@ -13,7 +12,8 @@ export const getPoolLatestDayDataByPools = async (ids?: string[]) => {
         },
       },
     });
-    return res.data.pools ?? [];
+    // TODO: hide pools with no volume in 24h
+    return res.data.pools ?? [] /* .filter((i) => i.poolDayData.length > 0 && i.poolDayData[0].volumeUSD > 0) */;
   } catch (error) {
     console.log('getPoolLatestDayDataByPools error', error);
     return [];
@@ -42,6 +42,35 @@ export const getUserPositionIDs = async (owner?: string) => {
     );
   } catch (error) {
     console.log('getUserPositionIDs error', error);
+    return [];
+  }
+};
+
+export const getIncentivesByPools = async ({
+  pools,
+  currentTimestamp,
+}: {
+  pools?: string[];
+  currentTimestamp?: number;
+}): Promise<
+  {
+    pool: string;
+    rewardToken: string;
+  }[]
+> => {
+  try {
+    const res = await fetchStakerGraphql({
+      query: getPoolIncentivesGQL,
+      variables: {
+        where: {
+          pool_in: pools,
+          startTime_lt: currentTimestamp,
+        },
+      },
+    });
+    return res.data.incentives ?? [];
+  } catch (error) {
+    console.log('getIncentivesByPools error', error);
     return [];
   }
 };
