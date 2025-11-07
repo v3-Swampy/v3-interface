@@ -50,7 +50,7 @@ const AmountDetail: React.FC<{
     () =>
       position?.unclaimedRewards?.map((reward) => ({
         token: getUnwrapperTokenByAddress(reward.rewardTokenInfo?.address) ?? reward.rewardTokenInfo,
-        unsettledReward: new Unit(reward.stakeReward.unclaimedReward).toDecimalStandardUnit(6, reward.rewardTokenInfo?.decimals),
+        unclaimedReward: new Unit(reward.stakeReward.unclaimedReward).toDecimalStandardUnit(6, reward.rewardTokenInfo?.decimals),
       })) ?? [],
     [position?.unclaimedRewards]
   );
@@ -85,7 +85,7 @@ const AmountDetail: React.FC<{
             key={reward.token?.address}
             title={`${reward.token?.symbol} rewards earned`}
             tokenSymbol={reward.token?.symbol!}
-            amount={reward.unsettledReward}
+            amount={reward.unclaimedReward}
             logoURI={reward.token?.logoURI ?? ''}
             className="mt-8px"
           />

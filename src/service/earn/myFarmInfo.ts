@@ -169,9 +169,6 @@ export const getUserFarmInfoOfPosition = async ({ position, pool, rewardTokens }
     unclaimedReward: item.unsettledReward + item.settledReward, // 总的未提取奖励
   }));
 
-  console.log('stakeRewards:', stakeRewards);
-  console.log('settleRewards:', settleRewards);
-  console.log('unclaimedRewards:', _unclaimedRewards);
 
   const isRewardActive = position.positionStatus === 'InRange' && incentiveKeys.some((item) => item.status === 'active');
   const activeIncentiveKeys = stakeRewards.filter((item) => item.incentiveKey.status === 'active').map((item) => item.incentiveKey);
