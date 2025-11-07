@@ -133,7 +133,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
   }, [data.volume24h]);
   const [feeAprDecimal, feeApr] = useMemo(() => {
     if (!tvl || tvl.equals(0) || !data.pairInfo.fee || !data.volume24h) return ['0', '0'];
-    const feeDay = data.volume24h.mul(data.pairInfo.fee).div(10000);
+    const feeDay = data.volume24h.mul(data.pairInfo.fee).div(1000000);
     const apr = feeDay.mul(365).div(tvl).mul(100);
     return [apr, apr.toFixed(2)];
   }, [tvl, data.pairInfo.fee, data.volume24h]);
