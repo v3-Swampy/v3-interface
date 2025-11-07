@@ -35,7 +35,7 @@ const LiquidityDetail: React.FC = () => {
     }
   }, [account]);
 
-  const isPositionHasRewards = !!position?.unsettledRewards?.length || !!position?.activeRewards?.length;
+  const isPositionHasRewards = !!position?.unclaimedRewards?.length || !!position?.activeRewards?.length;
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">

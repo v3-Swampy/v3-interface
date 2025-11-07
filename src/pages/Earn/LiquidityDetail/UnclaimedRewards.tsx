@@ -22,34 +22,35 @@ const UnclaimedRewards: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
+  console.log('position in UnclaimedRewards:', position);
 
   const unclaimedRewardsInfo = useMemo(
     () =>
-      position?.unsettledRewards?.map((reward) => {
+      position?.unclaimedRewards?.map((reward) => {
         return {
-          token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
-          unsettledReward: new Unit(reward.stakeReward.unsettledReward),
+          token: getUnwrapperTokenByAddress(reward.rewardTokenInfo?.address) ?? reward.rewardTokenInfo,
+          unclaimedReward: new Unit(reward.stakeReward.unclaimedReward),
         };
       }) ?? [],
-    [position?.unsettledRewards]
+    [position?.unclaimedRewards]
   );
 
   const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     if (!unclaimedRewardsInfo?.length) return;
-    getTokensPrice(unclaimedRewardsInfo.map((reward) => reward.token.address)).then((prices) => {
+    getTokensPrice(unclaimedRewardsInfo.map((reward) => reward.token?.address!)).then((prices) => {
       const _unsettledRewardsTotalPrice =
         unclaimedRewardsInfo?.reduce((acc, reward) => {
-          const price = prices[reward.token.address];
+          const price = prices[reward.token?.address!];
           if (!price) return acc;
-          return acc.add(new Unit(price).mul(reward.unsettledReward).toDecimalStandardUnit(undefined, reward.token.decimals));
+          return acc.add(new Unit(price).mul(reward.unclaimedReward).toDecimalStandardUnit(undefined, reward.token?.decimals));
         }, new Unit(0)) ?? new Unit(0);
       setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
     });
   }, [unclaimedRewardsInfo]);
 
-  if (!position || !position.unsettledRewards?.length) return null;
+  if (!position || !position.unclaimedRewards?.length) return null;
   return (
     <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-b-16px text-black-normal w-full">
       <div className="flex items-start w-full">
@@ -63,12 +64,12 @@ const UnclaimedRewards: React.FC = () => {
         </div>
       </div>
       <div className="flex flex-col gap-8px w-full">
-        {unclaimedRewardsInfo.map(({ token, unsettledReward }) => (
+        {unclaimedRewardsInfo.map(({ token, unclaimedReward }) => (
           <TokenItem
-            key={token.address}
+            key={token?.address}
             token={token}
-            amount={formatDisplayAmount(unsettledReward, {
-              decimals: token.decimals,
+            amount={formatDisplayAmount(unclaimedReward, {
+              decimals: token?.decimals,
               minNum: '0.000001',
               toFixed: 6,
             })}

@@ -48,11 +48,11 @@ const AmountDetail: React.FC<{
 
   const unclaimedRewardsInfo = useMemo(
     () =>
-      position?.unsettledRewards?.map((reward) => ({
-        token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
-        unsettledReward: new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(6, reward.rewardTokenInfo.decimals),
+      position?.unclaimedRewards?.map((reward) => ({
+        token: getUnwrapperTokenByAddress(reward.rewardTokenInfo?.address) ?? reward.rewardTokenInfo,
+        unsettledReward: new Unit(reward.stakeReward.unclaimedReward).toDecimalStandardUnit(6, reward.rewardTokenInfo?.decimals),
       })) ?? [],
-    [position?.unsettledRewards]
+    [position?.unclaimedRewards]
   );
 
   return (
@@ -82,11 +82,11 @@ const AmountDetail: React.FC<{
       {unclaimedRewardsInfo?.length > 0 &&
         unclaimedRewardsInfo?.map((reward) => (
           <AmountItem
-            key={reward.token.address}
-            title={`${reward.token.symbol} rewards earned`}
-            tokenSymbol={reward.token.symbol}
+            key={reward.token?.address}
+            title={`${reward.token?.symbol} rewards earned`}
+            tokenSymbol={reward.token?.symbol!}
             amount={reward.unsettledReward}
-            logoURI={reward.token.logoURI ?? ''}
+            logoURI={reward.token?.logoURI ?? ''}
             className="mt-8px"
           />
         ))}

@@ -41,13 +41,13 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 
   const unclaimedRewardsInfo = useMemo(
     () =>
-      position?.unsettledRewards?.map((reward) => {
+      position?.unclaimedRewards?.map((reward) => {
         return {
-          token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
-          unsettledReward: new Unit(reward.stakeReward.unsettledReward),
+          token: getUnwrapperTokenByAddress(reward.rewardTokenInfo?.address) ?? reward.rewardTokenInfo,
+          unclaimedReward: new Unit(reward.stakeReward.unclaimedReward),
         };
       }) ?? [],
-    [position?.unsettledRewards]
+    [position?.unclaimedRewards]
   );
 
   const feesInfo = useMemo(() => {
@@ -76,8 +76,8 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
     });
 
     // 再添加 unclaimedRewards，如果有相同 token 则相加
-    unclaimedRewardsInfo.forEach(({ token, unsettledReward }) => {
-      if (token && unsettledReward) {
+    unclaimedRewardsInfo.forEach(({ token, unclaimedReward }) => {
+      if (token && unclaimedReward) {
         const key = token.address.toLowerCase();
         const existing = mergedMap.get(key);
 
@@ -85,13 +85,13 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
           // 相同 token，amount 相加
           mergedMap.set(key, {
             token,
-            amount: unsettledReward.add(existing.amount),
+            amount: unclaimedReward.add(existing.amount),
           });
         } else {
           // 不同 token，直接添加
           mergedMap.set(key, {
             token,
-            amount: unsettledReward,
+            amount: unclaimedReward,
           });
         }
       }

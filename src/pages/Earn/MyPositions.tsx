@@ -56,7 +56,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   const position: PositionEnhanced = positionEnhanced;
   const i18n = useI18n(transitions);
   const [inverted, setInverted] = useInvertedState(position.tokenId);
-  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, unclaimedFees, unsettledRewards, isRewardActive } = position;
+  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, unclaimedFees, unclaimedRewards, isRewardActive } = position;
 
   const token0Price = useTokenPrice(token0?.address);
   const token1Price = useTokenPrice(token1?.address);
@@ -108,21 +108,21 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   const token1Fee = token1Price && fee1 ? fee1.mul(token1Price).toDecimalStandardUnit(undefined, token1?.decimals) : '';
   const unclaimedFeesValue = token0Fee && token1Fee ? new Unit(token0Fee).add(token1Fee) : undefined;
 
-  const unsettledRewardValues = unsettledRewards?.map((reward) => {
+  const unclaimedRewardValues = unclaimedRewards?.map((reward) => {
     const rewardTokenPrice = useTokenPrice(reward?.rewardTokenInfo?.address);
-    if (rewardTokenPrice && reward.stakeReward.unsettledReward) {
-      return new Unit(reward.stakeReward.unsettledReward).mul(rewardTokenPrice).div(new Unit(10).pow(reward.rewardTokenInfo?.decimals ?? 18));
+    if (rewardTokenPrice && reward.stakeReward.unclaimedReward) {
+      return new Unit(reward.stakeReward.unclaimedReward).mul(rewardTokenPrice).div(new Unit(10).pow(reward.rewardTokenInfo?.decimals ?? 18));
     }
     return undefined;
   });
 
-  const unsettledRewardsValue = useMemo(() => {
-    if (!unsettledRewardValues || unsettledRewardValues.length === 0) {
+  const unclaimedRewardValue = useMemo(() => {
+    if (!unclaimedRewardValues || unclaimedRewardValues.length === 0) {
       return undefined;
     }
 
     // 检查是否所有值都是 undefined
-    const validValues = unsettledRewardValues.filter((value) => value !== undefined);
+    const validValues = unclaimedRewardValues.filter((value) => value !== undefined);
     if (validValues.length === 0) {
       return undefined;
     }
@@ -131,18 +131,18 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     return validValues.reduce<Unit>((acc, curr) => {
       return acc.add(curr!);
     }, new Unit(0));
-  }, [unsettledRewardValues]);
+  }, [unclaimedRewardValues]);
 
   const unclaimedValue = useMemo(() => {
-    if (unclaimedFeesValue === undefined && unsettledRewardsValue === undefined) {
+    if (unclaimedFeesValue === undefined && unclaimedRewardValue === undefined) {
       return undefined;
     }
     let total = new Unit(0);
     if (unclaimedFeesValue !== undefined) {
       total = total.add(unclaimedFeesValue as Unit);
     }
-    if (unsettledRewardsValue !== undefined) {
-      total = total.add(unsettledRewardsValue as Unit);
+    if (unclaimedRewardValue !== undefined) {
+      total = total.add(unclaimedRewardValue as Unit);
     }
     return formatDisplayAmount(total, {
       decimals: 0,
@@ -150,7 +150,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
       toFixed: 5,
       unit: '$',
     });
-  }, [unclaimedFeesValue, unsettledRewardsValue]);
+  }, [unclaimedFeesValue, unclaimedRewardValue]);
 
   return (
     <Link to={String(position.tokenId)} className="no-underline">

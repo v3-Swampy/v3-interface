@@ -46,13 +46,13 @@ const UnclaimedFees: React.FC<{ hasRewards?: boolean }> = ({ hasRewards }) => {
   const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<Unit | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!position?.unsettledRewards?.length) return;
-    getTokensPrice(position?.unsettledRewards.map((reward, index) => reward.rewardTokenInfo.address)).then((prices) => {
+    if (!position?.unclaimedRewards?.length) return;
+    getTokensPrice(position?.unclaimedRewards.map((reward) => reward.rewardTokenInfo?.address!)).then((prices) => {
       const unsettledRewardsTotalPrice =
-        position?.unsettledRewards?.reduce((acc, reward) => {
-          const price = prices[reward.rewardTokenInfo.address];
+        position?.unclaimedRewards?.reduce((acc, reward) => {
+          const price = prices[reward.rewardTokenInfo?.address!];
           if (!price) return acc;
-          return acc.add(new Unit(price).mul(new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(undefined, reward.rewardTokenInfo.decimals)));
+          return acc.add(new Unit(price).mul(new Unit(reward.stakeReward.unclaimedReward).toDecimalStandardUnit(undefined, reward.rewardTokenInfo?.decimals)));
         }, new Unit(0)) ?? new Unit(0);
       setUnsettledRewardsTotalPrice(unsettledRewardsTotalPrice);
     });
