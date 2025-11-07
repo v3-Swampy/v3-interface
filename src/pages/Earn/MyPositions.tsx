@@ -171,7 +171,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
           <div className={`${classNames.content} lt-mobile:flex lt-mobile:gap-2`}>
             <div className="flex items-center">
               {priceLowerStr}
-              {leftToken?.symbol}
+              {rightTokenForUI?.symbol}
               <DoubleArrowIcon
                 className="w-16px h-8px flex-shrink-0 mx-8px cursor-pointer"
                 onClick={(e) => {
@@ -182,9 +182,9 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
                 }}
               />
               {priceUpperStr}
-              {leftToken?.symbol}
+              {rightTokenForUI?.symbol}
             </div>
-            <div className={cx('text-center lt-mobile:text-left', classNames.desc)}>{`${currentPrice} ${leftTokenForUI?.symbol} per ${rightTokenForUI?.symbol}`}</div>
+            <div className={cx('text-center lt-mobile:text-left', classNames.desc)}>{`${currentPrice} ${rightTokenForUI?.symbol} per ${leftTokenForUI?.symbol}`}</div>
           </div>
         </div>
         <div className={`col-span-4 lt-mobile:col-span-8 flex flex-col items-center lt-mobile:items-start`}>
