@@ -22,7 +22,6 @@ const UnclaimedRewards: React.FC = () => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
-  console.log('position in UnclaimedRewards:', position);
 
   const unclaimedRewardsInfo = useMemo(
     () =>

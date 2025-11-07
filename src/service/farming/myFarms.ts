@@ -74,7 +74,6 @@ const myFarmsQuery = selector({
       Array.from(UniswapV3Staker.func.interface.decodeFunctionResult('getUserPositions', item as string)?.[0] as bigint[]).map(bigintValue => Number(bigintValue))
     );
 
-    console.log('userPositions', userPositionsQuery);
     const positions = get(positionsQueryByTokenIds(userPositions.flat()));
 
     const userPositionsWithIncentiveKey = userPositions.map((tokenIds, index) => {
@@ -182,8 +181,6 @@ const positionFarmingDetailQuery = selectorFamily({
     ({ get }) => {
       const myFarms = get(myFarmsQuery);
       if (!myFarms) return null;
-      console.log('tokenId', tokenId);
-      console.log('myFarms', myFarms);
       // 查找包含指定 tokenId 的 farm
       const farm = myFarms.find((farm) => 
         farm.positions.some((position) => Number(position.tokenId) === Number(tokenId))

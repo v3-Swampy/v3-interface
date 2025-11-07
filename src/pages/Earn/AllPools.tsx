@@ -147,13 +147,11 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
 
     data.incentiveKeys.forEach((key, index) => {
       const incentive = data.incentives[index];
-      console.log('incentive', incentive, key);
       if (!incentive || key.status !== 'active' || incentive.isEmpty) return;
 
       const rewardTokenAddress = key.rewardToken.toLowerCase();
 
       const rewardTokenPrice = rewardTokenPrices[rewardTokenAddress];
-      console.log(rewardTokenPrices, 'rewardTokenPrices');
       if (!rewardTokenPrice) return;
 
       const rewardToken = data.rewards.find((r) => r.token?.address?.toLowerCase() === rewardTokenAddress)?.token;
@@ -188,10 +186,6 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
     });
 
     const totalBaseAPR = tvl.isZero() ? new Decimal(0) : totalRewardsPerSecond.div(tvl).mul(31536000).add(feeAprDecimal);
-
-    console.log('tvl', tvl.toString());
-    console.log('feeAprDecimal', feeAprDecimal.toString());
-    console.log('totalBaseAPR', totalBaseAPR.toString());
 
     const totalApr = totalBaseAPR.toFixed(2);
 
@@ -264,10 +258,12 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
 
 const AllPools = () => {
   const pools = usePools();
-  const [onlyFarms] = useFarmsOnly();
-  console.log('pools', pools);
   if (!pools) return null;
+
+  const [onlyFarms] = useFarmsOnly();
   const filteredPools = onlyFarms ? pools.filter((pool) => pool.incentiveKeys.some((key) => key.status === 'active')) : pools;
+  console.log('pools', pools, filteredPools);
+
   return (
     <div className="mt-6 lt-mobile:mt-4">
       {filteredPools.map((p) => (

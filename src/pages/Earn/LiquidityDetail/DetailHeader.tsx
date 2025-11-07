@@ -24,7 +24,6 @@ const DetailHeader: React.FC = () => {
   const position = usePosition(Number(tokenId));
   const navigate = useNavigate();
   const isOwner = useIsPositionOwner(Number(tokenId));
-  console.log(isOwner);
   const status = usePositionStatus(position as PositionForUI);
 
   if (!position) return null;

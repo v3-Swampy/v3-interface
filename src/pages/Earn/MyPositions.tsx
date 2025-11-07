@@ -205,11 +205,14 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
 
 const PositionsContent: React.FC = () => {
   const i18n = useI18n(transitions);
+
   const positions = usePositionsForUI();
   const [onlyFarms] = useFarmsOnly();
+
   const filteredPositions = onlyFarms ? positions?.filter((position) => position.isRewardActive) : positions;
 
-  console.log('positions', positions);
+  console.log('positions', positions, filteredPositions);
+
   if (!filteredPositions?.length) {
     return (
       <>
