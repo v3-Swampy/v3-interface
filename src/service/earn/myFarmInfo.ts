@@ -2,10 +2,9 @@ import { Incentive } from './../../utils/graphql/__generated__/graphql';
 import { groupBy, map } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
-import type { IncentiveKeyDetail } from './farmingInfo';
 import type { PositionForUI } from './positions';
 import type { Pool } from '@service/pairs&pool';
-import { getPools } from './allPools';
+import { getPools, IncentiveKeyDetail } from './allPools';
 
 const mergeStakeRewardsByToken = <
   T extends {
@@ -63,6 +62,20 @@ export const getUserFarmInfoOfPosition = async ({ position, pool }: { position: 
       'latest',
     ],
   });
+
+  // const settleRewardsQueryMulticall = await fetchChain<string>({
+  //   rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
+  //   method: 'eth_call',
+  //   params: [
+  //     {
+  //       to: UniswapV3Staker.address,
+  //       data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
+  //         settleRewardTokens.map((token) => UniswapV3Staker.func.interface.encodeFunctionData('reward', [position.tokenId, token])),
+  //       ]),
+  //     },
+  //     'latest',
+  //   ],
+  // });
 
   const stakeRewardsQuery = UniswapV3Staker.func.interface.decodeFunctionResult('multicall', stakeRewardsQueryMulticall)?.[0];
   const stakeRewards = Array.from(stakeRewardsQuery).map((item, index) => {

@@ -39,15 +39,15 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const { token0, token1 } = position || {};
   const refreshPositionFees = useRefreshPositionFees(tokenId);
 
-  const activeRewardsInfo = useMemo(
+  const unclaimedRewardsInfo = useMemo(
     () =>
-      position?.activeRewards?.map((reward) => {
+      position?.unsettledRewards?.map((reward) => {
         return {
           token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
           unsettledReward: new Unit(reward.stakeReward.unsettledReward),
         };
       }) ?? [],
-    [position?.activeRewards]
+    [position?.unsettledRewards]
   );
 
   const feesInfo = useMemo(() => {
@@ -75,8 +75,8 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
       }
     });
 
-    // 再添加 activeRewards，如果有相同 token 则相加
-    activeRewardsInfo.forEach(({ token, unsettledReward }) => {
+    // 再添加 unclaimedRewards，如果有相同 token 则相加
+    unclaimedRewardsInfo.forEach(({ token, unsettledReward }) => {
       if (token && unsettledReward) {
         const key = token.address.toLowerCase();
         const existing = mergedMap.get(key);
@@ -98,7 +98,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
     });
 
     return Array.from(mergedMap.values());
-  }, [feesInfo, activeRewardsInfo]);
+  }, [feesInfo, unclaimedRewardsInfo]);
 
   const onSubmit = useCallback(async () => {
     if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0.equals(0) && fee1.equals(0) && unsettledRewardsTotalPrice?.equals(0))) return;

@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import Decimal from 'decimal.js';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
-import { usePosition, useIsPositionOwner } from '@service/earn';
+import { usePosition } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { getTokensPrice } from '@service/pairs&pool';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
@@ -12,11 +11,9 @@ import { formatDisplayAmount } from '@utils/numberUtils';
 
 const transitions = {
   en: {
-    claim_rewards: 'Claim Rewards',
     unclaimed_rewards: 'Unclaimed Rewards',
   },
   zh: {
-    claim_rewards: '获取奖励',
     unclaimed_rewards: '待获取奖励',
   },
 } as const;
@@ -26,93 +23,59 @@ const UnclaimedRewards: React.FC = () => {
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
 
-  const activeRewardsInfo = useMemo(
+  const unclaimedRewardsInfo = useMemo(
     () =>
-      position?.activeRewards?.map((reward) => {
-        const rewardPerSecond = new Decimal(reward.stakeReward.rewardsPerSecondX32.toString()).div(Math.pow(2, 32));
-        const rewardPerDay = new Unit(rewardPerSecond).mul(86400);
+      position?.unsettledRewards?.map((reward) => {
         return {
           token: getUnwrapperTokenByAddress(reward.rewardTokenInfo.address) ?? reward.rewardTokenInfo,
           unsettledReward: new Unit(reward.stakeReward.unsettledReward),
-          rewardPerDay: rewardPerDay,
-          rewardPerDayDisplay: formatDisplayAmount(rewardPerDay, {
-            decimals: reward.rewardTokenInfo.decimals,
-            minNum: '0.000001',
-            toFixed: 6,
-          }),
         };
       }) ?? [],
-    [position?.activeRewards]
+    [position?.unsettledRewards]
   );
 
   const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<string | null | undefined>(undefined);
-  const [expectedRewardPerDayTotalPrice, setExpectedRewardPerDayTotalPrice] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!activeRewardsInfo?.length) return;
-    getTokensPrice(activeRewardsInfo.map((reward) => reward.token.address)).then((prices) => {
+    if (!unclaimedRewardsInfo?.length) return;
+    getTokensPrice(unclaimedRewardsInfo.map((reward) => reward.token.address)).then((prices) => {
       const _unsettledRewardsTotalPrice =
-        activeRewardsInfo?.reduce((acc, reward) => {
+        unclaimedRewardsInfo?.reduce((acc, reward) => {
           const price = prices[reward.token.address];
           if (!price) return acc;
           return acc.add(new Unit(price).mul(reward.unsettledReward).toDecimalStandardUnit(undefined, reward.token.decimals));
         }, new Unit(0)) ?? new Unit(0);
-      const _expectedRewardPerDayTotalPrice =
-        activeRewardsInfo?.reduce((acc, reward) => {
-          const price = prices[reward.token.address];
-          if (!price) return acc;
-          return acc.add(new Unit(price).mul(reward.rewardPerDay).toDecimalStandardUnit(undefined, reward.token.decimals));
-        }, new Unit(0)) ?? new Unit(0);
-        console.log('_expectedRewardPerDayTotalPrice', _expectedRewardPerDayTotalPrice.toString());
       setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
-      setExpectedRewardPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
     });
-  }, [activeRewardsInfo]);
+  }, [unclaimedRewardsInfo]);
 
-  const isOwner = useIsPositionOwner(Number(tokenId));
-  if (!position || !position.activeRewards?.length || !isOwner) return null;
+  if (!position || !position.unsettledRewards?.length) return null;
   return (
-    <>
-      <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
-        <div className="flex items-start w-full">
-          <div className="flex flex-col flex-1 min-w-0">
-            <span className="inline-block mb-8px text-14px leading-18px">{i18n.unclaimed_rewards}</span>
-            <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
-              {unsettledRewardsTotalPrice === undefined ? <Spin /> : unsettledRewardsTotalPrice ?? '-'}
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-8px w-full">
-          {activeRewardsInfo.map(({ token, unsettledReward }) => (
-            <TokenItem
-              key={token.address}
-              token={token}
-              amount={formatDisplayAmount(unsettledReward, {
-                decimals: token.decimals,
-                minNum: '0.000001',
-                toFixed: 6,
-              })}
-            />
-          ))}
+    <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-b-16px text-black-normal w-full">
+      <div className="flex items-start w-full">
+        <div className="flex flex-col flex-1 min-w-0">
+          <span className="inline-block mb-8px text-14px leading-18px">
+            {i18n.unclaimed_rewards}
+          </span>
+          <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
+            {unsettledRewardsTotalPrice === undefined ? <Spin /> : unsettledRewardsTotalPrice ?? '-'}
+          </span>
         </div>
       </div>
-
-      <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
-        <div className="flex items-start w-full">
-          <div className="flex flex-col flex-1 min-w-0">
-            <span className="inline-block mb-8px text-14px leading-18px">Expected Reward Per Day</span>
-            <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
-              {expectedRewardPerDayTotalPrice === undefined ? <Spin /> : expectedRewardPerDayTotalPrice ?? '-'}
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-8px w-full">
-          {activeRewardsInfo.map(({ token, rewardPerDayDisplay }) => (
-            <TokenItem key={token.address} token={token} amount={rewardPerDayDisplay} />
-          ))}
-        </div>
+      <div className="flex flex-col gap-8px w-full">
+        {unclaimedRewardsInfo.map(({ token, unsettledReward }) => (
+          <TokenItem
+            key={token.address}
+            token={token}
+            amount={formatDisplayAmount(unsettledReward, {
+              decimals: token.decimals,
+              minNum: '0.000001',
+              toFixed: 6,
+            })}
+          />
+        ))}
       </div>
-    </>
+    </div>
   );
 };
 

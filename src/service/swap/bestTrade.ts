@@ -373,7 +373,6 @@ function calcTradeFromData({
         tickCurrent: +poolData.tickCurrent,
         liquidity: poolData.liquidity,
         sqrtPriceX96: poolData.sqrtRatioX96,
-        farmingInfo: null,
       })
     );
     const midPrice = thisRoutePools.slice(1).reduce(

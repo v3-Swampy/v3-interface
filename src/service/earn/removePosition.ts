@@ -2,9 +2,8 @@ import { AutoPositionManager } from '@contracts/index';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { getDeadline } from '@service/settings';
 import { getAccount, sendTransaction } from '@service/account';
-import showRemoveLiquidityModal from '@pages/Pool/RemoveLiquidity/RemoveLiquidityModal';
-import { getPosition, MAX_UINT128 } from './positionDetail';
-import { ZeroAddress } from '@service/swap';
+import showRemoveLiquidityModal from '@pages/Earn/RemoveLiquidity/RemoveLiquidityModal';
+import { getPosition } from './positionDetail';
 
 export const handleSubmitRemoveLiquidity = async ({
   tokenId,

@@ -11,6 +11,7 @@ import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';
 import UnclaimedRewards from './UnclaimedRewards';
+import ExpectedRewards from './ExepectedRewards';
 
 const transitions = {
   en: {
@@ -34,7 +35,7 @@ const LiquidityDetail: React.FC = () => {
     }
   }, [account]);
 
-  const isPositionHasRewards = !!position?.activeRewards?.length;
+  const isPositionHasRewards = !!position?.unsettledRewards?.length || !!position?.activeRewards?.length;
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px lt-md:pb-60px">
       <div className="mx-auto max-w-800px">
@@ -52,9 +53,10 @@ const LiquidityDetail: React.FC = () => {
                 <Liquidity />
                 <SelectedPriceRange position={position} tokenId={tokenId} isTiny />
               </div>
-              <div className="w-full flex flex-col gap-16px">
-                <UnclaimedFees />
+              <div className="w-full flex flex-col">
+                <UnclaimedFees hasRewards />
                 <UnclaimedRewards />
+                <ExpectedRewards />
               </div>
             </div>
           ) : (

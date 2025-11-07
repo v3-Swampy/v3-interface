@@ -22,13 +22,13 @@ const transitions = {
 } as const;
 
 const tokenAState = atom<Token | null>({
-  key: `pool-tokenAState-${import.meta.env.MODE}`,
+  key: `earn-tokenAState-${import.meta.env.MODE}`,
   default: null,
   effects: [persistAtom],
 });
 
 const tokenBState = atom<Token | null>({
-  key: `pool-tokenBState-${import.meta.env.MODE}`,
+  key: `earn-tokenBState-${import.meta.env.MODE}`,
   default: null,
   effects: [persistAtom],
 });

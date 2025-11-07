@@ -20,6 +20,7 @@ export interface HistoryRecord {
   txHash: string;
   status: HistoryStatus;
   type:
+    | 'ImportBetaLP'
     | 'Swap'
     | 'Position_AddLiquidity'
     | 'Position_CollectFees'

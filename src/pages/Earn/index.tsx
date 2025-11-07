@@ -17,7 +17,7 @@ const transitions = {
     desc: 'Concentrated and effective liquidity providers will get more rewards.',
     myPositions: 'My Positions',
     allPools: 'All Pools',
-    new_positions: 'New Positions',
+    new_position: 'New Position',
     farms_only: 'Farms only',
   },
   zh: {
@@ -25,7 +25,7 @@ const transitions = {
     desc: 'Concentrated and effective liquidity providers will get more rewards.',
     myPositions: 'My Positions',
     allPools: 'All Pools',
-    new_positions: '新仓位',
+    new_position: '新仓位',
     farms_only: 'Farms only',
   },
 } as const;
@@ -47,7 +47,7 @@ const EarnPage: React.FC = () => {
               <Link to="/earn/add_liquidity" className="no-underline shrink-0 hidden lt-mobile:block">
                 <Button color="gradient" className="px-24px h-40px text-14px rounded-100px" id="earn-add-new-position">
                   <AddIcon className="mr-8px w-12px h-12px" />
-                  {i18n.new_positions}
+                  {i18n.new_position}
                 </Button>
               </Link>
             </div>
@@ -58,7 +58,7 @@ const EarnPage: React.FC = () => {
           <Link to="/earn/add_liquidity" className="no-underline shrink-0 lt-mobile:hidden">
             <Button color="gradient" className="px-24px h-40px text-14px rounded-100px" id="earn-add-new-position">
               <AddIcon className="mr-8px w-12px h-12px" />
-              {i18n.new_positions}
+              {i18n.new_position}
             </Button>
           </Link>
         </div>
