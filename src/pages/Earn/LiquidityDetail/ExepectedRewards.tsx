@@ -7,7 +7,7 @@ import useI18n from '@hooks/useI18n';
 import { usePosition } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { getTokensPrice } from '@service/pairs&pool';
-import { TokenItem } from '@modules/Position/TokenPairAmount';
+import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
 
 const transitions = {
@@ -18,6 +18,16 @@ const transitions = {
     expect_rewards: '预期每日奖励',
   },
 } as const;
+
+const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; }> = ({ token, amount }) => {
+  return (
+    <div className="flex items-center gap-8px text-14px leading-18px font-medium text-black-normal whitespace-nowrap">
+      <span>{amount}</span>
+        <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
+      <span>{token?.symbol}</span>
+    </div>
+  );
+};
 
 const ExpectedRewards: React.FC = () => {
   const i18n = useI18n(transitions);
@@ -69,9 +79,12 @@ const ExpectedRewards: React.FC = () => {
           </span>
         </div>
       </div>
-      <div className="flex flex-col gap-8px w-full">
-        {activeRewardsInfo.map(({ token, rewardPerDayDisplay }) => (
-          <TokenItem key={token.address} token={token} amount={rewardPerDayDisplay} />
+      <div className="flex flex-wrap gap-8px">
+        {activeRewardsInfo.map(({ token, rewardPerDayDisplay }, index) => (
+          <React.Fragment key={token.address}>
+            {index > 0 && <span className="text-14px leading-24px font-medium text-black-normal">+</span>}
+            <TokenItem token={token} amount={rewardPerDayDisplay} />
+          </React.Fragment>
         ))}
       </div>
     </div>
