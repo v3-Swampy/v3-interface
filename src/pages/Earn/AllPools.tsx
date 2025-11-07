@@ -9,7 +9,7 @@ import TokenPair from '@modules/Position/TokenPair';
 import Spin from '@components/Spin';
 import Dropdown from '@components/Dropdown';
 import BorderBox from '@components/Box/BorderBox';
-import { useTokenPrice, getTokensPrice } from '@service/pairs&pool';
+import { getTokensPrice } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import FarmIcon from '@assets/imgs/farm.png';
 import { useNavigate } from 'react-router-dom';
@@ -91,25 +91,10 @@ const APRDetail: React.FC<{ aprData?: APRData | null; feeApr?: string }> = memo(
 const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number] }> = ({ data }) => {
   const navigate = useNavigate();
   const i18n = useI18n(transitions);
-  const token0Price = useTokenPrice(data.pairInfo.token0?.address);
-  const token1Price = useTokenPrice(data.pairInfo.token1?.address);
 
-  const tvl = useMemo(() => {
-    if (!token0Price || !token1Price || !data?.incentives?.length) return null;
-    // 计算每个 incentive 的美元价值
-    const tvlValues = data.incentives.map((incentive) => {
-      if (incentive?.token0Amount && incentive?.token1Amount) {
-        const token0Amount = new Decimal(incentive.token0Amount.toString());
-        const token1Amount = new Decimal(incentive.token1Amount.toString());
-        const token0Value = token0Amount.div(new Decimal(10 ** (data.pairInfo.token0?.decimals ?? 18))).mul(token0Price);
-        const token1Value = token1Amount.div(new Decimal(10 ** (data.pairInfo.token1?.decimals ?? 18))).mul(token1Price);
-        return token0Value.add(token1Value);
-      }
-      return new Decimal(0);
-    });
-    if (tvlValues.length === 0) return null;
-    return Decimal.max(...tvlValues);
-  }, [token0Price, token1Price, data?.incentives, data?.pairInfo.token0?.decimals, data?.pairInfo.token1?.decimals]);
+  const isSupportFarm = data.incentiveKeys.some((key) => key.status === 'active');
+
+  const { tvl } = data;
 
   const tvlDisplay = useMemo(() => {
     if (tvl) {
@@ -226,7 +211,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
       <div className="col-span-5 lt-mobile:col-span-17 lt-mobile:mb-18px">
         <div className={`${classNames.title}`}>
           <span>{i18n.poolName}</span>
-          <img src={FarmIcon} alt="farm" className="w-24px h-24px" />
+          {isSupportFarm && <img src={FarmIcon} alt="farm" className="w-24px h-24px" />}
         </div>
         <div className={`${classNames.content} inline-flex justify-center items-center`}>
           <TokenPair
@@ -255,7 +240,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
       </div>
       <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>{i18n.tvl}</div>
-        <div className={`${classNames.content}`}>{token0Price === undefined || token1Price === undefined ? <Spin /> : tvlDisplay}</div>
+        <div className={`${classNames.content}`}>{tvlDisplay}</div>
       </div>
       <div className={`col-span-3 lt-mobile:col-span-4 ${classNames.splitLine}`}>
         <div className={`${classNames.title}`}>{i18n.volume}</div>

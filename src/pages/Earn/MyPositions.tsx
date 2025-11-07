@@ -56,7 +56,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   const position: PositionEnhanced = positionEnhanced;
   const i18n = useI18n(transitions);
   const [inverted, setInverted] = useInvertedState(position.tokenId);
-  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, unclaimedFees, unsettledRewards } = position;
+  const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, unclaimedFees, unsettledRewards, isRewardActive } = position;
 
   const token0Price = useTokenPrice(token0?.address);
   const token1Price = useTokenPrice(token1?.address);
@@ -134,7 +134,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   }, [unsettledRewardValues]);
 
   const unclaimedValue = useMemo(() => {
-    if(unclaimedFeesValue === undefined && unsettledRewardsValue === undefined) {
+    if (unclaimedFeesValue === undefined && unsettledRewardsValue === undefined) {
       return undefined;
     }
     let total = new Unit(0);
@@ -160,7 +160,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
         <div className="col-span-6 lt-mobile:col-span-24 lt-mobile:mb-10px">
           <div className={`${classNames.title}`}>
             <span>{i18n.poolName}</span>
-            <img src={FarmIcon} alt="farm" className="w-24px h-24px" />
+            {isRewardActive && <img src={FarmIcon} alt="farm" className="w-24px h-24px" />}
           </div>
           <div className={`${classNames.content} inline-flex justify-center items-center`}>
             <TokenPair position={position} symbolClassName={classNames.symbol} feeClassName={classNames.fee} />
