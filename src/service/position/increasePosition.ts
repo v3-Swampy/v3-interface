@@ -97,7 +97,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
       leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
       rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
       previewPosition: createPreviewPositionForUI(
-        { id: tokenId, token0, token1, fee: position.fee, tickLower: position.tickLower, tickUpper: position.tickUpper, priceLower: position.priceLower, priceUpper: position.priceUpper },
+        { tokenId: tokenId, token0, token1, fee: position.fee, tickLower: position.tickLower, tickUpper: position.tickUpper, priceLower: position.priceLower, priceUpper: position.priceUpper },
         pool
       ),
       transactionParams,

@@ -63,6 +63,20 @@ export const getUserFarmInfoOfPosition = async ({ position, pool }: { position: 
     ],
   });
 
+  // const settleRewardsQueryMulticall = await fetchChain<string>({
+  //   rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
+  //   method: 'eth_call',
+  //   params: [
+  //     {
+  //       to: UniswapV3Staker.address,
+  //       data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
+  //         settleRewardTokens.map((token) => UniswapV3Staker.func.interface.encodeFunctionData('reward', [position.tokenId, token])),
+  //       ]),
+  //     },
+  //     'latest',
+  //   ],
+  // });
+
   const stakeRewardsQuery = UniswapV3Staker.func.interface.decodeFunctionResult('multicall', stakeRewardsQueryMulticall)?.[0];
   const stakeRewards = Array.from(stakeRewardsQuery).map((item, index) => {
     const [liquidity, boostedLiquidity, rewardsPerSecondX32, unsettledReward] = UniswapV3Staker.func.interface.decodeFunctionResult(

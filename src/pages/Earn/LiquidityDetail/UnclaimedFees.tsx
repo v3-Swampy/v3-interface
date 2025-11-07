@@ -42,13 +42,13 @@ const UnclaimedFees: React.FC = () => {
       : '-';
   const isOwner = useIsPositionOwner(Number(tokenId));
 
-    const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<Unit | null | undefined>(undefined);
+  const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<Unit | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!position?.activeRewards?.length) return;
-    getTokensPrice(position?.activeRewards.map((reward, index) => reward.rewardTokenInfo.address)).then((prices) => {
+    if (!position?.unsettledRewards?.length) return;
+    getTokensPrice(position?.unsettledRewards.map((reward, index) => reward.rewardTokenInfo.address)).then((prices) => {
       const unsettledRewardsTotalPrice =
-        position?.activeRewards?.reduce((acc, reward) => {
+        position?.unsettledRewards?.reduce((acc, reward) => {
           const price = prices[reward.rewardTokenInfo.address];
           if (!price) return acc;
           return acc.add(new Unit(price).mul(new Unit(reward.stakeReward.unsettledReward).toDecimalStandardUnit(undefined, reward.rewardTokenInfo.decimals)));
@@ -56,7 +56,6 @@ const UnclaimedFees: React.FC = () => {
       setUnsettledRewardsTotalPrice(unsettledRewardsTotalPrice);
     });
   }, []);
-
 
   if (!position) return null;
   return (
