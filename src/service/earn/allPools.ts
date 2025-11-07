@@ -3,7 +3,7 @@ import { fetchMulticall, createPairContract, UniswapV3Staker, createERC20Contrac
 import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { getTokenPriority } from '@service/earn/positions';
-import { getPoolLatestDayDataByPools } from './apis';
+import { getPoolsWith24HoursData } from './apis';
 import { getTimestamp } from './timestamp';
 import { getRecoil } from 'recoil-nexus';
 import { getTokensPrice } from '@service/pairs&pool';
@@ -43,8 +43,8 @@ export interface IncentiveKeyDetail extends IncentiveKey {
   rewardTokenInfo: Token;
 }
 
-export const poolLatestDayDataByPoolIds = selectorFamily({
-  key: `poolLatestDayDataByPoolIds-${import.meta.env.MODE}`,
+export const poolsWith24HoursData = selectorFamily({
+  key: `poolsWith24HoursData-${import.meta.env.MODE}`,
   get:
     (poolIdParams?: string[]) =>
     async ({ get }) => {
@@ -53,7 +53,7 @@ export const poolLatestDayDataByPoolIds = selectorFamily({
         poolIds = poolIdParams.map((poolId) => poolId.toLowerCase());
       }
 
-      const res = await getPoolLatestDayDataByPools(poolIds);
+      const res = await getPoolsWith24HoursData(poolIds);
 
       return res;
     },
@@ -64,8 +64,8 @@ export const poolsQuery = selectorFamily({
   get:
     (queryPoolsAddress: string[] | undefined) =>
     async ({ get }) => {
-      const poolDayData = get(poolLatestDayDataByPoolIds(queryPoolsAddress));
-      const poolsAddress = poolDayData.map((p) => p.id);
+      const pool24HourData = get(poolsWith24HoursData(queryPoolsAddress));
+      const poolsAddress = pool24HourData.map((p) => p.id);
       const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
       const pairsInfoQuery = await fetchMulticall(
         pairContracts
@@ -163,7 +163,8 @@ export const poolsQuery = selectorFamily({
       const pools = poolsAddress
         ? await Promise.all(
             poolsAddress.map(async (poolAddress, index) => {
-              const dayData = poolDayData.find((d) => d.id.toLowerCase() === poolAddress.toLowerCase());
+              const poolHourData = pool24HourData[index].poolHourData ?? [];
+              const volume24h = poolHourData.reduce((acc, cur) => acc.add(cur.volumeUSD), new Decimal(0));
               const rewardTokenAddresses = incentiveKeys[index].filter((key: IncentiveKeyDetail) => key.status === 'active').map((key: IncentiveKeyDetail) => key.rewardToken);
               const rewards = await Promise.all(
                 [...new Set(rewardTokenAddresses)].map(async (address) => ({
@@ -190,7 +191,7 @@ export const poolsQuery = selectorFamily({
 
               return {
                 poolAddress,
-                dayData: dayData?.poolDayData[0],
+                volume24h,
                 pairInfo: {
                   fee: fee,
                   token0: tokensDetail[index].token0,
