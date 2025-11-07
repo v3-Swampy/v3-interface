@@ -51,7 +51,7 @@ const UnclaimedRewards: React.FC = () => {
 
   if (!position || !position.unsettledRewards?.length) return null;
   return (
-    <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
+    <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-b-16px text-black-normal w-full">
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
           <span className="inline-block mb-8px text-14px leading-18px">{i18n.unclaimed_rewards}</span>

@@ -70,7 +70,7 @@ const ExpectedRewards: React.FC = () => {
 
   if (!position || !position.activeRewards?.length) return null;
   return (
-    <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
+    <div className="mt-16px p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
           <span className="inline-block mb-8px text-14px leading-18px">{i18n.expect_rewards}</span>

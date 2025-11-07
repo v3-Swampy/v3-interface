@@ -53,8 +53,8 @@ const LiquidityDetail: React.FC = () => {
                 <Liquidity />
                 <SelectedPriceRange position={position} tokenId={tokenId} isTiny />
               </div>
-              <div className="w-full flex flex-col gap-16px">
-                <UnclaimedFees />
+              <div className="w-full flex flex-col">
+                <UnclaimedFees hasRewards />
                 <UnclaimedRewards />
                 <ExpectedRewards />
               </div>

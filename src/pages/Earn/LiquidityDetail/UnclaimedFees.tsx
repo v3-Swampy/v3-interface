@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
 import useI18n from '@hooks/useI18n';
@@ -21,7 +22,7 @@ const transitions = {
   },
 } as const;
 
-const UnclaimedFees: React.FC = () => {
+const UnclaimedFees: React.FC<{ hasRewards?: boolean }> = ({ hasRewards }) => {
   const i18n = useI18n(transitions);
   const { tokenId } = useParams();
   const position = usePosition(Number(tokenId));
@@ -59,7 +60,7 @@ const UnclaimedFees: React.FC = () => {
 
   if (!position) return null;
   return (
-    <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
+    <div className={cx("p-16px flex bg-orange-light-hover flex-col items-start rounded-t-16px text-black-normal w-full", !hasRewards && "rounded-b-16px")}>
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
           <span className="inline-block mb-8px text-14px leading-18px">{i18n.unclaimed_fees}</span>
