@@ -64,7 +64,7 @@ export interface PositionForUI extends Position {
 }
 
 export type PositionEnhanced = PositionForUI &
-  Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: readonly [Unit, Unit] | readonly [undefined, undefined]; };
+  Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: readonly [Unit, Unit] | readonly [undefined, undefined] };
 
 const tokenIdsQuery = selector<Array<number> | []>({
   key: `earn-tokenIdsQuery-${import.meta.env.MODE}`,
@@ -173,7 +173,7 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
       pools: positions.map((p) => p.address),
       currentTimestamp: timestamp,
     });
-    const rewardTokensMap: Record<string, string[]> = {};
+    const rewardTokensMap: Record<string, string[] | undefined> = {};
     incentives.forEach((incentive) => {
       const poolAddress = incentive.pool.toLowerCase();
       if (rewardTokensMap[poolAddress]) {
@@ -190,7 +190,7 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
         const positionForUI = enhancePositionForUI(position, pool);
         const unclaimedFees = await getPositionFees(position.tokenId);
         if (pool) {
-          const userFarmInfo = await getUserFarmInfoOfPosition({ position: positionForUI, pool, rewardTokens: rewardTokensMap[poolAddress] });
+          const userFarmInfo = await getUserFarmInfoOfPosition({ position: positionForUI, pool, rewardTokens: rewardTokensMap[poolAddress] ?? [] });
           if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, unclaimedFees };
         }
         return { ...positionForUI, unclaimedFees };
