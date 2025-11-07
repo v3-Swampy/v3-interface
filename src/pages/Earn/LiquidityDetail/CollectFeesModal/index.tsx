@@ -6,8 +6,8 @@ import AuthConnectButton from '@modules/AuthConnectButton';
 import Button from '@components/Button';
 import useInTransaction from '@hooks/useInTransaction';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
-import { type PositionEnhanced, handleCollectFees as _handleCollectFees, useRefreshPositionFees, MergedRewardInfo } from '@service/earn';
-import { getUnwrapperTokenByAddress } from '@service/tokens';
+import { type PositionEnhanced, handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/earn';
+import { getUnwrapperTokenByAddress, Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
 
 const transitions = {
@@ -28,12 +28,17 @@ interface CommonProps {
   fee1?: Unit;
   position: PositionEnhanced | undefined;
   tokenId?: number;
-  unsettledRewardsTotalPrice: Unit | null | undefined;
+  unclaimedRewardTotalPrice: Unit | null | undefined;
+}
+
+interface MergedRewardInfo {
+  token: Token;
+  amount: Unit;
 }
 
 type Props = ConfirmModalInnerProps & CommonProps;
 
-const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, tokenId, unsettledRewardsTotalPrice }) => {
+const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, tokenId, unclaimedRewardTotalPrice }) => {
   const i18n = useI18n(transitions);
   const { inTransaction, execTransaction: handleCollectFees } = useInTransaction(_handleCollectFees);
   const { token0, token1 } = position || {};
@@ -101,9 +106,9 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   }, [feesInfo, unclaimedRewardsInfo]);
 
   const onSubmit = useCallback(async () => {
-    if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0.equals(0) && fee1.equals(0) && unsettledRewardsTotalPrice?.equals(0))) return;
+    if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0.equals(0) && fee1.equals(0) && unclaimedRewardTotalPrice?.equals(0))) return;
     setNextInfo({
-      sendTransaction: () => handleCollectFees({ tokenId, refreshPositionFees, mergedRewardsInfo }),
+      sendTransaction: () => handleCollectFees({ tokenId, refreshPositionFees, unclaimedRewards: position?.unclaimedRewards }),
     });
   }, [refreshPositionFees]);
 

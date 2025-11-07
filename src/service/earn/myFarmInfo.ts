@@ -5,7 +5,7 @@ import { fetchChain } from '@utils/fetch';
 import type { PositionForUI } from './positions';
 import type { Pool } from '@service/pairs&pool';
 import { getPools, IncentiveKeyDetail } from './allPools';
-import { getUnwrapperTokenByAddress } from '@service/tokens';
+import { getUnwrapperTokenByAddress , Token} from '@service/tokens';
 
 const mergeStakeRewardsByToken = <
   T extends {
@@ -43,6 +43,15 @@ const mergeStakeRewardsByToken = <
     };
   });
 };
+
+export interface UnclaimedRewardInfo {
+  stakeReward: {
+    unsettledReward: bigint;
+    settledReward: bigint;
+    unclaimedReward: bigint;
+  };
+  rewardTokenInfo?: Token;
+}
 
 const mergeUnclaimedRewardsByToken = <
   T extends {

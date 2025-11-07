@@ -102,6 +102,12 @@
         "type": "address"
       },
       {
+        "indexed": true,
+        "internalType": "contract IERC20Minimal",
+        "name": "rewardToken",
+        "type": "address"
+      },
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "reward",
@@ -598,25 +604,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "incentiveId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getIncentiveTokenIds",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "tokenIds",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -731,30 +718,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "pool",
-        "type": "address"
-      }
-    ],
-    "name": "getUserPositions",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "contract IUniswapV3Factory",
         "name": "_factory",
         "type": "address"
@@ -854,25 +817,6 @@
         "internalType": "uint128",
         "name": "",
         "type": "uint128"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "listIncentiveIdsForToken",
-    "outputs": [
-      {
-        "internalType": "bytes32[]",
-        "name": "incentiveIds",
-        "type": "bytes32[]"
       }
     ],
     "stateMutability": "view",

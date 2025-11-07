@@ -43,18 +43,18 @@ const UnclaimedFees: React.FC<{ hasRewards?: boolean }> = ({ hasRewards }) => {
       : '-';
   const isOwner = useIsPositionOwner(Number(tokenId));
 
-  const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<Unit | null | undefined>(undefined);
+  const [unclaimedRewardTotalPrice, setUnclaimedRewardTotalPrice] = useState<Unit | null | undefined>(undefined);
 
   useEffect(() => {
     if (!position?.unclaimedRewards?.length) return;
     getTokensPrice(position?.unclaimedRewards.map((reward) => reward.rewardTokenInfo?.address!)).then((prices) => {
-      const unsettledRewardsTotalPrice =
+      const unclaimedRewardsTotalPrice =
         position?.unclaimedRewards?.reduce((acc, reward) => {
           const price = prices[reward.rewardTokenInfo?.address!];
           if (!price) return acc;
           return acc.add(new Unit(price).mul(new Unit(reward.stakeReward.unclaimedReward).toDecimalStandardUnit(undefined, reward.rewardTokenInfo?.decimals)));
         }, new Unit(0)) ?? new Unit(0);
-      setUnsettledRewardsTotalPrice(unsettledRewardsTotalPrice);
+      setUnclaimedRewardTotalPrice(unclaimedRewardsTotalPrice);
     });
   }, []);
 
@@ -71,9 +71,9 @@ const UnclaimedFees: React.FC<{ hasRewards?: boolean }> = ({ hasRewards }) => {
         {isOwner && (
           <Button
             className="px-24px h-40px rounded-100px text-14px font-normal"
-            disabled={token0Fee === '0' && token1Fee === '0' && unsettledRewardsTotalPrice?.equals(0)}
+            disabled={token0Fee === '0' && token1Fee === '0' && unclaimedRewardTotalPrice?.equals(0)}
             color="gradient"
-            onClick={() => showCollectFeesModal({ position, fee0, fee1, tokenId: Number(tokenId), unsettledRewardsTotalPrice })}
+            onClick={() => showCollectFeesModal({ position, fee0, fee1, tokenId: Number(tokenId), unclaimedRewardTotalPrice })}
           >
             {i18n.collect_fees}
           </Button>

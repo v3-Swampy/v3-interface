@@ -6,15 +6,10 @@ import { sendTransaction } from '@service/account';
 import { PositionEnhanced, PositionsForUISelector } from './positions';
 import { accountState } from '@service/account';
 import { addRecordToHistory } from '@service/history';
-import { Token } from '@service/tokens';
 import Decimal from 'decimal.js';
+import { UnclaimedRewardInfo } from './myFarmInfo';
 
 export const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
-
-export interface MergedRewardInfo {
-  token: Token;
-  amount: Unit;
-}
 
 const positionSelector = selectorFamily<PositionEnhanced | undefined, number>({
   key: `PositionDetailForUI-${import.meta.env.MODE}`,
@@ -51,16 +46,18 @@ export const positionFeesSelector = selectorFamily({
     async ({ get }) => {
       const owner = get(positionOwnerSelector(tokenId));
       const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
+
       if (AutoPositionManager && tokenIdHexString && owner) {
         return await AutoPositionManager.func.collect
           .staticCall(
             {
               tokenId: tokenIdHexString,
-              recipient: owner, // some tokens might fail if transferred to address(0)
+              recipient: owner,
               amount0Max: MAX_UINT128.toHexMinUnit(),
               amount1Max: MAX_UINT128.toHexMinUnit(),
             },
-            { from: owner } // need to simulate the call as the owner
+            [],
+            { from: owner }
           )
           .then((results) => {
             return [new Unit(results[0]), new Unit(results[1])] as const;
@@ -70,14 +67,24 @@ export const positionFeesSelector = selectorFamily({
     },
 });
 
-export const handleCollectFees = async ({ tokenId, refreshPositionFees, mergedRewardsInfo }: { tokenId: number; refreshPositionFees: VoidFunction; mergedRewardsInfo: MergedRewardInfo[] }) => {
+export const handleCollectFees = async ({
+  tokenId,
+  refreshPositionFees,
+  unclaimedRewards,
+}: {
+  tokenId: number;
+  refreshPositionFees: VoidFunction;
+  unclaimedRewards: UnclaimedRewardInfo[] | undefined;
+}) => {
   const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
   const owner = getPositionOwner(tokenId);
   const position = getPosition(tokenId);
+  // 提取所有奖励 token 地址
+  const rewardTokens = (unclaimedRewards?.map((reward) => reward.rewardTokenInfo?.address).filter(Boolean) as string[]) || [];
   const [fee0, fee1] = getPositionFees(tokenId);
 
-  if (!owner || !position || (!fee0 && !fee1)) return '';
-  // const { token0, token1 } = position;
+  if (!owner || !position || (!fee0 && !fee1 && !unclaimedRewards?.length)) return '';
+
   const data = AutoPositionManager.func.interface.encodeFunctionData('collect', [
     {
       tokenId: tokenIdHexString,
@@ -85,6 +92,7 @@ export const handleCollectFees = async ({ tokenId, refreshPositionFees, mergedRe
       amount0Max: MAX_UINT128.toHexMinUnit(),
       amount1Max: MAX_UINT128.toHexMinUnit(),
     },
+    rewardTokens,
   ]);
 
   const transactionParams = {
