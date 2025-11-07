@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { selector, useRecoilValue, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
+import { selector, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
@@ -15,10 +15,11 @@ import {
   addTokenToList,
   type Token,
 } from '@service/tokens';
-import { getUserPositionIDs } from './apis';
+import { getIncentivesByPools, getUserPositionIDs } from './apis';
 import { getPositionFees } from './positionDetail';
 import { getUserFarmInfoOfPosition } from './myFarmInfo';
 import { PositionStatus } from '@type/position';
+import { getTimestamp } from './timestamp';
 
 export interface Position {
   tokenId: number;
@@ -63,7 +64,7 @@ export interface PositionForUI extends Position {
 }
 
 export type PositionEnhanced = PositionForUI &
-  Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: readonly [Unit, Unit] | readonly [undefined, undefined] };
+  Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: readonly [Unit, Unit] | readonly [undefined, undefined]; rewardTokens?: string[] };
 
 const tokenIdsQuery = selector<Array<number> | []>({
   key: `earn-tokenIdsQuery-${import.meta.env.MODE}`,
@@ -167,17 +168,32 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
   get: async ({ get }) => {
     const positions = get(positionsQuery);
     if (!positions) return [];
+    const timestamp = await getTimestamp();
+    const incentives = await getIncentivesByPools({
+      pools: positions.map((p) => p.address),
+      currentTimestamp: timestamp,
+    });
+    const rewardTokensMap: Record<string, string[]> = {};
+    incentives.forEach((incentive) => {
+      const poolAddress = incentive.pool.toLowerCase();
+      if (rewardTokensMap[poolAddress]) {
+        rewardTokensMap[poolAddress].push(incentive.rewardToken);
+      } else {
+        rewardTokensMap[poolAddress] = [incentive.rewardToken];
+      }
+    });
     const enhancedPositions = await Promise.all(
       positions.map(async (position) => {
         const { token0, token1, fee } = position;
+        const poolAddress = position.address.toLowerCase();
         const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
         const positionForUI = enhancePositionForUI(position, pool);
         const unclaimedFees = await getPositionFees(position.tokenId);
         if (pool) {
           const userFarmInfo = await getUserFarmInfoOfPosition({ position: positionForUI, pool });
-          if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, unclaimedFees };
+          if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, unclaimedFees, rewardTokens: rewardTokensMap[poolAddress] };
         }
-        return { ...positionForUI, unclaimedFees };
+        return { ...positionForUI, unclaimedFees, rewardTokens: rewardTokensMap[poolAddress] };
       })
     );
     enhancedPositions.sort((a, b) => {

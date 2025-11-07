@@ -1,12 +1,13 @@
-import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
-import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
+import { useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
+import { fetchMulticall, createPairContract, UniswapV3Staker, createERC20Contract } from '@contracts/index';
 import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
-import { isProduction } from '@utils/is';
 import { getTokenPriority } from '@service/earn/positions';
 import { getPoolLatestDayDataByPools } from './apis';
 import { getTimestamp } from './timestamp';
 import { getRecoil } from 'recoil-nexus';
+import { getTokensPrice } from '@service/pairs&pool';
+import Decimal from 'decimal.js';
 
 /**
  * 将数组按照指定的长度数组分组
@@ -28,20 +29,6 @@ function chunkByLengths<T>(array: T[] | null | undefined, lengths: number[]): T[
   return result;
 }
 
-export const farmingPoolsAddress = atom<Array<string>>({
-  key: `earn-farmingPoolsAddress-${import.meta.env.MODE}`,
-  default: isProduction
-    ? ['0x6857285eb6b3feb1d007a57b1DFDD76B2fAb0D0a', '0x6806c2808b68b74206A0Cbe00dDe2d0e26216308', '0x108920614FD13CeaAf52026E76D18C480e88AA2A']
-    : [
-        '0x6A24a7818b666732e5b5Bcb719F07926961B341E',
-        '0xE1074D1068c05D7f5b9c27b7CA9e5fD0933c073D',
-        '0x320bDBC3ba3db966c70d3f54222b902e56270066',
-        '0xb5BD827D40d284170d0773c9aAC7f2E37d48C6A3',
-        '0x393BA3679Ac5701a3181e2506bA189162e644101',
-        '0x7510CEE7eeB84d6eEFD333b9b587a89F2f898893',
-      ],
-});
-
 export interface IncentiveKey {
   rewardToken: string;
   poolAddress: string;
@@ -59,10 +46,10 @@ export interface IncentiveKeyDetail extends IncentiveKey {
 export const poolLatestDayDataByPoolIds = selectorFamily({
   key: `poolLatestDayDataByPoolIds-${import.meta.env.MODE}`,
   get:
-    (poolIdParams: string[]) =>
+    (poolIdParams?: string[]) =>
     async ({ get }) => {
       let poolIds: string[] | undefined = undefined;
-      if (poolIdParams?.length > 0) {
+      if (poolIdParams && poolIdParams.length > 0) {
         poolIds = poolIdParams.map((poolId) => poolId.toLowerCase());
       }
 
@@ -77,8 +64,8 @@ export const poolsQuery = selectorFamily({
   get:
     (queryPoolsAddress: string[] | undefined) =>
     async ({ get }) => {
-      const poolsAddress: string[] = queryPoolsAddress || get(farmingPoolsAddress);
-      const poolDayData = get(poolLatestDayDataByPoolIds(poolsAddress));
+      const poolDayData = get(poolLatestDayDataByPoolIds(queryPoolsAddress));
+      const poolsAddress = poolDayData.map((p) => p.id);
       const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
       const pairsInfoQuery = await fetchMulticall(
         pairContracts
@@ -100,6 +87,15 @@ export const poolsQuery = selectorFamily({
             };
           })
         : [];
+
+      // use Set to remove duplicate tokens
+      const tokens = pairsInfo.reduce((acc, cur) => {
+        acc.add(cur.token0Address);
+        acc.add(cur.token1Address);
+        return acc;
+      }, new Set<string>());
+      // fetch tokens price
+      const tokenPriceMap = await getTokensPrice(Array.from(tokens));
 
       const tokensDetail = await Promise.all(
         pairsInfo.map(async (info) => {
@@ -174,12 +170,29 @@ export const poolsQuery = selectorFamily({
                   token: await getTokenByAddressWithAutoFetch(address),
                 }))
               );
+              const { token0Address, token1Address, fee } = pairsInfo[index];
+              const token0Price = tokenPriceMap[token0Address];
+              const token1Price = tokenPriceMap[token1Address];
+              const token0Contract = createERC20Contract(token0Address);
+              const token1Contract = createERC20Contract(token1Address);
+              const [amount0Result, amount1Result] =
+                (await fetchMulticall([
+                  [token0Contract.address, token0Contract.func.interface.encodeFunctionData('balanceOf', [poolAddress])],
+                  [token1Contract.address, token1Contract.func.interface.encodeFunctionData('balanceOf', [poolAddress])],
+                ])) ?? [];
+              const token0Amount: bigint = amount0Result ? token0Contract.func.interface.decodeFunctionResult('balanceOf', amount0Result)?.[0] ?? 0n : 0n;
+              const token1Amount: bigint = amount1Result ? token1Contract.func.interface.decodeFunctionResult('balanceOf', amount1Result)?.[0] ?? 0n : 0n;
+              // TVL = Reserve_token0 × Price_token0 + Reserve_token1 × Price_token1
+              const tvl = new Decimal(token0Amount.toString())
+                .div(Decimal.pow(10, tokensDetail[index].token0?.decimals ?? 0))
+                .mul(token0Price ?? 0)
+                .add(new Decimal(token1Amount.toString()).div(Decimal.pow(10, tokensDetail[index].token1?.decimals ?? 0)).mul(token1Price ?? 0));
 
               return {
                 poolAddress,
                 dayData: dayData?.poolDayData[0],
                 pairInfo: {
-                  fee: pairsInfo[index].fee,
+                  fee: fee,
                   token0: tokensDetail[index].token0,
                   token1: tokensDetail[index].token1,
                   leftToken: leftAndRightTokens[index].leftToken,
@@ -188,12 +201,16 @@ export const poolsQuery = selectorFamily({
                 incentiveKeys: incentiveKeys?.[index] ?? [],
                 incentives: incentives?.[index] ?? [],
                 rewards,
+                token0Amount,
+                token1Amount,
+                tvl,
               };
             })
           )
         : null;
 
-      return pools;
+      // hide pool with no tvl, then sort by tvl
+      return pools?.filter((i) => !i.tvl.equals(0)).sort((a, b) => (a.tvl.greaterThan(b.tvl) ? -1 : 1));
     },
 });
 
