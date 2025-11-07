@@ -1,19 +1,29 @@
 import { fetchGraphql, fetchStakerGraphql } from '@utils/fetch';
-import { getPoolsLatestDayDataGQL } from '@utils/graphql/query/pools';
+import { getPoolsWithHourDataGQL } from '@utils/graphql/query/pools';
 import { getPoolIncentivesGQL, getUserPositionIDsGQL } from '@utils/graphql/query/staker';
 
-export const getPoolLatestDayDataByPools = async (ids?: string[]) => {
+const ONE_HOUR = 60 * 60;
+
+export const getPoolsWith24HoursData = async (ids?: string[]) => {
   try {
+    const now = Math.floor(Date.now() / 1000);
+    // 获取当前时间已超出整点的秒数
+    const extraSecond = now % ONE_HOUR;
+    // 获取一天前的整点时间戳
+    const start = now - 1 * ONE_HOUR - extraSecond;
     const res = await fetchGraphql({
-      query: getPoolsLatestDayDataGQL,
+      query: getPoolsWithHourDataGQL,
       variables: {
         where: {
           id_in: ids,
         },
+        hourDataWhere: {
+          periodStartUnix_gte: start,
+        },
       },
     });
     // TODO: hide pools with no volume in 24h
-    return res.data.pools ?? [] /* .filter((i) => i.poolDayData.length > 0 && i.poolDayData[0].volumeUSD > 0) */;
+    return res.data.pools ?? [] /* .filter((i) => i.poolHourData.length > 0 && i.poolHourData.every(h=>h.volumeUSD===0)) */;
   } catch (error) {
     console.log('getPoolLatestDayDataByPools error', error);
     return [];

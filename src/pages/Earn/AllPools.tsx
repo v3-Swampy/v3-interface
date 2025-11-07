@@ -125,20 +125,18 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
       });
   }, [rewardTokenAddresses]);
 
-  // TODO
-  const volume24h = data.dayData?.volumeUSD as string;
   const volume24hDisplay = useMemo(() => {
-    if (volume24h) {
-      return `$${numberWithCommas(trimDecimalZeros(new Decimal(volume24h).toFixed(2)))}`;
+    if (data.volume24h) {
+      return `$${numberWithCommas(trimDecimalZeros(data.volume24h.toFixed(2)))}`;
     }
     return '--';
-  }, [volume24h]);
+  }, [data.volume24h]);
   const [feeAprDecimal, feeApr] = useMemo(() => {
-    if (!tvl || tvl.equals(0) || !data.pairInfo.fee || !volume24h) return ['0', '0'];
-    const feeDay = new Decimal(volume24h).mul(data.pairInfo.fee).div(10000);
+    if (!tvl || tvl.equals(0) || !data.pairInfo.fee || !data.volume24h) return ['0', '0'];
+    const feeDay = data.volume24h.mul(data.pairInfo.fee).div(1000000);
     const apr = feeDay.mul(365).div(tvl).mul(100);
     return [apr, apr.toFixed(2)];
-  }, [tvl, data.pairInfo.fee, volume24h]);
+  }, [tvl, data.pairInfo.fee, data.volume24h]);
 
   const aprData: APRData | null = useMemo(() => {
     if (!data?.incentiveKeys || !data?.incentives || !tvl || !rewardTokenPrices) return null;
