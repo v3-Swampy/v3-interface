@@ -8,6 +8,7 @@ import { accountState } from '@service/account';
 import { addRecordToHistory } from '@service/history';
 import Decimal from 'decimal.js';
 import { UnclaimedRewardInfo } from './myFarmInfo';
+import { getWrapperTokenByAddress } from '@service/tokens';
 
 export const MAX_UINT128 = new Unit(new Decimal(2).pow(128).sub(1).toString());
 
@@ -80,7 +81,7 @@ export const handleCollectFees = async ({
   const owner = getPositionOwner(tokenId);
   const position = getPosition(tokenId);
   // 提取所有奖励 token 地址
-  const rewardTokens = (unclaimedRewards?.map((reward) => reward.rewardTokenInfo?.address).filter(Boolean) as string[]) || [];
+  const rewardTokens = (unclaimedRewards?.map((reward) => getWrapperTokenByAddress(reward.rewardTokenInfo?.address)?.address).filter(Boolean) as string[]) || [];
   const [fee0, fee1] = getPositionFees(tokenId);
 
   if (!owner || !position || (!fee0 && !fee1 && !unclaimedRewards?.length)) return '';
@@ -94,6 +95,8 @@ export const handleCollectFees = async ({
     },
     rewardTokens,
   ]);
+
+  console.log('Collect Fees Data:', { tokenIdHexString, owner, fee0: fee0?.toString(), fee1: fee1?.toString(), rewardTokens, data });
 
   const transactionParams = {
     data: data,
