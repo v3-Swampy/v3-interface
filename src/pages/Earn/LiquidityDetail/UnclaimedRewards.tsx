@@ -54,7 +54,9 @@ const UnclaimedRewards: React.FC = () => {
     <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-b-16px text-black-normal w-full">
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
-          <span className="inline-block mb-8px text-14px leading-18px">{i18n.unclaimed_rewards}</span>
+          <span className="inline-block mb-8px text-14px leading-18px">
+            {i18n.unclaimed_rewards}
+          </span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
             {unsettledRewardsTotalPrice === undefined ? <Spin /> : unsettledRewardsTotalPrice ?? '-'}
           </span>

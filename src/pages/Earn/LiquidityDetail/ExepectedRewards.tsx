@@ -3,12 +3,14 @@ import { useParams } from 'react-router-dom';
 import Decimal from 'decimal.js';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
+import Tooltip from '@components/Tooltip';
 import useI18n from '@hooks/useI18n';
 import { usePosition } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { getTokensPrice } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 
 const transitions = {
   en: {
@@ -19,11 +21,11 @@ const transitions = {
   },
 } as const;
 
-const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; }> = ({ token, amount }) => {
+const TokenItem: React.FC<{ token: Token | null | undefined; amount: string }> = ({ token, amount }) => {
   return (
     <div className="flex items-center gap-8px text-14px leading-18px font-medium text-black-normal whitespace-nowrap">
       <span>{amount}</span>
-        <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
+      <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
       <span>{token?.symbol}</span>
     </div>
   );
@@ -63,7 +65,6 @@ const ExpectedRewards: React.FC = () => {
           if (!price) return acc;
           return acc.add(new Unit(price).mul(reward.rewardPerDay).toDecimalStandardUnit(undefined, reward.token.decimals));
         }, new Unit(0)) ?? new Unit(0);
-      console.log('_expectedRewardPerDayTotalPrice', _expectedRewardPerDayTotalPrice.toString());
       setExpectedRewardPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
     });
   }, [activeRewardsInfo]);
@@ -73,7 +74,14 @@ const ExpectedRewards: React.FC = () => {
     <div className="mt-16px p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
-          <span className="inline-block mb-8px text-14px leading-18px">{i18n.expect_rewards}</span>
+          <span className="inline-block mb-8px text-14px leading-18px">
+            {i18n.expect_rewards}
+            <Tooltip text="Estimated rewards distributed to you in this pool per day. Rewards are only earned when your position is in range.">
+              <span className="w-12px h-12px ml-6px">
+                <InfoIcon className="w-12px h-12px translate-y-1.5px" />
+              </span>
+            </Tooltip>
+          </span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
             {expectedRewardPerDayTotalPrice === undefined ? <Spin /> : expectedRewardPerDayTotalPrice ?? '-'}
           </span>
