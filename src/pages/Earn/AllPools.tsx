@@ -59,7 +59,6 @@ interface APRData {
 }
 
 const APRDetail: React.FC<{ aprData?: APRData | null; feeApr?: string }> = memo(({ aprData, feeApr }) => {
-  if (!aprData) return null;
   return (
     <BorderBox variant="gradient-white" className="max-w-90vw w-370px p-16px rounded-28px">
       {aprData ? (
@@ -173,7 +172,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
       const value = rewardTokenValues[tokenAddress]?.value;
       if (!rewardTokenPrices[tokenAddress] || !value)
         rewardTokenAPRs[tokenAddress] = {
-          apr: 'Infinity',
+          apr: '--',
           token,
         };
       else {
