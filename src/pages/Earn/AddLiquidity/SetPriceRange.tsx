@@ -150,6 +150,13 @@ const RangeInput: React.FC<
   );
 
   const placeholder = useMemo(() => getPriceByRange({ range: defaultRange ?? 20, priceTokenA, tokenA, tokenB, fee, type }), [priceTokenA, tokenA, tokenB, fee, type, defaultRange]);
+  useEffect(() => {
+    const value = getValues();
+    const priceStr = value[`price-${type}`];
+    if (!priceStr) {
+      setValue(`price-${type}`, placeholder);
+    }
+  }, [placeholder]);
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
@@ -331,9 +338,9 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
 
   const defaultRange = useMemo(() => getDefaultRange(tokenA, tokenB), [tokenA, tokenB]);
   useEffect(() => {
-    if (!priceTokenA || !defaultRange) return;
-    handleSetRange(defaultRange);
-  }, [defaultRange, priceTokenA]);
+    if (!defaultRange) return;
+    setSelectedRange(defaultRange);
+  }, [defaultRange]);
 
   return (
     <div className={cx('p-16px rounded-16px bg-orange-light-hover', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
@@ -403,50 +410,48 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
 
       {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}
 
-      {pool !== null && (
-        <div className="mt-16px flex items-center gap-16px select-none">
-          <div
-            className={cx('flex justify-between items-center px-16px rounded-100px border-2px border-solid border-orange-light text-14px', !priceTokenA && 'pointer-events-none')}
-          >
-            {ranges.map((range) => (
-              <div
-                key={range}
-                className={cx(
-                  'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer',
-                  !priceTokenA && 'text-gray-light pointer-events-none',
-                  selectedRange === range && 'text-orange-normal'
-                )}
-                onClick={() => handleSetRange(range)}
-              >
-                {range}%
-              </div>
-            ))}
+      <div className="mt-16px flex items-center gap-16px select-none">
+        <div
+          className={cx('flex justify-between items-center px-16px rounded-100px border-2px border-solid border-orange-light text-14px', !priceTokenA && 'pointer-events-none')}
+        >
+          {ranges.map((range) => (
             <div
+              key={range}
               className={cx(
-                'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
-                !priceTokenA && 'text-gray-normal pointer-events-none',
-                selectedRange === 'full' && 'text-orange-normal'
+                'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer',
+                !priceTokenA && 'text-gray-light pointer-events-none',
+                selectedRange === range && 'text-orange-normal'
               )}
-              onClick={handleSetFullRange}
+              onClick={() => handleSetRange(range)}
             >
-              {i18n.full_range}
+              {range}%
             </div>
-          </div>
-          <div className={cx('flex items-center px-16px rounded-100px border-2px border-solid border-orange-light')}>
-            <Input
-              className={cx('w-56px h-40px text-14px text-gray-normal focus:text-black-normal', selectedRange === 'custom' && 'text-orange-normal')}
-              placeholder="Custom"
-              max={100}
-              min={0}
-              step={0.000001}
-              type="number"
-              onChange={handleCustomRangeChange}
-              onBlur={handleCustomRangeBlur}
-            />
-            <span className="text-14px text-gray-normal">%</span>
+          ))}
+          <div
+            className={cx(
+              'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
+              !priceTokenA && 'text-gray-normal pointer-events-none',
+              selectedRange === 'full' && 'text-orange-normal'
+            )}
+            onClick={handleSetFullRange}
+          >
+            {i18n.full_range}
           </div>
         </div>
-      )}
+        <div className={cx('flex items-center px-16px rounded-100px border-2px border-solid border-orange-light')}>
+          <Input
+            className={cx('w-56px h-40px text-14px text-gray-normal focus:text-black-normal', selectedRange === 'custom' && 'text-orange-normal')}
+            placeholder="Custom"
+            max={100}
+            min={0}
+            step={0.000001}
+            type="number"
+            onChange={handleCustomRangeChange}
+            onBlur={handleCustomRangeBlur}
+          />
+          <span className="text-14px text-gray-normal">%</span>
+        </div>
+      </div>
     </div>
   );
 };
