@@ -4,7 +4,7 @@ import cx from 'clsx';
 import { useAccount } from '@service/account';
 import AuthConnectButton from '@modules/AuthConnectButton';
 import { ReactComponent as Logo } from '@assets/icons/logo.svg';
-import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo-beta.svg';
+import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo.svg';
 import { ReactComponent as SmallLogo } from '@assets/icons/logo_icon.svg';
 import { ReactComponent as WSmallLogo } from '@assets/icons/WallFree X-logo-small.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
@@ -35,11 +35,11 @@ const Navbar: React.FC = () => {
     >
       <nav className="relative flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
         <NavLink to="/swap" style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined })} className="lt-mobile:h-24px">
-          {isWallfreex ? <WSmallLogo className="mobile:display-none w-auto h-24px " /> : <SmallLogo className="mobile:display-none w-24px h-24px " />}
+          {isWallfreex ? <WSmallLogo className="mobile:display-none w-fit h-24px flex-shrink-0" /> : <SmallLogo className="mobile:display-none w-24px h-24px flex-shrink-0" />}
           {isWallfreex ? (
-            <WLogo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />
+            <WLogo className="lt-mobile:display-none w-fit h-80px flex-shrink-0 t-md:h-55px" />
           ) : (
-            <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />
+            <Logo className="lt-mobile:display-none w-fit h-80px flex-shrink-0 lt-md:h-55px" />
           )}
         </NavLink>
 
