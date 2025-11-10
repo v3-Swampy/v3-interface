@@ -142,7 +142,7 @@ const positionsQueryByTokenIds = selectorFamily({
 
       if (Array.isArray(positionsResult)) {
         return Promise.all(
-          positionsResult?.map(async (singleRes, index) => {
+          positionsResult.map(async (singleRes, index) => {
             const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
             const position = await decodePosition(tokenIds[index], decodeRes);
 
@@ -167,7 +167,7 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
   key: `earn-PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
-    if (!positions) return [];
+    if (positions.length === 0) return [];
     const timestamp = await getTimestamp();
     const incentives = await getIncentivesByPools({
       pools: positions.map((p) => p.address),
