@@ -6,7 +6,8 @@ import 'rc-slider/assets/index.css';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import useI18n from '@hooks/useI18n';
-import { PositionForUI, PositionStatus, usePosition, usePositionFees, handleSubmitRemoveLiquidity, usePositionStatus } from '@service/position';
+import { PositionForUI, usePosition, usePositionFees, handleSubmitRemoveLiquidity, usePositionStatus } from '@service/earn';
+import { PositionStatus } from '@type/position';
 import Settings from '@modules/Settings';
 import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
@@ -123,13 +124,13 @@ const RemoveLiquidity: React.FC = () => {
   }, [removePercent, setLeftRemoveAmount, leftTotalAmount, rightTotalAmount]);
 
   if (!tokenId || !position || !status) return null;
-  if (status === PositionStatus.Closed) return <Navigate to="/pool" replace />;
-  
+  if (status === PositionStatus.Closed) return <Navigate to="/earn/my-positions" replace />;
+
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
       <div className="mx-auto max-w-800px">
         <div className="mb-16px lt-mobile:mb-12px flex items-center h-40px pl-8px pr-16px text-24px lt-mobile:text-18px text-orange-normal font-normal whitespace-nowrap">
-          <Link to={`/pool/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
+          <Link to={`/earn/my-positions/${tokenId}`} className="mr-auto inline-flex items-center no-underline text-orange-normal">
             <ArrowLeftIcon className="w-8px h-12px mr-16px lt-mobile:mr-12px" />
             {i18n.remove_liquidity}
           </Link>

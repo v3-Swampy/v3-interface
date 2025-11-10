@@ -4,7 +4,8 @@ import Button from '@components/Button';
 import Status from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
-import { type PositionForUI, PositionStatus, usePosition, useIsPositionOwner, usePositionStatus } from '@service/position';
+import { type PositionForUI, usePosition, useIsPositionOwner, usePositionStatus } from '@service/earn';
+import { PositionStatus } from '@type/position';
 
 const transitions = {
   en: {
@@ -38,7 +39,7 @@ const DetailHeader: React.FC = () => {
           <Button
             className="px-24px h-40px rounded-100px text-14px font-normal !text-orange-normal lt-md:max-w-50%"
             color="orange-light"
-            onClick={() => navigate(`/pool/increase_liquidity/${tokenId}`)}
+            onClick={() => navigate(`/earn/increase_liquidity/${tokenId}`)}
             id="pool-goto-increase-liquidity"
           >
             {i18n.increase_liquidity}
@@ -46,7 +47,7 @@ const DetailHeader: React.FC = () => {
           <Button
             className="px-24px h-40px rounded-100px text-14px font-normal lt-md:max-w-50%"
             color="gradient"
-            onClick={() => navigate(`/pool/remove_liquidity/${tokenId}`)}
+            onClick={() => navigate(`/earn/remove_liquidity/${tokenId}`)}
             id="pool-goto-remove-liquidity"
           >
             {i18n.remove_liquidity}

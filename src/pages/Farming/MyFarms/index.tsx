@@ -212,7 +212,6 @@ const MyFarmsItem: React.FC<{
 const MyFarms = () => {
   const account = useAccount();
   const myFarms = useMyFarms();
-  console.log('MyFarms myFarms:', myFarms);
 
   if (!account || !myFarms?.length) {
     return (

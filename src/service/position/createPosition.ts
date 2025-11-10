@@ -138,7 +138,7 @@ export const handleClickSubmitCreatePosition = async ({
         leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
         rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
         priceInit: _priceInit,
-        previewPosition: createPreviewPositionForUI({ id: Number(previewUniqueId), token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
+        previewPosition: createPreviewPositionForUI({ tokenId: Number(previewUniqueId), token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
         transactionParams,
         recordParams,
       });

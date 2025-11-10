@@ -14,12 +14,14 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query PoolsLatestDayDataQuery($where: Pool_filter) {\n    pools(where: $where) {\n      id\n      poolDayData(first: 1, orderBy: date, orderDirection: desc) {\n        id\n        volumeUSD\n        date\n      }\n    }\n  }\n": typeof types.PoolsLatestDayDataQueryDocument,
-    "\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n": typeof types.UserDepositsQueryDocument,
+    "\n  query PoolsWithHourDataQuery($where: Pool_filter, $hourDataWhere: PoolHourData_filter) {\n    pools(where: $where) {\n      id\n      poolHourData(where: $hourDataWhere) {\n        volumeUSD\n      }\n    }\n  }\n": typeof types.PoolsWithHourDataQueryDocument,
+    "\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(where: $where) {\n      id\n    }\n  }\n": typeof types.UserPositionIDsQueryDocument,
+    "\n  query PoolIncentivesQuery($where: Incentive_filter = {}) {\n    incentives(where: $where) {\n      pool\n      rewardToken\n    }\n  }\n": typeof types.PoolIncentivesQueryDocument,
 };
 const documents: Documents = {
-    "\n  query PoolsLatestDayDataQuery($where: Pool_filter) {\n    pools(where: $where) {\n      id\n      poolDayData(first: 1, orderBy: date, orderDirection: desc) {\n        id\n        volumeUSD\n        date\n      }\n    }\n  }\n": types.PoolsLatestDayDataQueryDocument,
-    "\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n": types.UserDepositsQueryDocument,
+    "\n  query PoolsWithHourDataQuery($where: Pool_filter, $hourDataWhere: PoolHourData_filter) {\n    pools(where: $where) {\n      id\n      poolHourData(where: $hourDataWhere) {\n        volumeUSD\n      }\n    }\n  }\n": types.PoolsWithHourDataQueryDocument,
+    "\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(where: $where) {\n      id\n    }\n  }\n": types.UserPositionIDsQueryDocument,
+    "\n  query PoolIncentivesQuery($where: Incentive_filter = {}) {\n    incentives(where: $where) {\n      pool\n      rewardToken\n    }\n  }\n": types.PoolIncentivesQueryDocument,
 };
 
 /**
@@ -39,11 +41,15 @@ export function gql(source: string): unknown;
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query PoolsLatestDayDataQuery($where: Pool_filter) {\n    pools(where: $where) {\n      id\n      poolDayData(first: 1, orderBy: date, orderDirection: desc) {\n        id\n        volumeUSD\n        date\n      }\n    }\n  }\n"): (typeof documents)["\n  query PoolsLatestDayDataQuery($where: Pool_filter) {\n    pools(where: $where) {\n      id\n      poolDayData(first: 1, orderBy: date, orderDirection: desc) {\n        id\n        volumeUSD\n        date\n      }\n    }\n  }\n"];
+export function gql(source: "\n  query PoolsWithHourDataQuery($where: Pool_filter, $hourDataWhere: PoolHourData_filter) {\n    pools(where: $where) {\n      id\n      poolHourData(where: $hourDataWhere) {\n        volumeUSD\n      }\n    }\n  }\n"): (typeof documents)["\n  query PoolsWithHourDataQuery($where: Pool_filter, $hourDataWhere: PoolHourData_filter) {\n    pools(where: $where) {\n      id\n      poolHourData(where: $hourDataWhere) {\n        volumeUSD\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n"): (typeof documents)["\n  query UserDepositsQuery($where: Deposit_filter) {\n    deposits(where: $where, orderBy: id, orderDirection: desc) {\n      id\n      owner\n      pool\n      blockNumber\n      blockTimestamp\n    }\n  }\n"];
+export function gql(source: "\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(where: $where) {\n      id\n    }\n  }\n"): (typeof documents)["\n  query UserPositionIDsQuery($where: ManagedPosition_filter = {}) {\n    managedPositions(where: $where) {\n      id\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query PoolIncentivesQuery($where: Incentive_filter = {}) {\n    incentives(where: $where) {\n      pool\n      rewardToken\n    }\n  }\n"): (typeof documents)["\n  query PoolIncentivesQuery($where: Incentive_filter = {}) {\n    incentives(where: $where) {\n      pool\n      rewardToken\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

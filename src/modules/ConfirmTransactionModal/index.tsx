@@ -29,7 +29,7 @@ interface CommonProps {
 }
 
 export interface ConfirmModalInnerProps {
-  setNextInfo: (info: { sendTransaction: () => Promise<string>; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => void;
+  setNextInfo: (info: { sendTransaction: () => Promise<string>; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'>; thenFunc?: () => void }) => void;
 }
 
 const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (() => ReactNode) }> = ({
@@ -43,16 +43,27 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   const [recordParams, setRecordParams] = useState<Omit<HistoryRecord, 'txHash' | 'status'> | null>(null);
 
   const setNextInfo = useCallback(
-    async ({ sendTransaction, recordParams }: { sendTransaction: () => Promise<string>; recordParams?: Omit<HistoryRecord, 'txHash' | 'status'> }) => {
+    async ({
+      sendTransaction,
+      recordParams,
+      thenFunc,
+    }: {
+      sendTransaction: () => Promise<string>;
+      recordParams?: Omit<HistoryRecord, 'txHash' | 'status'>;
+      thenFunc?: () => void;
+    }) => {
       try {
         setStep(Step.WaitReceipt);
         const txHash = await sendTransaction();
         if (recordParams) {
           setRecordParams(recordParams);
-          addRecordToHistory({
-            txHash,
-            ...recordParams,
-          });
+          addRecordToHistory(
+            {
+              txHash,
+              ...recordParams,
+            },
+            thenFunc
+          );
         }
         setTxHash(txHash);
         setStep(Step.Success);

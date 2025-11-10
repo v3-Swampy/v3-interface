@@ -1,13 +1,11 @@
 import { gql } from '../__generated__';
 
-export const getPoolsLatestDayDataGQL = gql(/* GraphQL */ `
-  query PoolsLatestDayDataQuery($where: Pool_filter) {
+export const getPoolsWithHourDataGQL = gql(/* GraphQL */ `
+  query PoolsWithHourDataQuery($where: Pool_filter, $hourDataWhere: PoolHourData_filter) {
     pools(where: $where) {
       id
-      poolDayData(first: 1, orderBy: date, orderDirection: desc) {
-        id
+      poolHourData(where: $hourDataWhere) {
         volumeUSD
-        date
       }
     }
   }

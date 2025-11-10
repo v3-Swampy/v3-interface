@@ -13,7 +13,6 @@ import { ReactComponent as FIcon } from '@assets/icons/f_point.svg';
 import { useMainScrollerDistance } from '@hooks/useMainScroller';
 import BorderBox from '@components/Box/BorderBox';
 import { routes } from '@router/index';
-import { useRefreshPositions } from '@service/position';
 export { default as BlockNumber } from '@modules/Navbar/BlockNumber';
 import AccountDetailDropdown from './AccountDetailDropdown';
 import './index.css';
@@ -36,20 +35,24 @@ const Navbar: React.FC = () => {
     >
       <nav className="relative flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
         <NavLink to="/swap" style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined })} className="lt-mobile:h-24px">
-          {isWallfreex ? <WSmallLogo className="mobile:display-none w-auto h-24px " /> :<SmallLogo className="mobile:display-none w-24px h-24px " />}
-          {isWallfreex ? <WLogo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />: <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />}
+          {isWallfreex ? <WSmallLogo className="mobile:display-none w-auto h-24px " /> : <SmallLogo className="mobile:display-none w-24px h-24px " />}
+          {isWallfreex ? (
+            <WLogo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />
+          ) : (
+            <Logo className="lt-mobile:display-none w-130px h-80px lt-mobile:h-24px flex-shrink-0 lt-md:w-90px lt-md:h-55px" />
+          )}
         </NavLink>
 
-        <div className={cx("inline-flex items-center gap-32px lt-lg:gap-16px lt-md:display-none", isWallfreex ? 'ml-32px' : 'ml-58px')}>
+        <div className={cx('inline-flex items-center gap-32px lt-lg:gap-16px lt-md:display-none', isWallfreex ? 'ml-32px' : 'ml-58px')}>
           <NavLinks />
         </div>
 
         <NavLink to="/points" className="ml-auto flex-shrink-0 mr-12px lt-sm:mr-8px no-underline">
-          <BorderBox className="flex justify-center items-center mobile:px-8px h-[40px] rounded-100px lt-mobile:border-none! lt-mobile:bg-none!" variant='gradient-white'>
+          <BorderBox className="flex justify-center items-center mobile:px-8px h-[40px] rounded-100px lt-mobile:border-none! lt-mobile:bg-none!" variant="gradient-white">
             <WIcon className="w-24px h-24px" />
             <FIcon className="-ml-4px w-24px h-24px" />
 
-            <span className='ml-[4px] text-14px text-gradient-orange lt-mobile:hidden'>Earn points</span>
+            <span className="ml-[4px] text-14px text-gradient-orange lt-mobile:hidden">Earn points</span>
           </BorderBox>
         </NavLink>
 
@@ -68,11 +71,10 @@ const Navbar: React.FC = () => {
 };
 
 const NavLinks: React.FC = () => {
-  const refreshPositions = useRefreshPositions();
 
   const isWallfreexMainnet = React.useMemo(() => {
     const currentUrl = window.location.href;
-    return currentUrl.includes('wallfreex') && !currentUrl.includes('test') ;
+    return currentUrl.includes('wallfreex') && !currentUrl.includes('test');
   }, []);
 
   return (
@@ -92,15 +94,7 @@ const NavLinks: React.FC = () => {
             className={({ isActive }) => cx('text-16px font-normal no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
             style={({ isActive }) => ({ color: isActive ? '#E14E28' : '#222222' })}
           >
-            <span
-              onClick={() => {
-                if (route.path === 'pool') {
-                  refreshPositions();
-                }
-              }}
-            >
-              {route.name}
-            </span>
+            <span>{route.name}</span>
           </NavLink>
         ))}
     </>

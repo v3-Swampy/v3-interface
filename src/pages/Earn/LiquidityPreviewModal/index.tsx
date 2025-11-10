@@ -8,9 +8,9 @@ import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
 import TokenPairAmount from '@modules/Position/TokenPairAmount';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
-import { type PositionForUI } from '@service/position';
+import { type PositionForUI } from '@service/earn';
 import { type Token } from '@service/tokens';
-import { handleCreatePosition as _handleCreatePosition, handleIncreasePositionLiquidity as _handleIncreasePositionLiquidity } from '@service/position';
+import { handleCreatePosition as _handleCreatePosition, handleIncreasePositionLiquidity as _handleIncreasePositionLiquidity } from '@service/earn';
 import useInTransaction from '@hooks/useInTransaction';
 import { isMobile } from '@utils/is';
 
@@ -83,7 +83,7 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
           </p>
         </div>
 
-        <SelectedPriceRange position={previewPosition} tokenId={previewPosition.id} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
+        <SelectedPriceRange position={previewPosition} tokenId={previewPosition.tokenId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
         <Button color="orange" fullWidth className="mt-16px h-40px rounded-100px text-18px" loading={inTransaction} onClick={handleClickConfirm} id="pool-liquidity-preview-modal-submit-button">
           {i18n.add}
         </Button>
@@ -97,7 +97,7 @@ const showLiquidityPreviewModal = (props: Props) => {
     title: toI18n(transitions)[props.recordParams.type === 'Position_AddLiquidity' ? 'create_title' : 'increase_title'],
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <LiquidityPreviewModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-596px',
-    onSuccess: (navigate) => navigate('/pool'),
+    onSuccess: (navigate) => navigate('/earn/my-positions'),
     height: 'full',
   });
 };

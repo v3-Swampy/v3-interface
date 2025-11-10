@@ -111,7 +111,7 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
 
 const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
   fetch(
-    `${isLocalDev ? 'prod' : 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
+    `${isLocalDev ? '/prod' : 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
       tokenInWrappered.chainId
     }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
       tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'

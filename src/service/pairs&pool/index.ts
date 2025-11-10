@@ -36,7 +36,15 @@ export class Pool implements PoolProps {
   public tickCurrent: number | null;
   public token0Price: Unit | null;
   public token1Price: Unit | null;
-  constructor({ tokenA, tokenB, fee, address, sqrtPriceX96, liquidity, tickCurrent }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token }) {
+  constructor({
+    tokenA,
+    tokenB,
+    fee,
+    address,
+    sqrtPriceX96,
+    liquidity,
+    tickCurrent,
+  }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token; }) {
     const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
     this.token0 = token0;
     this.token1 = token1;
@@ -150,16 +158,16 @@ export const calcRatio = (sqrtPriceX96: string, lower: number, upper: number) =>
   const pow96 = new Decimal(2).pow(96);
   const sqrtPrice = sqrtPriceX96Decimal.div(pow96);
   const sqrt1_0001 = new Decimal(1.0001).sqrt();
-  
+
   const upperPrice = sqrt1_0001.pow(upper);
   let token0Weight = new Decimal(1).sub(sqrtPrice.div(upperPrice));
-  
+
   const lowerPrice = sqrt1_0001.pow(lower);
   let token1Weight = new Decimal(1).sub(lowerPrice.div(sqrtPrice));
-  
+
   token0Weight = Decimal.max(0, token0Weight);
   token1Weight = Decimal.max(0, token1Weight);
-  
+
   const totalWeight = token0Weight.add(token1Weight);
   const token0Ratio = totalWeight.gt(0) ? token0Weight.div(totalWeight).mul(100).toDecimalPlaces(2, Decimal.ROUND_DOWN).toNumber() : 0;
 

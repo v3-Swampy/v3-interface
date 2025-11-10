@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { selector, useRecoilValue, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
+import { selector, useRecoilValue_TRANSITION_SUPPORT_UNSTABLE, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { NonfungiblePositionManager, fetchMulticall } from '@contracts/index';
 import { accountState } from '@service/account';
-import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, Pool } from '@service/pairs&pool';
+import { FeeAmount, calcPriceFromTick, calcAmountFromPrice, calcRatio, invertPrice, Pool, computePoolAddress, getPool } from '@service/pairs&pool';
 import {
   getTokenByAddress,
   getUnwrapperTokenByAddress,
@@ -15,17 +15,14 @@ import {
   addTokenToList,
   type Token,
 } from '@service/tokens';
-import { getPool } from '@service/pairs&pool/singlePool';
-import { computePoolAddress } from '@service/pairs&pool';
-
-export enum PositionStatus {
-  InRange = 'InRange',
-  OutOfRange = 'OutOfRange',
-  Closed = 'Closed',
-}
+import { getIncentivesByPools, getUserPositionIDs } from './apis';
+import { getPositionFees } from './positionDetail';
+import { getUserFarmInfoOfPosition } from './myFarmInfo';
+import { PositionStatus } from '@type/position';
+import { getTimestamp } from './timestamp';
 
 export interface Position {
-  id: number;
+  tokenId: number;
   address: string;
   nonce: number;
   operator: string;
@@ -66,36 +63,20 @@ export interface PositionForUI extends Position {
   positionStatus?: PositionStatus;
 }
 
-const positionBalanceQuery = selector({
-  key: `positionBalanceQuery-${import.meta.env.MODE}`,
-  get: async ({ get }) => {
-    const account = get(accountState);
-    if (!account) return undefined;
-    const response = await NonfungiblePositionManager.func.balanceOf(account);
-    return response ? Number(response.toString()) : 0;
-  },
-});
+export type PositionEnhanced = PositionForUI &
+  Partial<Awaited<ReturnType<typeof getUserFarmInfoOfPosition>>> & { unclaimedFees?: readonly [Unit, Unit] | readonly [undefined, undefined] };
 
 const tokenIdsQuery = selector<Array<number> | []>({
-  key: `tokenIdsQuery-${import.meta.env.MODE}`,
+  key: `earn-tokenIdsQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const account = get(accountState);
-    const positionBalance = get(positionBalanceQuery);
-    if (!account || !positionBalance) return [];
-
-    const tokenIdsArgs = account && positionBalance && positionBalance > 0 ? Array.from({ length: positionBalance }, (_, index) => [account, index]) : [];
-
-    const tokenIdResults = await fetchMulticall(
-      tokenIdsArgs.map((args) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('tokenOfOwnerByIndex', args)])
-    );
-
-    if (Array.isArray(tokenIdResults))
-      return tokenIdResults?.map((singleRes) => Number(NonfungiblePositionManager.func.interface.decodeFunctionResult('tokenOfOwnerByIndex', singleRes)?.[0]));
-    return [];
+    if (!account) return [];
+    const tokenIdResults = await getUserPositionIDs(account);
+    return tokenIdResults;
   },
 });
 
-export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => {
+const decodePosition = async (tokenId: number, decodeRes: Array<any>) => {
   let token0 = getTokenByAddress(decodeRes?.[2])!;
   let token1 = getTokenByAddress(decodeRes?.[3])!;
   if (!token0) {
@@ -116,7 +97,7 @@ export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => 
   });
 
   const position: Position = {
-    id: tokenId,
+    tokenId: tokenId,
     address: address,
     nonce: Number(decodeRes?.[0]),
     operator: String(decodeRes?.[1]),
@@ -146,17 +127,8 @@ export const decodePosition = async (tokenId: number, decodeRes: Array<any>) => 
   return position;
 };
 
-export const positionQueryByTokenId = selectorFamily({
-  key: `positionQueryByTokenId-${import.meta.env.MODE}`,
-  get: (tokenId: number) => async () => {
-    const decodeRes = await NonfungiblePositionManager.func.positions(tokenId);
-    const position = await decodePosition(tokenId, decodeRes);
-    return position;
-  },
-});
-
-export const positionsQueryByTokenIds = selectorFamily({
-  key: `positionsQueryByTokenIds-${import.meta.env.MODE}`,
+const positionsQueryByTokenIds = selectorFamily({
+  key: `earn-positionsQueryByTokenIds-${import.meta.env.MODE}`,
   get:
     (tokenIdParams: Array<number>) =>
     async ({ get }) => {
@@ -169,19 +141,12 @@ export const positionsQueryByTokenIds = selectorFamily({
       );
 
       if (Array.isArray(positionsResult)) {
-        const tmpRes = await Promise.all(
-          positionsResult?.map(async (singleRes, index) => {
+        return Promise.all(
+          positionsResult.map(async (singleRes, index) => {
             const decodeRes = NonfungiblePositionManager.func.interface.decodeFunctionResult('positions', singleRes);
             const position = await decodePosition(tokenIds[index], decodeRes);
 
             return position;
-          })
-        );
-        return await Promise.all(
-          tmpRes.map(async (position) => {
-            const { token0, token1, fee } = position;
-            const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
-            return enhancePositionForUI(position, pool);
           })
         );
       }
@@ -190,43 +155,56 @@ export const positionsQueryByTokenIds = selectorFamily({
     },
 });
 
-export const positionsQuery = selector<Array<Position>>({
-  key: `PositionListQuery-${import.meta.env.MODE}`,
+const positionsQuery = selector<Array<Position>>({
+  key: `earn-PositionListQuery-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const tokenIds = get(tokenIdsQuery);
     return get(positionsQueryByTokenIds(tokenIds));
   },
 });
 
-export const PositionsForUISelector = selector<Array<PositionForUI>>({
-  key: `PositionListForUI-${import.meta.env.MODE}`,
+export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
+  key: `earn-PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
-    if (!positions) return [];
+    if (positions.length === 0) return [];
+    const timestamp = await getTimestamp();
+    const incentives = await getIncentivesByPools({
+      pools: positions.map((p) => p.address),
+      currentTimestamp: timestamp,
+    });
+    const rewardTokensMap: Record<string, string[] | undefined> = {};
+    incentives.forEach((incentive) => {
+      const poolAddress = incentive.pool.toLowerCase();
+      if (rewardTokensMap[poolAddress]) {
+        rewardTokensMap[poolAddress].push(incentive.rewardToken);
+      } else {
+        rewardTokensMap[poolAddress] = [incentive.rewardToken];
+      }
+    });
     const enhancedPositions = await Promise.all(
       positions.map(async (position) => {
         const { token0, token1, fee } = position;
+        const poolAddress = position.address.toLowerCase();
         const pool = await getPool({ tokenA: token0, tokenB: token1, fee });
-        return enhancePositionForUI(position, pool);
+        const positionForUI = enhancePositionForUI(position, pool);
+        const unclaimedFees = await getPositionFees(position.tokenId);
+        if (pool) {
+          const userFarmInfo = await getUserFarmInfoOfPosition({ position: positionForUI, pool, rewardTokens: rewardTokensMap[poolAddress] ?? [] });
+          if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, unclaimedFees };
+        }
+        return { ...positionForUI, unclaimedFees };
       })
     );
-    return enhancedPositions.reverse();
+    enhancedPositions.sort((a, b) => {
+      if (a.positionStatus === PositionStatus.Closed && b.positionStatus !== PositionStatus.Closed) return 1;
+      return -1;
+    });
+    return enhancedPositions;
   },
 });
 
-export const usePositionBalance = () => useRecoilValue(positionBalanceQuery);
-
-export const useTokenIds = () => useRecoilValue(tokenIdsQuery);
-
-export const usePositions = (tokenIds?: Array<number>) => {
-  const allPositions = useRecoilValue(positionsQuery);
-  const filterPositions = useMemo(() => (tokenIds ? allPositions.filter((position) => tokenIds.includes(position.id)) : allPositions), [allPositions, tokenIds]);
-  return filterPositions;
-};
-
-export const useRefreshPositions = () => useRecoilRefresher_UNSTABLE(positionsQuery);
-
-export const usePositionByTokenId = (tokenId: number) => useRecoilValue(positionQueryByTokenId(+tokenId));
+export const useRefreshPositionsForUI = () => useRecoilRefresher_UNSTABLE(PositionsForUISelector);
 
 export const usePositionsForUI = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(PositionsForUISelector);
 
@@ -240,7 +218,7 @@ export const getTokenPriority = (token: Token) => {
   return 3;
 };
 
-export const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
+const enhancePositionForUI = (position: Position, pool: Pool | null | undefined): PositionForUI => {
   const { token0, token1, priceLower, priceUpper, tickLower, tickUpper, liquidity } = position;
   const lower = new Unit(1.0001).pow(new Unit(tickLower));
   const upper = new Unit(1.0001).pow(new Unit(tickUpper));
@@ -302,13 +280,13 @@ export const enhancePositionForUI = (position: Position, pool: Pool | null | und
 };
 
 export const createPreviewPositionForUI = (
-  position: Pick<Position, 'id' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
+  position: Pick<Position, 'tokenId' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
   pool: Pool | null | undefined
 ) => enhancePositionForUI(position as Position, pool);
 
-export const usePositionStatus = (position: PositionForUI) => useMemo(() => getPositionStatus(position), [position]);
+export const usePositionStatus = (position: PositionEnhanced) => useMemo(() => getPositionStatus(position), [position]);
 
-export const getPositionStatus = (position: PositionForUI) => {
+const getPositionStatus = (position: PositionEnhanced) => {
   const { liquidity, tickLower, tickUpper, pool } = position ?? {};
   const tickCurrent = pool?.tickCurrent;
 

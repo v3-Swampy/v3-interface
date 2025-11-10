@@ -3,7 +3,7 @@
 }
 
 .switch-slider::before {
-  @apply block w-24px h-24px rounded-full bg-gray-normal translate-x-0 transition-all duration-200;
+  @apply block rounded-full bg-gray-normal translate-x-0 transition-all duration-200;
   content: ' ';
 }
 
@@ -17,4 +17,18 @@
 
 .switch-input:checked ~ .switch-slider {
   @apply border-#FFE9CB bg-#FFE9CB;
+}
+
+.switch-slider-medium {
+  @apply w-52px h-32px;
+}
+.switch-slider-medium::before {
+  @apply w-24px h-24px;
+}
+
+.switch-slider-small {
+  @apply w-46px h-25px;
+}
+.switch-slider-small::before {
+  @apply w-16px h-16px;
 }

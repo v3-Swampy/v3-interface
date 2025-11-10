@@ -3,11 +3,11 @@
  */
 import React, { type ComponentProps } from 'react';
 import cx from 'clsx';
-import { type PositionForUI } from '@service/position';
+import { type PositionEnhanced } from '@service/earn';
 import { type Token } from '@service/tokens';
 
 interface Props extends ComponentProps<'div'> {
-  position: PositionForUI;
+  position: PositionEnhanced;
   showFee?: false | number;
   leftToken?: Token;
   rightToken?: Token;

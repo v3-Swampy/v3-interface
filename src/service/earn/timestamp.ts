@@ -1,5 +1,5 @@
-import { selector, useRecoilValue } from 'recoil';
-import { useAutoRefreshData } from '@utils/recoilUtils';
+import { atom } from 'recoil';
+import { getRecoil, setRecoil } from 'recoil-nexus';
 import { fetchChain } from '@utils/fetch';
 import { MulticallContract } from '@contracts/index';
 
@@ -14,17 +14,18 @@ const fetchTimestamp = () => fetchChain({
 }).then((res) => MulticallContract.func.interface.decodeFunctionResult('getCurrentBlockTimestamp', res as string)).then(res => Number(res));
 
 
-export const timestampSelector = selector<number>({
-  key: `timestampSelector-${import.meta.env.MODE}`,
-  get: () => fetchTimestamp(),
+export const timestampState = atom<number | undefined>({
+  key: `timestampState-${import.meta.env.MODE}`,
+  default: undefined,
 });
 
 
-export const useTimestamp = () => useRecoilValue(timestampSelector);
-export const useAutoRefreshTimestamp = () =>
-  useAutoRefreshData({
-    recoilValue: timestampSelector,
-    fetcher: fetchTimestamp,
-    interval: 1000,
-    refreshImmediately: true,
-  });
+export const getTimestamp = async () => {
+  const cachedTimestamp = getRecoil(timestampState);
+  if (cachedTimestamp !== undefined) {
+    return cachedTimestamp;
+  }
+  const timestamp = await fetchTimestamp();
+  setRecoil(timestampState, timestamp);
+  return timestamp;
+}

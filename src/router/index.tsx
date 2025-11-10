@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import React, { Suspense, useEffect } from 'react';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import CustomScrollbar from 'custom-react-scrollbar';
 import TopLevelErrorBoundary from '@modules/TopLevelErrorBoundary';
 import Navbar, { FooterBar, BlockNumber } from '@modules/Navbar';
@@ -7,7 +7,34 @@ import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import { useSetMainScroller } from '@hooks/useMainScroller';
 import SwapPage from '@pages/Swap';
-import { PoolPage, PoolAddLiquidityPage, PoolLiquidityItemPage, FarmingPage, AllFarmsPage, MyFarmsPage, StakingPage, PoolIncreaseLiquidity, PoolRemoveLiquidity, PointsPage, LeaderBoardPage, FRankPage, WRankPage, EarnPointsPage, EarnPage, AllPoolsPage, MyPositionsPage } from './lazyPages';
+import { EarnRedirect, saveEarnPath } from './EarnRedirect';
+import {
+  PoolPage,
+  PoolAddLiquidityPage,
+  PoolLiquidityItemPage,
+  PoolIncreaseLiquidity,
+  PoolRemoveLiquidity,
+  FarmingPage,
+  AllFarmsPage,
+  MyFarmsPage,
+  StakingPage,
+  PointsPage,
+  LeaderBoardPage,
+  FRankPage,
+  WRankPage,
+  EarnPointsPage,
+  EarnPage,
+  EarnAllPoolsPage,
+  EarnMyPositionsPage,
+  EarnAddLiquidityPage,
+  EarnRemoveLiquidity,
+  EarnIncreaseLiquidity,
+  EarnPositionDetailPage,
+  EarnPoolLiquidityItemPage,
+  EarnPoolAddLiquidityPage,
+  EarnPoolIncreaseLiquidity,
+  EarnPoolRemoveLiquidity,
+} from './lazyPages';
 
 export const routes = [
   {
@@ -45,17 +72,29 @@ const AppRouter: React.FC = () => {
             <Route path="increase_liquidity/:tokenId" element={<PoolIncreaseLiquidity />} />
             <Route path="remove_liquidity/:tokenId" element={<PoolRemoveLiquidity />} />
           </Route>
-          <Route path="farming" element={<FarmingPage />} >
+          <Route path="farming" element={<FarmingPage />}>
             <Route path="all-farms" element={<AllFarmsPage />} />
             <Route path="my-farms" element={<MyFarmsPage />} />
             <Route path="/farming/*" element={<Navigate to="/farming/all-farms" replace />} />
             <Route path="/farming/" element={<Navigate to="/farming/all-farms" replace />} />
           </Route>
-          <Route path="earn" element={<EarnPage />} >
-            <Route path="all-pools" element={<AllPoolsPage />} />
-            <Route path="my-positions" element={<MyPositionsPage />} />
-            <Route path="/earn/*" element={<Navigate to="/earn/all-pools" replace />} />
-            <Route path="/earn/" element={<Navigate to="/earn/all-pools" replace />} />
+          <Route path="earn">
+            <Route element={<EarnPage />}>
+              <Route path="all-pools" element={<EarnAllPoolsPage />} />
+              <Route path="my-positions" element={<EarnMyPositionsPage />} />
+            </Route>
+            <Route path="my-positions/:tokenId" element={<EarnPositionDetailPage />} />
+            <Route path="add_liquidity" element={<EarnAddLiquidityPage />} />
+            <Route path="increase_liquidity/:tokenId" element={<EarnIncreaseLiquidity />} />
+            <Route path="remove_liquidity/:tokenId" element={<EarnRemoveLiquidity />} />
+            <Route path="/earn/*" element={<EarnRedirect />} />
+            <Route path="/earn/" element={<EarnRedirect />} />
+          </Route>
+          <Route path="earn/pool">
+            <Route path="add_liquidity" element={<EarnPoolAddLiquidityPage />} />
+            <Route path=":tokenId" element={<EarnPoolLiquidityItemPage />} />
+            <Route path="increase_liquidity/:tokenId" element={<EarnPoolIncreaseLiquidity />} />
+            <Route path="remove_liquidity/:tokenId" element={<EarnPoolRemoveLiquidity />} />
           </Route>
           <Route path="staking" element={<StakingPage />} />
           <Route path="points" element={<PointsPage />}>
@@ -85,6 +124,12 @@ const PageLevelLoading: React.FC = () => (
 
 const RouteWrapper: React.FC = () => {
   useSetMainScroller();
+  const location = useLocation();
+
+  // 在路由层面统一监听并保存 Earn 路径
+  useEffect(() => {
+    saveEarnPath(location.pathname);
+  }, [location.pathname]);
 
   return (
     <>

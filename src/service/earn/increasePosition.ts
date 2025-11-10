@@ -1,12 +1,12 @@
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { NonfungiblePositionManager } from '@contracts/index';
+import { AutoPositionManager } from '@contracts/index';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
 import { getPool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage } from '@service/settings';
-import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
+import showLiquidityPreviewModal from '@pages/Earn/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
 
 export const handleClickSubmitIncreasePositionLiquidity = async ({
@@ -63,7 +63,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
       token1AmountUnit.toDecimalMinUnit()
     );
 
-    const dataWithoutCFX = NonfungiblePositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
+    const data = AutoPositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
       {
         tokenId,
         amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
@@ -73,16 +73,13 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
         deadline: getDeadline(),
       },
     ]);
-    const dataWithCFX = NonfungiblePositionManager.func.interface.encodeFunctionData('multicall', [
-      [dataWithoutCFX, NonfungiblePositionManager.func.interface.encodeFunctionData('refundETH')],
-    ]);
 
     const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
 
     const transactionParams = {
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
-      data: !hasWCFX ? dataWithoutCFX : dataWithCFX,
-      to: NonfungiblePositionManager.address,
+      data,
+      to: AutoPositionManager.address,
     };
 
     const recordParams = {
@@ -97,7 +94,7 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
       leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
       rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
       previewPosition: createPreviewPositionForUI(
-        { id: tokenId, token0, token1, fee: position.fee, tickLower: position.tickLower, tickUpper: position.tickUpper, priceLower: position.priceLower, priceUpper: position.priceUpper },
+        { tokenId, token0, token1, fee: position.fee, tickLower: position.tickLower, tickUpper: position.tickUpper, priceLower: position.priceLower, priceUpper: position.priceUpper },
         pool
       ),
       transactionParams,
