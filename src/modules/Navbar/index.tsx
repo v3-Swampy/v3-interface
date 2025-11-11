@@ -74,7 +74,12 @@ const NavLinks: React.FC = () => {
 
   const isWallfreexMainnet = React.useMemo(() => {
     const currentUrl = window.location.href;
-    return currentUrl.includes('wallfreex') && !currentUrl.includes('test');
+    return currentUrl.includes('wallfreex') && currentUrl.includes('app');
+  }, []);
+
+    const isWallfreexTestnet = React.useMemo(() => {
+    const currentUrl = window.location.href;
+    return currentUrl.includes('wallfreex') && currentUrl.includes('test');
   }, []);
 
   return (
@@ -83,6 +88,9 @@ const NavLinks: React.FC = () => {
         .filter((route) => {
           // Hide farming and staking routes when URL includes 'wallfreex' and on conflux mainnet
           if (isWallfreexMainnet && (route.path === 'farming' || route.path === 'staking')) {
+            return false;
+          }
+          if (isWallfreexTestnet &&  (route.path ==='pool' || route.path ==='farming' || route.path === 'staking')) {
             return false;
           }
           return true;
