@@ -1,15 +1,18 @@
 import React from 'react';
 import PageWrapper from '@components/Layout/PageWrapper';
 import useI18n from '@hooks/useI18n';
+import cx from 'clsx';
 import { Suspense } from 'react';
 import Spin from '@components/Spin';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import Button from '@components/Button';
 import { ReactComponent as AddIcon } from '@assets/icons/add.svg';
 import BorderBox from '@components/Box/BorderBox';
 import Switch from '@components/Switch';
 import FarmIcon from '@assets/imgs/farm.png';
-import { useFarmsOnly } from '@service/earn';
+import { useFarmsOnly, usePositionsForUI } from '@service/earn';
+import { useAccount } from '@service/account';
+
 
 const transitions = {
   en: {
@@ -30,12 +33,17 @@ const transitions = {
   },
 } as const;
 
+const buttonClass =
+'inline-block no-underline py-10px leading-18px px-6 rounded-full text-center text-sm font-normal border border-solid text-gray-normal box-border cursor-pointer';
+const buttonClassActive = 'bg-orange-light !text-orange-normal border border-solid border-orange-light';
+
 const EarnPage: React.FC = () => {
   const [onlyFarms, setOnlyFarms] = useFarmsOnly();
+  const account = useAccount();
+  const positions = usePositionsForUI();
   const i18n = useI18n(transitions);
-  const buttonClass =
-    'inline-block no-underline py-10px leading-18px px-6 rounded-full text-center text-sm font-normal border border-solid text-gray-normal box-border cursor-pointer';
-  const buttonClassActive = 'bg-orange-light !text-orange-normal border border-solid border-orange-light';
+  const location = useLocation(); 
+  const isInMyPositions = location.pathname.includes('/earn/my-positions');
 
   return (
     <PageWrapper className="pt-56px lt-mobile:pt-4px pb-40px">
@@ -73,8 +81,8 @@ const EarnPage: React.FC = () => {
                 {i18n.allPools}
               </NavLink>
             </div>
-            <div className="flex items-end lt-mobile:mt-12px">
-              <img src={FarmIcon} alt="farm" className="w-24px h-24px mb-2px" />
+            <div className={cx('items-end lt-mobile:mt-12px', isInMyPositions && (!account || !positions?.length) ? 'hidden' : 'flex')}>
+              <img src={FarmIcon} alt="farm" className="w-24px h-24px mb-2px mr-8px" />
               <div className="text-black-normal text-14px font-500 mb-2px">{i18n.farms_only}</div>
               <Switch id="switch--farms_only" className="ml-8px" size="small" checked={onlyFarms} onChange={(e) => setOnlyFarms(e.target.checked)} />
             </div>

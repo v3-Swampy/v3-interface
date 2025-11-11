@@ -7,9 +7,9 @@ import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
 import useI18n from '@hooks/useI18n';
+import { useAccount } from '@service/account';
 import { type PositionEnhanced, usePositionsForUI, useRefreshPositionsForUI, useFarmsOnly } from '@service/earn';
 import { ReactComponent as PoolHandIcon } from '@assets/icons/pool_hand.svg';
-import { BetaLpGuide } from './BetaLpGuide';
 import cx from 'clsx';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
@@ -205,23 +205,26 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
 
 const PositionsContent: React.FC = () => {
   const i18n = useI18n(transitions);
-
+  const account = useAccount();
   const positions = usePositionsForUI();
   const [onlyFarms] = useFarmsOnly();
 
   const filteredPositions = onlyFarms ? positions?.filter((position) => position.isRewardActive) : positions;
 
-  console.log('positions', positions, filteredPositions);
 
-  if (!filteredPositions?.length) {
+  if (!account || !filteredPositions?.length) {
     return (
-      <>
-        <PoolHandIcon className="mt-116px lt-sm:mt-52px block mx-auto w-50.5px h-32px" />
-        <p className="mt-12px lt-sm:mt-20px mb-132px lt-sm:mb-60px leading-28px text-center text-22px lt-sm:text-14px text-black-normal font-normal">
-          {i18n.positions_appear_here}
+      <div className={cx('mt-116px lt-sm:mt-52px', !!account ? 'mb-124px lt-sm:mb-42px' : 'mb-150px lt-sm:mb-68px')}>
+        <PoolHandIcon className="block mx-auto w-50.5px h-32px" />
+        <p className="mt-12px lt-sm:mt-20px leading-28px text-center text-22px lt-sm:text-14px text-black-normal font-normal">
+          {!account ? "Please connect your wallet to view your positions." : i18n.positions_appear_here}
         </p>
-        <BetaLpGuide />
-      </>
+        {!!account &&
+          <p className='mt-8px text-center text-14px leading-18px text-gray-normal font-medium'>
+            Positions created during the open beta aren’t displayed automatically. <Link to="/earn/add_liquidity" className='text-orange-normal no-underline'>Import your position.</Link>
+          </p>
+        }
+      </div>
     );
   }
   return (
@@ -229,7 +232,6 @@ const PositionsContent: React.FC = () => {
       {filteredPositions.map((positionEnhanced: PositionEnhanced) => (
         <PositionItem key={positionEnhanced.tokenId} positionEnhanced={positionEnhanced} />
       ))}
-      <BetaLpGuide />
     </>
   );
 };
