@@ -120,6 +120,22 @@ export const handleClickSubmitCreatePosition = async ({
       to: AutoPositionManager.address,
     };
 
+    console.log('Create Position Data:', transactionParams);
+    console.log('Create Position Params:', {
+      token0: token0.address,
+      token1: token1.address,
+      fee,
+      tickLower,
+      tickUpper,
+      amount0Desired: token0AmountUnit.toHexMinUnit(),
+      amount1Desired: token1AmountUnit.toHexMinUnit(),
+      amount0Min: new Unit(!_priceInit ? amount0Min : 0).toHexMinUnit(),
+      amount1Min: new Unit(!_priceInit ? amount1Min : 0).toHexMinUnit(),
+      recipient: account,
+      deadline: getDeadline(),
+      sqrtPriceX96,
+    });
+
     const recordParams = {
       type: 'Position_AddLiquidity',
       tokenA_Address: tokenA.address,
