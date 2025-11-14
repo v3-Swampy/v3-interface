@@ -7,10 +7,11 @@ import Button from '@components/Button';
 import Balance from '@modules/Balance';
 import { isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
-import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick } from '@service/pairs&pool';
+import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick, calcTickFromPrice } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
+import { TickMath } from '@uniswap/v3-sdk';
 
 const transitions = {
   en: {
@@ -28,6 +29,133 @@ const transitions = {
     outof_range_tip: '您的仓位在市场兑换率变化进入到您设置的范围内之前不会赚取手续费或被用于进行兑换交易。',
   },
 } as const;
+
+// Exact Uniswap V3 math using native BigInt
+const Q96 = 1n << 96n;
+const Q192 = 1n << 192n;
+
+/** integer mulDiv floor(a * b / d) using BigInt */
+function mulDiv(a: bigint, b: bigint, d: bigint): bigint {
+  return (a * b) / d;
+}
+
+/** getLiquidityForAmount0(sqrtLeft, sqrtRight, amount0)
+ * Solidity formula:
+ *  intermediate = sqrtLeft * sqrtRight / Q96
+ *  liquidity = amount0 * intermediate / (sqrtRight - sqrtLeft)
+ */
+function getLiquidityForAmount0(sqrtLeft: bigint, sqrtRight: bigint, amount0: bigint): bigint {
+  if (sqrtLeft > sqrtRight) {
+    const tmp = sqrtLeft;
+    sqrtLeft = sqrtRight;
+    sqrtRight = tmp;
+  }
+  const intermediate = mulDiv(sqrtLeft, sqrtRight, Q96);
+  return mulDiv(amount0, intermediate, sqrtRight - sqrtLeft);
+}
+
+/** getLiquidityForAmount1(sqrtLeft, sqrtRight, amount1)
+ * liquidity = amount1 * Q96 / (sqrtRight - sqrtLeft)
+ */
+function getLiquidityForAmount1(sqrtLeft: bigint, sqrtRight: bigint, amount1: bigint): bigint {
+  if (sqrtLeft > sqrtRight) {
+    const tmp = sqrtLeft;
+    sqrtLeft = sqrtRight;
+    sqrtRight = tmp;
+  }
+  return mulDiv(amount1 * Q96, 1n, sqrtRight - sqrtLeft);
+}
+
+/** getAmount1ForLiquidity(sqrtLeft, sqrtRight, liquidity)
+ * amount1 = liquidity * (sqrtRight - sqrtLeft) / Q96
+ */
+function getAmount1ForLiquidity(sqrtLeft: bigint, sqrtRight: bigint, liquidity: bigint): bigint {
+  if (sqrtLeft > sqrtRight) {
+    const tmp = sqrtLeft;
+    sqrtLeft = sqrtRight;
+    sqrtRight = tmp;
+  }
+  return mulDiv(liquidity, sqrtRight - sqrtLeft, Q96);
+}
+
+/** getAmount0ForLiquidity(sqrtLeft, sqrtRight, liquidity)
+ * Solidity implementation:
+ *  amount0 = (liquidity << 96) * (sqrtRight - sqrtLeft) / sqrtRight / sqrtLeft
+ * We compute safely as:
+ *  left = mulDiv(liquidity << 96, (sqrtRight - sqrtLeft), sqrtRight)
+ *  amount0 = left / sqrtLeft   (integer division)
+ */
+function getAmount0ForLiquidity(sqrtLeft: bigint, sqrtRight: bigint, liquidity: bigint): bigint {
+  if (sqrtLeft > sqrtRight) {
+    const tmp = sqrtLeft;
+    sqrtLeft = sqrtRight;
+    sqrtRight = tmp;
+  }
+  const left = mulDiv(liquidity << 96n, sqrtRight - sqrtLeft, sqrtRight);
+  return left / sqrtLeft;
+}
+
+/**
+ * Compute counter token amount.
+ * - sqrtP: current pool slot0.sqrtPriceX96 (bigint)
+ * - sqrtA: TickMath.getSqrtRatioAtTick(tickLower) (bigint)
+ * - sqrtB: TickMath.getSqrtRatioAtTick(tickUpper) (bigint)
+ * - amount: the provided token amount in raw units (bigint)
+ * - isAmountToken0: true if `amount` is token0 amount, false if token1 amount
+ *
+ * Returns:
+ *  { ok: boolean, amountOther?: string (decimal string of integer raw units), reason?: string, note?:string }
+ */
+function computeCounterTokenAmountRaw(params: { sqrtP: bigint; sqrtA: bigint; sqrtB: bigint; amount: bigint; isAmountToken0: boolean }): {
+  ok: boolean;
+  amountOther?: string;
+  reason?: string;
+  note?: string;
+} {
+  let { sqrtP, sqrtA, sqrtB, amount, isAmountToken0 } = params;
+
+  // normalize sqrtA <= sqrtB for helpers
+  if (sqrtA > sqrtB) {
+    const tmp = sqrtA;
+    sqrtA = sqrtB;
+    sqrtB = tmp;
+  }
+
+  // Case: price at or below lower tick (price <= lower)
+  if (sqrtP <= sqrtA) {
+    if (isAmountToken0) {
+      // token0 is the active side; token1 requirement is 0 (token0 can be used)
+      return { ok: true, amountOther: '0', note: 'price <= lower tick: token1 requirement is 0' };
+    } else {
+      // user provided token1 but price <= lower -> token1 cannot be used to provide liquidity
+      return { ok: false, reason: 'price <= lower tick: provided token1 cannot directly provide liquidity in this range (swap needed)' };
+    }
+  }
+
+  // Case: price at or above upper tick (price >= upper)
+  if (sqrtP >= sqrtB) {
+    if (!isAmountToken0) {
+      // token1 is the active side; token0 requirement is 0
+      return { ok: true, amountOther: '0', note: 'price >= upper tick: token0 requirement is 0' };
+    } else {
+      // user provided token0 but price >= upper -> token0 cannot be used to provide liquidity
+      return { ok: false, reason: 'price >= upper tick: provided token0 cannot directly provide liquidity in this range (swap needed)' };
+    }
+  }
+
+  // In-range: sqrtA < sqrtP < sqrtB
+  if (isAmountToken0) {
+    // Given amount0 -> compute required amount1
+    const liquidity0 = getLiquidityForAmount0(sqrtP, sqrtB, amount);
+    const amount1Required = getAmount1ForLiquidity(sqrtA, sqrtP, liquidity0);
+    return { ok: true, amountOther: amount1Required.toString() };
+  } else {
+    // Given amount1 -> compute required amount0
+    const liquidity1 = getLiquidityForAmount1(sqrtA, sqrtP, amount);
+    const amount0Required = getAmount0ForLiquidity(sqrtP, sqrtB, liquidity1);
+    return { ok: true, amountOther: amount0Required.toString() };
+  }
+}
 
 interface Props {
   register: UseFormRegister<FieldValues>;
@@ -80,11 +208,46 @@ const DepositAmount: React.FC<
       // const usedPriceLower = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: -6600, convertLimit: false });
       // const usedPriceUpper = calcPriceFromTick({ fee, tokenA: token, tokenB: pairToken, tick: 60, convertLimit: false });
       // console.log(usedPriceLower?.toDecimalMinUnit(), usedPriceUpper?.toDecimalMinUnit())
+      // 计算 tick 值
+      const tickLower = calcTickFromPrice({ price: usedPriceLower, tokenA: token, tokenB: pairToken });
+      const tickUpper = calcTickFromPrice({ price: usedPriceUpper, tokenA: token, tokenB: pairToken });
+      const currentTick = calcTickFromPrice({ price: priceTokenA, tokenA: token, tokenB: pairToken });
+
+      // 获取 sqrt price 值并转换为 bigint
+      const sqrtP = BigInt(TickMath.getSqrtRatioAtTick(typeof currentTick === 'number' ? currentTick : parseInt(currentTick.toDecimalMinUnit())).toString());
+      const sqrtA = BigInt(TickMath.getSqrtRatioAtTick(typeof tickLower === 'number' ? tickLower : parseInt(tickLower.toDecimalMinUnit())).toString());
+      const sqrtB = BigInt(TickMath.getSqrtRatioAtTick(typeof tickUpper === 'number' ? tickUpper : parseInt(tickUpper.toDecimalMinUnit())).toString());
 
       const isThisTokenEqualsTokenA = isTokenEqual(token, tokenA);
       const currentInputAmount = new Unit(newAmount);
-      const temp = new Unit(1).div(priceTokenA.sqrt()).sub(new Unit(1).div(usedPriceUpper.sqrt())).div(priceTokenA.sqrt().sub(usedPriceLower.sqrt()));
-      const pairTokenExpectedAmount = currentInputAmount.mul(!isThisTokenEqualsTokenA ? temp : invertPrice(temp));
+
+      // const temp = new Unit(1).div(priceTokenA.sqrt()).sub(new Unit(1).div(usedPriceUpper.sqrt())).div(priceTokenA.sqrt().sub(usedPriceLower.sqrt()));
+      // const pairTokenExpectedAmount = currentInputAmount.mul(!isThisTokenEqualsTokenA ? temp : invertPrice(temp));
+
+      // 将输入金额转换为最小单位的 bigint
+      const amount = BigInt(currentInputAmount.mul(new Unit(10).pow(token.decimals)).toDecimalMinUnit(0));
+
+      // 确定当前 token 是否为 token0 (地址较小的为 token0)
+      const isCurrentTokenToken0 = token.address.toLowerCase() < pairToken.address.toLowerCase();
+
+      // 使用新的计算函数
+      const result = computeCounterTokenAmountRaw({
+        sqrtP,
+        sqrtA,
+        sqrtB,
+        amount,
+        isAmountToken0: isCurrentTokenToken0,
+      });
+
+      if (!result.ok) {
+        console.warn('Counter token calculation failed:', result.reason);
+        setValue(pairKey, '0');
+        return;
+      }
+
+      // 将结果转换回标准单位
+      const pairTokenExpectedAmount = new Unit(result.amountOther!).div(new Unit(10).pow(pairToken.decimals));
+
       setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     };
   }, [fee, priceTokenA, priceLower, priceUpper, isPairTokenOutOfRange, token?.address, pairToken?.address]);
@@ -157,7 +320,7 @@ const DepositAmount: React.FC<
                 {(balance) => (
                   <Button
                     className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
-                    variant='outlined'
+                    variant="outlined"
                     color="orange"
                     disabled={!balance || balance === '0'}
                     onClick={() => {
