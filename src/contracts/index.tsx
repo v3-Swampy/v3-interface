@@ -30,7 +30,7 @@ export const NonfungiblePositionManager = createContract(
 );
 
 export const AutoPositionManager = createContract(
-  isProduction ? '0xB75AbE3Dafc47ac9C21d89f93EbA1A6669f63670' : '0xA0fd0C6b423C46B1840E2d9fCF1b56e7A431946a',
+  isProduction ? '0xB75AbE3Dafc47ac9C21d89f93EbA1A6669f63670' : '0xc3063f4a217d697Dbb68de456DBFDF4631E2e4DC',
   AutoPositionManagerABI
 );
 
