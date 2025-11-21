@@ -477,6 +477,67 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "contract IERC20Minimal",
+            "name": "rewardToken",
+            "type": "address"
+          },
+          {
+            "internalType": "contract IUniswapV3Pool",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "endTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "refundee",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct IUniswapV3Staker.IncentiveKey",
+        "name": "key",
+        "type": "tuple"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "uint128",
+        "name": "liquidity",
+        "type": "uint128"
+      }
+    ],
+    "name": "estimateRewardRate",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "boostedLiquidity",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "rewardsPerSecondX32",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "factory",
     "outputs": [
@@ -699,25 +760,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getTokenIncentiveIds",
-    "outputs": [
-      {
-        "internalType": "bytes32[]",
-        "name": "incentiveIds",
-        "type": "bytes32[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "contract IUniswapV3Factory",
         "name": "_factory",
         "type": "address"
@@ -925,6 +967,24 @@
       }
     ],
     "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "incentiveId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "permissionlessRestakeToIncentive",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
