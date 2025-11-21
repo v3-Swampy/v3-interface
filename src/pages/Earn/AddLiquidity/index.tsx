@@ -17,6 +17,7 @@ import { ReactComponent as ClearIcon } from '@assets/icons/clear.svg';
 import SelectFeeTier, { useCurrentFee } from './SelectFeeTier';
 import SetPriceRange from './SetPriceRange';
 import SubmitButton from './SubmitButton';
+import ExpectedReward from './ExpectedReward';
 import './index.css';
 
 const transitions = {
@@ -180,6 +181,8 @@ const AddLiquidity: React.FC = () => {
                 priceLower={priceLower}
                 priceUpper={priceUpper}
               />
+ 
+              <ExpectedReward fee={currentFee} tokenA={tokenA} tokenB={tokenB} amountTokenA={amountTokenA} amountTokenB={amountTokenB} />
 
               <SubmitButton
                 amountTokenA={amountTokenA}
