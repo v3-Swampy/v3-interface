@@ -60,7 +60,7 @@ const ExpectedReward: React.FC<Props> = ({ tokenA, tokenB, fee, amountTokenA, am
     console.log('fetch expected reward per day');
 
     const runFetch = async () => {
-      console.log('matchedPool', [matchedPool, account, liquidity.toHexMinUnit()]);
+      console.log('params', [matchedPool.incentiveKeys[0].key, account, liquidity.toHexMinUnit()]);
       const incentiveKeysQuery1 = await fetchChain({
         params: [
           {
