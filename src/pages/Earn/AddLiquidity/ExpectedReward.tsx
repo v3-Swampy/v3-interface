@@ -6,7 +6,7 @@ import { fetchChain } from '@utils/fetch';
 import { usePool } from '@service/pairs&pool';
 import { usePools } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
-import { getTokensPrice, FeeAmount } from '@service/pairs&pool';
+import { getTokensPrice, FeeAmount, useTokenPrice } from '@service/pairs&pool';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
@@ -38,28 +38,47 @@ const ExpectedReward: React.FC<Props> = ({ tokenA, tokenB, fee, amountTokenA, am
   // );
 
   // const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<string | null | undefined>(undefined);
+  const tokenAPrice = useTokenPrice(tokenA?.address);
+  const tokenBPrice = useTokenPrice(tokenB?.address);
+  const tokenAAmount = amountTokenA ? Unit.fromStandardUnit(amountTokenA, tokenA.decimals) : new Unit(0);
+  const tokenBAmount = amountTokenB ? Unit.fromStandardUnit(amountTokenB, tokenB.decimals) : new Unit(0);
+
+  console.log('tokenAPrice, tokenBPrice', tokenAPrice, tokenBPrice);
+  console.log('tokenAAmount, tokenBAmount', tokenAAmount.toDecimalMinUnit(), tokenBAmount.toDecimalMinUnit());
+
+  const tokenALiquidity = tokenAPrice && amountTokenA ? tokenAAmount.mul(tokenAPrice) : new Unit(0);
+  const tokenBLiquidity = tokenBPrice && amountTokenB ? tokenBAmount.mul(tokenBPrice) : new Unit(0);
+
+  console.log('Total Liquidity (Decimal):', tokenALiquidity.toDecimalMinUnit(0), tokenBLiquidity.toDecimalMinUnit(0));
+
+  const liquidity = new Unit(tokenALiquidity.toDecimalMinUnit(0)).add(tokenBLiquidity.toDecimalMinUnit(0));
+
+  console.log('Total liquidity (hex):', liquidity.toHexMinUnit());
 
   useEffect(() => {
     if (!account || !matchedPool?.incentiveKeys?.length || !amountTokenA.trim() || !amountTokenB.trim()) return;
+    console.log('fetch expected reward per day');
 
     const runFetch = async () => {
-      console.log('matchedPool.incentiveKeys[0].key', [matchedPool.incentiveKeys[0].key, account, Unit.fromStandardUnit(amountTokenA, tokenA.decimals).toHexMinUnit()]);
+      console.log('matchedPool', [matchedPool, account, liquidity.toHexMinUnit()]);
       const incentiveKeysQuery1 = await fetchChain({
         params: [
           {
             from: '0x000000000000000000000000000000000000fe01',
             to: UniswapV3Staker.address,
-            data: UniswapV3Staker.func.interface.encodeFunctionData('estimateRewardRate', [matchedPool.incentiveKeys[0].key, account, Unit.fromStandardUnit(amountTokenA, tokenA.decimals).toHexMinUnit()]),
+            data: UniswapV3Staker.func.interface.encodeFunctionData('estimateRewardRate', [matchedPool.incentiveKeys[0].key, account, liquidity.toHexMinUnit()]),
           },
           'latest',
         ],
-      }).then(res => {
-        console.log('res', res);
-        return res;
-      }).catch(err => {
-        console.log('err', err);
-        return null;
-      });
+      })
+        .then((res) => {
+          console.log('res', res);
+          return res;
+        })
+        .catch((err) => {
+          console.log('err', err);
+          return null;
+        });
 
       // const incentiveKeysQuery = await fetchMulticall(
       //   matchedPool.incentiveKeys.map((incentiveKey) => [
@@ -69,7 +88,7 @@ const ExpectedReward: React.FC<Props> = ({ tokenA, tokenB, fee, amountTokenA, am
       // );
     };
     runFetch();
-  }, [account, matchedPool, amountTokenA, amountTokenB]);
+  }, [account, matchedPool, amountTokenA, amountTokenB, liquidity]);
 
   if (!matchedPool || !matchedPool.incentives?.length) return null;
   return (

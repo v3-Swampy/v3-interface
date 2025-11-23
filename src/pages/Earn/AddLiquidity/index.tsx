@@ -108,7 +108,7 @@ const AddLiquidity: React.FC = () => {
         tokenA,
         tokenB,
         priceInit,
-        navigate
+        navigate,
       });
     }),
     [tokenA, tokenB, priceInit, currentFee]
@@ -149,7 +149,7 @@ const AddLiquidity: React.FC = () => {
             </div>
           )}
 
-          <ClearIcon className='mobile:display-none mr-12px w-16px h-16px cursor-pointer flex-shrink-0' onClick={resetToken} />
+          <ClearIcon className="mobile:display-none mr-12px w-16px h-16px cursor-pointer flex-shrink-0" onClick={resetToken} />
           <Settings />
         </div>
         <form onSubmit={onSubmit}>
@@ -181,15 +181,10 @@ const AddLiquidity: React.FC = () => {
                 priceLower={priceLower}
                 priceUpper={priceUpper}
               />
- 
-              <ExpectedReward fee={currentFee} tokenA={tokenA} tokenB={tokenB} amountTokenA={amountTokenA} amountTokenB={amountTokenB} />
 
-              <SubmitButton
-                amountTokenA={amountTokenA}
-                amountTokenB={amountTokenB}
-                inSubmitCreate={inSubmitCreate}
-                disabled={!tokenA || !tokenB || !isRangeValid}
-              />
+              <ExpectedReward fee={currentFee} tokenA={tokenA!} tokenB={tokenB!} amountTokenA={amountTokenA} amountTokenB={amountTokenB} />
+
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} disabled={!tokenA || !tokenB || !isRangeValid} />
             </div>
           </BorderBox>
         </form>
