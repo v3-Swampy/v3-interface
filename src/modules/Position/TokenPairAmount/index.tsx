@@ -1,12 +1,18 @@
 import React, { useMemo } from 'react';
+import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { type PositionForUI } from '@service/position';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { type Token, isTokenEqual } from '@service/tokens';
 
-export const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; ratio?: number | undefined }> = ({ token, amount, ratio }) => {
+export const TokenItem: React.FC<{ token: Token | null | undefined; amount: string; ratio?: number | undefined; className?: string }> = ({
+  token,
+  amount,
+  ratio,
+  className,
+}) => {
   return (
-    <div className="flex items-center justify-between text-14px leading-18px font-medium text-black-normal w-full">
+    <div className={cx('flex items-center justify-between text-14px leading-18px font-medium text-black-normal w-full', className)}>
       <div className="flex items-center">
         <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
         <span className="ml-8px">{token?.symbol}</span>

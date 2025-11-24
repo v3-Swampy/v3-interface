@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
-import { fetchMulticall, UniswapV3Staker } from '@contracts/index';
+import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import { usePool } from '@service/pairs&pool';
 import { usePools } from '@service/earn';
@@ -11,6 +11,19 @@ import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { useAccount } from '@service/account';
+
+function useDebounce<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 interface Props {
   tokenA: Token;
@@ -26,93 +39,103 @@ const ExpectedReward: React.FC<Props> = ({ tokenA, tokenB, fee, amountTokenA, am
   const pools = usePools();
   const matchedPool = useMemo(() => pools?.find((p) => p.poolAddress.toLowerCase() === pool?.address?.toLowerCase()), [pools, pool?.address]);
 
-  // const unclaimedRewardsInfo = useMemo(
-  //   () =>
-  //     position?.unclaimedRewards?.map((reward) => {
-  //       return {
-  //         token: getUnwrapperTokenByAddress(reward.rewardTokenInfo?.address) ?? reward.rewardTokenInfo,
-  //         unclaimedReward: new Unit(reward.stakeReward.unclaimedReward),
-  //       };
-  //     }) ?? [],
-  //   [position?.unclaimedRewards]
-  // );
-
-  // const [unsettledRewardsTotalPrice, setUnsettledRewardsTotalPrice] = useState<string | null | undefined>(undefined);
   const tokenAPrice = useTokenPrice(tokenA?.address);
   const tokenBPrice = useTokenPrice(tokenB?.address);
-  const tokenAAmount = amountTokenA ? Unit.fromStandardUnit(amountTokenA, tokenA.decimals) : new Unit(0);
-  const tokenBAmount = amountTokenB ? Unit.fromStandardUnit(amountTokenB, tokenB.decimals) : new Unit(0);
+  const tokenALiquidity = useMemo(() => (tokenAPrice && amountTokenA ? new Unit(amountTokenA).mul(tokenAPrice) : new Unit(0)), [tokenAPrice, amountTokenA]);
+  const tokenBLiquidity = useMemo(() => (tokenBPrice && amountTokenB ? new Unit(amountTokenB).mul(tokenBPrice) : new Unit(0)), [tokenBPrice, amountTokenB]);
+  const liquidity = useMemo(() => new Unit(tokenALiquidity).add(tokenBLiquidity), [tokenALiquidity, tokenBLiquidity]);
 
-  console.log('tokenAPrice, tokenBPrice', tokenAPrice, tokenBPrice);
-  console.log('tokenAAmount, tokenBAmount', tokenAAmount.toDecimalMinUnit(), tokenBAmount.toDecimalMinUnit());
+  const liquidityHex = useMemo(() => liquidity.toDecimalMinUnit(0), [liquidity]);
+  const debouncedLiquidityHex = useDebounce(liquidityHex, 300);
 
-  const tokenALiquidity = tokenAPrice && amountTokenA ? tokenAAmount.mul(tokenAPrice) : new Unit(0);
-  const tokenBLiquidity = tokenBPrice && amountTokenB ? tokenBAmount.mul(tokenBPrice) : new Unit(0);
-
-  console.log('Total Liquidity (Decimal):', tokenALiquidity.toDecimalMinUnit(0), tokenBLiquidity.toDecimalMinUnit(0));
-
-  const liquidity = new Unit(tokenALiquidity.toDecimalMinUnit(0)).add(tokenBLiquidity.toDecimalMinUnit(0));
-
-  console.log('Total liquidity (hex):', liquidity.toHexMinUnit());
+  const [rewardsPerDay, setRewardsPerDay] = useState<{ tokenInfo: Token; rewardsPerDay: Unit }[] | undefined>(undefined);
+  const [rewardsPerDayTotalPrice, setRewardsPerDayTotalPrice] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!account || !matchedPool?.incentiveKeys?.length || !amountTokenA.trim() || !amountTokenB.trim()) return;
-    console.log('fetch expected reward per day');
+    if (!account || !matchedPool?.incentiveKeys?.length || !amountTokenA.trim() || !amountTokenB.trim()) {
+      setRewardsPerDay(undefined);
+      setRewardsPerDayTotalPrice(undefined);
+      return;
+    }
+    let canceled = false;
 
-    const runFetch = async () => {
-      console.log('params', [matchedPool.incentiveKeys[0].key, account, liquidity.toHexMinUnit()]);
-      const incentiveKeysQuery1 = await fetchChain({
+    const runGetRewardsPerDay = async () => {
+      const estimateRewardRatesQueryMulticall = await fetchChain<string>({
+        rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
+        method: 'eth_call',
         params: [
           {
             from: '0x000000000000000000000000000000000000fe01',
             to: UniswapV3Staker.address,
-            data: UniswapV3Staker.func.interface.encodeFunctionData('estimateRewardRate', [matchedPool.incentiveKeys[0].key, account, liquidity.toHexMinUnit()]),
+            data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
+              matchedPool.incentiveKeys.map(({ key }) => UniswapV3Staker.func.interface.encodeFunctionData('estimateRewardRate', [key, account, debouncedLiquidityHex])),
+            ]),
           },
           'latest',
         ],
-      })
-        .then((res) => {
-          console.log('res', res);
-          return res;
-        })
-        .catch((err) => {
-          console.log('err', err);
-          return null;
-        });
+      });
+      if (canceled) return;
+      const estimateRewardRatesQuery = UniswapV3Staker.func.interface.decodeFunctionResult('multicall', estimateRewardRatesQueryMulticall)?.[0];
+      const estimateRewardRates = Array.from(estimateRewardRatesQuery).map((item) => {
+        const result = UniswapV3Staker.func.interface.decodeFunctionResult('estimateRewardRate', item as string) as unknown as [bigint, bigint];
+        return {
+          boostedLiquidity: result[0],
+          rewardsPerSecondX32: result[1],
+        };
+      });
 
-      // const incentiveKeysQuery = await fetchMulticall(
-      //   matchedPool.incentiveKeys.map((incentiveKey) => [
-      //     UniswapV3Staker.address,
-      //     UniswapV3Staker.func.interface.encodeFunctionData('estimateRewardRate', [incentiveKey.key, account, Unit.fromStandardUnit(amountTokenA, tokenA.decimals).toHexMinUnit()]),
-      //   ])
-      // );
+      const rewardsPerDay = matchedPool.incentiveKeys.map(({ rewardTokenInfo }, index) => {
+        const estimateRewardRate = estimateRewardRates[index];
+        return {
+          tokenInfo: getUnwrapperTokenByAddress(rewardTokenInfo?.address) ?? rewardTokenInfo,
+          rewardsPerDay: new Unit(estimateRewardRate.rewardsPerSecondX32).div(new Unit(2 ** 32)).mul(86400),
+        };
+      });
+      setRewardsPerDay(rewardsPerDay);
+      getTokensPrice(rewardsPerDay.map(({ tokenInfo }) => tokenInfo.address)).then((prices) => {
+        const _expectedRewardPerDayTotalPrice =
+          rewardsPerDay?.reduce((acc, reward) => {
+            const price = prices[reward.tokenInfo.address];
+            if (!price) return acc;
+            return acc.add(new Unit(price).mul(reward.rewardsPerDay).toDecimalStandardUnit(undefined, reward.tokenInfo.decimals));
+          }, new Unit(0)) ?? new Unit(0);
+        setRewardsPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
+      });
     };
-    runFetch();
-  }, [account, matchedPool, amountTokenA, amountTokenB, liquidity]);
+    runGetRewardsPerDay();
 
-  if (!matchedPool || !matchedPool.incentives?.length) return null;
+    return () => {
+      canceled = true;
+    };
+  }, [account, matchedPool, debouncedLiquidityHex]);
+
+  if (!account || !matchedPool || !matchedPool.incentives?.length || rewardsPerDay === undefined) return null;
   return (
-    <div className="p-16px flex bg-orange-light-hover flex-col items-start rounded-b-16px text-black-normal w-full">
+    <div className="mt-16px p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
-          <span className="inline-block mb-8px text-14px leading-18px">Expected Reward Per Day</span>
+          <span className="inline-block mb-8px text-14px leading-18px font-medium">Expected Reward Per Day</span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap font-medium">
-            {/* {unsettledRewardsTotalPrice === undefined ? <Spin /> : unsettledRewardsTotalPrice ?? '-'} */}$ 1.25000
+            {rewardsPerDayTotalPrice === undefined ? <Spin /> : rewardsPerDayTotalPrice ?? '-'}
           </span>
         </div>
       </div>
-      <div className="flex flex-col gap-8px w-full">
-        {/* {unclaimedRewardsInfo.map(({ token, unclaimedReward }) => (
-          <TokenItem
-            key={token?.address}
-            token={token}
-            amount={formatDisplayAmount(unclaimedReward, {
-              decimals: token?.decimals,
-              minNum: '0.000001',
-              toFixed: 6,
-            })}
-          />
-        ))} */}
+      <div className="flex items-center flex-wrap gap-8px">
+        {rewardsPerDay?.map(({ tokenInfo, rewardsPerDay }, index) => (
+          <React.Fragment key={tokenInfo?.address}>
+            {index > 0 && <span className="text-14px font-medium text-black-normal">+</span>}
+            <TokenItem
+              className="flex-row-reverse w-fit! gap-8px"
+              key={tokenInfo?.address}
+              token={tokenInfo}
+              amount={formatDisplayAmount(rewardsPerDay, {
+                decimals: tokenInfo?.decimals,
+                minNum: '0.000001',
+                toFixed: 2,
+              })}
+            />
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );

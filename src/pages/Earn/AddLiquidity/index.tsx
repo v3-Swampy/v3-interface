@@ -154,7 +154,7 @@ const AddLiquidity: React.FC = () => {
         </div>
         <form onSubmit={onSubmit}>
           <BorderBox className="relative w-full p-16px rounded-28px flex lt-md:flex-wrap gap-32px lt-md:gap-16px" variant="gradient-white">
-            <div className="w-310px lt-md:w-full flex-grow-1 flex-shrink-1">
+            <div className="w-310px lt-md:w-full flex-grow-1 flex-shrink-1 flex flex-col">
               <SelectPair handleSwapToken={handleSwapToken} />
               <SelectFeeTier register={register} />
               <DepositAmounts
