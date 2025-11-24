@@ -282,7 +282,7 @@ const DepositAmount: React.FC<
   }, [fee]);
 
   return (
-    <div className={cx('mt-4px h-84px rounded-16px bg-orange-light-hover', !isOutOfRange ? 'pt-8px pl-16px pr-8px' : 'flex flex-col justify-center items-center px-24px')}>
+    <div className={cx('mt-4px h-94px rounded-16px bg-orange-light-hover flex-grow-1', !isOutOfRange ? 'pt-8px pl-16px pr-8px' : 'flex flex-col justify-center items-center px-24px')}>
       {!isOutOfRange && (
         <>
           <div className="flex justify-between items-center">
@@ -400,7 +400,7 @@ const DepositAmounts: React.FC<Props> = ({
   const secondToken = token0 === tokenA ? { token: tokenB, pairToken: tokenA, type: 'tokenB' as const } : { token: tokenA, pairToken: tokenB, type: 'tokenA' as const };
 
   return (
-    <div className={cx('mt-24px', !isValidToInput && 'opacity-50 pointer-events-none')}>
+    <div className={cx('mt-24px flex-grow-1 flex flex-col', !isValidToInput && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-normal">{title || i18n.deposit_amounts}</p>
       <DepositAmount
         tokenA={tokenA}

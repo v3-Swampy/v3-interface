@@ -74,7 +74,7 @@ const SelectFeeTier: React.FC<Props> = ({ register }) => {
   const isBothTokenSelected = useIsBothTokenSelected();
 
   return (
-    <div className={cx('mt-16px', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
+    <div className={cx(!isBothTokenSelected && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal font-normal">{i18n.select_fee_tier}</p>
       <Dropdown visible={visible} Content={<SelectDropdown setVisible={setVisible} />} sameWidth offset={[0, 0]} className="w-full" onClickOutside={() => setVisible(false)}>
         <div

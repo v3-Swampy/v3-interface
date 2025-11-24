@@ -17,6 +17,7 @@ import { ReactComponent as ClearIcon } from '@assets/icons/clear.svg';
 import SelectFeeTier, { useCurrentFee } from './SelectFeeTier';
 import SetPriceRange from './SetPriceRange';
 import SubmitButton from './SubmitButton';
+import ExpectedReward from './ExpectedReward';
 import './index.css';
 
 const transitions = {
@@ -107,7 +108,7 @@ const AddLiquidity: React.FC = () => {
         tokenA,
         tokenB,
         priceInit,
-        navigate
+        navigate,
       });
     }),
     [tokenA, tokenB, priceInit, currentFee]
@@ -148,12 +149,12 @@ const AddLiquidity: React.FC = () => {
             </div>
           )}
 
-          <ClearIcon className='mobile:display-none mr-12px w-16px h-16px cursor-pointer flex-shrink-0' onClick={resetToken} />
+          <ClearIcon className="mobile:display-none mr-12px w-16px h-16px cursor-pointer flex-shrink-0" onClick={resetToken} />
           <Settings />
         </div>
         <form onSubmit={onSubmit}>
           <BorderBox className="relative w-full p-16px rounded-28px flex lt-md:flex-wrap gap-32px lt-md:gap-16px" variant="gradient-white">
-            <div className="w-310px lt-md:w-full flex-grow-1 flex-shrink-1">
+            <div className="w-310px lt-md:w-full flex-grow-1 flex-shrink-1 flex flex-col">
               <SelectPair handleSwapToken={handleSwapToken} />
               <SelectFeeTier register={register} />
               <DepositAmounts
@@ -181,12 +182,9 @@ const AddLiquidity: React.FC = () => {
                 priceUpper={priceUpper}
               />
 
-              <SubmitButton
-                amountTokenA={amountTokenA}
-                amountTokenB={amountTokenB}
-                inSubmitCreate={inSubmitCreate}
-                disabled={!tokenA || !tokenB || !isRangeValid}
-              />
+              <ExpectedReward fee={currentFee} tokenA={tokenA!} tokenB={tokenB!} amountTokenA={amountTokenA} amountTokenB={amountTokenB} />
+
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} disabled={!tokenA || !tokenB || !isRangeValid} />
             </div>
           </BorderBox>
         </form>
