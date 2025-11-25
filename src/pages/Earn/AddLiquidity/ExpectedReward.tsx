@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
+import Decimal from 'decimal.js';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import { usePool } from '@service/pairs&pool';
 import { usePools } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
-import { getTokensPrice, FeeAmount, useTokenPrice } from '@service/pairs&pool';
+import { getTokensPrice, FeeAmount, useTokenPrice, calcLiquidityFromAmounts } from '@service/pairs&pool';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
@@ -25,34 +26,76 @@ function useDebounce<T>(value: T, delay: number) {
   return debouncedValue;
 }
 
+const Zero = new Unit(0);
+
 interface Props {
   tokenA: Token;
   tokenB: Token;
   amountTokenA: string;
   amountTokenB: string;
+  priceInit: string;
+  priceLower: string;
+  priceUpper: string;
   fee: FeeAmount;
 }
 
-const ExpectedReward: React.FC<Props> = ({ tokenA, tokenB, fee, amountTokenA, amountTokenB }) => {
+const ExpectedReward: React.FC<Props> = ({
+  tokenA,
+  tokenB,
+  fee,
+  amountTokenA: _amountTokenA,
+  amountTokenB: _amountTokenB,
+  priceInit: _priceInit,
+  priceLower: _priceLower,
+  priceUpper: _priceUpper,
+}) => {
   const account = useAccount();
   const { pool } = usePool({ tokenA, tokenB, fee });
   const pools = usePools();
   const matchedPool = useMemo(() => pools?.find((p) => p.poolAddress.toLowerCase() === pool?.address?.toLowerCase()), [pools, pool?.address]);
 
-  const tokenAPrice = useTokenPrice(tokenA?.address);
-  const tokenBPrice = useTokenPrice(tokenB?.address);
-  const tokenALiquidity = useMemo(() => (tokenAPrice && amountTokenA ? new Unit(amountTokenA).mul(tokenAPrice) : new Unit(0)), [tokenAPrice, amountTokenA]);
-  const tokenBLiquidity = useMemo(() => (tokenBPrice && amountTokenB ? new Unit(amountTokenB).mul(tokenBPrice) : new Unit(0)), [tokenBPrice, amountTokenB]);
-  const liquidity = useMemo(() => new Unit(tokenALiquidity).add(tokenBLiquidity), [tokenALiquidity, tokenBLiquidity]);
+  const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
+  const [token0, token1] = notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
+  const priceInit = !_priceInit ? undefined : notNeedSwap ? new Decimal(_priceInit) : new Unit(1).div(_priceInit).toDecimal();
 
-  const liquidityHex = useMemo(() => liquidity.toDecimalMinUnit(0), [liquidity]);
+  const amountTokenA = !!_amountTokenA ? _amountTokenA : '0';
+  const amountTokenB = !!_amountTokenB ? _amountTokenB : '0';
+  const [_token0Amount, _token1Amount] = notNeedSwap ? [amountTokenA, amountTokenB] : [amountTokenB, amountTokenA];
+  const token0Amount = !!_token0Amount ? _token0Amount : '0';
+  const token1Amount = !!_token1Amount ? _token1Amount : '0';
+
+  const isPriceLowerZero = _priceLower !== '' && new Unit(_priceLower).equals(Zero);
+  const isPriceUpperInfinity = _priceUpper === 'Infinity';
+
+  const [priceLower, priceUpper] =
+    _priceLower !== '' && _priceUpper !== ''
+      ? notNeedSwap
+        ? [new Unit(_priceLower), new Unit(_priceUpper)]
+        : [isPriceUpperInfinity ? new Unit('0') : new Unit(1).div(_priceUpper), isPriceLowerZero ? new Unit('Infinity') : new Unit(1).div(_priceLower)]
+      : [Zero, new Unit('Infinity')];
+
+  let currentPrice = priceInit ? priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
+  currentPrice = new Unit(currentPrice).mul(`1e${token1.decimals - token0.decimals}`).toDecimalMinUnit();
+
+  const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
+  const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
+  const liquidity = calcLiquidityFromAmounts({
+    amount0: token0AmountUnit,
+    amount1: token1AmountUnit,
+    current: currentPrice,
+    lower: priceLower,
+    upper: priceUpper,
+  }).toDecimalMinUnit(0);
+
+  const liquidityHex = useMemo(() => new Unit(liquidity).toHexMinUnit(), [liquidity]);
+
   const debouncedLiquidityHex = useDebounce(liquidityHex, 300);
 
   const [rewardsPerDay, setRewardsPerDay] = useState<{ tokenInfo: Token; rewardsPerDay: Unit }[] | undefined>(undefined);
   const [rewardsPerDayTotalPrice, setRewardsPerDayTotalPrice] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!account || !matchedPool?.incentiveKeys?.length || !amountTokenA.trim() || !amountTokenB.trim()) {
+    if (!account || !matchedPool?.incentiveKeys?.length || !_amountTokenA.trim() || !_amountTokenB.trim()) {
       setRewardsPerDay(undefined);
       setRewardsPerDayTotalPrice(undefined);
       return;

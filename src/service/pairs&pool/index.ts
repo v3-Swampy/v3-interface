@@ -36,15 +36,7 @@ export class Pool implements PoolProps {
   public tickCurrent: number | null;
   public token0Price: Unit | null;
   public token1Price: Unit | null;
-  constructor({
-    tokenA,
-    tokenB,
-    fee,
-    address,
-    sqrtPriceX96,
-    liquidity,
-    tickCurrent,
-  }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token; }) {
+  constructor({ tokenA, tokenB, fee, address, sqrtPriceX96, liquidity, tickCurrent }: Omit<PoolProps, 'token0' | 'token1'> & { tokenA: Token; tokenB: Token }) {
     const [token0, token1] = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase() ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
     this.token0 = token0;
     this.token1 = token1;
@@ -151,6 +143,70 @@ export const calcAmountFromPrice = ({
     amount1 = usedLiquidity.mul(Unit.sqrt(usedCurrent).sub(Unit.sqrt(usedLower)));
   }
   return [amount0, amount1];
+};
+
+
+/**
+ * 根据 amount0 和 amount1 计算流动性
+ * @param amount0 token0 的数量
+ * @param amount1 token1 的数量
+ * @param current 当前价格
+ * @param lower 价格区间下限
+ * @param upper 价格区间上限
+ * @returns 计算得到的流动性值
+ */
+export const calcLiquidityFromAmounts = ({
+  amount0,
+  amount1,
+  current,
+  lower,
+  upper,
+}: {
+  amount0: Unit | number | string;
+  amount1: Unit | number | string;
+  current: Unit | number | string;
+  lower: Unit | number | string;
+  upper: Unit | number | string;
+}) => {
+  const usedAmount0 = new Unit(amount0);
+  const usedAmount1 = new Unit(amount1);
+  const usedCurrent = new Unit(current);
+  const usedLower = new Unit(lower);
+  const usedUpper = new Unit(upper);
+
+  let liquidity: Unit;
+
+  if (usedCurrent.lessThanOrEqualTo(usedLower)) {
+    // 价格 <= 下限: 只使用 amount0
+    // liquidity = amount0 * sqrt(upper) * sqrt(lower) / (sqrt(upper) - sqrt(lower))
+    const sqrtUpper = usedUpper.sqrt();
+    const sqrtLower = usedLower.sqrt();
+    liquidity = usedAmount0.mul(sqrtUpper).mul(sqrtLower).div(sqrtUpper.sub(sqrtLower));
+  } else if (usedCurrent.greaterThanOrEqualTo(usedUpper)) {
+    // 价格 >= 上限: 只使用 amount1
+    // liquidity = amount1 / (sqrt(upper) - sqrt(lower))
+    const sqrtUpper = usedUpper.sqrt();
+    const sqrtLower = usedLower.sqrt();
+    liquidity = usedAmount1.div(sqrtUpper.sub(sqrtLower));
+  } else {
+    // 价格在区间内: 使用两个 amount 计算出的较小流动性
+    const sqrtCurrent = usedCurrent.sqrt();
+    const sqrtUpper = usedUpper.sqrt();
+    const sqrtLower = usedLower.sqrt();
+
+    // 从 amount0 计算的流动性
+    // liquidity0 = amount0 * sqrt(upper) * sqrt(current) / (sqrt(upper) - sqrt(current))
+    const liquidity0 = usedAmount0.mul(sqrtUpper).mul(sqrtCurrent).div(sqrtUpper.sub(sqrtCurrent));
+
+    // 从 amount1 计算的流动性
+    // liquidity1 = amount1 / (sqrt(current) - sqrt(lower))
+    const liquidity1 = usedAmount1.div(sqrtCurrent.sub(sqrtLower));
+
+    // 取较小值（因为实际添加流动性时会受到较小值的限制）
+    liquidity = liquidity0.lessThan(liquidity1) ? liquidity0 : liquidity1;
+  }
+
+  return liquidity;
 };
 
 export const calcRatio = (sqrtPriceX96: string, lower: number, upper: number) => {
