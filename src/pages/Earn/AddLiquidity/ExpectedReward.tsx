@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
 import Decimal from 'decimal.js';
@@ -7,7 +7,7 @@ import { fetchChain } from '@utils/fetch';
 import { usePool } from '@service/pairs&pool';
 import { usePools } from '@service/earn';
 import { getUnwrapperTokenByAddress } from '@service/tokens';
-import { getTokensPrice, FeeAmount, useTokenPrice, calcLiquidityFromAmounts } from '@service/pairs&pool';
+import { getTokensPrice, FeeAmount, calcLiquidityFromAmounts } from '@service/pairs&pool';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
@@ -184,4 +184,12 @@ const ExpectedReward: React.FC<Props> = ({
   );
 };
 
-export default ExpectedReward;
+const ExpectedRewardWrapper: React.FC<Props> = (props) => {
+  return (
+    <Suspense fallback={null}>
+      <ExpectedReward {...props} />
+    </Suspense>
+  );
+};
+
+export default ExpectedRewardWrapper;
