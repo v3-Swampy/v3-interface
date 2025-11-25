@@ -45,7 +45,7 @@ const UnclaimedRewards: React.FC = () => {
           if (!price) return acc;
           return acc.add(new Unit(price).mul(reward.unclaimedReward).toDecimalStandardUnit(undefined, reward.token?.decimals));
         }, new Unit(0)) ?? new Unit(0);
-      setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
+      setUnsettledRewardsTotalPrice(formatDisplayAmount(_unsettledRewardsTotalPrice, { decimals: 0, minNum: '0.01', toFixed: 2, unit: '$' }));
     });
   }, [unclaimedRewardsInfo]);
 

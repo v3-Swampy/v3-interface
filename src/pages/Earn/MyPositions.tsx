@@ -70,8 +70,8 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     token0Liquidity && token1Liquidity
       ? formatDisplayAmount(new Unit(token0Liquidity).add(token1Liquidity), {
           decimals: 0,
-          minNum: '0.00001',
-          toFixed: 5,
+          minNum: '0.01',
+          toFixed: 2,
           unit: '$',
         })
       : undefined;
@@ -81,8 +81,8 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     if (!pool || !priceToken) return null;
     return formatDisplayAmount(pool.priceOf(priceToken), {
       decimals: 0,
-      toFixed: 5,
-      minNum: '0.00001',
+      toFixed: 6,
+      minNum: '0.000001',
     });
   }, [pool, inverted, leftToken, rightToken]);
 
@@ -94,13 +94,13 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     const priceUpper = inverted ? invertPrice(priceLowerForUI) : priceUpperForUI;
     const priceLowerStr = formatDisplayAmount(priceLower, {
       decimals: 0,
-      toFixed: 5,
-      minNum: '0.00001',
+      toFixed: 6,
+      minNum: '0.000001',
     });
     const _priceUpperStr = formatDisplayAmount(priceUpper, {
       decimals: 0,
-      toFixed: 5,
-      minNum: '0.00001',
+      toFixed: 6,
+      minNum: '0.000001',
     });
     const priceUpperStr = _priceUpperStr === 'Infinity' ? '∞' : _priceUpperStr;
     return [priceLowerStr, priceUpperStr];
@@ -149,8 +149,8 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     }
     return formatDisplayAmount(total, {
       decimals: 0,
-      minNum: '0.00001',
-      toFixed: 5,
+      minNum: '0.01',
+      toFixed: 2,
       unit: '$',
     });
   }, [unclaimedFeesValue, unclaimedRewardValue]);

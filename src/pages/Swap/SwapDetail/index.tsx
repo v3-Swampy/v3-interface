@@ -79,8 +79,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
   const fromTokenUSDPrice = isTokenEqual(fromToken, sourceToken) ? sourceTokenUSDPrice : destinationTokenUSDPrice;
 
   const networkFee = formatDisplayAmount(bestTrade.trade?.networkFeeByAmount, {
-    minNum: '0.00001',
-    toFixed: 5,
+    decimals: 0,
+    minNum: '0.01',
+    toFixed: 2,
     unit: '$',
   });
 
@@ -96,8 +97,8 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
     }
     return formatDisplayAmount(amount, {
       decimals,
-      minNum: '0.00001',
-      toFixed: 5,
+      minNum: '0.000001',
+      toFixed: 6,
     });
   }, [tradeType, TradeType, bestTrade, slippage, sourceToken, destinationToken]);
 
@@ -144,10 +145,10 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
               <div className="ml-24px lt-mobile:ml-16px relative leading-18px text-14px text-black-normal font-normal cursor-ew-resize" onClick={handleClickAccordionTitle}>
                 {`1 ${fromToken?.symbol}`}&nbsp;&nbsp;=&nbsp;&nbsp;
                 {`${formatDisplayAmount(toTokenPrice, {
-                  toFixed: 5,
-                  minNum: '0.00001',
+                  toFixed: 6,
+                  minNum: '0.000001',
                 })} ${toToken?.symbol}`}
-                {fromTokenUSDPrice && <>&nbsp;&nbsp;(${trimDecimalZeros(Number(fromTokenUSDPrice).toFixed(5))})</>}
+                {fromTokenUSDPrice && <>&nbsp;&nbsp;({formatDisplayAmount(fromTokenUSDPrice, { decimals: 0, minNum: '0.01', toFixed: 2, unit: '$' })})</>}
               </div>
               {networkFee && (
                 <span
@@ -176,8 +177,8 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
           <span className="font-normal text-black-normal">
             {formatDisplayAmount(bestTrade.trade?.amountOut, {
               decimals: destinationToken.decimals,
-              toFixed: 5,
-              minNum: '0.00001',
+              toFixed: 6,
+              minNum: '0.000001',
             })}{' '}
             {destinationToken?.symbol}
           </span>
@@ -204,10 +205,9 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
                   </span>
                 </Tooltip>
                 <span className="w-0 flex-1 flex">
-                  <Tooltip text={slippageAmount} className="break-all">
-                    <span className="flex-1 w-0 truncate text-right">{slippageAmount}</span>
-                  </Tooltip>
-                  <span className="shrink-0">{tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}</span>
+                  <span className="flex-1 w-0 truncate text-right">
+                    {slippageAmount} {' '} {tradeType === TradeType.EXACT_INPUT ? destinationToken?.symbol : sourceToken?.symbol}
+                  </span>
                 </span>
               </div>
             </div>
@@ -224,7 +224,7 @@ const SwapDetail: React.FC<Props> = ({ bestTrade, sourceTokenUSDPrice, destinati
           <span>{networkFee}</span>
         </div>
       </Accordion>
-      {!fromPreview && readyToShowAutoRouter && <AutoRouter bestTrade={bestTrade} networkFee={networkFee} />}
+      {!fromPreview && readyToShowAutoRouter && <AutoRouter bestTrade={bestTrade} networkFee={networkFee!} />}
     </>
   );
 };

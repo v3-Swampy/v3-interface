@@ -142,7 +142,7 @@ const ExpectedReward: React.FC<Props> = ({
             if (!price) return acc;
             return acc.add(new Unit(price).mul(reward.rewardsPerDay).toDecimalStandardUnit(undefined, reward.tokenInfo.decimals));
           }, new Unit(0)) ?? new Unit(0);
-        setRewardsPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.00001', toFixed: 5, unit: '$' }));
+        setRewardsPerDayTotalPrice(formatDisplayAmount(_expectedRewardPerDayTotalPrice, { decimals: 0, minNum: '0.01', toFixed: 2, unit: '$' }));
       });
     };
     runGetRewardsPerDay();
@@ -174,7 +174,7 @@ const ExpectedReward: React.FC<Props> = ({
               amount={formatDisplayAmount(rewardsPerDay, {
                 decimals: tokenInfo?.decimals,
                 minNum: '0.000001',
-                toFixed: 2,
+                toFixed: 6,
               })}
             />
           </React.Fragment>
