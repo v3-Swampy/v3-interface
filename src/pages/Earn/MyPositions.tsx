@@ -36,6 +36,7 @@ const transitions = {
     your_positions: 'Your Positions',
     new_positions: 'New Positions',
     positions_appear_here: 'Your active liquidity positions will appear here.',
+    connect_wallet: 'Please connect your wallet to view your positions.',
     poolName: 'Pool Name',
     price: 'Price Range/Current Price',
     liquidity: 'Liquidity',
@@ -46,6 +47,7 @@ const transitions = {
     your_positions: '你的仓位',
     new_positions: '新仓位',
     positions_appear_here: '您的流动性仓位将在此显示。',
+    connect_wallet: '请连接您的钱包以查看您的仓位。',
     poolName: 'Pool Name',
     price: 'Price Range/Current Price',
     liquidity: 'Liquidity',
@@ -218,7 +220,7 @@ const PositionsContent: React.FC = () => {
       <div className={cx('mt-116px lt-sm:mt-52px', !!account ? 'mb-124px lt-sm:mb-42px' : 'mb-150px lt-sm:mb-68px')}>
         <PoolHandIcon className="block mx-auto w-50.5px h-32px" />
         <p className="mt-12px lt-sm:mt-20px leading-28px text-center text-22px lt-sm:text-14px text-black-normal font-normal">
-          {!account ? "Please connect your wallet to view your positions." : i18n.positions_appear_here}
+          {!account ? i18n.connect_wallet : i18n.positions_appear_here}
         </p>
         <BetaLpGuide />
       </div>
