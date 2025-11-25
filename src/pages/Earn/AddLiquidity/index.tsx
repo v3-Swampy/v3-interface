@@ -182,16 +182,16 @@ const AddLiquidity: React.FC = () => {
                 priceUpper={priceUpper}
               />
 
-              <ExpectedReward
+              {tokenA && tokenB && <ExpectedReward
                 fee={currentFee}
-                tokenA={tokenA!}
-                tokenB={tokenB!}
+                tokenA={tokenA}
+                tokenB={tokenB}
                 amountTokenA={amountTokenA}
                 amountTokenB={amountTokenB}
                 priceInit={priceInit}
                 priceLower={priceLower}
                 priceUpper={priceUpper}
-              />
+              />}
 
               <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} disabled={!tokenA || !tokenB || !isRangeValid} />
             </div>

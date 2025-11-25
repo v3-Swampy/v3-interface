@@ -22,7 +22,7 @@ export const BetaLpGuide = () => {
   const { inTransaction, execTransaction: importBetaLp } = useInTransaction(_importBetaLp, true);
   if (!account) return null;
   return (
-    <div className="text-14px font-500 flex justify-center items-center mt-25px lt-mobile:flex-col lt-mobile:items-start lt-mobile:gap-10px">
+    <div className="text-14px leading-18px font-500 mt-8px text-center">
       <span className="text-gray-normal">{i18n.beta_lp_guide}</span>
       {!inTransaction ? (
         <span className="text-orange-normal cursor-pointer ml-4px" id="beta_lp_import" onClick={() => importBetaLp({ account })}>
