@@ -16,6 +16,7 @@ import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.sv
 import FarmIcon from '@assets/imgs/farm.png';
 import { invertPrice, useTokenPrice } from '@service/pairs&pool';
 import { useInvertedState } from '@modules/Position/invertedState';
+import { BetaLpGuide } from './BetaLpGuide';
 
 const classNames = {
   title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-mobile:mb-4px',
@@ -219,11 +220,7 @@ const PositionsContent: React.FC = () => {
         <p className="mt-12px lt-sm:mt-20px leading-28px text-center text-22px lt-sm:text-14px text-black-normal font-normal">
           {!account ? "Please connect your wallet to view your positions." : i18n.positions_appear_here}
         </p>
-        {!!account &&
-          <p className='mt-8px text-center text-14px leading-18px text-gray-normal font-medium'>
-            Positions created during the open beta aren’t displayed automatically. <Link to="/earn/add_liquidity" className='text-orange-normal no-underline'>Import your position.</Link>
-          </p>
-        }
+        <BetaLpGuide />
       </div>
     );
   }
@@ -232,6 +229,7 @@ const PositionsContent: React.FC = () => {
       {filteredPositions.map((positionEnhanced: PositionEnhanced) => (
         <PositionItem key={positionEnhanced.tokenId} positionEnhanced={positionEnhanced} />
       ))}
+      <BetaLpGuide />
     </>
   );
 };
