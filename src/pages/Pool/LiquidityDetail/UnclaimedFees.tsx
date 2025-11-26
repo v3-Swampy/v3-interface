@@ -35,8 +35,8 @@ const UnclaimedFees: React.FC = () => {
     token0Fee && token1Fee
       ? formatDisplayAmount(new Unit(token0Fee).add(token1Fee), {
           decimals: 0,
-          minNum: '0.00001',
-          toFixed: 5,
+          minNum: '0.01',
+          toFixed: 2,
           unit: '$',
         })
       : '-';

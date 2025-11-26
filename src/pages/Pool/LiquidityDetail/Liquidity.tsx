@@ -32,8 +32,8 @@ const Liquidity: React.FC = () => {
     token0Liquidity && token1Liquidity
       ? formatDisplayAmount(new Unit(token0Liquidity).add(token1Liquidity), {
           decimals: 0,
-          minNum: '0.00001',
-          toFixed: 5,
+          minNum: '0.01',
+          toFixed: 2,
           unit: '$',
         })
       : '-';

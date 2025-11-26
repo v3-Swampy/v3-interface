@@ -46,13 +46,13 @@ const TokenPairAmount: React.FC<{
   const amountRight = rightAmount ? rightAmount : isLeftTokenEqualToken0 ? new Unit(amount1 ?? '0') : new Unit(amount0 ?? '0');
   const amountLeftStr = formatDisplayAmount(amountLeft, {
     decimals: leftTokenForUI?.decimals,
-    minNum: '0.00001',
-    toFixed: 5,
+    minNum: '0.000001',
+    toFixed: 6,
   });
   const amountRightStr = formatDisplayAmount(amountRight, {
     decimals: rightTokenForUI?.decimals,
-    minNum: '0.00001',
-    toFixed: 5,
+    minNum: '0.000001',
+    toFixed: 6,
   });
   const removed = liquidity === '0';
 
