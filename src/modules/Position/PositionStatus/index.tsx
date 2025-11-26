@@ -22,17 +22,17 @@ const transitions = {
 
 const PositionStatusMap = {
   [PositionStatus.InRange]: {
-    Icon: <SuccessIcon className="ml-4px w-18px h-18px" />,
+    Icon: <SuccessIcon className="w-18px h-18px" />,
     color: '#009595',
     text: 'in_range',
   },
   [PositionStatus.OutOfRange]: {
-    Icon: <WarningIcon className="ml-4px w-18px h-18px" />,
+    Icon: <WarningIcon className="w-18px h-18px" />,
     color: '#FFB75D',
     text: 'out_of_range',
   },
   [PositionStatus.Closed]: {
-    Icon: <ErrorIcon className="ml-4px w-18px h-18px" />,
+    Icon: <ErrorIcon className="w-18px h-18px" />,
     color: '#C2C4D0',
     text: 'closed',
   },
@@ -47,7 +47,7 @@ const PositionStatusFC: React.FC<Props> = ({ position, className, style, ...prop
   const status = usePositionStatus(position);
   return (
     <div
-      className={cx('inline-flex items-center leading-18px text-12px font-normal', !status && 'opacity-0', className)}
+      className={cx('inline-flex items-center leading-18px text-12px font-normal gap-1', !status && 'opacity-0', className)}
       style={{ color: status ? PositionStatusMap[status]?.color : undefined, ...style }}
       {...props}
     >

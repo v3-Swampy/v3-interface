@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Spin from '@components/Spin';
+import Tooltip from '@components/Tooltip';
 import Decimal from 'decimal.js';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
@@ -12,6 +13,7 @@ import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { useAccount } from '@service/account';
+import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 
 function useDebounce<T>(value: T, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -157,7 +159,14 @@ const ExpectedReward: React.FC<Props> = ({
     <div className="mt-16px p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
-          <span className="inline-block mb-8px text-14px leading-18px font-medium">Expected Reward Per Day</span>
+          <span className="inline-flex items-center mb-8px text-14px leading-18px font-medium">
+            Expected Reward Per Day
+            <Tooltip text="Estimated rewards distributed to you in this pool per day. Rewards are only earned when your position is in range.">
+              <span className="w-12px h-12px ml-6px -translate-y-1px">
+                <InfoIcon className="w-12px h-12px" />
+              </span>
+            </Tooltip>
+          </span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap font-medium">
             {rewardsPerDayTotalPrice === undefined ? <Spin /> : rewardsPerDayTotalPrice ?? '-'}
           </span>

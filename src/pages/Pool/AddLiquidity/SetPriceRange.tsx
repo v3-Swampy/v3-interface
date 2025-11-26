@@ -424,7 +424,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
             <div
               className={cx(
                 'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
-                !priceTokenA && 'text-gray-normal pointer-events-none',
+                !priceTokenA && 'text-gray-light pointer-events-none',
                 selectedRange === 'full' && 'text-orange-normal'
               )}
               onClick={handleSetFullRange}

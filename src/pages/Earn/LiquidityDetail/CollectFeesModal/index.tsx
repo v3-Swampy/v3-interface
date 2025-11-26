@@ -127,7 +127,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
           />
         ))}
       </div>
-      <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
+      <p className="text-black-normal text-14px leading-18px mb-16px pl-12px">{i18n.collect_tip}</p>
       <AuthConnectButton {...buttonProps}>
         <Button {...buttonProps} loading={inTransaction} onClick={onSubmit}>
           {i18n.collect}
@@ -140,14 +140,15 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 const buttonProps = {
   color: 'orange',
   fullWidth: true,
-  className: 'mt-auto h-48px rounded-100px text-16px font-medium',
+  className: 'h-48px rounded-100px text-16px font-medium',
 } as const;
 
 const showCollectFeesModal = (props: CommonProps) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <CollectFeesModal {...props} {...confirmModalInnerProps} />,
-    className: '!max-w-572px !min-h-388px !flex !flex-col',
+    className: '!max-w-572px !flex !flex-col',
+    height: 200,
   });
 };
 
