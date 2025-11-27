@@ -282,7 +282,9 @@ const DepositAmount: React.FC<
   }, [fee]);
 
   return (
-    <div className={cx('mt-4px h-94px rounded-16px bg-orange-light-hover flex-grow-1', !isOutOfRange ? 'pt-8px pl-16px pr-8px' : 'flex flex-col justify-center items-center px-24px')}>
+    <div
+      className={cx('mt-4px h-94px rounded-16px bg-orange-light-hover flex-grow-1', !isOutOfRange ? 'pt-8px pl-16px pr-8px' : 'flex flex-col justify-center items-center px-24px')}
+    >
       {!isOutOfRange && (
         <>
           <div className="flex justify-between items-center">
@@ -380,10 +382,17 @@ const DepositAmounts: React.FC<Props> = ({
 
   const { pool } = usePool({ tokenA, tokenB, fee });
 
-  const priceTokenA = useMemo(
+  const _priceTokenA = useMemo(
     () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
     [tokenA?.address, pool, priceInit]
   );
+
+  // console.log(_priceTokenA?.toDecimalMinUnit(), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
+
+  const token0 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB) : null;
+  const firstToken = token0 === tokenA ? { token: tokenA, pairToken: tokenB, type: 'tokenA' as const } : { token: tokenB, pairToken: tokenA, type: 'tokenB' as const };
+  const secondToken = token0 === tokenA ? { token: tokenB, pairToken: tokenA, type: 'tokenB' as const } : { token: tokenA, pairToken: tokenB, type: 'tokenA' as const };
+  const priceTokenA = token0 === tokenA ? _priceTokenA : _priceTokenA ? invertPrice(_priceTokenA) : null;
 
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
   const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;
@@ -394,10 +403,6 @@ const DepositAmounts: React.FC<Props> = ({
     setValue('amount-tokenA', '');
     setValue('amount-tokenB', '');
   }, [tokenA?.address, tokenB?.address, account]);
-
-  const token0 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB) : null;
-  const firstToken = token0 === tokenA ? { token: tokenA, pairToken: tokenB, type: 'tokenA' as const } : { token: tokenB, pairToken: tokenA, type: 'tokenB' as const };
-  const secondToken = token0 === tokenA ? { token: tokenB, pairToken: tokenA, type: 'tokenB' as const } : { token: tokenA, pairToken: tokenB, type: 'tokenA' as const };
 
   return (
     <div className={cx('mt-24px flex-grow-1 flex flex-col', !isValidToInput && 'opacity-50 pointer-events-none')}>

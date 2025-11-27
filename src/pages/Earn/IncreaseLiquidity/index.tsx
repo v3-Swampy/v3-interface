@@ -34,13 +34,13 @@ const IncreaseLiquidity: React.FC = () => {
 
   const { tokenId } = useParams();
 
-  const [inverted] = useInvertedState(tokenId);
-
   const position = usePosition(Number(tokenId));
   const { leftToken, rightToken, fee, priceLower, priceUpper } = position ?? {};
+
+  const token0 = leftToken && rightToken ? (leftToken.address.toLowerCase() < rightToken.address.toLowerCase() ? leftToken : rightToken) : null;
   let _priceLower = priceLower;
   let _priceUpper = priceUpper;
-  if (!inverted) {
+  if (token0 !== leftToken) {
     _priceLower = invertPrice(priceUpper);
     _priceUpper = invertPrice(priceLower);
   }
@@ -79,8 +79,8 @@ const IncreaseLiquidity: React.FC = () => {
                 register={register}
                 setValue={setValue}
                 getValues={getValues}
-                tokenA={!inverted ? leftToken : rightToken}
-                tokenB={!inverted ? rightToken : leftToken}
+                tokenA={token0 === leftToken ? leftToken : rightToken}
+                tokenB={token0 === leftToken ? rightToken : leftToken}
                 priceLower={_priceLower}
                 priceUpper={_priceUpper}
                 fee={fee}
