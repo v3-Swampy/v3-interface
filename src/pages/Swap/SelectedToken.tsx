@@ -14,7 +14,7 @@ import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 
 const transitions = {
   en: {
-    select_token: 'Select a token',
+    select_token: 'Select Token',
     balance: 'Balance',
     max: 'Max',
   },

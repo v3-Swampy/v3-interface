@@ -13,7 +13,7 @@ import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
 const transitions = {
   en: {
     select_pair: 'Select Pair',
-    select_token: 'Select a token',
+    select_token: 'Select Token',
   },
   zh: {
     select_pair: '选择币对',

@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
             <WIcon className="w-24px h-24px" />
             <FIcon className="-ml-4px w-24px h-24px" />
 
-            <span className="ml-[4px] text-14px text-gradient-orange lt-mobile:hidden">Earn points</span>
+            <span className="ml-[4px] text-14px text-gradient-orange lt-mobile:hidden">Earn Points</span>
           </BorderBox>
         </NavLink>
 
