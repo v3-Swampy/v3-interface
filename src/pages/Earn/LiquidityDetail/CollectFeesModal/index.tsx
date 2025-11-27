@@ -114,7 +114,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
 
   return (
     <div className="mt-24px flex flex-col h-full flex-grow-1">
-      <div className="flex flex-col gap-8px p-16px bg-orange-light-hover rounded-20px mb-16px">
+      <div className="flex flex-col gap-8px p-16px bg-orange-light-hover rounded-20px mb-56px">
         {mergedRewardsInfo.map(({ token, amount }) => (
           <TokenItem
             key={token.address}
@@ -147,8 +147,8 @@ const showCollectFeesModal = (props: CommonProps) => {
   showConfirmTransactionModal({
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <CollectFeesModal {...props} {...confirmModalInnerProps} />,
-    className: '!max-w-572px !flex !flex-col',
-    height: 200,
+    className: '!max-w-572px !min-h-320px !flex !flex-col',
+    height: 320,
   });
 };
 

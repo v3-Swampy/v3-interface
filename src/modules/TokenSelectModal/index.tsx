@@ -110,7 +110,7 @@ const TokenListModalContent: React.FC<Props> = ({ currentSelectToken, onSelect }
 
             <div className="mr-auto">
               <p className="leading-15px text-12px text-gray-normal font-normal">{token.name}</p>
-              <p className="leading-18px text-14px text-black-normal font-normal">{token.symbol}</p>
+              <p className="leading-18px text-14px text-black-normal font-normal">{token.symbol === 'WCFX' ? 'CFX' : token.symbol}</p>
             </div>
 
             {token.fromSearch && (
@@ -212,7 +212,7 @@ const CommonTokens: React.FC<Props> = ({ currentSelectToken, onSelect }) => {
           }}
         >
           <img className="mr-6px w-24px h-24px lt-mobile:w-20px lt-mobile:h-20px" src={token.logoURI} alt={`${token.symbol} logo`} />
-          {token.symbol}
+          {token.symbol === 'WCFX' ? 'CFX' : token.symbol}
         </div>
       ))}
     </div>
