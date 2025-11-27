@@ -22,7 +22,7 @@ const classNames = {
   content: 'color-black-normal text-14px font-normal not-italic leading-18px lt-mobile:text-12px lt-mobile:leading-15px',
   authConnectButton:
     'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-normal whitespace-nowrap not-italic color-orange-normal cursor-pointer lt-mobile:border-1 lt-mobile:text-14px',
-  splitLine: `lt-mobile:before:content-[''] lt-mobile:before:border-0 lt-mobile:before:border-l-1px lt-mobile:before:border-solid lt-mobile:before:absolute lt-mobile:before:top-2px lt-mobile:before:bottom-2px lt-mobile:relative lt-mobile:before:-left-2 lt-mobile:before:border-color-orange-light`,
+  splitLine: `lt-mobile:before:content-[''] lt-mobile:before:border-0 lt-mobile:before:border-l-1px lt-mobile:before:border-solid lt-mobile:before:absolute lt-mobile:before:top-2px lt-mobile:before:bottom-2px lt-mobile:relative lt-mobile:before:left-0 lt-mobile:before:border-color-orange-light`,
   poolWrapper: 'lt-mobile:mb-4 lt-mobile:rounded-14px',
   symbol: 'lt-mobile:font-normal lt-mobile:text-14px lt-mobile:leading-18px',
   fee: 'lt-mobile:h-18px lt-mobile:text-12px lt-mobile:leading-18px',
@@ -202,9 +202,9 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
 
   return (
     <div
-      className={`bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 px-8 relative grid grid-cols-17 lt-mobile:px-2 lt-mobile:border-orange-light lt-mobile:border-solid lt-mobile:border-1px ${classNames.poolWrapper}`}
+      className={`bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 px-8 relative grid grid-cols-17 lt-mobile:grid-cols-3 lt-mobile:px-2 lt-mobile:border-orange-light lt-mobile:border-solid lt-mobile:border-1px ${classNames.poolWrapper}`}
     >
-      <div className="col-span-5 lt-mobile:col-span-17 lt-mobile:mb-18px">
+      <div className="col-span-5 lt-mobile:col-span-3 lt-mobile:mb-16px">
         <div className={`${classNames.title}`}>
           <span>{i18n.poolName}</span>
           {isSupportFarm && <img src={FarmIcon} alt="farm" className="w-24px h-24px" />}
@@ -223,7 +223,7 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
           />
         </div>
       </div>
-      <div className="col-span-3 lt-mobile:col-span-7">
+      <div className="col-span-3 lt-mobile:col-span-1">
         <div className={`${classNames.title}`}>
           {i18n.APR}
           <Dropdown Content={<APRDetail aprData={aprData} isSupportFarm={isSupportFarm} />} placement="top" trigger="mouseenter">
@@ -234,15 +234,19 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
         </div>
         <div className={`${classNames.content}`}>{rewardTokenPrices === undefined ? <Spin /> : aprData?.hasValidData ? `${aprData.totalApr}%` : '--'}</div>
       </div>
-      <div className={`col-span-3 lt-mobile:col-span-5 ${classNames.splitLine}`}>
-        <div className={`${classNames.title}`}>{i18n.tvl}</div>
-        <div className={`${classNames.content}`}>{tvlDisplay}</div>
+      <div className="col-span-3 lt-mobile:col-span-1">
+        <div className={`lt-mobile:w-fit lt-mobile:mx-auto lt-mobile:pl-3 ${classNames.splitLine}`}>
+          <div className={cx(classNames.title, 'lt-mobile:justify-center')}>{i18n.tvl}</div>
+          <div className={cx(classNames.content, 'lt-mobile:text-center')}>{tvlDisplay}</div>
+        </div>
       </div>
-      <div className={`col-span-3 lt-mobile:col-span-4 ${classNames.splitLine}`}>
-        <div className={`${classNames.title}`}>{i18n.volume}</div>
-        <div className={cx(classNames.content, 'flex items-center gap-2px')}>{volume24hDisplay}</div>
+      <div className="col-span-3 lt-mobile:col-span-1">
+        <div className={`lt-mobile:w-fit lt-mobile:ml-auto lt-mobile:pl-3 ${classNames.splitLine}`}>
+          <div className={cx(classNames.title, 'lt-mobile:justify-end')}>{i18n.volume}</div>
+          <div className={cx(classNames.content, 'flex items-center gap-2px lt-mobile:justify-end')}>{volume24hDisplay}</div>
+        </div>
       </div>
-      <div className="flex items-center justify-end col-span-3 lt-mobile:absolute lt-mobile:right-2 lt-mobile:top-4">
+      <div className="flex items-center justify-end col-span-3 lt-mobile:absolute lt-mobile:right-2 lt-mobile:top-[28px]">
         <div
           className={classNames.authConnectButton}
           id={`add-liquidity-button-${data.poolAddress}`}

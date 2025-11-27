@@ -48,7 +48,7 @@ const LiquidityDetail: React.FC = () => {
         <BorderBox className="w-full p-16px pt-24px rounded-28px flex flex-col gap-16px" variant="gradient-white">
           <DetailHeader />
           {isPositionHasRewards ? (
-            <div className="flex gap-16px">
+            <div className="flex gap-16px lt-md:flex-wrap">
               <div className="w-full flex flex-col gap-16px">
                 <Liquidity />
                 <SelectedPriceRange position={position} tokenId={tokenId} isTiny />

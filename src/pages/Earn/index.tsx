@@ -87,7 +87,7 @@ const EarnPage: React.FC = () => {
               <Switch id="switch--farms_only" className="ml-8px" size="small" checked={onlyFarms} onChange={(e) => setOnlyFarms(e.target.checked)} />
             </div>
           </div>
-          <Suspense fallback={<Spin className="!block mx-auto text-60px mt-4" />}>
+          <Suspense fallback={<Spin className="!block mx-auto text-88px mt-96px mb-136px lt-mobile:text-60px lt-mobile:mt-76px lt-mobile:mb-164px" />}>
             <Outlet />
           </Suspense>
         </BorderBox>
