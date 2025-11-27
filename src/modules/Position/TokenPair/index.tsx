@@ -24,7 +24,7 @@ const TokenPair: React.FC<Props> = ({ position, leftToken, rightToken, showFee =
       <img className="w-24px h-24px" src={leftTokenForUI?.logoURI} alt={`${leftTokenForUI?.logoURI} icon`} />
       <img className="w-24px h-24px -ml-8px" src={rightTokenForUI?.logoURI} alt={`${rightTokenForUI?.logoURI} icon`} />
       <span className={`mx-4px text-black-normal font-medium ${symbolClassName}`}>
-        {leftTokenForUI?.symbol} / {rightTokenForUI?.symbol}
+        {leftTokenForUI?.symbol === 'WCFX' ? 'CFX' : leftTokenForUI?.symbol} / {rightTokenForUI?.symbol === 'WCFX' ? 'CFX' : rightTokenForUI?.symbol}
       </span>
       {showFee !== false && (
         <span className={`inline-block px-8px h-20px leading-20px rounded-100px bg-orange-light text-center text-14px text-orange-normal font-normal ${feeClassName}`}>

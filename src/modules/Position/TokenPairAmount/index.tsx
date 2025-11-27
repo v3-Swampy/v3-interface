@@ -15,7 +15,7 @@ export const TokenItem: React.FC<{ token: Token | null | undefined; amount: stri
     <div className={cx('flex items-center justify-between text-14px leading-18px font-medium text-black-normal w-full', className)}>
       <div className="flex items-center">
         <img className="w-24px h-24px" src={token?.logoURI} alt={`${token?.logoURI} icon`} />
-        <span className="ml-8px">{token?.symbol}</span>
+        <span className="ml-8px">{token?.symbol === 'WCFX' ? 'CFX' : token?.symbol}</span>
       </div>
       <div>
         <span>{amount}</span>
