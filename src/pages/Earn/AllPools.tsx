@@ -10,7 +10,7 @@ import Spin from '@components/Spin';
 import Dropdown from '@components/Dropdown';
 import BorderBox from '@components/Box/BorderBox';
 import { getTokensPrice } from '@service/pairs&pool';
-import { type Token } from '@service/tokens';
+import { getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import FarmIcon from '@assets/imgs/farm.png';
 import { useNavigate } from 'react-router-dom';
 import { setTokens } from './AddLiquidity/SelectPair';
@@ -170,9 +170,11 @@ const PoolItem: React.FC<{ data: NonNullable<ReturnType<typeof usePools>>[number
       }
     });
 
-    rewards.forEach(({ token }) => {
+    rewards.forEach(({ token: origin }) => {
+      if (!origin) return;
+      const tokenAddress = origin.address.toLowerCase();
+      const token = getUnwrapperTokenByAddress(tokenAddress);
       if (!token) return;
-      const tokenAddress = token.address.toLowerCase();
       const value = rewardTokenValues[tokenAddress]?.value;
       if (!_rewardTokenPrices[tokenAddress] || !value)
         rewardTokenAPRs[tokenAddress] = {
