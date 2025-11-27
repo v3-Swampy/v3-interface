@@ -18,11 +18,11 @@ import { invertPrice } from '@service/pairs&pool';
 const transitions = {
   en: {
     increase_liquidity: 'Increase Liquidity',
-    add_more_Liquidity: 'Add more liquidity',
+    add_more_Liquidity: 'Add More Liquidity',
   },
   zh: {
     increase_liquidity: '增加流动性',
-    add_more_Liquidity: 'Add more liquidity',
+    add_more_Liquidity: 'Add More Liquidity',
   },
 } as const;
 

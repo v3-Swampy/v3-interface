@@ -16,17 +16,17 @@ import Decimal from 'decimal.js';
 const transitions = {
   en: {
     settings: 'Settings',
-    slippage_tolerance: 'Slippage tolerance',
+    slippage_tolerance: 'Slippage Tolerance',
     slippage_tolerance_tooltip: 'Your transaction will revert if the price changes unfavorably by more than this percentage.',
     slippage_tolerance_risk_tip: 'Your transaction may be frontrun',
     auto: 'Auto',
-    transaction_deadline: 'Transaction deadline',
+    transaction_deadline: 'Transaction Deadline',
     transaction_deadline_tooltip: 'Your transaction will revert if it is pending for more than this period of time.',
     minutes: 'minutes',
     interface_settings: 'Interface Settings',
     auto_router_api: 'Auto Router API',
     auto_router_api_tooltip: 'Use the WallFreeX API to get faster quotes.',
-    expert_mode: 'Expert mode',
+    expert_mode: 'Expert Mode',
     expert_mode_tooltip: 'Allow high price impact trades and skip the confirm screen. Use at your own risk.',
   },
   zh: {

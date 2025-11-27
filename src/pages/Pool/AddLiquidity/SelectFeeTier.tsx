@@ -12,7 +12,7 @@ import { setRecoil } from 'recoil-nexus';
 
 const transitions = {
   en: {
-    select_fee_tier: 'Select fee tier',
+    select_fee_tier: 'Select Fee Tier',
   },
   zh: {
     select_fee_tier: '选择手续费级别',

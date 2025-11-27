@@ -17,7 +17,7 @@ const LastUpdated = () => {
   const updatedAtFormatted = useMemo(() => (!updatedAt ? undefined : dayjs(updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')), [updatedAt]);
   return (
     <span className="mobile:ml-auto self-end text-14px lt-sm:text-12px text-gray-normal font-medium whitespace-nowrap lt-mobile:mt-16px">
-      Last updated: {updatedAtFormatted}
+      Last Updated: {updatedAtFormatted}
       <Tooltip text="Data updates hourly">
         <span className="w-12px h-12px ml-6px">
           <InfoIcon className="w-12px h-12px lt-mobile:translate-y-2px" />

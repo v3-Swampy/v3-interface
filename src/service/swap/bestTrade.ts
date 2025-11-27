@@ -178,7 +178,7 @@ export const fetchBestTrade = async ({
       } else {
         return {
           state: TradeState.ERROR,
-          error: isNoRoute ? 'No Valid Route Found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
+          error: isNoRoute ? 'No valid route found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
         };
       }
     }
@@ -256,7 +256,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
         } else {
           setBestTrade({
             state: TradeState.ERROR,
-            error: isNoRoute ? 'No Valid Route Found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
+            error: isNoRoute ? 'No valid route found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
           });
         }
       }

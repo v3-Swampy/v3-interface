@@ -11,7 +11,7 @@ import { formatDisplayAmount } from '@utils/numberUtils';
 
 const transitions = {
   en: {
-    unclaimed_rewards: 'Unclaimed Rewards',
+    unclaimed_rewards: 'Unclaimed Farming Rewards',
   },
   zh: {
     unclaimed_rewards: '待获取奖励',

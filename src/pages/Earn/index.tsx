@@ -21,7 +21,7 @@ const transitions = {
     myPositions: 'My Positions',
     allPools: 'All Pools',
     new_position: 'New Position',
-    farms_only: 'Farms only',
+    farms_only: 'Farms Only',
   },
   zh: {
     earn: '挖矿',
@@ -29,7 +29,7 @@ const transitions = {
     myPositions: 'My Positions',
     allPools: 'All Pools',
     new_position: '新仓位',
-    farms_only: 'Farms only',
+    farms_only: 'Farms Only',
   },
 } as const;
 

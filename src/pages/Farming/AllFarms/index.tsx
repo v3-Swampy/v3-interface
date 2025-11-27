@@ -50,7 +50,7 @@ const APRDetail: React.FC<{ aprData: APRData }> = memo(({ aprData }) => {
   if (!aprData) return null;
   return (
     <BorderBox variant="gradient-white" className="max-w-90vw w-370px p-16px rounded-28px">
-      <p className="text-12px text-black-normal font-medium leading-20px">Estimated according to trading activity in the past24 hours plus mining and farming rewards</p>
+      <p className="text-12px text-black-normal font-medium leading-20px">Estimated based on trading activity over the past 24 hours, including LP fees and farming rewards.</p>
       <div className="mt-18px mb-12px text-18px text-black-normal font-medium flex items-center">
         Mining
         <img src={MiningIcon} alt="Mining" className="ml-5px w-20px h-20px" />
