@@ -179,7 +179,7 @@ interface Props {
 }
 
 const DepositAmount: React.FC<
-  Pick<Props, 'register' | 'setValue' | 'isRangeValid' | 'fee' | 'tokenA' | 'getValues'> & {
+  Pick<Props, 'register' | 'setValue' | 'isRangeValid' | 'fee' | 'getValues'> & {
     token: Token | null | undefined;
     pairToken: Token | null | undefined;
     type: 'tokenA' | 'tokenB';
@@ -190,7 +190,7 @@ const DepositAmount: React.FC<
     isOutOfRange: boolean;
     isPairTokenOutOfRange: boolean;
   }
-> = ({ type, tokenA, token, pairToken, priceTokenA, isRangeValid = true, isOutOfRange, isPairTokenOutOfRange, priceLower, priceUpper, fee, getValues, register, setValue }) => {
+> = ({ type, token, pairToken, priceTokenA, isRangeValid = true, isOutOfRange, isPairTokenOutOfRange, priceLower, priceUpper, fee, getValues, register, setValue }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
   const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
@@ -218,11 +218,7 @@ const DepositAmount: React.FC<
       const sqrtA = BigInt(TickMath.getSqrtRatioAtTick(typeof tickLower === 'number' ? tickLower : parseInt(tickLower.toDecimalMinUnit())).toString());
       const sqrtB = BigInt(TickMath.getSqrtRatioAtTick(typeof tickUpper === 'number' ? tickUpper : parseInt(tickUpper.toDecimalMinUnit())).toString());
 
-      const isThisTokenEqualsTokenA = isTokenEqual(token, tokenA);
       const currentInputAmount = new Unit(newAmount);
-
-      // const temp = new Unit(1).div(priceTokenA.sqrt()).sub(new Unit(1).div(usedPriceUpper.sqrt())).div(priceTokenA.sqrt().sub(usedPriceLower.sqrt()));
-      // const pairTokenExpectedAmount = currentInputAmount.mul(!isThisTokenEqualsTokenA ? temp : invertPrice(temp));
 
       // 将输入金额转换为最小单位的 bigint
       const amount = BigInt(currentInputAmount.mul(new Unit(10).pow(token.decimals)).toDecimalMinUnit(0));
@@ -365,21 +361,6 @@ const DepositAmounts: React.FC<Props> = ({
   register,
 }) => {
   const i18n = useI18n(transitions);
-  const priceLower = useMemo(() => {
-    try {
-      return _priceLower ? new Unit(_priceLower) : undefined;
-    } catch (_) {
-      return undefined;
-    }
-  }, [_priceLower]);
-  const priceUpper = useMemo(() => {
-    try {
-      return _priceUpper ? new Unit(_priceUpper) : undefined;
-    } catch (_) {
-      return undefined;
-    }
-  }, [_priceUpper]);
-
   const { pool } = usePool({ tokenA, tokenB, fee });
 
   const _priceTokenA = useMemo(
@@ -387,13 +368,38 @@ const DepositAmounts: React.FC<Props> = ({
     [tokenA?.address, pool, priceInit]
   );
 
-
   const token0 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB) : null;
-  const firstToken = token0 === tokenA ? { token: tokenA, pairToken: tokenB, type: 'tokenA' as const } : { token: tokenB, pairToken: tokenA, type: 'tokenB' as const };
-  const secondToken = token0 === tokenA ? { token: tokenB, pairToken: tokenA, type: 'tokenB' as const } : { token: tokenA, pairToken: tokenB, type: 'tokenA' as const };
-  const priceTokenA = token0 === tokenA ? _priceTokenA : _priceTokenA ? invertPrice(_priceTokenA) : null;
+  const token1 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenB : tokenA) : null;
+  const isTokenAEqualsToken0 = token0 && tokenA ? isTokenEqual(token0, tokenA) : false;
+  const firstToken = {
+    token: token0,
+    pairToken: token1,
+    type: (isTokenAEqualsToken0 ? 'tokenA' : 'tokenB') as 'tokenA' | 'tokenB',
+  };
 
-  // console.log(priceTokenA?.toDecimalMinUnit(), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
+  const secondToken = {
+    token: token1,
+    pairToken: token0,
+    type: (isTokenAEqualsToken0 ? 'tokenB' : 'tokenA') as 'tokenA' | 'tokenB',
+  };
+  const priceTokenA = isTokenAEqualsToken0 ? _priceTokenA : _priceTokenA ? invertPrice(_priceTokenA) : null;
+
+  const priceLower = useMemo(() => {
+    try {
+      return _priceLower ? new Unit(isTokenAEqualsToken0 ? _priceLower : invertPrice(_priceUpper)) : undefined;
+    } catch (_) {
+      return undefined;
+    }
+  }, [_priceLower, _priceUpper, isTokenAEqualsToken0]);
+  const priceUpper = useMemo(() => {
+    try {
+      return _priceUpper ? new Unit(isTokenAEqualsToken0 ? _priceUpper : invertPrice(_priceLower)) : undefined;
+    } catch (_) {
+      return undefined;
+    }
+  }, [_priceLower, _priceUpper, isTokenAEqualsToken0]);
+
+  console.log(priceTokenA?.toDecimalMinUnit(), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
 
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
   const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;
@@ -409,7 +415,6 @@ const DepositAmounts: React.FC<Props> = ({
     <div className={cx('mt-24px flex-grow-1 flex flex-col', !isValidToInput && 'opacity-50 pointer-events-none')}>
       <p className="mb-8px leading-18px text-14px text-black-normal ml-8px font-normal">{title || i18n.deposit_amounts}</p>
       <DepositAmount
-        tokenA={tokenA}
         {...firstToken}
         priceTokenA={priceTokenA}
         priceLower={priceLower}
@@ -424,7 +429,6 @@ const DepositAmounts: React.FC<Props> = ({
         fee={fee}
       />
       <DepositAmount
-        tokenA={tokenA}
         {...secondToken}
         priceTokenA={priceTokenA}
         priceLower={priceLower}

@@ -12,8 +12,8 @@ import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClick
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import PairInfo from './PairInfo';
 import SubmitButton from './SubmitButton';
-import { useInvertedState } from '@modules/Position/invertedState';
 import { invertPrice } from '@service/pairs&pool';
+import { isTokenEqual } from '@service/tokens';
 
 const transitions = {
   en: {
@@ -35,15 +35,11 @@ const IncreaseLiquidity: React.FC = () => {
   const { tokenId } = useParams();
 
   const position = usePosition(Number(tokenId));
-  const { leftToken, rightToken, fee, priceLower, priceUpper } = position ?? {};
+  const { leftToken, rightToken, fee, priceLower: _priceLower, priceUpper: _priceUpper, token0 } = position ?? {};
 
-  const token0 = leftToken && rightToken ? (leftToken.address.toLowerCase() < rightToken.address.toLowerCase() ? leftToken : rightToken) : null;
-  let _priceLower = priceLower;
-  let _priceUpper = priceUpper;
-  if (token0 !== leftToken) {
-    _priceLower = invertPrice(priceUpper);
-    _priceUpper = invertPrice(priceLower);
-  }
+  const priceLower = isTokenEqual(token0!, leftToken!) ? _priceLower : invertPrice(_priceUpper!);
+  const priceUpper = isTokenEqual(token0!, leftToken!) ? _priceUpper : invertPrice(_priceLower!);
+
 
   const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitIncreasePositionLiquidity } = useInTransaction(_handleClickSubmitIncreasePositionLiquidity);
   const onSubmit = useCallback(
@@ -79,10 +75,10 @@ const IncreaseLiquidity: React.FC = () => {
                 register={register}
                 setValue={setValue}
                 getValues={getValues}
-                tokenA={token0 === leftToken ? leftToken : rightToken}
-                tokenB={token0 === leftToken ? rightToken : leftToken}
-                priceLower={_priceLower}
-                priceUpper={_priceUpper}
+                tokenA={leftToken}
+                tokenB={rightToken}
+                priceLower={priceLower}
+                priceUpper={priceUpper}
                 fee={fee}
                 isRangeValid={true}
               />
