@@ -13,13 +13,16 @@ const AuthConnectButton: React.FC<ComponentProps<typeof Button>> = ({ children, 
   const chainId = useChainId();
   const chainMatch = chainId === targetChainId;
 
-  const handleClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>((evt) => {
-    if (!account) {
-      showAccountConnector();
-    } else {
-      switchChain();
-    }
-  }, [account, chainMatch]);
+  const handleClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>(
+    (evt) => {
+      if (!account) {
+        showAccountConnector();
+      } else {
+        switchChain();
+      }
+    },
+    [account, chainMatch]
+  );
 
   if (account && chainMatch) return children as React.ReactElement;
   return (
@@ -27,6 +30,51 @@ const AuthConnectButton: React.FC<ComponentProps<typeof Button>> = ({ children, 
       {!account && 'Connect Wallet'}
       {!!account && !chainMatch && 'Switch Network'}
     </Button>
+  );
+};
+
+export const NavbarAuthConnectButton: React.FC<ComponentProps<typeof Button>> = ({ children, ...props }) => {
+  const account = useAccount();
+  const chainId = useChainId();
+  const chainMatch = chainId === targetChainId;
+
+  const handleClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>(
+    (evt) => {
+      if (!account) {
+        showAccountConnector();
+      } else {
+        switchChain();
+      }
+    },
+    [account, chainMatch]
+  );
+
+  if (account && chainMatch) return children as React.ReactElement;
+  return (
+    <>
+      <Button
+        id="auth-connect-btn"
+        onClick={handleClick}
+        type="button"
+        {...props}
+        className="lt-mobile:hidden flex-shrink-0 mobile:min-w-144px h-40px text-14px px-8px rounded-100px"
+      >
+        {!account && 'Connect Wallet'}
+        {!!account && !chainMatch && 'Switch Network'}
+      </Button>
+      <button
+        id="auth-connect-btn"
+        onClick={handleClick}
+        type="button"
+        {...props}
+        className="mobile:hidden flex-shrink-0 h-32px text-14px !px-16px rounded-100px [background:white]"
+      >
+        <span className="text-gradient-orange">
+          {!account && 'Connect '}
+          {!!account && !chainMatch && 'Switch'}
+        </span>
+      </button>
+    </>
   );
 };
 

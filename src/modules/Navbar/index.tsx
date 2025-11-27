@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import cx from 'clsx';
 import { useAccount } from '@service/account';
-import AuthConnectButton from '@modules/AuthConnectButton';
+import { NavbarAuthConnectButton } from '@modules/AuthConnectButton';
 import { ReactComponent as Logo } from '@assets/icons/logo.svg';
 import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo.svg';
 import { ReactComponent as SmallLogo } from '@assets/icons/logo_icon.svg';
@@ -62,9 +62,9 @@ const Navbar: React.FC = () => {
           <span className="lt-lg:hidden">Conflux eSpace</span>
         </div>
 
-        <AuthConnectButton className="flex-shrink-0 min-w-144px h-40px text-14px px-8px rounded-100px" color="gradient">
+        <NavbarAuthConnectButton color="gradient">
           {account && <AccountDetailDropdown account={account} />}
-        </AuthConnectButton>
+        </NavbarAuthConnectButton>
       </nav>
     </header>
   );

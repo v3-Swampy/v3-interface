@@ -51,7 +51,7 @@ const getDefaultRange = (tokenA: Token | null | undefined, tokenB: Token | null 
   const isStableB = stableCoins.includes(tokenB.symbol);
   const isMajorA = majorCoins.includes(tokenA.symbol);
   const isMajorB = majorCoins.includes(tokenB.symbol);
-  
+
   if (isStableA && isStableB) return 1;
   if ((isStableA || isMajorA) && (isStableB || isMajorB)) return 10;
   return 20;
@@ -410,15 +410,19 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
 
       {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}
 
-      <div className="mt-16px flex items-center gap-16px select-none">
+      <div className="mt-16px flex items-center gap-16px select-none lt-mobile:flex-col">
         <div
-          className={cx('flex justify-between items-center px-16px rounded-100px border-2px border-solid border-orange-light text-14px', !priceTokenA && 'pointer-events-none')}
+          className={cx(
+            'flex-grow-1 flex-shrink-1 flex justify-between items-center lt-mobile:w-full',
+            'px-16px rounded-100px border-2px border-solid border-orange-light text-14px',
+            !priceTokenA && 'pointer-events-none'
+          )}
         >
           {ranges.map((range) => (
             <div
               key={range}
               className={cx(
-                'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer',
+                'flex justify-center items-center h-40px font-normal text-gray-normal cursor-pointer',
                 !priceTokenA && 'text-gray-light pointer-events-none',
                 selectedRange === range && 'text-orange-normal'
               )}
@@ -429,8 +433,8 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
           ))}
           <div
             className={cx(
-              'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
-              !priceTokenA && 'text-gray-normal pointer-events-none',
+              'flex justify-center items-center h-40px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
+              !priceTokenA && 'text-gray-light pointer-events-none',
               selectedRange === 'full' && 'text-orange-normal'
             )}
             onClick={handleSetFullRange}
@@ -438,9 +442,10 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
             {i18n.full_range}
           </div>
         </div>
-        <div className={cx('flex items-center px-16px rounded-100px border-2px border-solid border-orange-light')}>
+        <div className={cx('flex items-center px-16px rounded-100px border-2px border-solid border-orange-light lt-mobile:w-full lt-mobile:justify-center')}>
           <Input
             className={cx('w-56px h-40px text-14px text-gray-normal focus:text-black-normal', selectedRange === 'custom' && 'text-orange-normal')}
+            wrapperClassName="lt-mobile:w-fit"
             placeholder="Custom"
             max={100}
             min={0}
