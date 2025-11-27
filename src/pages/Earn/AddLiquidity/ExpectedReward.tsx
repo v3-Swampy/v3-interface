@@ -160,7 +160,7 @@ const ExpectedReward: React.FC<Props> = ({
       <div className="flex items-start w-full">
         <div className="flex flex-col flex-1 min-w-0">
           <span className="inline-flex items-center mb-8px text-14px leading-18px font-medium">
-            Expected Reward Per Day
+            Expected Farming Rewards Per Day
             <Tooltip text="Estimated rewards distributed to you in this pool per day. Rewards are only earned when your position is in range.">
               <span className="w-12px h-12px ml-6px -translate-y-1px">
                 <InfoIcon className="w-12px h-12px" />

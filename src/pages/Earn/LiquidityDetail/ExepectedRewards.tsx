@@ -14,7 +14,7 @@ import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
 
 const transitions = {
   en: {
-    expect_rewards: 'Expected Reward Per Day',
+    expect_rewards: 'Expected Farming Rewards Per Day',
   },
   zh: {
     expect_rewards: '预期每日奖励',

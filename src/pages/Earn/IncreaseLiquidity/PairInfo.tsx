@@ -8,11 +8,11 @@ import TokenPairAmount from '@modules/Position/TokenPairAmount';
 const transitions = {
   en: {
     feeTier: 'Fee Tier',
-    addMoreLiquidity: 'Add more liquidity',
+    addMoreLiquidity: 'Add More Liquidity',
   },
   zh: {
     feeTier: 'Fee Tier',
-    addMoreLiquidity: 'Add more liquidity',
+    addMoreLiquidity: 'Add More Liquidity',
   },
 } as const;
 

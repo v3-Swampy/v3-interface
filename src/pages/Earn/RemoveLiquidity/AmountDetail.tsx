@@ -83,7 +83,7 @@ const AmountDetail: React.FC<{
         unclaimedRewardsInfo?.map((reward) => (
           <AmountItem
             key={reward.token?.address}
-            title={`${reward.token?.symbol} rewards earned`}
+            title={`${reward.token?.symbol} Rewards Earned`}
             tokenSymbol={reward.token?.symbol!}
             amount={reward.unclaimedReward}
             logoURI={reward.token?.logoURI ?? ''}
