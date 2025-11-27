@@ -387,12 +387,13 @@ const DepositAmounts: React.FC<Props> = ({
     [tokenA?.address, pool, priceInit]
   );
 
-  // console.log(_priceTokenA?.toDecimalMinUnit(), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
 
   const token0 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB) : null;
   const firstToken = token0 === tokenA ? { token: tokenA, pairToken: tokenB, type: 'tokenA' as const } : { token: tokenB, pairToken: tokenA, type: 'tokenB' as const };
   const secondToken = token0 === tokenA ? { token: tokenB, pairToken: tokenA, type: 'tokenB' as const } : { token: tokenA, pairToken: tokenB, type: 'tokenA' as const };
   const priceTokenA = token0 === tokenA ? _priceTokenA : _priceTokenA ? invertPrice(_priceTokenA) : null;
+
+  // console.log(priceTokenA?.toDecimalMinUnit(), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
 
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
   const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;
