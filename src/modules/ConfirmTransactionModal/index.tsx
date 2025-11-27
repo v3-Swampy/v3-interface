@@ -101,7 +101,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   if (step === Step.WaitReceipt) {
     return (
       <div className="absolute left-0 w-full top-1/2 lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
-        <Spin className="mb-62px mx-auto block text-88px text-black-normal" />
+        <Spin className="mb-40px mx-auto block text-88px text-black-normal" />
         <p className="leading-28px text-center text-22px text-black-normal">Waiting for confirmation</p>
         {recordParams && (
           <p className="px-36px leading-28px text-center text-22px text-black-normal">
@@ -116,8 +116,8 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
   if (step === Step.Success) {
     return (
       <>
-        <div className="absolute left-0 w-full top-1/2 lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
-          <SuccessIcon className="mx-auto block w-92px h-70px mb-80px" />
+        <div className="absolute left-0 w-full top-[calc(50%-12px)] lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
+          <SuccessIcon className="mx-auto block w-92px h-70px mb-24px" />
           <p className="leading-28px text-22px text-black-normal">Transaction submitted</p>
           {tokenNeededAdd && (
             <div
@@ -159,7 +159,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
     return (
       <>
         <div className="absolute left-0 w-full top-1/2 lt-mobile:top-[calc(50%-60px)] -translate-y-1/2 text-center whitespace-nowrap">
-          <FailedIcon className="mx-auto block w-70px h-70px mb-80px" />
+          <FailedIcon className="mx-auto block w-70px h-70px mb-32px" />
           <p className="leading-28px text-22px text-black-normal">Transaction Rejected</p>
           <p className="mt-16px text-center leading-18px text-14px text-gray-normal font-normal opacity-0 pointer-events-none">placeHolder</p>
         </div>
