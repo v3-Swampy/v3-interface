@@ -68,18 +68,11 @@ export const positionFeesSelector = selectorFamily({
     },
 });
 
-export const handleCollectFees = async ({
-  tokenId,
-  refreshPositionFees,
-  unclaimedRewards,
-}: {
-  tokenId: number;
-  refreshPositionFees: VoidFunction;
-  unclaimedRewards: UnclaimedRewardInfo[] | undefined;
-}) => {
+export const handleCollectFees = async ({ tokenId, refreshPositionFees }: { tokenId: number; refreshPositionFees: VoidFunction }) => {
   const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
   const owner = getPositionOwner(tokenId);
   const position = getPosition(tokenId);
+  const { unclaimedRewards }: { unclaimedRewards?: UnclaimedRewardInfo[] } = position || {};
   // 提取所有奖励 token 地址
   const rewardTokens = (unclaimedRewards?.map((reward) => getWrapperTokenByAddress(reward.rewardTokenInfo?.address)?.address).filter(Boolean) as string[]) || [];
   const [fee0, fee1] = getPositionFees(tokenId);
