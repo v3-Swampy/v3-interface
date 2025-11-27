@@ -12,6 +12,8 @@ import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClick
 import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
 import PairInfo from './PairInfo';
 import SubmitButton from './SubmitButton';
+import { useInvertedState } from '@modules/Position/invertedState';
+import { invertPrice } from '@service/pairs&pool';
 
 const transitions = {
   en: {
@@ -32,8 +34,16 @@ const IncreaseLiquidity: React.FC = () => {
 
   const { tokenId } = useParams();
 
+  const [inverted] = useInvertedState(tokenId);
+
   const position = usePosition(Number(tokenId));
   const { leftToken, rightToken, fee, priceLower, priceUpper } = position ?? {};
+  let _priceLower = priceLower;
+  let _priceUpper = priceUpper;
+  if (!inverted) {
+    _priceLower = invertPrice(priceUpper);
+    _priceUpper = invertPrice(priceLower);
+  }
 
   const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitIncreasePositionLiquidity } = useInTransaction(_handleClickSubmitIncreasePositionLiquidity);
   const onSubmit = useCallback(
@@ -69,10 +79,10 @@ const IncreaseLiquidity: React.FC = () => {
                 register={register}
                 setValue={setValue}
                 getValues={getValues}
-                tokenA={leftToken}
-                tokenB={rightToken}
-                priceLower={priceLower}
-                priceUpper={priceUpper}
+                tokenA={!inverted ? leftToken : rightToken}
+                tokenB={!inverted ? rightToken : leftToken}
+                priceLower={_priceLower}
+                priceUpper={_priceUpper}
                 fee={fee}
                 isRangeValid={true}
               />
