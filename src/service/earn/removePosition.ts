@@ -23,8 +23,8 @@ export const handleSubmitRemoveLiquidity = async ({
   const account = getAccount();
   const tokenIdNum = Number(tokenId);
   const position = getPosition(tokenIdNum);
-  const { liquidity: positionLiquidity, token0, token1 } = position || {};
-  if (!account || !tokenId || !token0 || !token1 || !positionLiquidity) return '';
+  const { liquidity: positionLiquidity } = position || {};
+  if (!account || !tokenId || !positionLiquidity) return '';
 
   const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
 
