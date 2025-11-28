@@ -4,6 +4,7 @@ import { getDeadline } from '@service/settings';
 import { getAccount, sendTransaction } from '@service/account';
 import showRemoveLiquidityModal from '@pages/Earn/RemoveLiquidity/RemoveLiquidityModal';
 import { getPosition } from './positionDetail';
+import { getWrapperTokenByAddress } from '@service/tokens';
 
 export const handleSubmitRemoveLiquidity = async ({
   tokenId,
@@ -23,8 +24,10 @@ export const handleSubmitRemoveLiquidity = async ({
   const account = getAccount();
   const tokenIdNum = Number(tokenId);
   const position = getPosition(tokenIdNum);
-  const { liquidity: positionLiquidity } = position || {};
+  const { liquidity: positionLiquidity, unclaimedRewards } = position || {};
   if (!account || !tokenId || !positionLiquidity) return '';
+
+  const rewardTokens = (unclaimedRewards?.map((reward) => getWrapperTokenByAddress(reward.rewardTokenInfo?.address)?.address).filter(Boolean) as string[]) || [];
 
   const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
 
@@ -38,6 +41,7 @@ export const handleSubmitRemoveLiquidity = async ({
       amount1Min: 0,
       deadline: getDeadline(),
     },
+    rewardTokens,
   ]);
 
   const transactionParams = {

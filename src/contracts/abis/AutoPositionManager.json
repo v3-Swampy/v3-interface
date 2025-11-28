@@ -173,6 +173,11 @@
         "internalType": "struct INonfungiblePositionManager.DecreaseLiquidityParams",
         "name": "params",
         "type": "tuple"
+      },
+      {
+        "internalType": "address[]",
+        "name": "rewardTokens",
+        "type": "address[]"
       }
     ],
     "name": "decreaseLiquidity",
