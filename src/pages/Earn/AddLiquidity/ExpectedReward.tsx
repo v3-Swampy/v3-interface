@@ -152,7 +152,7 @@ const ExpectedReward: React.FC<Props> = ({
     return () => {
       canceled = true;
     };
-  }, [account, matchedPool, debouncedLiquidityHex]);
+  }, [account, matchedPool,debouncedLiquidityHex, _amountTokenA, _amountTokenB]);
 
   if (!account || !matchedPool || !matchedPool.incentives?.length || rewardsPerDay === undefined) return null;
   return (
