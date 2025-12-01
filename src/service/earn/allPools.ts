@@ -83,7 +83,7 @@ export const poolsQuery = selectorFamily({
             return {
               token0Address: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
               token1Address: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
-              fee: pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString(),
+              fee: Number(pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString()),
             };
           })
         : [];
