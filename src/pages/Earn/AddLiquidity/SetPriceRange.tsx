@@ -24,7 +24,8 @@ const transitions = {
       'This pool must be initialized before you can add liquidity. To initialize, select a starting price for the pool. Then, enter your liquidity price range and deposit amount. Gas fees will be higher than usual due to the initialization transaction.',
     current_tokenA_price: 'Current {tokenASymbol} Price',
     set_starting_price: 'Set Starting Price',
-    invalid_range: 'Invalid range selected. The min price must be lower than the max price.',
+    lowerThanUpper: 'Invalid range selected. The min price must be lower than the max price.',
+    invalid_range: 'Invalid range selected.',
   },
   zh: {
     set_price_range: '设置价格范围',
@@ -37,7 +38,8 @@ const transitions = {
       '在你增加流动性之前，这个资金池必须被初始化。要初始化，为资金池选择一个起始价格。然后，输入你的流动资金价格范围和存款金额。由于初始化交易，气体费用将比平时高。',
     current_tokenA_price: '当前 {tokenASymbol} 价格',
     set_starting_price: '设置一个初始价格',
-    invalid_range: '选择的范围无效。最小兑换率必须低于最大兑换率。',
+    lowerThanUpper: '选择的范围无效。最小兑换率必须低于最大兑换率。',
+    invalid_range: '选择的范围无效。',
   },
 } as const;
 
@@ -61,7 +63,7 @@ interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
   getValues: UseFormGetValues<FieldValues>;
-  isRangeValid: boolean | null;
+  isRangeValid: boolean | string | null;
   priceInit: string;
   priceLower: string;
   priceUpper: string;
@@ -408,7 +410,11 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
         />
       </div>
 
-      {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}
+      {isRangeValid !== true && 
+        <div className="mt-6px text-12px text-error-normal">
+          {isRangeValid === 'lowerThanUpper' ? i18n.lowerThanUpper : i18n.invalid_range}
+        </div>
+      }
 
       <div className="mt-16px flex items-center gap-16px select-none lt-mobile:flex-col">
         <div

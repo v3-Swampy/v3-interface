@@ -48,7 +48,17 @@ const AddLiquidity: React.FC = () => {
   /** null means range not input */
   const isRangeValid = useMemo(() => {
     try {
-      return priceLower && priceUpper ? (new Unit(priceUpper).greaterThan(new Unit(0)) ? new Unit(priceLower).lessThan(new Unit(priceUpper)) : true) : null;
+      if (!priceLower || !priceUpper) return null;
+      if (priceUpper === 'Infinity' && priceLower !== 'Infinity') {
+        return true;
+      }
+
+      const lower = new Unit(priceLower);
+      const upper = new Unit(priceUpper);
+
+      if (upper.greaterThan(new Unit(2).pow(120)) || lower.lessThan(new Unit(2).pow(-120))) return 'invalidRange';
+      if (upper.lessThanOrEqualTo(new Unit(0))) return 'invalidRange';
+      return lower.lessThan(upper) ? true : 'lowerThanUpper';
     } catch {
       return null;
     }
@@ -195,7 +205,7 @@ const AddLiquidity: React.FC = () => {
                 />
               )}
 
-              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} disabled={!tokenA || !tokenB || !isRangeValid} />
+              <SubmitButton amountTokenA={amountTokenA} amountTokenB={amountTokenB} inSubmitCreate={inSubmitCreate} disabled={!tokenA || !tokenB || isRangeValid !== true} />
             </div>
           </BorderBox>
         </form>
