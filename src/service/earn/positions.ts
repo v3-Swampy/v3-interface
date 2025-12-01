@@ -198,6 +198,7 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
     );
     enhancedPositions.sort((a, b) => {
       if (a.positionStatus === PositionStatus.Closed && b.positionStatus !== PositionStatus.Closed) return 1;
+      if (a.positionStatus !== PositionStatus.Closed && b.positionStatus === PositionStatus.Closed) return -1;
       return b.tokenId - a.tokenId;
     });
     return enhancedPositions;
