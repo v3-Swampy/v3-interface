@@ -164,7 +164,7 @@ interface Props {
   /** When creating Position, the lower price may be greater than the upper price.
    * However, when creating and removing, it is definitely true.
    * */
-  isRangeValid: boolean | null;
+  isRangeValid: boolean | string | null;
   /**
    * When creating Position, pool may not exist.
    * So there will be a manually entered priceInit value
@@ -287,7 +287,7 @@ const DepositAmount: React.FC<
             <Input
               className="text-24px pr-32px lt-mobile:text-16px"
               clearIcon
-              disabled={!isRangeValid}
+              disabled={isRangeValid !== true}
               placeholder="0"
               id={`input--${type}-amount`}
               type="number"
@@ -401,7 +401,7 @@ const DepositAmounts: React.FC<Props> = ({
 
   console.log(priceTokenA?.toDecimalMinUnit(), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
 
-  const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && !!isRangeValid;
+  const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && isRangeValid === true;
   const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;
   const isPriceUpperLessThanCurrentPrice = priceTokenA && priceUpper && !priceUpper.isNaN() ? priceTokenA.greaterThanOrEqualTo(priceUpper) : false;
 
