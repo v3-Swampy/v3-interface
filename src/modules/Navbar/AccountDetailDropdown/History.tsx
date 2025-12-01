@@ -14,6 +14,7 @@ import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositionsForUI as useRefreshPositions, useRefreshPoolsQuery } from '@service/earn';
 import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST, useRefreshBoostFactor, useRefreshVeTotalSuppply } from '@service/staking';
 import { useRefreshMyFarms } from '@service/farming';
+import { waitSeconds } from '@utils/waitAsyncResult';
 
 export const transitions = {
   en: {
@@ -81,7 +82,10 @@ export const useRefreshData = () => {
   const refreshMyFarms = useRefreshMyFarms();
 
   return {
-    refreshPositions,
+    refreshPositions: useCallback(async () => {
+      await waitSeconds(0.5); // wait for subgraph
+      refreshPositions();
+    }, [refreshPositions]),
     // refreshStakedTokenIds,
     refreshUserInfo,
     refreshPoolsQuery,
