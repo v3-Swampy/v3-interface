@@ -49,7 +49,7 @@ const SelectTokenWarning: React.FC<{ tokenSymbol: string; tokenAddress: string; 
           <span className="token-warning-text">{i18n.warning}</span>
         </div>
         <p className="text-black-normal text-16px leading-20px mb-32px">{compiled(i18n.add_warning_desc, { tokenSymbol })}</p>
-        <div className="bg-orange-light-hover rounded-32px flex items-center justify-center w-full py-4px text-orange-normal text-14px leading-18px">
+        <div className="bg-orange-light-hover rounded-32px flex items-center justify-center w-full py-4px px-8px text-orange-normal text-14px leading-18px">
           <span className="w-275px text-ellipsis overflow-hidden">{scanUrl}</span>
           <a className="w-24px h-24px flex items-center justify-center rounded-24px bg-orange-light cursor-pointer mx-4px" target="_blank" rel="noopener noreferrer" href={scanUrl}>
             <ShareIcon className="w-12px h-12px text-orange-normal" />

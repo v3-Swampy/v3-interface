@@ -7,7 +7,7 @@ import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import { usePool } from '@service/pairs&pool';
 import { usePools } from '@service/earn';
-import { getUnwrapperTokenByAddress } from '@service/tokens';
+import { getUnwrapperTokenByAddress, getWrapperTokenByAddress } from '@service/tokens';
 import { getTokensPrice, FeeAmount, calcLiquidityFromAmounts } from '@service/pairs&pool';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
@@ -42,8 +42,8 @@ interface Props {
 }
 
 const ExpectedReward: React.FC<Props> = ({
-  tokenA,
-  tokenB,
+  tokenA: _tokenA,
+  tokenB: _tokenB,
   fee,
   amountTokenA: _amountTokenA,
   amountTokenB: _amountTokenB,
@@ -52,7 +52,9 @@ const ExpectedReward: React.FC<Props> = ({
   priceUpper: __priceUpper,
 }) => {
   const account = useAccount();
-  const { pool } = usePool({ tokenA, tokenB, fee });
+  const { pool } = usePool({ tokenA: _tokenA, tokenB: _tokenB, fee });
+  const tokenA = getWrapperTokenByAddress(_tokenA.address)!;
+  const tokenB = getWrapperTokenByAddress(_tokenB.address)!;
   const pools = usePools();
   const matchedPool = useMemo(() => pools?.find((p) => p.poolAddress.toLowerCase() === pool?.address?.toLowerCase()), [pools, pool?.address]);
 
@@ -149,13 +151,16 @@ const ExpectedReward: React.FC<Props> = ({
         };
       });
 
-      const rewardsPerDay = matchedPool.incentiveKeys.map(({ rewardTokenInfo }, index) => {
-        const estimateRewardRate = estimateRewardRates[index];
-        return {
-          tokenInfo: getUnwrapperTokenByAddress(rewardTokenInfo?.address) ?? rewardTokenInfo,
-          rewardsPerDay: new Unit(estimateRewardRate.rewardsPerSecondX32).div(new Unit(2 ** 32)).mul(86400),
-        };
-      });
+      const rewardsPerDay = matchedPool.incentiveKeys
+        .map(({ rewardTokenInfo }, index) => {
+          const estimateRewardRate = estimateRewardRates[index];
+          return {
+            tokenInfo: getUnwrapperTokenByAddress(rewardTokenInfo?.address) ?? rewardTokenInfo,
+            rewardsPerDay: new Unit(estimateRewardRate.rewardsPerSecondX32).div(new Unit(2 ** 32)).mul(86400),
+            rewardsPerSecondX32: estimateRewardRate.rewardsPerSecondX32,
+          };
+        })
+        .filter(({ rewardsPerSecondX32 }) => rewardsPerSecondX32 > 0n);
       setRewardsPerDay(rewardsPerDay);
       getTokensPrice(rewardsPerDay.map(({ tokenInfo }) => tokenInfo.address)).then((prices) => {
         if (canceled) return;
