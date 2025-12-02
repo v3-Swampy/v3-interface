@@ -102,6 +102,7 @@ const ExpectedReward: React.FC<Props> = ({
       setRewardsPerDayTotalPrice(undefined);
       return;
     }
+    console.log(matchedPool)
     let canceled = false;
 
     const runGetRewardsPerDay = async () => {
