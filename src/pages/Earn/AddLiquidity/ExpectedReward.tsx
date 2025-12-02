@@ -131,13 +131,16 @@ const ExpectedReward: React.FC<Props> = ({
         };
       });
 
-      const rewardsPerDay = matchedPool.incentiveKeys.map(({ rewardTokenInfo }, index) => {
-        const estimateRewardRate = estimateRewardRates[index];
-        return {
-          tokenInfo: getUnwrapperTokenByAddress(rewardTokenInfo?.address) ?? rewardTokenInfo,
-          rewardsPerDay: new Unit(estimateRewardRate.rewardsPerSecondX32).div(new Unit(2 ** 32)).mul(86400),
-        };
-      });
+      const rewardsPerDay = matchedPool.incentiveKeys
+        .map(({ rewardTokenInfo }, index) => {
+          const estimateRewardRate = estimateRewardRates[index];
+          return {
+            tokenInfo: getUnwrapperTokenByAddress(rewardTokenInfo?.address) ?? rewardTokenInfo,
+            rewardsPerDay: new Unit(estimateRewardRate.rewardsPerSecondX32).div(new Unit(2 ** 32)).mul(86400),
+            rewardsPerSecondX32: estimateRewardRate.rewardsPerSecondX32,
+          };
+        })
+        .filter(({ rewardsPerSecondX32 }) => rewardsPerSecondX32 > 0n);
       setRewardsPerDay(rewardsPerDay);
       getTokensPrice(rewardsPerDay.map(({ tokenInfo }) => tokenInfo.address)).then((prices) => {
         const _expectedRewardPerDayTotalPrice =
