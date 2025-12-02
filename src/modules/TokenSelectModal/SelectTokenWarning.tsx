@@ -54,7 +54,7 @@ const SelectTokenWarning: React.FC<{ tokenSymbol: string; tokenAddress: string; 
           <a className="w-24px h-24px flex items-center justify-center rounded-24px bg-orange-light cursor-pointer mx-4px" target="_blank" rel="noopener noreferrer" href={scanUrl}>
             <ShareIcon className="w-12px h-12px text-orange-normal" />
           </a>
-          <Tooltip visible={isCopied} text="Copied!">
+          <Tooltip visible={isCopied} text="Copied!" appendTo="parent">
             <div className="w-24px h-24px flex items-center justify-center rounded-24px bg-orange-light cursor-pointer" onClick={copy}>
               <CopyIcon className="w-12px h-12px text-orange-normal" />
             </div>
