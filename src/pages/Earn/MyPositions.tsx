@@ -1,8 +1,7 @@
-import React, { Suspense, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import dayjs from 'dayjs';
-import Delay from '@components/Delay';
 import Spin from '@components/Spin';
 import PositionStatus from '@modules/Position/PositionStatus';
 import TokenPair from '@modules/Position/TokenPair';
@@ -204,10 +203,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
           <div
             className={`lt-mobile:flex lt-mobile:flex-col lt-mobile:items-end lt-mobile:justify-center lt-mobile:h-full lt-mobile:w-fit lt-mobile:ml-auto lt-mobile:pl-3 ${classNames.splitLine}`}
           >
-            <PositionStatus
-              position={position}
-              className="lt-mobile:flex-col-reverse lt-mobile:gap-1 lt-mobile:[&>svg]:!ml-0"
-            />
+            <PositionStatus position={position} className="lt-mobile:flex-col-reverse lt-mobile:gap-1 lt-mobile:[&>svg]:!ml-0" />
           </div>
         </div>
       </div>
@@ -222,7 +218,6 @@ const PositionsContent: React.FC = () => {
   const [onlyFarms] = useFarmsOnly();
 
   const filteredPositions = onlyFarms ? positions?.filter((position) => position.isRewardActive) : positions;
-
 
   if (!account || !filteredPositions?.length) {
     return (
@@ -259,17 +254,7 @@ const MyPositions: React.FC = () => {
     }
   }, []);
 
-  return (
-    <Suspense
-      fallback={
-        <Delay delay={333}>
-          <Spin className="!block mx-auto text-60px" />
-        </Delay>
-      }
-    >
-      <PositionsContent />
-    </Suspense>
-  );
+  return <PositionsContent />;
 };
 
 export default MyPositions;
