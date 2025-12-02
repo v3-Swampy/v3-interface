@@ -1,4 +1,5 @@
-import React, { memo, useRef, useMemo, useLayoutEffect } from 'react';
+import React, { memo, useRef, useMemo, useLayoutEffect, useEffect } from 'react';
+import { debounce } from 'lodash-es';
 import { type UseFormRegister, type UseFormSetValue, type UseFormGetValues, type FieldValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
@@ -196,6 +197,21 @@ const DepositAmount: React.FC<
   const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
 
   const changePairAmount = useRef<(newAmount: string) => void>(() => {});
+  
+  const debouncedChangePairAmount = useMemo(
+    () =>
+      debounce((val: string) => {
+        changePairAmount.current(val);
+      }, 300),
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedChangePairAmount.cancel();
+    };
+  }, [debouncedChangePairAmount]);
+
   useLayoutEffect(() => {
     changePairAmount.current = (newAmount: string) => {
       if (!priceTokenA || !priceLower || !priceUpper || !token || !pairToken || !fee) return;
@@ -277,6 +293,11 @@ const DepositAmount: React.FC<
     setValue(`amount-${type}`, '');
   }, [fee]);
 
+  const { onChange: onFormChange, ...registerProps } = register(`amount-${type}`, {
+    required: true,
+    min: new Unit(1).toDecimalStandardUnit(undefined, token?.decimals),
+  });
+
   return (
     <div
       className={cx('mt-4px h-94px rounded-16px bg-orange-light-hover flex-grow-1', !isOutOfRange ? 'pt-8px pl-16px pr-8px' : 'flex flex-col justify-center items-center px-24px')}
@@ -291,13 +312,13 @@ const DepositAmount: React.FC<
               placeholder="0"
               id={`input--${type}-amount`}
               type="number"
-              {...register(`amount-${type}`, {
-                required: true,
-                min: new Unit(1).toDecimalStandardUnit(undefined, token?.decimals),
-              })}
+              {...registerProps}
+              onChange={(e) => {
+                onFormChange(e);
+                debouncedChangePairAmount(e.target.value);
+              }}
               min={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
               step={new Unit(1).toDecimalStandardUnit(undefined, token?.decimals)}
-              onBlur={(evt) => changePairAmount.current(evt.target.value)}
               decimals={token?.decimals}
               dynamicFontSize={defaultDynamicFontSize}
               preventMinus
@@ -399,7 +420,6 @@ const DepositAmounts: React.FC<Props> = ({
     }
   }, [_priceLower, _priceUpper, isTokenAEqualsToken0]);
 
-  console.log(priceTokenA?.toDecimalMinUnit(), priceLower?.toDecimalMinUnit(), priceUpper?.toDecimalMinUnit());
 
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && isRangeValid === true;
   const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;

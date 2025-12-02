@@ -48,8 +48,8 @@ const ExpectedReward: React.FC<Props> = ({
   amountTokenA: _amountTokenA,
   amountTokenB: _amountTokenB,
   priceInit: _priceInit,
-  priceLower: _priceLower,
-  priceUpper: _priceUpper,
+  priceLower: __priceLower,
+  priceUpper: __priceUpper,
 }) => {
   const account = useAccount();
   const { pool } = usePool({ tokenA: _tokenA, tokenB: _tokenB, fee });
@@ -68,6 +68,22 @@ const ExpectedReward: React.FC<Props> = ({
   const token0Amount = !!_token0Amount ? _token0Amount : '0';
   const token1Amount = !!_token1Amount ? _token1Amount : '0';
 
+  const _priceLower = useMemo(() => {
+    try {
+      new Unit(__priceLower);
+      return __priceLower;
+    } catch {
+      return '';
+    }
+  }, [__priceLower]);
+  const _priceUpper = useMemo(() => {
+    try {
+      new Unit(__priceUpper);
+      return __priceUpper;
+    } catch {
+      return '';
+    }
+  }, [__priceUpper]);
   const isPriceLowerZero = _priceLower !== '' && new Unit(_priceLower).equals(Zero);
   const isPriceUpperInfinity = _priceUpper === 'Infinity';
 
@@ -98,14 +114,18 @@ const ExpectedReward: React.FC<Props> = ({
   const [rewardsPerDay, setRewardsPerDay] = useState<{ tokenInfo: Token; rewardsPerDay: Unit }[] | undefined>(undefined);
   const [rewardsPerDayTotalPrice, setRewardsPerDayTotalPrice] = useState<string | null | undefined>(undefined);
 
+  const isAmountValid = useMemo(() => {
+    return !!_amountTokenA.trim() && !!_amountTokenB.trim();
+  }, [_amountTokenA, _amountTokenB]);
+
   useEffect(() => {
-    if (!account || !matchedPool?.incentiveKeys?.length || !_amountTokenA.trim() || !_amountTokenB.trim()) {
+    if (!account || !matchedPool?.incentiveKeys?.length || !isAmountValid) {
       setRewardsPerDay(undefined);
       setRewardsPerDayTotalPrice(undefined);
       return;
     }
-    let canceled = false;
 
+    let canceled = false;
     const runGetRewardsPerDay = async () => {
       const estimateRewardRatesQueryMulticall = await fetchChain<string>({
         rpcUrl: import.meta.env.VITE_ESpaceRpcUrl,
@@ -143,6 +163,7 @@ const ExpectedReward: React.FC<Props> = ({
         .filter(({ rewardsPerSecondX32 }) => rewardsPerSecondX32 > 0n);
       setRewardsPerDay(rewardsPerDay);
       getTokensPrice(rewardsPerDay.map(({ tokenInfo }) => tokenInfo.address)).then((prices) => {
+        if (canceled) return;
         const _expectedRewardPerDayTotalPrice =
           rewardsPerDay?.reduce((acc, reward) => {
             const price = prices[reward.tokenInfo.address];
@@ -157,9 +178,9 @@ const ExpectedReward: React.FC<Props> = ({
     return () => {
       canceled = true;
     };
-  }, [account, matchedPool, debouncedLiquidityHex, _amountTokenA, _amountTokenB]);
+  }, [account, matchedPool, debouncedLiquidityHex, isAmountValid]);
 
-  if (!account || !matchedPool || !matchedPool.incentives?.length || rewardsPerDay === undefined) return null;
+  if (!account || !matchedPool || !matchedPool.incentives?.length || !isAmountValid) return null;
   return (
     <div className="mt-16px p-16px flex bg-orange-light-hover flex-col items-start rounded-16px text-black-normal w-full">
       <div className="flex items-start w-full">
@@ -173,11 +194,19 @@ const ExpectedReward: React.FC<Props> = ({
             </Tooltip>
           </span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap font-medium">
-            {rewardsPerDayTotalPrice === undefined ? <Spin /> : rewardsPerDayTotalPrice ?? '-'}
+            {rewardsPerDayTotalPrice === undefined ? (
+              <span className="inline-flex items-center gap-4px">
+                <span >$</span>
+                <Spin />
+              </span>
+            ) : (
+              rewardsPerDayTotalPrice ?? '-'
+            )}
           </span>
         </div>
       </div>
       <div className="flex items-center flex-wrap gap-8px">
+        {!rewardsPerDay?.length && <Spin className="text-24px text-black-normal" />}
         {rewardsPerDay?.map(({ tokenInfo, rewardsPerDay }, index) => (
           <React.Fragment key={tokenInfo?.address}>
             {index > 0 && <span className="text-14px font-medium text-black-normal">+</span>}
