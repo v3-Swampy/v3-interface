@@ -73,7 +73,7 @@ const RemoveLiquidityModal: React.FC<ConfirmModalInnerProps & Props> = ({
               type="button"
               color="orange"
               fullWidth
-              className={cx("h-40px rounded-100px text-18px", isMobile ? 'mt-40px' : 'mt-16px')}
+              className={cx('h-40px rounded-100px text-18px', isMobile ? 'mt-40px' : 'mt-16px')}
               id="pool-remove-liquidity-modal-submit-button"
             >
               Submit
@@ -90,6 +90,7 @@ const showRemoveLiquidityModal = (props: Props) => {
     title: toI18n(transitions).title,
     ConfirmContent: (confirmModalInnerProps: ConfirmModalInnerProps) => <RemoveLiquidityModal {...confirmModalInnerProps} {...props} />,
     className: '!max-w-458px !min-h-372px flex flex-col',
+    onSuccess: (navigate) => navigate('/earn/my-positions'),
   });
 };
 export default showRemoveLiquidityModal;
