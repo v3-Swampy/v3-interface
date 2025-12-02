@@ -42,8 +42,28 @@ const transitions = {
     invalid_range: '选择的范围无效。',
   },
 } as const;
-
-const ranges = [1, 5, 10, 20];
+const ranges = [
+  {
+    label: '1%',
+    value: 1,
+  },
+  {
+    label: '5%',
+    value: 5,
+  },
+  {
+    label: '10%',
+    value: 10,
+  },
+  {
+    label: '20%',
+    value: 20,
+  },
+  {
+    label: (i18n: Record<keyof (typeof transitions)['en'], string>) => i18n.full_range,
+    value: 100,
+  },
+];
 
 const stableCoins = ['USDC', 'USDT', 'AxCNH'];
 const majorCoins = ['BTC', 'ETH'];
@@ -121,10 +141,10 @@ const RangeInput: React.FC<
     tokenB: Token | null;
     priceTokenA: Unit | null | undefined;
     fee: FeeAmount;
-    defaultRange: number | undefined;
+    selectedRange: number | null;
     resetSelectedRange: () => void;
   }
-> = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues, defaultRange, resetSelectedRange }) => {
+> = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues, selectedRange, resetSelectedRange }) => {
   const i18n = useI18n(transitions);
 
   const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
@@ -151,14 +171,17 @@ const RangeInput: React.FC<
     [fee, tokenA?.address, tokenB?.address, resetSelectedRange]
   );
 
-  const placeholder = useMemo(() => getPriceByRange({ range: defaultRange ?? 20, priceTokenA, tokenA, tokenB, fee, type }), [priceTokenA, tokenA, tokenB, fee, type, defaultRange]);
+  const placeholder = useMemo(
+    () => getPriceByRange({ range: selectedRange ?? 20, priceTokenA, tokenA, tokenB, fee, type }),
+    [priceTokenA, tokenA, tokenB, fee, type, selectedRange]
+  );
   useEffect(() => {
     const value = getValues();
     const priceStr = value[`price-${type}`];
-    if (!priceStr) {
+    if (!priceStr || selectedRange) {
       setValue(`price-${type}`, placeholder);
     }
-  }, [placeholder]);
+  }, [placeholder, selectedRange]);
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
@@ -291,19 +314,13 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
     [fee, tokenA, tokenB]
   );
 
-  const [selectedRange, setSelectedRange] = useState<number | 'custom' | 'full' | null>(null);
+  const [selectedRange, setSelectedRange] = useState<number | null>(null);
   const resetSelectedRange = useCallback(() => setSelectedRange(null), []);
-
-  const handleSetFullRange = useCallback(() => {
-    setValue('price-lower', '0');
-    setValue('price-upper', 'Infinity');
-    setSelectedRange('full');
-  }, []);
 
   const handleSetRange = useCallback(
     (range: number) => {
-      setValue('price-lower', getPriceByRange({ range: Number(range), priceTokenA, tokenA, tokenB, fee, type: 'lower' }));
-      setValue('price-upper', getPriceByRange({ range: Number(range), priceTokenA, tokenA, tokenB, fee, type: 'upper' }));
+      setValue('price-lower', getPriceByRange({ range, priceTokenA, tokenA, tokenB, fee, type: 'lower' }));
+      setValue('price-upper', getPriceByRange({ range, priceTokenA, tokenA, tokenB, fee, type: 'upper' }));
       setSelectedRange(range);
     },
     [priceTokenA, tokenA, tokenB, fee]
@@ -332,7 +349,6 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
       const value = evt.target.value;
       if (value !== '' && !Number.isNaN(Number(value))) {
         handleSetRange(Number(value));
-        setSelectedRange('custom');
       }
     },
     [handleSetRange]
@@ -343,6 +359,10 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
     if (!defaultRange) return;
     setSelectedRange(defaultRange);
   }, [defaultRange]);
+
+  const isCustom = useMemo(() => {
+    return selectedRange && !ranges.some((r) => r.value === selectedRange);
+  }, [selectedRange, ranges]);
 
   return (
     <div className={cx('p-16px rounded-16px bg-orange-light-hover', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
@@ -391,7 +411,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
           fee={fee}
           priceLower={priceLower}
           priceUpper={priceUpper}
-          defaultRange={defaultRange}
+          selectedRange={selectedRange}
           resetSelectedRange={resetSelectedRange}
         />
         <RangeInput
@@ -405,16 +425,12 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
           fee={fee}
           priceLower={priceLower}
           priceUpper={priceUpper}
-          defaultRange={defaultRange}
+          selectedRange={selectedRange}
           resetSelectedRange={resetSelectedRange}
         />
       </div>
 
-      {isRangeValid !== true && 
-        <div className="mt-6px text-12px text-error-normal">
-          {isRangeValid === 'lowerThanUpper' ? i18n.lowerThanUpper : i18n.invalid_range}
-        </div>
-      }
+      {isRangeValid !== true && <div className="mt-6px text-12px text-error-normal">{isRangeValid === 'lowerThanUpper' ? i18n.lowerThanUpper : i18n.invalid_range}</div>}
 
       <div className="mt-16px flex items-center gap-16px select-none lt-mobile:flex-col">
         <div
@@ -426,31 +442,21 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
         >
           {ranges.map((range) => (
             <div
-              key={range}
+              key={range.value}
               className={cx(
-                'flex justify-center items-center h-40px font-normal text-gray-normal cursor-pointer',
+                'flex justify-center items-center h-40px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
                 !priceTokenA && 'text-gray-light pointer-events-none',
-                selectedRange === range && 'text-orange-normal'
+                selectedRange === range.value && 'text-orange-normal'
               )}
-              onClick={() => handleSetRange(range)}
+              onClick={() => handleSetRange(range.value)}
             >
-              {range}%
+              {typeof range.label === 'function' ? range.label(i18n) : range.label}
             </div>
           ))}
-          <div
-            className={cx(
-              'flex justify-center items-center h-40px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
-              !priceTokenA && 'text-gray-light pointer-events-none',
-              selectedRange === 'full' && 'text-orange-normal'
-            )}
-            onClick={handleSetFullRange}
-          >
-            {i18n.full_range}
-          </div>
         </div>
         <div className={cx('flex items-center px-16px rounded-100px border-2px border-solid border-orange-light lt-mobile:w-full lt-mobile:justify-center')}>
           <Input
-            className={cx('w-56px h-40px text-14px text-gray-normal focus:text-black-normal', selectedRange === 'custom' && 'text-orange-normal')}
+            className={cx('w-56px h-40px text-14px text-gray-normal focus:text-black-normal', isCustom && 'text-orange-normal')}
             wrapperClassName="lt-mobile:w-fit"
             placeholder="Custom"
             max={100}
