@@ -197,7 +197,7 @@ const DepositAmount: React.FC<
   const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
 
   const changePairAmount = useRef<(newAmount: string) => void>(() => {});
-  
+
   const debouncedChangePairAmount = useMemo(
     () =>
       debounce((val: string) => {
@@ -343,7 +343,14 @@ const DepositAmount: React.FC<
                     color="orange"
                     disabled={!balance || balance === '0'}
                     onClick={() => {
-                      setValue(`amount-${type}`, balance);
+                      setValue(
+                        `amount-${type}`,
+                        token.address !== 'CFX'
+                          ? balance
+                          : Unit.fromStandardUnit(balance ?? '0', token.decimals)
+                              .sub(Unit.fromStandardUnit(0.01, token.decimals))
+                              .toDecimalStandardUnit(undefined, token.decimals)
+                      );
                       changePairAmount.current(balance ?? '');
                     }}
                     type="button"
@@ -419,7 +426,6 @@ const DepositAmounts: React.FC<Props> = ({
       return undefined;
     }
   }, [_priceLower, _priceUpper, isTokenAEqualsToken0]);
-
 
   const isValidToInput = !!priceTokenA && !!tokenA && !!tokenB && isRangeValid === true;
   const isPriceLowerGreaterThanCurrentPrice = priceTokenA && priceLower && !priceLower.isNaN() ? priceTokenA.lessThanOrEqualTo(priceLower) : false;
