@@ -68,7 +68,7 @@ export const positionFeesSelector = selectorFamily({
     },
 });
 
-export const handleCollectFees = async ({ tokenId, refreshPositionFees }: { tokenId: number; refreshPositionFees: VoidFunction }) => {
+export const handleCollectFees = async ({ tokenId, refreshPositionFees, refreshPosition }: { tokenId: number; refreshPositionFees: VoidFunction, refreshPosition: VoidFunction }) => {
   const tokenIdHexString = new Unit(tokenId).toHexMinUnit();
   const owner = getPositionOwner(tokenId);
   const position = getPosition(tokenId);
@@ -102,11 +102,13 @@ export const handleCollectFees = async ({ tokenId, refreshPositionFees }: { toke
     positionId: `${tokenId}`,
   }).then(() => {
     refreshPositionFees();
+    refreshPosition();
   });
   return txHash;
 };
 
 export const usePosition = (tokenId: number) => useRecoilValue(positionSelector(+tokenId));
+export const useRefreshPosition = (tokenId: number) => useRecoilRefresher_UNSTABLE(positionSelector(+tokenId));
 
 export const usePositionOwner = (tokenId: number) => useRecoilValue(positionOwnerSelector(+tokenId));
 

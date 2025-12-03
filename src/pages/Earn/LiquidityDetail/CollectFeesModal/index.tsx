@@ -6,7 +6,7 @@ import AuthConnectButton from '@modules/AuthConnectButton';
 import Button from '@components/Button';
 import useInTransaction from '@hooks/useInTransaction';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
-import { type PositionEnhanced, handleCollectFees as _handleCollectFees, useRefreshPositionFees } from '@service/earn';
+import { type PositionEnhanced, handleCollectFees as _handleCollectFees, useRefreshPositionFees, useRefreshPosition } from '@service/earn';
 import { getUnwrapperTokenByAddress, Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
 
@@ -43,6 +43,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const { inTransaction, execTransaction: handleCollectFees } = useInTransaction(_handleCollectFees);
   const { token0, token1 } = position || {};
   const refreshPositionFees = useRefreshPositionFees(tokenId);
+  const refreshPosition = useRefreshPosition(tokenId!)
 
   const unclaimedRewardsInfo = useMemo(
     () =>
@@ -108,9 +109,9 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const onSubmit = useCallback(async () => {
     if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0.equals(0) && fee1.equals(0) && unclaimedRewardTotalPrice?.equals(0))) return;
     setNextInfo({
-      sendTransaction: () => handleCollectFees({ tokenId, refreshPositionFees }),
+      sendTransaction: () => handleCollectFees({ tokenId, refreshPositionFees, refreshPosition }),
     });
-  }, [refreshPositionFees]);
+  }, [refreshPositionFees, refreshPosition]);
 
   return (
     <div className="mt-24px flex flex-col h-full flex-grow-1">
