@@ -80,8 +80,8 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     if (!pool || !priceToken) return null;
     return formatDisplayAmount(pool.priceOf(priceToken), {
       decimals: 0,
-      toFixed: 6,
-      minNum: '0.000001',
+      toFixed: 5,
+      minNum: '0.00001',
     });
   }, [pool, inverted, leftToken, rightToken]);
 
@@ -93,13 +93,13 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     const priceUpper = inverted ? invertPrice(priceLowerForUI) : priceUpperForUI;
     const priceLowerStr = formatDisplayAmount(priceLower, {
       decimals: 0,
-      toFixed: 6,
-      minNum: '0.000001',
+      toFixed: 5,
+      minNum: '0.00001',
     });
     const _priceUpperStr = formatDisplayAmount(priceUpper, {
       decimals: 0,
-      toFixed: 6,
-      minNum: '0.000001',
+      toFixed: 5,
+      minNum: '0.00001',
     });
     const priceUpperStr = _priceUpperStr === 'Infinity' ? '∞' : _priceUpperStr;
     return [priceLowerStr, priceUpperStr];
@@ -168,7 +168,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
             <TokenPair position={position} symbolClassName={classNames.symbol} feeClassName={classNames.fee} />
           </div>
         </div>
-        <div className="col-span-7 lt-md:col-span-24 flex flex-col lt-md:items-start lt-md:mb-10px">
+        <div className="col-span-6 lt-md:col-span-24 flex flex-col lt-md:items-start lt-md:mb-10px">
           <div className={`${classNames.title}`}>{i18n.price}</div>
           <div className={`${classNames.content} lt-md:flex lt-md:gap-2`}>
             <div className="flex items-center text-xs">
@@ -189,7 +189,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
             <div className={cx('lt-md:text-left', classNames.desc)}>{`${currentPrice} ${rightTokenForUI?.symbol} per ${leftTokenForUI?.symbol}`}</div>
           </div>
         </div>
-        <div className={`col-span-3 lt-md:col-span-8 flex flex-col lt-md:items-start`}>
+        <div className={`col-span-4 lt-md:col-span-8 flex flex-col lt-md:items-start`}>
           <div className={`${classNames.title} whitespace-nowrap`}>{i18n.liquidity}</div>
           <div className={`${classNames.content}`}>{liquidity === undefined ? <Spin /> : liquidity ?? '-'}</div>
         </div>
