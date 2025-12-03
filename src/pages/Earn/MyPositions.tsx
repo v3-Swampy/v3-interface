@@ -18,15 +18,15 @@ import { useInvertedState } from '@modules/Position/invertedState';
 import { BetaLpGuide } from './BetaLpGuide';
 
 const classNames = {
-  title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-mobile:mb-4px',
-  content: 'color-black-normal text-14px font-normal not-italic leading-18px lt-mobile:text-12px lt-mobile:leading-15px',
-  desc: 'color-gray-normal text-14px font-normal not-italic leading-18px lt-mobile:text-12px lt-mobile:leading-15px',
+  title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-md:mb-4px',
+  content: 'color-black-normal text-14px font-normal not-italic leading-18px lt-md:text-12px lt-md:leading-15px',
+  desc: 'color-gray-normal text-14px font-normal not-italic leading-18px lt-md:text-12px lt-md:leading-15px',
   authConnectButton:
-    'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-normal whitespace-nowrap not-italic color-orange-normal cursor-pointer lt-mobile:border-1 lt-mobile:text-14px',
-  splitLine: `lt-mobile:before:content-[''] lt-mobile:before:border-0 lt-mobile:before:border-l-1px lt-mobile:before:border-solid lt-mobile:before:absolute lt-mobile:before:top-2px lt-mobile:before:bottom-2px lt-mobile:relative lt-mobile:before:left-0 lt-mobile:before:border-color-orange-light`,
-  poolWrapper: 'lt-mobile:mb-4 lt-mobile:rounded-14px',
-  symbol: 'lt-mobile:font-normal lt-mobile:text-14px lt-mobile:leading-18px',
-  fee: 'lt-mobile:h-18px lt-mobile:text-12px lt-mobile:leading-18px',
+    'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-normal whitespace-nowrap not-italic color-orange-normal cursor-pointer lt-md:border-1 lt-md:text-14px',
+  splitLine: `lt-md:before:content-[''] lt-md:before:border-0 lt-md:before:border-l-1px lt-md:before:border-solid lt-md:before:absolute lt-md:before:top-2px lt-md:before:bottom-2px lt-md:relative lt-md:before:left-0 lt-md:before:border-color-orange-light`,
+  poolWrapper: 'lt-md:mb-4 lt-md:rounded-14px',
+  symbol: 'lt-md:font-normal lt-md:text-14px lt-md:leading-18px',
+  fee: 'lt-md:h-18px lt-md:text-12px lt-md:leading-18px',
 };
 
 const transitions = {
@@ -80,8 +80,8 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     if (!pool || !priceToken) return null;
     return formatDisplayAmount(pool.priceOf(priceToken), {
       decimals: 0,
-      toFixed: 5,
-      minNum: '0.00001',
+      toFixed: 6,
+      minNum: '0.000001',
     });
   }, [pool, inverted, leftToken, rightToken]);
 
@@ -93,13 +93,13 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
     const priceUpper = inverted ? invertPrice(priceLowerForUI) : priceUpperForUI;
     const priceLowerStr = formatDisplayAmount(priceLower, {
       decimals: 0,
-      toFixed: 5,
-      minNum: '0.00001',
+      toFixed: 6,
+      minNum: '0.000001',
     });
     const _priceUpperStr = formatDisplayAmount(priceUpper, {
       decimals: 0,
-      toFixed: 5,
-      minNum: '0.00001',
+      toFixed: 6,
+      minNum: '0.000001',
     });
     const priceUpperStr = _priceUpperStr === 'Infinity' ? '∞' : _priceUpperStr;
     return [priceLowerStr, priceUpperStr];
@@ -157,9 +157,9 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   return (
     <Link to={String(position.tokenId)} className="no-underline">
       <div
-        className={`mt-20px lt-sm:mt-8px bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 px-6 relative grid grid-cols-24 lt-mobile:px-2 lt-mobile:border-orange-light lt-mobile:border-solid lt-mobile:border-1px ${classNames.poolWrapper}`}
+        className={`mt-20px lt-sm:mt-8px bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 pl-6 pr-4 relative grid grid-cols-24 lt-md:px-2 lt-md:border-orange-light lt-md:border-solid lt-md:border-1px ${classNames.poolWrapper}`}
       >
-        <div className="col-span-6 lt-mobile:col-span-24 lt-mobile:mb-10px">
+        <div className="col-span-6 lt-md:col-span-24 lt-md:mb-10px">
           <div className={`${classNames.title}`}>
             <span>{i18n.poolName}</span>
             {isRewardActive && <img src={FarmIcon} alt="farm" className="w-24px h-24px" />}
@@ -168,10 +168,10 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
             <TokenPair position={position} symbolClassName={classNames.symbol} feeClassName={classNames.fee} />
           </div>
         </div>
-        <div className="col-span-6 lt-mobile:col-span-24 flex flex-col items-center lt-mobile:items-start lt-mobile:mb-10px">
+        <div className="col-span-7 lt-md:col-span-24 flex flex-col lt-md:items-start lt-md:mb-10px">
           <div className={`${classNames.title}`}>{i18n.price}</div>
-          <div className={`${classNames.content} lt-mobile:flex lt-mobile:gap-2`}>
-            <div className="flex items-center">
+          <div className={`${classNames.content} lt-md:flex lt-md:gap-2`}>
+            <div className="flex items-center text-xs">
               {priceLowerStr}
               {rightTokenForUI?.symbol}
               <DoubleArrowIcon
@@ -186,24 +186,24 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
               {priceUpperStr}
               {rightTokenForUI?.symbol}
             </div>
-            <div className={cx('text-center lt-mobile:text-left', classNames.desc)}>{`${currentPrice} ${rightTokenForUI?.symbol} per ${leftTokenForUI?.symbol}`}</div>
+            <div className={cx('lt-md:text-left', classNames.desc)}>{`${currentPrice} ${rightTokenForUI?.symbol} per ${leftTokenForUI?.symbol}`}</div>
           </div>
         </div>
-        <div className={`col-span-4 lt-mobile:col-span-8 flex flex-col items-center lt-mobile:items-start`}>
+        <div className={`col-span-3 lt-md:col-span-8 flex flex-col lt-md:items-start`}>
           <div className={`${classNames.title} whitespace-nowrap`}>{i18n.liquidity}</div>
           <div className={`${classNames.content}`}>{liquidity === undefined ? <Spin /> : liquidity ?? '-'}</div>
         </div>
-        <div className="col-span-4 lt-mobile:col-span-8">
-          <div className={`lt-mobile:flex lt-mobile:flex-col lt-mobile:items-center lt-mobile:w-fit lt-mobile:mx-auto lt-mobile:pl-3 ${classNames.splitLine}`}>
+        <div className="col-span-4 lt-md:col-span-8">
+          <div className={`lt-md:flex lt-md:flex-col lt-md:w-fit lt-md:mx-auto lt-md:pl-3 ${classNames.splitLine}`}>
             <div className={`${classNames.title} whitespace-nowrap`}>{i18n.unclaimedValue}</div>
             <div className={cx(classNames.content)}>{unclaimedValue === undefined ? <Spin /> : unclaimedValue ?? '-'}</div>
           </div>
         </div>
-        <div className="col-span-4 lt-mobile:col-span-8 flex flex-col items-center justify-center lt-mobile:block">
+        <div className="col-span-4 lt-md:col-span-8 flex flex-col justify-center items-end lt-md:block">
           <div
-            className={`lt-mobile:flex lt-mobile:flex-col lt-mobile:items-end lt-mobile:justify-center lt-mobile:h-full lt-mobile:w-fit lt-mobile:ml-auto lt-mobile:pl-3 ${classNames.splitLine}`}
+            className={`lt-md:flex lt-md:flex-col lt-md:items-end lt-md:justify-center lt-md:h-full lt-md:w-fit lt-md:ml-auto lt-md:pl-3 ${classNames.splitLine}`}
           >
-            <PositionStatus position={position} className="lt-mobile:flex-col-reverse lt-mobile:gap-1 lt-mobile:[&>svg]:!ml-0" />
+            <PositionStatus position={position} className="lt-md:flex-col-reverse lt-md:gap-1 lt-md:[&>svg]:!ml-0" />
           </div>
         </div>
       </div>
