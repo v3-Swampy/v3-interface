@@ -461,8 +461,9 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
             placeholder="Custom"
             max={100}
             min={0}
-            step={0.000001}
+            step={0.01}
             type="number"
+            decimals={2}
             onChange={handleCustomRangeChange}
             onBlur={handleCustomRangeBlur}
           />
