@@ -111,6 +111,8 @@ const AddLiquidity: React.FC = () => {
   const { inTransaction: inSubmitCreate, execTransaction: handleClickSubmitCreatePosition } = useInTransaction(_handleClickSubmitCreatePosition);
   const onSubmit = useCallback(
     withForm(async (data) => {
+      console.log('tokenA', tokenA);
+      console.log('tokenB', tokenB);
       if (!tokenA || !tokenB) return;
 
       handleClickSubmitCreatePosition({

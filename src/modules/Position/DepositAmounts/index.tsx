@@ -342,7 +342,7 @@ const DepositAmount: React.FC<
                     className="ml-12px px-8px h-20px rounded-4px text-14px font-normal border-1px! hover:bg-orange-normal hover:text-white-normal!"
                     variant="outlined"
                     color="orange"
-                    disabled={!balance || balance === '0'}
+                    disabled={!balance || balance === '0' || balance === '0.000001'}
                     onClick={() => {
                       setValue(
                         `amount-${type}`,
