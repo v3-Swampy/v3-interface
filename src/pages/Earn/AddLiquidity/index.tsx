@@ -112,6 +112,7 @@ const AddLiquidity: React.FC = () => {
   const onSubmit = useCallback(
     withForm(async (data) => {
       if (!tokenA || !tokenB) return;
+
       handleClickSubmitCreatePosition({
         ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
         fee: currentFee,
