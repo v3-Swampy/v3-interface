@@ -129,7 +129,7 @@ const ConfirmTransactionModal: React.FC<CommonProps & { children?: ReactNode | (
                     address: tokenNeededAdd.address,
                     symbol: tokenNeededAdd.symbol,
                     decimals: tokenNeededAdd.decimals,
-                    image: tokenNeededAdd.logoURI ?? '',
+                    image: tokenNeededAdd.fromSearch ? "https://conflux-static.oss-cn-beijing.aliyuncs.com/icons/default.png" : tokenNeededAdd.logoURI ?? "https://conflux-static.oss-cn-beijing.aliyuncs.com/icons/default.png",
                   },
                 })
               }
