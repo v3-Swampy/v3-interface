@@ -65,7 +65,7 @@ const UnclaimedFees: React.FC<{ hasRewards?: boolean }> = ({ hasRewards }) => {
         <div className="flex flex-col flex-1 min-w-0">
           <span className="inline-block mb-8px text-14px leading-18px">{i18n.unclaimed_fees}</span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
-            {!token0Price || !token1Price ? <Spin /> : fee}
+            {!token0Price || !token1Price ? '-' : fee}
           </span>
         </div>
         {isOwner && (

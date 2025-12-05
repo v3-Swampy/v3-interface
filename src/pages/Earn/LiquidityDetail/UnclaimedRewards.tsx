@@ -58,7 +58,7 @@ const UnclaimedRewards: React.FC = () => {
             {i18n.unclaimed_rewards}
           </span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
-            {unsettledRewardsTotalPrice === undefined ? <Spin /> : unsettledRewardsTotalPrice ?? '-'}
+            {unsettledRewardsTotalPrice ?? '-'}
           </span>
         </div>
       </div>

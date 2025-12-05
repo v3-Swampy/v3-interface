@@ -83,7 +83,7 @@ const ExpectedRewards: React.FC = () => {
             </Tooltip>
           </span>
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap">
-            {expectedRewardPerDayTotalPrice === undefined ? <Spin /> : expectedRewardPerDayTotalPrice ?? '-'}
+            {expectedRewardPerDayTotalPrice ?? '-'}
           </span>
         </div>
       </div>

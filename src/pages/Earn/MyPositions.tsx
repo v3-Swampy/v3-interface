@@ -191,12 +191,12 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
         </div>
         <div className={`col-span-4 lt-md:col-span-8 flex flex-col lt-md:items-start`}>
           <div className={`${classNames.title} whitespace-nowrap`}>{i18n.liquidity}</div>
-          <div className={`${classNames.content}`}>{liquidity === undefined ? <Spin /> : liquidity ?? '-'}</div>
+          <div className={`${classNames.content}`}>{liquidity ?? '-'}</div>
         </div>
         <div className="col-span-4 lt-md:col-span-8">
           <div className={`lt-md:flex lt-md:flex-col lt-md:w-fit lt-md:mx-auto lt-md:pl-3 ${classNames.splitLine}`}>
             <div className={`${classNames.title} whitespace-nowrap`}>{i18n.unclaimedValue}</div>
-            <div className={cx(classNames.content)}>{unclaimedValue === undefined ? <Spin /> : unclaimedValue ?? '-'}</div>
+            <div className={cx(classNames.content)}>{unclaimedValue ?? '-'}</div>
           </div>
         </div>
         <div className="col-span-4 lt-md:col-span-8 flex flex-col justify-center items-end lt-md:block">
