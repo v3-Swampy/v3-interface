@@ -349,7 +349,7 @@ const DepositAmount: React.FC<
                         token.address !== 'CFX'
                           ? balance
                           : Unit.fromStandardUnit(balance ?? 0, token.decimals)
-                              .sub(Unit.fromStandardUnit(0.01, token.decimals))
+                              .sub(Unit.fromStandardUnit(0.1, token.decimals))
                               .toDecimalStandardUnit(undefined, token.decimals)
                       );
                       changePairAmount.current(balance ?? '');
