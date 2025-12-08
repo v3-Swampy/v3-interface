@@ -157,9 +157,9 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   return (
     <Link to={String(position.tokenId)} className="no-underline">
       <div
-        className={`mt-20px lt-sm:mt-8px bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 pl-6 pr-4 relative grid grid-cols-24 lt-md:px-2 lt-md:border-orange-light lt-md:border-solid lt-md:border-1px ${classNames.poolWrapper}`}
+        className={`mt-20px lt-sm:mt-8px bg-orange-light-hover rounded-2xl mb-6 last:mb-0 py-4 pl-6 pr-4 relative flex md:gap-[10px] lt-md:grid lt-md:grid-cols-24 lt-md:px-2 lt-md:border-orange-light lt-md:border-solid lt-md:border-1px ${classNames.poolWrapper}`}
       >
-        <div className="col-span-6 lt-md:col-span-24 lt-md:mb-10px">
+        <div className="md:flex-1 lt-md:col-span-24 lt-md:mb-10px">
           <div className={`${classNames.title}`}>
             <span>{i18n.poolName}</span>
             {isRewardActive && <img src={FarmIcon} alt="farm" className="w-24px h-24px" />}
@@ -168,7 +168,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
             <TokenPair position={position} symbolClassName={classNames.symbol} feeClassName={classNames.fee} />
           </div>
         </div>
-        <div className="col-span-6 lt-md:col-span-24 flex flex-col lt-md:items-start lt-md:mb-10px">
+        <div className="md:w-[220px] lt-md:col-span-24 flex flex-col lt-md:items-start lt-md:mb-10px">
           <div className={`${classNames.title}`}>{i18n.price}</div>
           <div className={`${classNames.content} lt-md:flex lt-md:gap-2`}>
             <div className="flex items-center text-xs">
@@ -189,20 +189,18 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
             <div className={cx('lt-md:text-left', classNames.desc)}>{`${currentPrice} ${rightTokenForUI?.symbol} per ${leftTokenForUI?.symbol}`}</div>
           </div>
         </div>
-        <div className={`col-span-4 lt-md:col-span-8 flex flex-col lt-md:items-start`}>
+        <div className={`md:w-[90px] lt-md:col-span-8 flex flex-col lt-md:items-start`}>
           <div className={`${classNames.title} whitespace-nowrap`}>{i18n.liquidity}</div>
           <div className={`${classNames.content}`}>{liquidity ?? '-'}</div>
         </div>
-        <div className="col-span-4 lt-md:col-span-8">
+        <div className="md:w-[95px] lt-md:col-span-8">
           <div className={`lt-md:flex lt-md:flex-col lt-md:w-fit lt-md:mx-auto lt-md:pl-3 ${classNames.splitLine}`}>
             <div className={`${classNames.title} whitespace-nowrap`}>{i18n.unclaimedValue}</div>
             <div className={cx(classNames.content)}>{unclaimedValue ?? '-'}</div>
           </div>
         </div>
-        <div className="col-span-4 lt-md:col-span-8 flex flex-col justify-center items-end lt-md:block">
-          <div
-            className={`lt-md:flex lt-md:flex-col lt-md:items-end lt-md:justify-center lt-md:h-full lt-md:w-fit lt-md:ml-auto lt-md:pl-3 ${classNames.splitLine}`}
-          >
+        <div className="md:w-[95px] lt-md:col-span-8 flex flex-col justify-center items-end lt-md:block">
+          <div className={`lt-md:flex lt-md:flex-col lt-md:items-end lt-md:justify-center lt-md:h-full lt-md:w-fit lt-md:ml-auto lt-md:pl-3 ${classNames.splitLine}`}>
             <PositionStatus position={position} className="lt-md:flex-col-reverse lt-md:gap-1 lt-md:[&>svg]:!ml-0" />
           </div>
         </div>
