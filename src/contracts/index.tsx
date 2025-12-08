@@ -30,7 +30,7 @@ export const NonfungiblePositionManager = createContract(
 );
 
 export const AutoPositionManager = createContract(
-  isProduction ? '0xB75AbE3Dafc47ac9C21d89f93EbA1A6669f63670' : '0xb3E46916915c21a1cF3ec208404d3aFDE438C52a',
+  isProduction ? '0xB75AbE3Dafc47ac9C21d89f93EbA1A6669f63670' : '0x5221b4bcbc82e64d997841a2CDf540dF48A717d8',
   AutoPositionManagerABI
 );
 
@@ -57,4 +57,4 @@ export const createERC20Contract = (tokenAddress: string) => createContract(toke
 export const createERC721Contract = (tokenAddress: string) => createContract(tokenAddress, ERC721ABI);
 export const createVSTTokenContract = () => createERC20Contract(TokenVST.address);
 
-export const UniswapV3Staker = createContract(isProduction ? '0x86e01175a5569c970cfb7a44e224120ddc85901a' : '0xf641ACe35b9ABdfF2997f7d2C865f6d086c0E07d', UniswapV3StakerABI);
+export const UniswapV3Staker = createContract(isProduction ? '0x86e01175a5569c970cfb7a44e224120ddc85901a' : '0x65B5a88FCD4FAb5fF9615cFB3Ae11eF24594db80', UniswapV3StakerABI);
