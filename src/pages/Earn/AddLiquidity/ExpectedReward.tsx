@@ -135,7 +135,9 @@ const ExpectedReward: React.FC<Props> = ({
             from: '0x000000000000000000000000000000000000fe01',
             to: UniswapV3Staker.address,
             data: UniswapV3Staker.func.interface.encodeFunctionData('multicall', [
-              matchedPool.incentiveKeys.map(({ key }) => UniswapV3Staker.func.interface.encodeFunctionData('estimateRewardRate', [key, account, debouncedLiquidityHex])),
+              matchedPool.incentiveKeys
+                .filter(({ status }) => status === 'active')
+                .map(({ key }) => UniswapV3Staker.func.interface.encodeFunctionData('estimateRewardRate', [key, account, debouncedLiquidityHex])),
             ]),
           },
           'latest',
@@ -152,6 +154,7 @@ const ExpectedReward: React.FC<Props> = ({
       });
 
       const rewardsPerDay = matchedPool.incentiveKeys
+        .filter(({ status }) => status === 'active')
         .map(({ rewardTokenInfo }, index) => {
           const estimateRewardRate = estimateRewardRates[index];
           return {
@@ -196,7 +199,7 @@ const ExpectedReward: React.FC<Props> = ({
           <span className="inline-block text-32px h-40px leading-40px mb-24px overflow-hidden text-ellipsis whitespace-nowrap font-medium">
             {rewardsPerDayTotalPrice === undefined ? (
               <span className="inline-flex items-center gap-4px">
-                <span >$</span>
+                <span>$</span>
                 <Spin />
               </span>
             ) : (
