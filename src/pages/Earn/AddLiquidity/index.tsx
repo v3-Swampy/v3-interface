@@ -49,7 +49,11 @@ const AddLiquidity: React.FC = () => {
   const isRangeValid = useMemo(() => {
     try {
       if (!priceLower || !priceUpper) return null;
-      if (priceUpper === 'Infinity' && priceLower !== 'Infinity') {
+      if (priceUpper === 'Infinity' && !Number.isNaN(Number(priceLower)) && Number(priceLower) >= 0) {
+        return true;
+      }
+
+      if (priceLower === '0' && !Number.isNaN(Number(priceUpper)) && Number(priceUpper) > 0) {
         return true;
       }
 
