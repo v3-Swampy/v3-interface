@@ -45,18 +45,10 @@ export const routes = [
     name: 'Earn',
     path: 'earn',
   },
-  {
-    name: 'Pool',
-    path: 'pool',
-  },
-  {
-    name: 'Farming',
-    path: 'farming',
-  },
-  {
-    name: 'Staking',
-    path: 'staking',
-  },
+  // {
+  //   name: 'Staking',
+  //   path: 'staking',
+  // },
 ];
 
 const AppRouter: React.FC = () => {

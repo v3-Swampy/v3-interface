@@ -3,9 +3,7 @@ import { NavLink } from 'react-router-dom';
 import cx from 'clsx';
 import { useAccount } from '@service/account';
 import { NavbarAuthConnectButton } from '@modules/AuthConnectButton';
-import { ReactComponent as Logo } from '@assets/icons/logo.svg';
 import { ReactComponent as WLogo } from '@assets/icons/WallFree X-logo.svg';
-import { ReactComponent as SmallLogo } from '@assets/icons/logo_icon.svg';
 import { ReactComponent as WSmallLogo } from '@assets/icons/WallFree X-logo-small.svg';
 import { ReactComponent as ConfluxLogo } from '@assets/icons/conflux.svg';
 import { ReactComponent as WIcon } from '@assets/icons/w_point.svg';
@@ -21,11 +19,6 @@ const Navbar: React.FC = () => {
   const account = useAccount();
   const mainScrollerDistance = useMainScrollerDistance();
 
-  const isWallfreex = React.useMemo(() => {
-    const currentUrl = window.location.href;
-    return currentUrl.includes('wallfreex');
-  }, []);
-
   return (
     <header
       className={cx(
@@ -35,15 +28,11 @@ const Navbar: React.FC = () => {
     >
       <nav className="relative flex items-center w-full xl:max-w-1232px lt-xl:px-24px lt-md:px-12px lt-tiny:px-6px">
         <NavLink to="/swap" style={({ isActive }) => ({ pointerEvents: isActive ? 'none' : undefined })} className="lt-mobile:h-24px">
-          {isWallfreex ? <WSmallLogo className="mobile:display-none w-fit h-24px flex-shrink-0" /> : <SmallLogo className="mobile:display-none w-24px h-24px flex-shrink-0" />}
-          {isWallfreex ? (
-            <WLogo className="lt-mobile:display-none w-fit h-80px flex-shrink-0 t-md:h-55px" />
-          ) : (
-            <Logo className="lt-mobile:display-none w-fit h-80px flex-shrink-0 lt-md:h-55px" />
-          )}
+          <WSmallLogo className="mobile:display-none w-fit h-24px flex-shrink-0" />
+          <WLogo className="lt-mobile:display-none w-fit h-80px flex-shrink-0 t-md:h-55px" />
         </NavLink>
 
-        <div className={cx('inline-flex items-center gap-32px lt-lg:gap-16px lt-md:display-none', isWallfreex ? 'ml-32px' : 'ml-58px')}>
+        <div className="inline-flex items-center gap-32px lt-lg:gap-16px lt-md:display-none ml-32px">
           <NavLinks />
         </div>
 
@@ -62,49 +51,25 @@ const Navbar: React.FC = () => {
           <span className="lt-lg:hidden">Conflux eSpace</span>
         </div>
 
-        <NavbarAuthConnectButton color="gradient">
-          {account && <AccountDetailDropdown account={account} />}
-        </NavbarAuthConnectButton>
+        <NavbarAuthConnectButton color="gradient">{account && <AccountDetailDropdown account={account} />}</NavbarAuthConnectButton>
       </nav>
     </header>
   );
 };
 
 const NavLinks: React.FC = () => {
-
-  const isWallfreexMainnet = React.useMemo(() => {
-    const currentUrl = window.location.href;
-    return currentUrl.includes('wallfreex') && currentUrl.includes('app') && !currentUrl.includes('test');
-  }, []);
-
-    const isWallfreexTestnet = React.useMemo(() => {
-    const currentUrl = window.location.href;
-    return currentUrl.includes('wallfreex') && currentUrl.includes('test');
-  }, []);
-
   return (
     <>
-      {routes
-        .filter((route) => {
-          // Hide farming and staking routes when URL includes 'wallfreex' and on conflux mainnet
-          if (isWallfreexMainnet && (route.path ==='pool' || route.path === 'farming' || route.path === 'staking')) {
-            return false;
-          }
-          if (isWallfreexTestnet &&  (route.path ==='pool' || route.path ==='farming' || route.path === 'staking')) {
-            return false;
-          }
-          return true;
-        })
-        .map((route) => (
-          <NavLink
-            key={route.path}
-            to={route.path}
-            className={({ isActive }) => cx('text-16px font-normal no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
-            style={({ isActive }) => ({ color: isActive ? '#E14E28' : '#222222' })}
-          >
-            <span>{route.name}</span>
-          </NavLink>
-        ))}
+      {routes.map((route) => (
+        <NavLink
+          key={route.path}
+          to={route.path}
+          className={({ isActive }) => cx('text-16px font-normal no-underline', isActive ? 'router-link-active' : 'router-link-inactive')}
+          style={({ isActive }) => ({ color: isActive ? '#E14E28' : '#222222' })}
+        >
+          <span>{route.name}</span>
+        </NavLink>
+      ))}
     </>
   );
 };
