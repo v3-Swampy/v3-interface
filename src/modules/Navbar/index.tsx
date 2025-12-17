@@ -87,7 +87,7 @@ const NavLinks: React.FC = () => {
       {routes
         .filter((route) => {
           // Hide farming and staking routes when URL includes 'wallfreex' and on conflux mainnet
-          if (isWallfreexMainnet && (route.path === 'farming' || route.path === 'staking')) {
+          if (isWallfreexMainnet && (route.path ==='pool' || route.path === 'farming' || route.path === 'staking')) {
             return false;
           }
           if (isWallfreexTestnet &&  (route.path ==='pool' || route.path ==='farming' || route.path === 'staking')) {

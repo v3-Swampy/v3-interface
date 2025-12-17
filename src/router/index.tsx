@@ -9,15 +9,15 @@ import { useSetMainScroller } from '@hooks/useMainScroller';
 import SwapPage from '@pages/Swap';
 import { EarnRedirect, saveEarnPath } from './EarnRedirect';
 import {
-  PoolPage,
-  PoolAddLiquidityPage,
-  PoolLiquidityItemPage,
-  PoolIncreaseLiquidity,
-  PoolRemoveLiquidity,
-  FarmingPage,
-  AllFarmsPage,
-  MyFarmsPage,
-  StakingPage,
+  // PoolPage,
+  // PoolAddLiquidityPage,
+  // PoolLiquidityItemPage,
+  // PoolIncreaseLiquidity,
+  // PoolRemoveLiquidity,
+  // FarmingPage,
+  // AllFarmsPage,
+  // MyFarmsPage,
+  // StakingPage,
   PointsPage,
   LeaderBoardPage,
   FRankPage,
@@ -65,7 +65,7 @@ const AppRouter: React.FC = () => {
       <Routes>
         <Route path="/" element={<RouteWrapper />}>
           <Route path="swap" element={<SwapPage />} />
-          <Route path="pool">
+          {/* <Route path="pool">
             <Route index element={<PoolPage />} />
             <Route path="add_liquidity" element={<PoolAddLiquidityPage />} />
             <Route path=":tokenId" element={<PoolLiquidityItemPage />} />
@@ -77,7 +77,7 @@ const AppRouter: React.FC = () => {
             <Route path="my-farms" element={<MyFarmsPage />} />
             <Route path="/farming/*" element={<Navigate to="/farming/all-farms" replace />} />
             <Route path="/farming/" element={<Navigate to="/farming/all-farms" replace />} />
-          </Route>
+          </Route> */}
           <Route path="earn">
             <Route element={<EarnPage />}>
               <Route path="all-pools" element={<EarnAllPoolsPage />} />
@@ -96,7 +96,7 @@ const AppRouter: React.FC = () => {
             <Route path="increase_liquidity/:tokenId" element={<EarnPoolIncreaseLiquidity />} />
             <Route path="remove_liquidity/:tokenId" element={<EarnPoolRemoveLiquidity />} />
           </Route>
-          <Route path="staking" element={<StakingPage />} />
+          {/* <Route path="staking" element={<StakingPage />} /> */}
           <Route path="points" element={<PointsPage />}>
             <Route path="leader-board" element={<LeaderBoardPage />}>
               <Route path="w-rank" element={<WRankPage />} />
