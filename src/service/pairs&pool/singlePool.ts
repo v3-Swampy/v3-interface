@@ -9,7 +9,7 @@ import { FeeAmount, Pool, isPoolEqual } from './';
 import { isPoolExist } from './utils';
 import computePoolAddress from './computePoolAddress';
 import { chunk } from 'lodash-es';
-import { type Position } from '@service/position';
+import { type Position } from '@service/earn';
 
 /**
  * fetch pools info.

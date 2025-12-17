@@ -13,7 +13,6 @@ import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
 import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
 import { useRefreshPositionsForUI as useRefreshPositions, useRefreshPoolsQuery } from '@service/earn';
 import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST, useRefreshBoostFactor, useRefreshVeTotalSuppply } from '@service/staking';
-import { useRefreshMyFarms } from '@service/farming';
 import { waitSeconds } from '@utils/waitAsyncResult';
 
 export const transitions = {
@@ -79,7 +78,7 @@ export const useRefreshData = () => {
   const refreshTotalStakedVST = useRefreshTotalStakedVST();
   const refreshBoostFactor = useRefreshBoostFactor();
   const refreshVeTotalSuppply = useRefreshVeTotalSuppply();
-  const refreshMyFarms = useRefreshMyFarms();
+  // const refreshMyFarms = useRefreshMyFarms();
 
   return {
     refreshPositions: useCallback(async () => {
@@ -94,7 +93,7 @@ export const useRefreshData = () => {
     refreshTotalStakedVST,
     refreshBoostFactor,
     refreshVeTotalSuppply,
-    refreshMyFarms,
+    // refreshMyFarms,
   } as const;
 };
 
