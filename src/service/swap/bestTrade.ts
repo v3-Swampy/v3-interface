@@ -111,7 +111,7 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
 
 const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
   fetch(
-    `${isLocalDev ? 'prod' : 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
+    `${isLocalDev ? '/prod' : 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
       tokenInWrappered.chainId
     }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
       tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'
@@ -178,7 +178,7 @@ export const fetchBestTrade = async ({
       } else {
         return {
           state: TradeState.ERROR,
-          error: isNoRoute ? 'No Valid Route Found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
+          error: isNoRoute ? 'No valid route found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
         };
       }
     }
@@ -256,7 +256,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
         } else {
           setBestTrade({
             state: TradeState.ERROR,
-            error: isNoRoute ? 'No Valid Route Found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
+            error: isNoRoute ? 'No valid route found, cannot swap.' : isNetworkError ? 'Network error, please try later.' : errStr,
           });
         }
       }

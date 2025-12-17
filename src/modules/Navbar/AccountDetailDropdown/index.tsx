@@ -39,12 +39,12 @@ const DetailContent: React.FC<{ account: string }> = ({ account }) => {
         href={`${import.meta.env.VITE_ESpaceScanUrl}/address/${account}`}
       >
         <ShareIcon className="absolute left-32px" />
-        view on scan
+        View on Scan
       </a>
 
       <History />
 
-      <Button className="mt-16px h-40px text-14px rounded-100px" fullWidth variant="outlined" color="gray" onClick={disconnect}>
+      <Button className="mt-16px h-40px text-14px rounded-100px" fullWidth variant="outlined" color="gray" onClick={() => disconnect()}>
         Disconnect
       </Button>
     </BorderBox>

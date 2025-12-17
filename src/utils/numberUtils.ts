@@ -37,21 +37,24 @@ export const addZeroToDay = (x: number | string | undefined) => {
   return x + '';
 };
 
-export const formatDisplayAmount = (
-  amount: string | number | Unit | undefined,
-  options: {
-    decimals?: number;
-    minNum?: number | string;
-    toFixed?: number;
-    unit?: string;
-  } = {}
-) => {
-  if (amount === undefined) return amount;
-  const { decimals = 0, minNum = '0.00001', toFixed = 5, unit = '' } = options;
+interface FormatDisplayAmountOptions {
+  decimals?: number;
+  minNum?: number | string;
+  toFixed?: number;
+  unit?: string;
+  trimZeros?: boolean;
+}
+export function formatDisplayAmount(amount: null, options: FormatDisplayAmountOptions): null;
+export function formatDisplayAmount(amount: undefined, options: FormatDisplayAmountOptions): undefined;
+export function formatDisplayAmount(amount: string | number | Unit, options: FormatDisplayAmountOptions): string;
+export function formatDisplayAmount(amount: string | number | Unit | null | undefined, options: FormatDisplayAmountOptions): string | undefined | null;
+export function formatDisplayAmount(amount: string | number | Unit | null | undefined, options: FormatDisplayAmountOptions = {}) {
+  if (amount === undefined || amount === null) return amount;
+  const { decimals = 0, minNum = '0.00001', toFixed = 5, unit = '', trimZeros = true } = options;
   const amountUnit = new Unit(amount).div(Unit.pow(10, decimals));
   if (amountUnit.equals(0)) return `${unit}0`;
   if (minNum && amountUnit.lessThan(minNum)) {
     return `<${unit}${minNum}`;
   }
-  return `${unit}${amountUnit.toDecimalMinUnit(toFixed)}`;
-};
+  return trimZeros ? `${unit}${trimDecimalZeros(amountUnit.toDecimalMinUnit(toFixed))}` : `${unit}${amountUnit.toDecimalMinUnit(toFixed)}`;
+}

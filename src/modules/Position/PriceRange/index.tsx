@@ -37,14 +37,14 @@ const PriceRange: React.FC<{ position: PositionForUI; type?: 'verticle' | 'horiz
       <span className={classNames.price}>
         Min:&nbsp;
         <span className="text-black-normal">
-          {priceLowerStr} {leftToken?.symbol} per {rightToken?.symbol}
+          {priceLowerStr} {rightToken?.symbol} per {leftToken?.symbol}
         </span>
       </span>
       <DoubleArrowIcon className={classNames.arrow} />
       <span className={classNames.price}>
         Max:&nbsp;
         <span className="text-black-normal">
-          {priceUpperStr} {leftToken?.symbol} per {rightToken?.symbol}
+          {priceUpperStr} {rightToken?.symbol} per {leftToken?.symbol}
         </span>
       </span>
     </div>
