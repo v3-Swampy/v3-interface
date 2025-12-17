@@ -1,16 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Spin from '@components/Spin';
 import BorderBox from '@components/Box/BorderBox';
 import TokenPair from '@modules/Position/TokenPair';
-import { usePoolData, PoolData } from '../LeaderBoard/fetchData';
 import { setTokens as setLiquidityTokens } from '@pages/Pool/AddLiquidity/SelectPair';
 import { setCurrentFee } from '@pages/Pool/AddLiquidity/SelectFeeTier';
 import { setToken as setSwapToken } from '@service/swap';
 import { ReactComponent as LinkIcon } from '@assets/icons/link3.svg';
 import { getTokenByAddress, TokenCFX } from '@service/tokens';
+import { PoolData, useAutoRefreshPointPools, usePointPools } from '@service/points';
+import Spin from '@components/Spin';
+import Delay from '@components/Delay';
 
-export const PoolItem: React.FC<{
+const PoolItem: React.FC<{
   data: PoolData;
 }> = ({ data }) => {
   const navigate = useNavigate();
@@ -95,16 +96,30 @@ export const PoolItem: React.FC<{
   );
 };
 
-const EarnPoints: React.FC = () => {
-  const pools = usePoolData(20);
+const EarnPointsContent: React.FC = () => {
+  useAutoRefreshPointPools(20);
+  const pools = usePointPools(20);
 
   return (
     <div className="flex flex-col gap-24px lt-md:gap-16px">
-      {pools === undefined && <Spin className="my-[48px] text-48px self-center" />}
       {pools?.map?.((pool) => (
         <PoolItem key={pool.address} data={pool} />
       ))}
     </div>
+  );
+};
+
+const EarnPoints: React.FC = () => {
+  return (
+    <Suspense
+      fallback={
+        <Delay delay={333}>
+          <Spin className="!block mx-auto text-60px" />
+        </Delay>
+      }
+    >
+      <EarnPointsContent />
+    </Suspense>
   );
 };
 

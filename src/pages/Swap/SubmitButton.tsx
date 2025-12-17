@@ -10,9 +10,9 @@ import useI18n from '@hooks/useI18n';
 
 const transitions = {
   en: {
-    please_select_token: 'Select a token',
+    please_select_token: 'Select Token',
     swap: 'Swap',
-    enter_an_amount: 'Enter an amount',
+    enter_an_amount: 'Enter Amount',
     no_liquidity: 'Insufficient liquidity for this trade',
     price_impact_too_high: 'Price Impact Too High',
     swap_anyway: 'Swap Anyway',
@@ -20,7 +20,7 @@ const transitions = {
   zh: {
     please_select_token: '请选择代币',
     swap: '交换',
-    enter_an_amount: 'Enter an amount',
+    enter_an_amount: 'Enter Amount',
     no_liquidity: 'Insufficient liquidity for this trade',
     price_impact_too_high: 'Price Impact Too High',
     swap_anyway: 'Swap Anyway',

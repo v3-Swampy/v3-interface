@@ -3,6 +3,7 @@ import ERC20ABI from './abis/ERC20.json';
 import ERC721ABI from './abis/ERC721.json';
 import MulticallABI from './abis/Multicall.json';
 import NonfungiblePositionManagerABI from './abis/NonfungiblePositionManager.json';
+import AutoPositionManagerABI from './abis/AutoPositionManager.json';
 import SwapRouterABI from './abis/SwapRouter.json';
 import UniswapV3FactoryABI from './abis/UniswapV3Factory.json';
 import UniswapV3QuoterABI from './abis/Quoter.json';
@@ -24,17 +25,22 @@ const createContract = (address: string, ABI: InterfaceAbi) => {
 };
 
 export const NonfungiblePositionManager = createContract(
-  isProduction ? '0xaaea97033dfe8aebdd9d4ae9d5856678b8f7e127' : '0xf84bfe58b107a829a3c7b4c20736de4c898196a9',
+  isProduction ? '0xaaea97033dfe8aebdd9d4ae9d5856678b8f7e127' : '0xdba7475F00deb72Bc80B16e8d742c86760c342fe',
   NonfungiblePositionManagerABI
+);
+
+export const AutoPositionManager = createContract(
+  isProduction ? '0x5414b6AE40Fb093875284e09D517190096647b10' : '0x5221b4bcbc82e64d997841a2CDf540dF48A717d8',
+  AutoPositionManagerABI
 );
 
 export const MulticallContract = createContract(isProduction ? '0x9f208d7226f05b4f43d0d36eb21d8545c3143685' : '0xd59149a01f910c3c448e41718134baeae55fa784', MulticallABI);
 
-export const UniswapV3Factory = createContract(isProduction ? '0x50caddc77c6727bdd3c78b428c149bf110b4f595' : '0x7aa9221ca91f857289ff89d795e759d1a8236d0b', UniswapV3FactoryABI);
+export const UniswapV3Factory = createContract(isProduction ? '0x50caddc77c6727bdd3c78b428c149bf110b4f595' : '0x3CA06Df0dA13841E03b6ee24d2aB62023De41b03', UniswapV3FactoryABI);
 
-export const UniswapV3Quoter = createContract(isProduction ? '0x8e52aa02245134becdf3e0405a40ae04e151ed5c' : '0x8f81e811a1adef2774b231b0f1ed51330e138290', UniswapV3QuoterABI);
+export const UniswapV3Quoter = createContract(isProduction ? '0x8e52aa02245134becdf3e0405a40ae04e151ed5c' : '0xEb6b81ABF107f25C765A71cA6bA0952BE5D43Fc4', UniswapV3QuoterABI);
 
-export const UniswapV3SwapRouter = createContract(isProduction ? '0x3b02e356d09e758e2711bc64cf33e48f3e1239b8' : '0x07b8afbb0f34e6a26208be1c7acb51520676bd78', SwapRouterABI);
+export const UniswapV3SwapRouter = createContract(isProduction ? '0x3b02e356d09e758e2711bc64cf33e48f3e1239b8' : '0xdDAE0B2317505630854014ad0f9637d989073597', SwapRouterABI);
 
 export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
   MulticallContract.func.aggregate.staticCall(data).then((res: any) => {
@@ -43,7 +49,7 @@ export const fetchMulticall = (data: string[][]): Promise<string[] | null> =>
     else return null;
   });
 
-export const VotingEscrowContract = createContract(isProduction ? '0x8c08623a7b31520b3871a91f676e4c38080684a6' : '0x8c08623a7b31520b3871a91f676e4c38080684a6', VotingEscrowABI);
+export const VotingEscrowContract = createContract(isProduction ? '0x8c08623a7b31520b3871a91f676e4c38080684a6' : '0x97DA4e2C169553D4dccB7ce7F0F2C7fA6AFEFD0c', VotingEscrowABI);
 
 export const createPairContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PairABI);
 export const createPoolContract = (poolAddress: string) => createContract(poolAddress, UniswapV3PoolABI);
@@ -51,4 +57,4 @@ export const createERC20Contract = (tokenAddress: string) => createContract(toke
 export const createERC721Contract = (tokenAddress: string) => createContract(tokenAddress, ERC721ABI);
 export const createVSTTokenContract = () => createERC20Contract(TokenVST.address);
 
-export const UniswapV3Staker = createContract(isProduction ? '0x86e01175a5569c970cfb7a44e224120ddc85901a' : '0x969ebbd1000f2eef20c10e9bc5dbccdb1d5c2292', UniswapV3StakerABI);
+export const UniswapV3Staker = createContract(isProduction ? '0x326b6ec27A250926f66AFfc958cFbA35072C886f' : '0x65B5a88FCD4FAb5fF9615cFB3Ae11eF24594db80', UniswapV3StakerABI);

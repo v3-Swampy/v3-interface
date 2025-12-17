@@ -1,9 +1,10 @@
 import { atom, selector, useRecoilValue, useRecoilRefresher_UNSTABLE } from 'recoil';
 import { fetchMulticall, createPairContract, UniswapV3Staker } from '@contracts/index';
-import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, stableTokens, baseTokens, type Token } from '@service/tokens';
+import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, type Token } from '@service/tokens';
 import { chunk } from 'lodash-es';
 import { isProduction } from '@utils/is';
 import { timestampSelector } from './timestamp';
+import { getTokenPriority } from '@service/position/positions';
 
 /**
  * 将数组按照指定的长度数组分组
@@ -29,12 +30,7 @@ export const farmingPoolsAddress = atom<Array<string>>({
   key: `farmingPoolsAddress-${import.meta.env.MODE}`,
   default: isProduction
     ? ['0x6857285eb6b3feb1d007a57b1DFDD76B2fAb0D0a', '0x6806c2808b68b74206A0Cbe00dDe2d0e26216308', '0x108920614FD13CeaAf52026E76D18C480e88AA2A']
-    : [
-        '0x5D3c14F19776d197642Db3f7dde9cb38f7AD1a0A',
-        '0x185A696a1Da0e300CBbdd1c3f1f35448c779680C',
-        '0x04989512a2f29BC1D133A03c69cA3dDe3313c478',
-        '0x48CA85EC0ca84B63925E1bcE68e6796055af289f',
-      ],
+    : ['0x6A24a7818b666732e5b5Bcb719F07926961B341E', '0xE1074D1068c05D7f5b9c27b7CA9e5fD0933c073D', '0x320bDBC3ba3db966c70d3f54222b902e56270066', '0xb5BD827D40d284170d0773c9aAC7f2E37d48C6A3', '0x393BA3679Ac5701a3181e2506bA189162e644101', '0x7510CEE7eeB84d6eEFD333b9b587a89F2f898893'],
 });
 
 export interface IncentiveKey {
@@ -181,12 +177,12 @@ const getLRToken = (token0: Token | null, token1: Token | null) => {
   if (!token0 || !token1) return [];
   const unwrapToken0 = getUnwrapperTokenByAddress(token0.address);
   const unwrapToken1 = getUnwrapperTokenByAddress(token1.address);
-  const checkedLR =
-    // if token0 is a dollar-stable asset, set it as the quote token
-    stableTokens.some((stableToken) => stableToken?.address === token0.address) ||
-    // if token1 is an ETH-/BTC-stable asset, set it as the base token
-    baseTokens.some((baseToken) => baseToken?.address === token1.address);
-  const leftToken = checkedLR ? unwrapToken0 : unwrapToken1;
-  const rightToken = checkedLR ? unwrapToken1 : unwrapToken0;
-  return [leftToken, rightToken];
+  const token0Priority = getTokenPriority(token0);
+  const token1Priority = getTokenPriority(token1);
+
+  if (token0Priority < token1Priority) return [unwrapToken1, unwrapToken0];
+
+  if (token0Priority > token1Priority) return [unwrapToken0, unwrapToken1];
+
+  return [unwrapToken0, unwrapToken1];
 };

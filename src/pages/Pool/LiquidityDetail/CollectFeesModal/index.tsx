@@ -37,7 +37,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   const refreshPositionFees = useRefreshPositionFees(tokenId);
 
   const onSubmit = useCallback(async () => {
-    if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0 === new Unit(0) && fee1 === new Unit(0))) return;
+    if (!tokenId || !token0 || !token1 || !fee0 || !fee1 || (fee0.equals(0) && fee1.equals(0))) return;
     setNextInfo({
       sendTransaction: () => handleCollectFees({ tokenId, refreshPositionFees }),
     });
@@ -46,7 +46,7 @@ const CollectFeesModal: React.FC<Props> = ({ setNextInfo, fee0, fee1, position, 
   return (
     <div className="mt-24px flex flex-col h-full flex-grow-1">
       <div className="flex p-16px bg-orange-light-hover rounded-20px mb-16px">
-        <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} tokenId={tokenId} />
+        <TokenPairAmount amount0={new Unit(fee0 ?? 0)} amount1={new Unit(fee1 ?? 0)} position={position} />
       </div>
       <p className="text-black-normal text-14px leading-18px mb-8px pl-8px">{i18n.collect_tip}</p>
       <AuthConnectButton {...buttonProps}>

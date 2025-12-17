@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useLayoutEffect } from 'react';
+import React, { memo, useState, useCallback, useMemo, useEffect, useLayoutEffect } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues, type UseFormGetValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
@@ -41,6 +41,22 @@ const transitions = {
   },
 } as const;
 
+const ranges = [1, 5, 10, 20];
+
+const stableCoins = ['USDC', 'USDT', 'AxCNH'];
+const majorCoins = ['BTC', 'ETH'];
+const getDefaultRange = (tokenA: Token | null | undefined, tokenB: Token | null | undefined) => {
+  if (!tokenA || !tokenB) return undefined;
+  const isStableA = stableCoins.includes(tokenA.symbol);
+  const isStableB = stableCoins.includes(tokenB.symbol);
+  const isMajorA = majorCoins.includes(tokenA.symbol);
+  const isMajorB = majorCoins.includes(tokenB.symbol);
+  
+  if (isStableA && isStableB) return 1;
+  if ((isStableA || isMajorA) && (isStableB || isMajorB)) return 10;
+  return 20;
+};
+
 interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
@@ -51,6 +67,51 @@ interface Props {
   priceUpper: string;
 }
 
+const getPriceByRange = ({
+  range,
+  priceTokenA,
+  tokenA,
+  tokenB,
+  fee,
+  type,
+}: {
+  range: number;
+  priceTokenA: Unit | null | undefined;
+  tokenA: Token | null | undefined;
+  tokenB: Token | null | undefined;
+  fee: FeeAmount;
+  type: 'lower' | 'upper';
+}) => {
+  if (!priceTokenA || !tokenA || !tokenB || !fee || Number.isNaN(Number(range)) || range < 0 || range > 100) return '';
+  if (range === 100) return type === 'lower' ? '0' : 'Infinity';
+  const recommendVal = trimDecimalZeros(
+    findClosestValidPrice({
+      fee,
+      tokenA,
+      tokenB,
+      searchPrice:
+        type === 'lower'
+          ? priceTokenA
+              .mul(100 - range)
+              .div(100)
+              .toDecimalMinUnit(5)
+          : priceTokenA
+              .mul(100 + range)
+              .div(100)
+              .toDecimalMinUnit(5),
+    })?.toDecimalMinUnit(5)
+  );
+
+  const priceTokenAFixed5 = priceTokenA?.toDecimalMinUnit(5);
+  if (type === 'lower' && priceTokenA && Number(priceTokenAFixed5) > 0.00001 && recommendVal === '0') {
+    const half = new Unit(priceTokenAFixed5!).div(2).toDecimalMinUnit(5);
+    if (new Unit(half).equals(0)) {
+      return '0.00001';
+    } else return half;
+  }
+  return recommendVal;
+};
+
 const RangeInput: React.FC<
   Pick<Props, 'register' | 'setValue' | 'getValues' | 'priceLower' | 'priceUpper'> & {
     type: 'lower' | 'upper';
@@ -58,8 +119,10 @@ const RangeInput: React.FC<
     tokenB: Token | null;
     priceTokenA: Unit | null | undefined;
     fee: FeeAmount;
+    defaultRange: number | undefined;
+    resetSelectedRange: () => void;
   }
-> = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues }) => {
+> = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues, defaultRange, resetSelectedRange }) => {
   const i18n = useI18n(transitions);
 
   const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
@@ -76,35 +139,17 @@ const RangeInput: React.FC<
           setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
           return;
         }
+        setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
       } catch {
         setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
-        return;
+      } finally {
+        resetSelectedRange();
       }
-      setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
     },
-    [fee, tokenA?.address, tokenB?.address]
+    [fee, tokenA?.address, tokenB?.address, resetSelectedRange]
   );
 
-  const placeholder = useMemo(() => {
-    const recommendVal = trimDecimalZeros(
-      !priceTokenA || !tokenA || !tokenB
-        ? ''
-        : findClosestValidPrice({
-            fee,
-            tokenA,
-            tokenB,
-            searchPrice: type === 'lower' ? priceTokenA.div(2).toDecimalMinUnit(5) : priceTokenA.mul(2).toDecimalMinUnit(5),
-          })?.toDecimalMinUnit(5)
-    );
-    const priceTokenAFixed5 = priceTokenA?.toDecimalMinUnit(5);
-    if (type === 'lower' && priceTokenA && Number(priceTokenAFixed5) > 0.00001 && recommendVal === '0') {
-      const half = new Unit(priceTokenAFixed5!).div(2).toDecimalMinUnit(5);
-      if (new Unit(half).equals(0)) {
-        return '0.00001';
-      } else return half;
-    }
-    return recommendVal;
-  }, [priceTokenA]);
+  const placeholder = useMemo(() => getPriceByRange({ range: defaultRange ?? 20, priceTokenA, tokenA, tokenB, fee, type }), [priceTokenA, tokenA, tokenB, fee, type, defaultRange]);
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
@@ -114,7 +159,8 @@ const RangeInput: React.FC<
     const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
     const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit(5));
     setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
-  }, [fee, tokenA?.address, tokenB?.address]);
+    resetSelectedRange();
+  }, [fee, tokenA?.address, tokenB?.address, resetSelectedRange]);
 
   const handleClickAdd = useCallback(() => {
     if (!tokenA || !tokenB) return;
@@ -127,7 +173,8 @@ const RangeInput: React.FC<
     if (priceStr === '0' || priceStr === 'Infinity') return;
     const nextPrice = findNextPreValidPrice({ direction: 'next', fee, tokenA, tokenB, searchPrice: priceStr });
     setValue(`price-${type}`, trimDecimalZeros(nextPrice?.toDecimalMinUnit(5)));
-  }, [placeholder, fee, tokenA?.address, tokenB?.address]);
+    resetSelectedRange();
+  }, [placeholder, fee, tokenA?.address, tokenB?.address, resetSelectedRange]);
 
   const shouldHideSubIcon = useMemo(() => {
     if (type === 'lower') {
@@ -163,7 +210,7 @@ const RangeInput: React.FC<
       <div className="add-liquidity-price-input relative flex items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light">
         <div
           className={cx(
-            'flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-normal transition-colors cursor-pointer',
+            'flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-normal transition-colors select-none cursor-pointer',
             shouldHideSubIcon && 'opacity-0 pointer-events-none'
           )}
           onClick={handleClickSub}
@@ -179,7 +226,7 @@ const RangeInput: React.FC<
             required: true,
             min: 0,
             onBlur: handlePriceChange,
-            onChange: handleChange
+            onChange: handleChange,
           })}
           min={0}
           step={0.00001}
@@ -193,7 +240,7 @@ const RangeInput: React.FC<
         )}
         <div
           className={cx(
-            'ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-normal transition-colors cursor-pointer',
+            'ml-auto flex justify-center items-center w-24px h-24px rounded-full bg-orange-light hover:bg-orange-normal text-21px text-white-normal font-normal transition-colors select-none cursor-pointer',
             shouldHideAddIcon && 'opacity-0 pointer-events-none'
           )}
           onClick={handleClickAdd}
@@ -213,7 +260,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
   const isBothTokenSelected = !!tokenA && !!tokenB;
 
   const fee = useCurrentFee();
-  const { state, pool } = usePool({ tokenA, tokenB, fee });
+  const { pool } = usePool({ tokenA, tokenB, fee });
   const priceTokenA = useMemo(
     () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
     [tokenA?.address, pool, priceInit]
@@ -235,10 +282,58 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
     [fee, tokenA, tokenB]
   );
 
-  const setFullRange = useCallback(() => {
+  const [selectedRange, setSelectedRange] = useState<number | 'custom' | 'full' | null>(null);
+  const resetSelectedRange = useCallback(() => setSelectedRange(null), []);
+
+  const handleSetFullRange = useCallback(() => {
     setValue('price-lower', '0');
     setValue('price-upper', 'Infinity');
+    setSelectedRange('full');
   }, []);
+
+  const handleSetRange = useCallback(
+    (range: number) => {
+      setValue('price-lower', getPriceByRange({ range: Number(range), priceTokenA, tokenA, tokenB, fee, type: 'lower' }));
+      setValue('price-upper', getPriceByRange({ range: Number(range), priceTokenA, tokenA, tokenB, fee, type: 'upper' }));
+      setSelectedRange(range);
+    },
+    [priceTokenA, tokenA, tokenB, fee]
+  );
+
+  const handleCustomRangeChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
+    const value = evt.target.value;
+
+    if (value === '') {
+      return;
+    }
+
+    const numValue = Number(value);
+
+    if (!Number.isNaN(numValue)) {
+      if (numValue < 0) {
+        evt.target.value = '0';
+      } else if (numValue > 100) {
+        evt.target.value = '100';
+      }
+    }
+  }, []);
+
+  const handleCustomRangeBlur = useCallback<React.FocusEventHandler<HTMLInputElement>>(
+    (evt) => {
+      const value = evt.target.value;
+      if (value !== '' && !Number.isNaN(Number(value))) {
+        handleSetRange(Number(value));
+        setSelectedRange('custom');
+      }
+    },
+    [handleSetRange]
+  );
+
+  const defaultRange = useMemo(() => getDefaultRange(tokenA, tokenB), [tokenA, tokenB]);
+  useEffect(() => {
+    if (!priceTokenA || !defaultRange) return;
+    handleSetRange(defaultRange);
+  }, [defaultRange, priceTokenA]);
 
   return (
     <div className={cx('p-16px rounded-16px bg-orange-light-hover', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
@@ -287,6 +382,8 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
           fee={fee}
           priceLower={priceLower}
           priceUpper={priceUpper}
+          defaultRange={defaultRange}
+          resetSelectedRange={resetSelectedRange}
         />
         <RangeInput
           type="upper"
@@ -299,20 +396,55 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
           fee={fee}
           priceLower={priceLower}
           priceUpper={priceUpper}
+          defaultRange={defaultRange}
+          resetSelectedRange={resetSelectedRange}
         />
       </div>
 
       {isRangeValid === false && <div className="mt-6px text-12px text-error-normal">{i18n.invalid_range}</div>}
 
       {pool !== null && (
-        <div
-          className={cx(
-            'mt-16px flex justify-center items-center h-40px px-8px rounded-100px border-2px border-solid border-orange-light text-16px font-normal text-black-normal cursor-pointer',
-            !priceTokenA && 'text-gray-normal pointer-events-none'
-          )}
-          onClick={setFullRange}
-        >
-          {i18n.full_range}
+        <div className="mt-16px flex items-center gap-16px select-none">
+          <div
+            className={cx('flex justify-between items-center px-16px rounded-100px border-2px border-solid border-orange-light text-14px', !priceTokenA && 'pointer-events-none')}
+          >
+            {ranges.map((range) => (
+              <div
+                key={range}
+                className={cx(
+                  'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer',
+                  !priceTokenA && 'text-gray-light pointer-events-none',
+                  selectedRange === range && 'text-orange-normal'
+                )}
+                onClick={() => handleSetRange(range)}
+              >
+                {range}%
+              </div>
+            ))}
+            <div
+              className={cx(
+                'flex justify-center items-center h-40px px-8px font-normal text-gray-normal cursor-pointer whitespace-nowrap',
+                !priceTokenA && 'text-gray-light pointer-events-none',
+                selectedRange === 'full' && 'text-orange-normal'
+              )}
+              onClick={handleSetFullRange}
+            >
+              {i18n.full_range}
+            </div>
+          </div>
+          <div className={cx('flex items-center px-16px rounded-100px border-2px border-solid border-orange-light')}>
+            <Input
+              className={cx('w-56px h-40px text-14px text-gray-normal focus:text-black-normal', selectedRange === 'custom' && 'text-orange-normal')}
+              placeholder="Custom"
+              max={100}
+              min={0}
+              step={0.000001}
+              type="number"
+              onChange={handleCustomRangeChange}
+              onBlur={handleCustomRangeBlur}
+            />
+            <span className="text-14px text-gray-normal">%</span>
+          </div>
         </div>
       )}
     </div>

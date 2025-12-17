@@ -1,3 +1,5 @@
+import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+
 export const numFormat = (num?: string) => {
   if (!num) return '';
   const [int, dec] = num.split('.');
@@ -34,3 +36,25 @@ export const addZeroToDay = (x: number | string | undefined) => {
   if (String(x).length == 1) return '0' + x;
   return x + '';
 };
+
+interface FormatDisplayAmountOptions {
+  decimals?: number;
+  minNum?: number | string;
+  toFixed?: number;
+  unit?: string;
+  trimZeros?: boolean;
+}
+export function formatDisplayAmount(amount: null, options: FormatDisplayAmountOptions): null;
+export function formatDisplayAmount(amount: undefined, options: FormatDisplayAmountOptions): undefined;
+export function formatDisplayAmount(amount: string | number | Unit, options: FormatDisplayAmountOptions): string;
+export function formatDisplayAmount(amount: string | number | Unit | null | undefined, options: FormatDisplayAmountOptions): string | undefined | null;
+export function formatDisplayAmount(amount: string | number | Unit | null | undefined, options: FormatDisplayAmountOptions = {}) {
+  if (amount === undefined || amount === null) return amount;
+  const { decimals = 0, minNum = '0.00001', toFixed = 5, unit = '', trimZeros = true } = options;
+  const amountUnit = new Unit(amount).div(Unit.pow(10, decimals));
+  if (amountUnit.equals(0)) return `${unit}0`;
+  if (minNum && amountUnit.lessThan(minNum)) {
+    return `<${unit}${minNum}`;
+  }
+  return trimZeros ? `${unit}${trimDecimalZeros(amountUnit.toDecimalMinUnit(toFixed))}` : `${unit}${amountUnit.toDecimalMinUnit(toFixed)}`;
+}

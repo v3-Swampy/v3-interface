@@ -10,7 +10,6 @@ import { type Token } from '@service/tokens';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage, getExpertModeState } from '@service/settings';
 import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import { addRecordToHistory } from '@service/history';
-import { setInvertedState } from '@modules/Position/invertedState';
 import showLiquidityPreviewModal from '@pages/Pool/LiquidityPreviewModal';
 import { hidePopup } from '@components/showPopup';
 import showGasLimitModal from '@modules/ConfirmTransactionModal/showGasLimitModal';
@@ -95,8 +94,6 @@ export const handleClickSubmitCreatePosition = async ({
       token1AmountUnit.toDecimalMinUnit()
     );
     const previewUniqueId = uniqueId();
-    const inverted = token0?.address === tokenA?.address;
-    setInvertedState(previewUniqueId, inverted);
 
     const data0 = NonfungiblePositionManager.func.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [token0.address, token1.address, +fee, sqrtPriceX96]);
     const data1 = NonfungiblePositionManager.func.interface.encodeFunctionData('mint', [
@@ -136,14 +133,12 @@ export const handleClickSubmitCreatePosition = async ({
 
     if (!isInExpertMode) {
       showLiquidityPreviewModal({
-        leftToken: _tokenB,
-        rightToken: _tokenA,
-        leftAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
-        rightAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
-        inverted,
+        leftToken: _tokenA,
+        rightToken: _tokenB,
+        leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
+        rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
         priceInit: _priceInit,
-        previewUniqueId,
-        previewPosition: createPreviewPositionForUI({ token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
+        previewPosition: createPreviewPositionForUI({ tokenId: Number(previewUniqueId), token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
         transactionParams,
         recordParams,
       });

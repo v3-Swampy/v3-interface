@@ -30,14 +30,12 @@ const transitions = {
 } as const;
 
 interface Props {
-  leftToken: Token;
-  rightToken: Token;
+  leftToken?: Token;
+  rightToken?: Token;
   leftAmount: Unit;
   rightAmount: Unit;
-  inverted: boolean;
   priceInit?: string;
   previewPosition: PositionForUI;
-  previewUniqueId: string;
   transactionParams: {
     to: string;
     data: string;
@@ -54,11 +52,9 @@ interface Props {
 
 const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
   setNextInfo,
-  inverted,
   leftAmount,
   rightAmount,
   priceInit,
-  previewUniqueId,
   previewPosition,
   leftToken,
   rightToken,
@@ -75,19 +71,19 @@ const LiquidityPreviewModal: React.FC<ConfirmModalInnerProps & Props> = ({
     <div className={cx(isMobile ? 'mt-12px max-h-[calc(100vh-150px)] overflow-scroll drawer-inner-scroller' : 'mt-24px')}>
       <Suspense fallback={'...'}>
         <div className="flex justify-between items-center">
-          <TokenPair className="!text-18px" position={previewPosition} showFee={false} inverted={!inverted} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPair className="!text-18px" position={previewPosition} showFee={false} leftToken={leftToken} rightToken={rightToken} />
           <Status position={previewPosition} />
         </div>
 
         <div className="mt-24px mb-18px p-16px rounded-20px bg-orange-light-hover">
-          <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} tokenId={previewUniqueId} leftToken={leftToken} rightToken={rightToken} />
+          <TokenPairAmount leftAmount={leftAmount} rightAmount={rightAmount} position={previewPosition} leftToken={leftToken} rightToken={rightToken} />
           <p className="mt-18px flex justify-between leading-18px pl-32px text-14px text-black-normal font-normal">
             Fee Tier
             <span>{previewPosition.fee / 10000}%</span>
           </p>
         </div>
 
-        <SelectedPriceRange position={previewPosition} tokenId={previewUniqueId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
+        <SelectedPriceRange position={previewPosition} tokenId={previewPosition.tokenId} showInvertButton={false} leftToken={leftToken} rightToken={rightToken} priceInit={priceInit} />
         <Button color="orange" fullWidth className="mt-16px h-40px rounded-100px text-18px" loading={inTransaction} onClick={handleClickConfirm} id="pool-liquidity-preview-modal-submit-button">
           {i18n.add}
         </Button>
