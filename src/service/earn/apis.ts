@@ -10,7 +10,7 @@ export const getPoolsWith24HoursData = async (ids?: string[]) => {
     // 获取当前时间已超出整点的秒数
     const extraSecond = now % ONE_HOUR;
     // 获取一天前的整点时间戳
-    const start = now - 1 * ONE_HOUR - extraSecond;
+    const start = now - 24 * ONE_HOUR - extraSecond;
     const res = await fetchGraphql({
       query: getPoolsWithHourDataGQL,
       variables: {
