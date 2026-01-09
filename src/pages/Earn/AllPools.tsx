@@ -21,7 +21,7 @@ const classNames = {
   title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-md:mb-4px',
   content: 'color-black-normal text-14px font-normal not-italic leading-18px lt-md:text-12px lt-md:leading-15px',
   authConnectButton:
-    'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-normal whitespace-nowrap not-italic color-orange-normal cursor-pointer lt-md:border-1 lt-md:text-14px',
+    'flex items-center justify-center !px-6 h-8 border-2 border-solid rounded-full leading-18px font-normal whitespace-nowrap not-italic color-orange-normal cursor-pointer lt-md:border-1 lt-md:text-14px lt-md:!px-2',
   splitLine: `lt-md:before:content-[''] lt-md:before:border-0 lt-md:before:border-l-1px lt-md:before:border-solid lt-md:before:absolute lt-md:before:top-2px lt-md:before:bottom-2px lt-md:relative lt-md:before:left-0 lt-md:before:border-color-orange-light`,
   poolWrapper: 'lt-md:mb-4 lt-md:rounded-14px',
   symbol: 'lt-md:font-normal lt-md:text-14px lt-md:leading-18px',
