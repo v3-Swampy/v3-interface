@@ -85,7 +85,7 @@ export const useHistory = () => {
           });
 
           const i18n = toI18n(transitions);
-          const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value } = record;
+          const { tokenA_Value, tokenA_Address, tokenB_Address, tokenB_Value, positionId } = record;
           const tokenA = getUnwrapperTokenByAddress(tokenA_Address);
           const tokenB = getUnwrapperTokenByAddress(tokenB_Address);
           showToast(
@@ -94,6 +94,7 @@ export const useHistory = () => {
               tokenASymbol: tokenA?.symbol ?? '',
               tokenBValue: trimDecimalZeros(tokenB_Value ? Number(tokenB_Value).toFixed(4) : ''),
               tokenBSymbol: tokenB?.symbol ?? '',
+              positionId: positionId ?? '',
             }),
             {
               type: receipt?.status === '0x1' ? 'success' : 'error',
