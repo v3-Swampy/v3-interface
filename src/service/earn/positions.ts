@@ -20,6 +20,7 @@ import { getPositionFees } from './positionDetail';
 import { getUserFarmInfoOfPosition } from './myFarmInfo';
 import { PositionStatus } from '@type/position';
 import { getTimestamp } from './timestamp';
+import { setTokensPriceState } from '../tokens/tokensPriceState';
 
 export interface Position {
   tokenId: number;
@@ -163,7 +164,7 @@ const positionsQuery = selector<Array<Position>>({
   },
 });
 
-export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
+export const PositionsForUISelector = selector({
   key: `earn-PositionListForUI-${import.meta.env.MODE}`,
   get: async ({ get }) => {
     const positions = get(positionsQuery);
@@ -182,7 +183,7 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
         rewardTokensMap[poolAddress] = [incentive.rewardToken];
       }
     });
-    const enhancedPositions = await Promise.all(
+    const enhancedPositions = (await Promise.all(
       positions.map(async (position) => {
         const { token0, token1, fee } = position;
         const poolAddress = position.address.toLowerCase();
@@ -195,7 +196,16 @@ export const PositionsForUISelector = selector<Array<PositionEnhanced>>({
         }
         return { ...positionForUI, unclaimedFees };
       })
-    );
+    )) as PositionEnhanced[];
+    // merge all reward tokens for get price
+    const allRewardTokens = enhancedPositions.reduce((acc, cur) => {
+      if (cur.unclaimedRewards) {
+        acc.push(...cur.unclaimedRewards.map((r) => r.rewardTokenInfo?.address).filter((address): address is string => !!address));
+      }
+      return acc;
+    }, [] as string[]);
+    // the price of reward tokens is not required for positions, so we don't need to wait it here
+    setTokensPriceState(allRewardTokens);
     enhancedPositions.sort((a, b) => {
       if (a.positionStatus === PositionStatus.Closed && b.positionStatus !== PositionStatus.Closed) return 1;
       if (a.positionStatus !== PositionStatus.Closed && b.positionStatus === PositionStatus.Closed) return -1;
