@@ -16,6 +16,7 @@ import FarmIcon from '@assets/imgs/farm.png';
 import { invertPrice, useTokenPrice } from '@service/pairs&pool';
 import { useInvertedState } from '@modules/Position/invertedState';
 import { BetaLpGuide } from './BetaLpGuide';
+import { useTokensPriceState } from '@service/tokens/tokensPriceState';
 
 const classNames = {
   title: 'flex items-center color-gray-normal text-xs not-italic leading-24px mb-8px lt-md:mb-4px',
@@ -56,6 +57,7 @@ const transitions = {
 
 const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positionEnhanced }) => {
   const position: PositionEnhanced = positionEnhanced;
+  const [tokensPriceState] = useTokensPriceState();
   const i18n = useI18n(transitions);
   const [inverted, setInverted] = useInvertedState(position.tokenId);
   const { leftToken, rightToken, priceLowerForUI, priceUpperForUI, pool, amount0, amount1, token0, token1, unclaimedFees, unclaimedRewards, isRewardActive } = position;
@@ -111,7 +113,7 @@ const PositionItem: React.FC<{ positionEnhanced: PositionEnhanced }> = ({ positi
   const unclaimedFeesValue = token0Fee && token1Fee ? new Unit(token0Fee).add(token1Fee) : undefined;
 
   const unclaimedRewardValues = unclaimedRewards?.map((reward) => {
-    const rewardTokenPrice = useTokenPrice(reward?.rewardTokenInfo?.address);
+    const rewardTokenPrice = reward?.rewardTokenInfo?.address && tokensPriceState[reward.rewardTokenInfo.address];
     if (rewardTokenPrice && reward.stakeReward.unclaimedReward) {
       return new Unit(reward.stakeReward.unclaimedReward).mul(rewardTokenPrice).div(new Unit(10).pow(reward.rewardTokenInfo?.decimals ?? 18));
     }
