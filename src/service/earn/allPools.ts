@@ -76,7 +76,7 @@ export const poolsQuery = selectorFamily({
               [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
             ];
           })
-          .flat()
+          .flat(),
       );
       const pairsInfo = pairsInfoQuery
         ? chunk(pairsInfoQuery, 3).map((r, i) => {
@@ -104,7 +104,7 @@ export const poolsQuery = selectorFamily({
             token0,
             token1,
           };
-        })
+        }),
       );
 
       const leftAndRightTokens = tokensDetail.map((token) => {
@@ -115,28 +115,7 @@ export const poolsQuery = selectorFamily({
         };
       });
 
-      const timestamp = await getTimestamp();
-      const incentiveKeysQuery = await fetchMulticall(
-        poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])])
-      );
-      const incentiveKeys = (await Promise.all(
-        (incentiveKeysQuery ?? []).map(async (res) => {
-          const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
-          const results = await Promise.all(
-            (decodeResult?.[0] ?? []).map(async (data: Array<any>) => ({
-              rewardToken: data?.[0],
-              poolAddress: data?.[1],
-              startTime: Number(data?.[2]),
-              endTime: Number(data?.[3]),
-              refundee: data?.[4],
-              status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
-              key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
-              rewardTokenInfo: await getTokenByAddressWithAutoFetch(data?.[0])!,
-            }))
-          );
-          return results;
-        })
-      )) as Array<Array<IncentiveKeyDetail>>;
+      const incentiveKeys = await getPoolsIncentiveKeys(poolsAddress);
 
       const incentivesQuery = await fetchMulticall(
         incentiveKeys
@@ -144,20 +123,20 @@ export const poolsQuery = selectorFamily({
           .map((key: IncentiveKeyDetail) => [
             UniswapV3Staker.address,
             UniswapV3Staker.func.interface.encodeFunctionData('getIncentiveRewardInfo', [[key.rewardToken, key.poolAddress, key.startTime, key.endTime, key.refundee]]),
-          ])
+          ]),
       );
       // 使用自定义的 chunkByLengths 函数按照每个 pool 的 incentiveKey 数量来分组
       const incentives = chunkByLengths(
         incentivesQuery,
-        incentiveKeys.map((keys) => keys.length)
+        incentiveKeys.map((keys) => keys.length),
       ).map((group) =>
         group.map((raw) => {
           const [token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty] = UniswapV3Staker.func.interface.decodeFunctionResult(
             'getIncentiveRewardInfo',
-            raw
+            raw,
           ) as unknown as [bigint, bigint, bigint, bigint, boolean];
           return { token0Amount, token1Amount, tokenUnreleased, rewardRate, isEmpty };
-        })
+        }),
       );
 
       const pools = poolsAddress
@@ -169,7 +148,7 @@ export const poolsQuery = selectorFamily({
               const rewards = await Promise.all(
                 [...new Set(rewardTokenAddresses)].map(async (address) => ({
                   token: await getTokenByAddressWithAutoFetch(address),
-                }))
+                })),
               );
               const { token0Address, token1Address, fee } = pairsInfo[index];
               const token0Price = tokenPriceMap[token0Address];
@@ -181,8 +160,8 @@ export const poolsQuery = selectorFamily({
                   [token0Contract.address, token0Contract.func.interface.encodeFunctionData('balanceOf', [poolAddress])],
                   [token1Contract.address, token1Contract.func.interface.encodeFunctionData('balanceOf', [poolAddress])],
                 ])) ?? [];
-              const token0Amount: bigint = amount0Result ? token0Contract.func.interface.decodeFunctionResult('balanceOf', amount0Result)?.[0] ?? 0n : 0n;
-              const token1Amount: bigint = amount1Result ? token1Contract.func.interface.decodeFunctionResult('balanceOf', amount1Result)?.[0] ?? 0n : 0n;
+              const token0Amount: bigint = amount0Result ? (token0Contract.func.interface.decodeFunctionResult('balanceOf', amount0Result)?.[0] ?? 0n) : 0n;
+              const token1Amount: bigint = amount1Result ? (token1Contract.func.interface.decodeFunctionResult('balanceOf', amount1Result)?.[0] ?? 0n) : 0n;
               // TVL = Reserve_token0 × Price_token0 + Reserve_token1 × Price_token1
               const tvl = new Decimal(token0Amount.toString())
                 .div(Decimal.pow(10, tokensDetail[index].token0?.decimals ?? 0))
@@ -206,7 +185,7 @@ export const poolsQuery = selectorFamily({
                 token1Amount,
                 tvl,
               };
-            })
+            }),
           )
         : null;
 
@@ -232,4 +211,30 @@ const getLRToken = (token0: Token | null, token1: Token | null) => {
   if (token0Priority > token1Priority) return [unwrapToken0, unwrapToken1];
 
   return [unwrapToken0, unwrapToken1];
+};
+
+export const getPoolsIncentiveKeys = async (poolsAddress: string[]) => {
+  const timestamp = await getTimestamp();
+  const incentiveKeysQuery = await fetchMulticall(
+    poolsAddress.map((address) => [UniswapV3Staker.address, UniswapV3Staker.func.interface.encodeFunctionData('getAllIncentiveKeysByPool', [address])]),
+  );
+  const incentiveKeys = (await Promise.all(
+    (incentiveKeysQuery ?? []).map(async (res) => {
+      const decodeResult = UniswapV3Staker.func.interface.decodeFunctionResult('getAllIncentiveKeysByPool', res);
+      const results = await Promise.all(
+        (decodeResult?.[0] ?? []).map(async (data: Array<any>) => ({
+          rewardToken: data?.[0],
+          poolAddress: data?.[1],
+          startTime: Number(data?.[2]),
+          endTime: Number(data?.[3]),
+          refundee: data?.[4],
+          status: Number(data?.[2]) <= timestamp && Number(data?.[3]) >= timestamp ? 'active' : Number(data?.[2]) > timestamp ? 'not-active' : 'ended',
+          key: [data?.[0], data?.[1], data?.[2], data?.[3], data?.[4]],
+          rewardTokenInfo: await getTokenByAddressWithAutoFetch(data?.[0])!,
+        })),
+      );
+      return results;
+    }),
+  )) as Array<Array<IncentiveKeyDetail>>;
+  return incentiveKeys;
 };

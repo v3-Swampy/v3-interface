@@ -1,11 +1,10 @@
-import { Incentive } from './../../utils/graphql/__generated__/graphql';
 import { groupBy, map } from 'lodash-es';
 import { UniswapV3Staker } from '@contracts/index';
 import { fetchChain } from '@utils/fetch';
 import type { PositionForUI } from './positions';
 import type { Pool } from '@service/pairs&pool';
-import { getPools, IncentiveKeyDetail } from './allPools';
-import { getUnwrapperTokenByAddress , Token} from '@service/tokens';
+import { getPoolsIncentiveKeys, IncentiveKeyDetail } from './allPools';
+import { getUnwrapperTokenByAddress, Token } from '@service/tokens';
 
 const mergeStakeRewardsByToken = <
   T extends {
@@ -14,10 +13,10 @@ const mergeStakeRewardsByToken = <
     boostedLiquidity: bigint;
     rewardsPerSecondX32: bigint;
     unsettledReward: bigint;
-  }
+  },
 >(
   items: T[],
-  getRewardTokenKey: (item: T) => string
+  getRewardTokenKey: (item: T) => string,
 ) => {
   const groupedByRewardToken = groupBy(items, getRewardTokenKey);
 
@@ -34,7 +33,7 @@ const mergeStakeRewardsByToken = <
         boostedLiquidity: 0n,
         rewardsPerSecondX32: 0n,
         unsettledReward: 0n,
-      }
+      },
     );
 
     return {
@@ -59,10 +58,10 @@ const mergeUnclaimedRewardsByToken = <
     unsettledReward: bigint;
     settledReward: bigint;
     unclaimedReward: bigint;
-  }
+  },
 >(
   items: T[],
-  getRewardTokenKey: (item: T) => string
+  getRewardTokenKey: (item: T) => string,
 ) => {
   const groupedByRewardToken = groupBy(items, getRewardTokenKey);
 
@@ -77,7 +76,7 @@ const mergeUnclaimedRewardsByToken = <
         unsettledReward: 0n,
         settledReward: 0n,
         unclaimedReward: 0n,
-      }
+      },
     );
 
     return {
@@ -89,8 +88,8 @@ const mergeUnclaimedRewardsByToken = <
 
 export const getUserFarmInfoOfPosition = async ({ position, pool, rewardTokens }: { position: PositionForUI; pool: Pool; rewardTokens: string[] }) => {
   if (!position || !pool) return null;
-  const pools = await getPools([pool.address]);
-  const incentiveKeys = pools?.[0]?.incentiveKeys || [];
+  const incentiveKeysList = await getPoolsIncentiveKeys([pool.address]);
+  const incentiveKeys = incentiveKeysList?.[0] ?? [];
 
   // 构建调用数据
   const stakeRewardCalls = incentiveKeys.map((incentiveKey) => UniswapV3Staker.func.interface.encodeFunctionData('getStakeRewardInfo', [incentiveKey.key, position.tokenId]));
@@ -121,7 +120,7 @@ export const getUserFarmInfoOfPosition = async ({ position, pool, rewardTokens }
   const stakeRewards = stakeRewardsResults.map((item, index) => {
     const [liquidity, boostedLiquidity, rewardsPerSecondX32, unsettledReward] = UniswapV3Staker.func.interface.decodeFunctionResult(
       'getStakeRewardInfo',
-      item as string
+      item as string,
     ) as Array<bigint>;
     return {
       incentiveKey: incentiveKeys[index],
@@ -178,17 +177,16 @@ export const getUserFarmInfoOfPosition = async ({ position, pool, rewardTokens }
     unclaimedReward: item.unsettledReward + item.settledReward, // 总的未提取奖励
   }));
 
-
   const isRewardActive = position.positionStatus === 'InRange' && incentiveKeys.some((item) => item.status === 'active');
   const activeIncentiveKeys = stakeRewards.filter((item) => item.incentiveKey.status === 'active').map((item) => item.incentiveKey);
   const activeRewards = mergeStakeRewardsByToken(
     stakeRewards.filter((item) => item.incentiveKey.status === 'active' && position.positionStatus === 'InRange'),
-    (item) => item.incentiveKey.rewardToken.toLowerCase()
+    (item) => item.incentiveKey.rewardToken.toLowerCase(),
   );
 
   const unclaimedRewards = mergeUnclaimedRewardsByToken(
     _unclaimedRewards.filter((item) => item.unclaimedReward > 0n),
-    (item) => item.token.toLowerCase()
+    (item) => item.token.toLowerCase(),
   );
 
   return {
