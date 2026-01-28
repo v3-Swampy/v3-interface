@@ -2,7 +2,7 @@ import { useEffect, useRef, useMemo } from 'react';
 import { atomFamily, useRecoilState } from 'recoil';
 import { setRecoil } from 'recoil-nexus';
 import { uniqueId } from 'lodash-es';
-import { getTokenByAddress, getWrapperTokenByAddress, TokenUSDT, isTokenEqual, type Token } from '@service/tokens';
+import { getTokenByAddress, getWrapperTokenByAddress, isTokenEqual, type Token, TokenForUSDPrice } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { targetChainId } from '@service/account';
 import { useRoutingApi, getRoutingApiState } from '@service/settings';
@@ -97,26 +97,36 @@ const fetchTradeWithClient = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
     amount: amountUnit.toDecimalMinUnit(),
     type: tradeType,
   };
-  return getClientSideQuote(args, router, CLIENT_PARAMS).then((res) => {
-    if (res.data) {
-      return res.data;
-    } else {
-      throw new Error('NO_ROUTE');
-    }
-  }).catch(err => {
-    console.log('err', err);
-    throw err;
-  });
+  return getClientSideQuote(args, router, CLIENT_PARAMS)
+    .then((res) => {
+      if (res.data) {
+        return res.data;
+      } else {
+        throw new Error('NO_ROUTE');
+      }
+    })
+    .catch((err) => {
+      console.log('err', err);
+      throw err;
+    });
 };
 
-const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType }: FetchTradeParams): ReturnType<typeof fetchTradeWithClient> =>
-  fetch(
-    `${isLocalDev ? '/prod' : 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
-      tokenInWrappered.chainId
-    }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
-      tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'
-    }`
-  )
+const fetchTradeWithServer = ({
+  tokenInWrappered,
+  tokenOutWrappered,
+  amountUnit,
+  tradeType,
+  precisionInsensitive = false,
+}: FetchTradeParams & { precisionInsensitive?: boolean }): ReturnType<typeof fetchTradeWithClient> => {
+  let url = `${isLocalDev ? '/prod' : 'https://cdnqxybj18.execute-api.ap-southeast-1.amazonaws.com/prod'}/quote?tokenInAddress=${tokenInWrappered.address}&tokenInChainId=${
+    tokenInWrappered.chainId
+  }&tokenOutAddress=${tokenOutWrappered.address}&tokenOutChainId=${tokenOutWrappered.chainId}&amount=${amountUnit.toDecimalMinUnit()}&type=${
+    tradeType === TradeType.EXACT_INPUT ? 'exactIn' : 'exactOut'
+  }`;
+  if (precisionInsensitive) {
+    url += '&distributionPercent=25&maxSwapsPerPath=2';
+  }
+  return fetch(url)
     .then((res) => res.json())
     .then((res) => {
       if (res?.errorCode) {
@@ -128,17 +138,20 @@ const fetchTradeWithServer = ({ tokenInWrappered, tokenOutWrappered, amountUnit,
       }
       return res;
     });
+};
 
 export const fetchBestTrade = async ({
   tradeType,
   amount,
   tokenIn,
   tokenOut,
+  precisionInsensitive = false,
 }: {
   tradeType: TradeType | null;
   amount: string;
   tokenIn: Token | null;
   tokenOut: Token | null;
+  precisionInsensitive?: boolean;
 }): Promise<BestTrade> => {
   const serverFirst = getRoutingApiState();
   const tokenInWrappered = getWrapperTokenByAddress(tokenIn?.address);
@@ -146,7 +159,7 @@ export const fetchBestTrade = async ({
   if (!amount || !tokenInWrappered || !tokenOutWrappered || tradeType === null || tokenInWrappered?.address === tokenOutWrappered?.address) {
     return { state: TradeState.INVALID };
   }
-  const fetchByServer = () => fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+  const fetchByServer = () => fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType, precisionInsensitive });
   const fetchByClient = () => fetchTradeWithClient({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
   const priorityMethod = serverFirst ? fetchByServer : fetchByClient;
   const secondaryMethod = serverFirst ? fetchByClient : fetchByServer;
@@ -193,14 +206,14 @@ const bestTradeState = atomFamily<BestTrade, string>({
 
 export const setBestTradeState = (
   { tradeType, amount, tokenIn, tokenOut }: { tradeType: TradeType | null; amount: string; tokenIn: Token | null; tokenOut: Token | null },
-  val: BestTrade
+  val: BestTrade,
 ) => {
   const fetchKey = `${tokenIn?.address}-${tokenOut?.address}-${amount}-${tradeType}`;
   setRecoil(bestTradeState(fetchKey), val);
 };
 
 const bestTradeTracker = new Map<string, boolean>();
-export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null) => {
+export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenIn: Token | null, tokenOut: Token | null, precisionInsensitive = false) => {
   const [serverFirst] = useRoutingApi();
   const uniqueIdFetchId = useRef<string>('init');
   const fetchKey = useMemo(() => `${tokenIn?.address}-${tokenOut?.address}-${amount}-${tradeType}`, [tokenIn?.address, tokenOut?.address, amount, tradeType]);
@@ -223,7 +236,7 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
     const amountUnit = Unit.fromStandardUnit(amount, tradeType === TradeType.EXACT_INPUT ? tokenInWrappered.decimals : tokenOutWrappered.decimals);
 
     setBestTrade({ state: TradeState.LOADING });
-    const fetchByServer = () => fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
+    const fetchByServer = () => fetchTradeWithServer({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType, precisionInsensitive });
     const fetchByClient = () => fetchTradeWithClient({ tokenInWrappered, tokenOutWrappered, amountUnit, tradeType });
     const priorityMethod = serverFirst ? fetchByServer : fetchByClient;
     const secondaryMethod = serverFirst ? fetchByClient : fetchByServer;
@@ -274,13 +287,13 @@ export const useBestTrade = (tradeType: TradeType | null, amount: string, tokenI
 /** undefined means loading */
 export const useTokenPrice = (tokenAddress: string | undefined, amount: string = '1') => {
   const token = getWrapperTokenByAddress(tokenAddress);
-  const result = useBestTrade(TradeType.EXACT_INPUT, amount, token, TokenUSDT);
-  if (tokenAddress === TokenUSDT?.address) return amount ? amount : undefined;
+  const result = useBestTrade(TradeType.EXACT_INPUT, amount, token, TokenForUSDPrice, true);
+  if (tokenAddress === TokenForUSDPrice?.address) return amount ? amount : undefined;
   if (!tokenAddress) return undefined;
   if (!amount) return undefined;
   if (result.state === TradeState.LOADING) return undefined;
   if (result.state === TradeState.VALID) {
-    return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
+    return result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenForUSDPrice.decimals);
   }
   return null;
 };
@@ -290,7 +303,7 @@ export const getTokensPrice = async (tokenAddresses: string[], amount: string = 
     try {
       const token = getWrapperTokenByAddress(tokenAddress);
       // 如果是USDT，直接返回amount
-      if (isTokenEqual(token, TokenUSDT)) {
+      if (isTokenEqual(token, TokenForUSDPrice)) {
         return { address: tokenAddress, price: amount || null };
       }
 
@@ -309,11 +322,12 @@ export const getTokensPrice = async (tokenAddresses: string[], amount: string = 
         tradeType: TradeType.EXACT_INPUT,
         amount,
         tokenIn: token,
-        tokenOut: TokenUSDT
+        tokenOut: TokenForUSDPrice,
+        precisionInsensitive: true,
       });
 
       if (result.state === TradeState.VALID) {
-        const price = result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenUSDT.decimals);
+        const price = result.trade!.amountOut.toDecimalStandardUnit(undefined, TokenForUSDPrice.decimals);
         return { address: tokenAddress, price };
       }
 
@@ -373,7 +387,7 @@ function calcTradeFromData({
         tickCurrent: +poolData.tickCurrent,
         liquidity: poolData.liquidity,
         sqrtPriceX96: poolData.sqrtRatioX96,
-      })
+      }),
     );
     const midPrice = thisRoutePools.slice(1).reduce(
       ({ nextInput, price }, pool) => {
@@ -395,7 +409,7 @@ function calcTradeFromData({
         : {
             nextInput: thisRoutePools[0].token0,
             price: thisRoutePools[0].token1Price!,
-          }
+          },
     ).price;
     spotOutputAmount = spotOutputAmount.add(new Unit(oneRoute.at(0)!.amountIn).mul(midPrice.mul(`1e${tokenOut.decimals - tokenIn.decimals}`)));
   });
