@@ -192,7 +192,7 @@ export const useTokens = () => {
 
 const fetchTokenInfos = ['name', 'symbol', 'decimals'] as const;
 export const fetchTokenInfoByAddress = async (address: string) => {
-  if (address.toLowerCase() !== wcfxTokenAddress.toLowerCase()) return null;
+  if (address.toLowerCase() === wcfxTokenAddress.toLowerCase()) return null;
   try {
     const tokenContract = createERC20Contract(address);
     const encodedRes = await fetchMulticall(fetchTokenInfos.map((info) => [tokenContract.address, tokenContract.func.interface.encodeFunctionData(info)]));
