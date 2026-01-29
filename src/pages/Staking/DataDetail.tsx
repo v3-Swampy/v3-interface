@@ -1,10 +1,8 @@
 import React, { Suspense, useMemo } from 'react';
-import BorderBox from '@components/Box/BorderBox';
 import Spin from '@components/Spin';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { useTotalStakeVST, useStakePercent, useAverageStakeDuration } from '@service/staking';
-import { TokenVST, TokenCFX, TokenUSDT } from '@service/tokens';
-import { trimDecimalZeros } from '@utils/numberUtils';
+import { TokenVST, TokenForUSDPrice } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
 import { useTokenPrice } from '@service/pairs&pool';
 import { numberWithCommas } from '@utils/numberUtils';
@@ -30,10 +28,9 @@ const DataDetailContent: React.FC = () => {
   const averageStakeDuration = useAverageStakeDuration();
 
   const totalLockedBalanceUSD = useMemo(() => {
-    return VSTPrice && totalStakeVST ? numberWithCommas(totalStakeVST.mul(VSTPrice).toDecimalStandardUnit(3, TokenUSDT.decimals)) : '-';
+    return VSTPrice && totalStakeVST ? numberWithCommas(totalStakeVST.mul(VSTPrice).toDecimalStandardUnit(3, TokenForUSDPrice.decimals)) : '-';
     // return VSTPrice && totalStakeVST ? numberWithCommas(parseFloat((+VSTPrice * +totalStakeVST?.toDecimalStandardUnit(3, TokenVST?.decimals)).toString().slice(0, -1))) : '';
   }, [VSTPrice, totalStakeVST?.toDecimalMinUnit()]);
-  
 
   return (
     <div className="flex flex-col p-16px pb-24px leading-18px text-14px text-black-normal justify-between">
