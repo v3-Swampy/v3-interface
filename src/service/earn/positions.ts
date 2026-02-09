@@ -9,11 +9,11 @@ import {
   getUnwrapperTokenByAddress,
   stableTokens,
   nativeTokens,
-  TokenUSDT,
   isTokenEqual,
   fetchTokenInfoByAddress,
   addTokenToList,
   type Token,
+  TokenForUSDPrice,
 } from '@service/tokens';
 import { getIncentivesByPools, getUserPositionIDs } from './apis';
 import { getPositionFees } from './positionDetail';
@@ -138,7 +138,7 @@ const positionsQueryByTokenIds = selectorFamily({
       const tokenIds = [...tokenIdParams];
 
       const positionsResult = await fetchMulticall(
-        tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])])
+        tokenIds.map((id) => [NonfungiblePositionManager.address, NonfungiblePositionManager.func.interface.encodeFunctionData('positions', [id])]),
       );
 
       if (Array.isArray(positionsResult)) {
@@ -148,7 +148,7 @@ const positionsQueryByTokenIds = selectorFamily({
             const position = await decodePosition(tokenIds[index], decodeRes);
 
             return position;
-          })
+          }),
         );
       }
 
@@ -195,7 +195,7 @@ export const PositionsForUISelector = selector({
           if (userFarmInfo) return { ...positionForUI, ...userFarmInfo, unclaimedFees };
         }
         return { ...positionForUI, unclaimedFees };
-      })
+      }),
     )) as PositionEnhanced[];
     // merge all reward tokens for get price
     const allRewardTokens = enhancedPositions.reduce((acc, cur) => {
@@ -220,7 +220,7 @@ export const useRefreshPositionsForUI = () => useRecoilRefresher_UNSTABLE(Positi
 export const usePositionsForUI = () => useRecoilValue_TRANSITION_SUPPORT_UNSTABLE(PositionsForUISelector);
 
 export const getTokenPriority = (token: Token) => {
-  if (isTokenEqual(token, TokenUSDT)) return 0;
+  if (isTokenEqual(token, TokenForUSDPrice)) return 0;
   // e.g. USDC, AxCNH
   if (stableTokens.some((stableToken) => stableToken?.address.toLowerCase() === token.address.toLowerCase())) return 1;
   // cfx
@@ -248,10 +248,10 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
     liquidity === '0'
       ? PositionStatus.Closed
       : typeof tickCurrent !== 'number'
-      ? undefined
-      : tickCurrent < tickLower || tickCurrent > tickUpper
-      ? PositionStatus.OutOfRange
-      : PositionStatus.InRange;
+        ? undefined
+        : tickCurrent < tickLower || tickCurrent > tickUpper
+          ? PositionStatus.OutOfRange
+          : PositionStatus.InRange;
 
   const originPosition = {
     ...position,
@@ -292,7 +292,7 @@ const enhancePositionForUI = (position: Position, pool: Pool | null | undefined)
 
 export const createPreviewPositionForUI = (
   position: Pick<Position, 'tokenId' | 'fee' | 'token0' | 'token1' | 'tickLower' | 'tickUpper' | 'priceLower' | 'priceUpper'>,
-  pool: Pool | null | undefined
+  pool: Pool | null | undefined,
 ) => enhancePositionForUI(position as Position, pool);
 
 export const usePositionStatus = (position: PositionEnhanced) => useMemo(() => getPositionStatus(position), [position]);
@@ -304,8 +304,8 @@ const getPositionStatus = (position: PositionEnhanced) => {
   return liquidity === '0'
     ? PositionStatus.Closed
     : typeof tickCurrent !== 'number'
-    ? undefined
-    : tickCurrent < tickLower || tickCurrent > tickUpper
-    ? PositionStatus.OutOfRange
-    : PositionStatus.InRange;
+      ? undefined
+      : tickCurrent < tickLower || tickCurrent > tickUpper
+        ? PositionStatus.OutOfRange
+        : PositionStatus.InRange;
 };
