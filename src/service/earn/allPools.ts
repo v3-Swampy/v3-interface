@@ -150,8 +150,7 @@ export const poolsQuery = selectorFamily({
           )
         : null;
 
-      // hide pool with no tvl, then sort by tvl
-      return pools?.filter((i) => !i.tvl.equals(0)).sort((a, b) => (a.tvl.greaterThan(b.tvl) ? -1 : 1));
+      return pools;
     },
 });
 
