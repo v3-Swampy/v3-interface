@@ -1,7 +1,6 @@
 import { fetchGraphql, fetchStakerGraphql } from '@utils/fetch';
 import { getPoolsWithHourDataGQL } from '@utils/graphql/query/pools';
 import { getPoolIncentivesGQL, getUserPositionIDsGQL } from '@utils/graphql/query/staker';
-import Decimal from 'decimal.js';
 
 const ONE_HOUR = 60 * 60;
 
@@ -24,9 +23,7 @@ export const getPoolsWith24HoursData = async (ids?: string[]) => {
       },
     });
     // TODO: hide pools with no volume in 24h
-    return (res.data.pools ?? [])
-      .filter((pool) => !new Decimal(pool.totalValueLockedUSD).isZero())
-      .sort((a, b) => new Decimal(b.totalValueLockedUSD).cmp(a.totalValueLockedUSD));
+    return res.data.pools ?? [] /* .filter((i) => i.poolHourData.length > 0 && i.poolHourData.every(h=>h.volumeUSD===0)) */;
   } catch (error) {
     console.log('getPoolLatestDayDataByPools error', error);
     return [];

@@ -63,8 +63,12 @@ export const poolsQuery = selectorFamily({
     (queryPoolsAddress: string[] | undefined) =>
     async ({ get }) => {
       const pool24HourData = get(poolsWith24HoursData(queryPoolsAddress));
-      const poolsAddress = pool24HourData.map((p) => p.id);
-      const pairsInfo = pool24HourData.map((pool) => ({
+      const sortedPool24HourData = pool24HourData
+        .filter((pool) => !new Decimal(pool.totalValueLockedUSD).isZero())
+        .sort((a, b) => new Decimal(b.totalValueLockedUSD).cmp(a.totalValueLockedUSD));
+
+      const poolsAddress = sortedPool24HourData.map((p) => p.id);
+      const pairsInfo = sortedPool24HourData.map((pool) => ({
         token0Address: pool.token0.id,
         token1Address: pool.token1.id,
         fee: Number(pool.feeTier),
@@ -115,7 +119,7 @@ export const poolsQuery = selectorFamily({
       const pools = poolsAddress
         ? await Promise.all(
             poolsAddress.map(async (poolAddress, index) => {
-              const poolHourData = pool24HourData[index].poolHourData ?? [];
+              const poolHourData = sortedPool24HourData[index].poolHourData ?? [];
               const volume24h = poolHourData.reduce((acc, cur) => acc.add(cur.volumeUSD), new Decimal(0));
               const rewardTokenAddresses = incentiveKeys[index].filter((key: IncentiveKeyDetail) => key.status === 'active').map((key: IncentiveKeyDetail) => key.rewardToken);
               const rewards = await Promise.all(
@@ -124,7 +128,7 @@ export const poolsQuery = selectorFamily({
                 })),
               );
               const { fee } = pairsInfo[index];
-              const pool = pool24HourData[index];
+              const pool = sortedPool24HourData[index];
               const token0Amount = BigInt(new Decimal(pool.totalValueLockedToken0).mul(Decimal.pow(10, Number(pool.token0.decimals))).toFixed(0));
               const token1Amount = BigInt(new Decimal(pool.totalValueLockedToken1).mul(Decimal.pow(10, Number(pool.token1.decimals))).toFixed(0));
               const tvl = new Decimal(pool.totalValueLockedUSD);
