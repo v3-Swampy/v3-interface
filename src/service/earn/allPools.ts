@@ -1,12 +1,10 @@
 import { useRecoilValue, useRecoilRefresher_UNSTABLE, selectorFamily } from 'recoil';
-import { fetchMulticall, createPairContract, UniswapV3Staker, createERC20Contract } from '@contracts/index';
+import { fetchMulticall, UniswapV3Staker } from '@contracts/index';
 import { getTokenByAddressWithAutoFetch, getUnwrapperTokenByAddress, type Token } from '@service/tokens';
-import { chunk } from 'lodash-es';
 import { getTokenPriority } from '@service/earn/positions';
 import { getPoolsWith24HoursData } from './apis';
 import { getTimestamp } from './timestamp';
 import { getRecoil } from 'recoil-nexus';
-import { getTokensPrice } from '@service/pairs&pool';
 import Decimal from 'decimal.js';
 
 /**
@@ -64,38 +62,17 @@ export const poolsQuery = selectorFamily({
   get:
     (queryPoolsAddress: string[] | undefined) =>
     async ({ get }) => {
-      const pool24HourData = get(poolsWith24HoursData(queryPoolsAddress));
-      const poolsAddress = pool24HourData.map((p) => p.id);
-      const pairContracts = poolsAddress.map((poolAddress) => createPairContract(poolAddress));
-      const pairsInfoQuery = await fetchMulticall(
-        pairContracts
-          .map((pairContract) => {
-            return [
-              [pairContract.address, pairContract.func.interface.encodeFunctionData('token0')],
-              [pairContract.address, pairContract.func.interface.encodeFunctionData('token1')],
-              [pairContract.address, pairContract.func.interface.encodeFunctionData('fee')],
-            ];
-          })
-          .flat(),
-      );
-      const pairsInfo = pairsInfoQuery
-        ? chunk(pairsInfoQuery, 3).map((r, i) => {
-            return {
-              token0Address: pairContracts[i].func.interface.decodeFunctionResult('token0', r[0])[0],
-              token1Address: pairContracts[i].func.interface.decodeFunctionResult('token1', r[1])[0],
-              fee: Number(pairContracts[i].func.interface.decodeFunctionResult('fee', r[2])[0].toString()),
-            };
-          })
-        : [];
+      // Filter zero-TVL pools and sort by TVL descending
+      const pool24HourData = get(poolsWith24HoursData(queryPoolsAddress))
+        .filter((pool) => !new Decimal(pool.totalValueLockedUSD).isZero())
+        .sort((a, b) => new Decimal(b.totalValueLockedUSD).cmp(a.totalValueLockedUSD));
 
-      // use Set to remove duplicate tokens
-      const tokens = pairsInfo.reduce((acc, cur) => {
-        acc.add(cur.token0Address);
-        acc.add(cur.token1Address);
-        return acc;
-      }, new Set<string>());
-      // fetch tokens price
-      const tokenPriceMap = await getTokensPrice(Array.from(tokens));
+      const poolsAddress = pool24HourData.map((p) => p.id);
+      const pairsInfo = pool24HourData.map((pool) => ({
+        token0Address: pool.token0.id,
+        token1Address: pool.token1.id,
+        fee: Number(pool.feeTier),
+      }));
 
       const tokensDetail = await Promise.all(
         pairsInfo.map(async (info) => {
@@ -150,23 +127,11 @@ export const poolsQuery = selectorFamily({
                   token: await getTokenByAddressWithAutoFetch(address),
                 })),
               );
-              const { token0Address, token1Address, fee } = pairsInfo[index];
-              const token0Price = tokenPriceMap[token0Address];
-              const token1Price = tokenPriceMap[token1Address];
-              const token0Contract = createERC20Contract(token0Address);
-              const token1Contract = createERC20Contract(token1Address);
-              const [amount0Result, amount1Result] =
-                (await fetchMulticall([
-                  [token0Contract.address, token0Contract.func.interface.encodeFunctionData('balanceOf', [poolAddress])],
-                  [token1Contract.address, token1Contract.func.interface.encodeFunctionData('balanceOf', [poolAddress])],
-                ])) ?? [];
-              const token0Amount: bigint = amount0Result ? (token0Contract.func.interface.decodeFunctionResult('balanceOf', amount0Result)?.[0] ?? 0n) : 0n;
-              const token1Amount: bigint = amount1Result ? (token1Contract.func.interface.decodeFunctionResult('balanceOf', amount1Result)?.[0] ?? 0n) : 0n;
-              // TVL = Reserve_token0 × Price_token0 + Reserve_token1 × Price_token1
-              const tvl = new Decimal(token0Amount.toString())
-                .div(Decimal.pow(10, tokensDetail[index].token0?.decimals ?? 0))
-                .mul(token0Price ?? 0)
-                .add(new Decimal(token1Amount.toString()).div(Decimal.pow(10, tokensDetail[index].token1?.decimals ?? 0)).mul(token1Price ?? 0));
+              const { fee } = pairsInfo[index];
+              const pool = pool24HourData[index];
+              const token0Amount = BigInt(new Decimal(pool.totalValueLockedToken0).mul(Decimal.pow(10, Number(pool.token0.decimals))).toFixed(0));
+              const token1Amount = BigInt(new Decimal(pool.totalValueLockedToken1).mul(Decimal.pow(10, Number(pool.token1.decimals))).toFixed(0));
+              const tvl = new Decimal(pool.totalValueLockedUSD);
 
               return {
                 poolAddress,
@@ -189,8 +154,7 @@ export const poolsQuery = selectorFamily({
           )
         : null;
 
-      // hide pool with no tvl, then sort by tvl
-      return pools?.filter((i) => !i.tvl.equals(0)).sort((a, b) => (a.tvl.greaterThan(b.tvl) ? -1 : 1));
+      return pools;
     },
 });
 
