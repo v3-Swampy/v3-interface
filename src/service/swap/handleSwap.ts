@@ -38,7 +38,7 @@ export const handleSwap = async ({
   const destinationToken = getDestinationToken();
   const destinationTokenWrpper = getWrapperTokenByAddress(destinationToken?.address);
   const account = getAccount();
-  const slippage = getSlippageTolerance() || 0;
+  const slippage = getSlippageTolerance();
   if (!sourceTokenWrapper || !destinationTokenWrpper || !sourceTokenAmount || !destinationTokenAmount || !bestTrade?.trade || !account || !sourceToken || !destinationToken)
     return '';
 

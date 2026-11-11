@@ -1,112 +1,53 @@
-import { TickMath, SqrtPriceMath, maxLiquidityForAmounts } from '@uniswap/v3-sdk';
-import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import JSBI from 'jsbi';
-import Decimal from 'decimal.js';
+import {
+  calcAmountsForLiquidity,
+  calcLiquidityForAmounts,
+  sqrtRatioBoundsAfterSlippage,
+} from '@utils/v3Math';
 
-const Q192 = new Decimal(2).toPower(192);
+const ZERO = JSBI.BigInt(0);
 
-//  The minimum tick that can be used on any pool.
-const MIN_SQRT_RATIO = /*#__PURE__*/ new Unit('4295128739');
-// The sqrt ratio corresponding to the maximum tick that could be used on any pool.
-const MAX_SQRT_RATIO = /*#__PURE__*/ new Unit('1461446703485210103287273052203988822378723970342');
-
-// get Q64.96 for sqr price
-const encodeSqrtRatioX96 = (priceInit: string) => {
-  return Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0);
+/** min 不可能高于用户输入，边界情况下（精度、价格落在区间外）也不会让交易因为 min 过大而 revert */
+const clampToDesired = (amountMin: JSBI, amountDesired: string) => {
+  const desired = JSBI.BigInt(amountDesired);
+  return JSBI.lessThan(amountMin, desired) ? amountMin : desired;
 };
 
 /**
- * Returns the lower and upper sqrt ratios if the price 'slips' up to slippage tolerance percentage
- * @param slippage The amount by which the price can 'slip' before the transaction will revert
- * @param currentToken0Price The current token0 price
- * @returns The sqrt ratios after slippage
+ * 按滑点容差算出 `mint` / `increaseLiquidity` 应该携带的最小 amounts。
+ *
+ * 思路与 Uniswap 官方一致：先用 desired amounts 反算 liquidity（合约真正会接受的流动性），
+ * 再让价格向上/向下各滑动一个容差，取两种情况下更小的那一侧作为下界。
+ * 因此「min」衡量的是实际存入量，而不是用户输入量。
  */
-const ratiosAfterSlippage = (slippage: number, currentToken0Price: string | Unit): { sqrtRatioX96Lower: JSBI; sqrtRatioX96Upper: JSBI } => {
-  const priceLower = new Unit(currentToken0Price).mul(new Unit(1).sub(slippage)).toDecimalMinUnit();
-  const priceUpper = new Unit(currentToken0Price).mul(new Unit(1).add(slippage)).toDecimalMinUnit();
+export const calcAmountMinWithSlippage = ({
+  sqrtPriceX96,
+  slippage,
+  tickLower,
+  tickUpper,
+  amount0,
+  amount1,
+}: {
+  /** 本次交易真正会生效的 sqrtPriceX96 */
+  sqrtPriceX96: string;
+  slippage: number;
+  tickLower: number;
+  tickUpper: number;
+  /** desired amounts，最小单位 */
+  amount0: string;
+  amount1: string;
+}): Readonly<{ amount0Min: string; amount1Min: string }> => {
+  const liquidity = calcLiquidityForAmounts({ sqrtPriceX96, tickLower, tickUpper, amount0, amount1 });
+  if (JSBI.equal(liquidity, ZERO)) return { amount0Min: '0', amount1Min: '0' };
 
-  let sqrtRatioX96Lower = encodeSqrtRatioX96(priceLower);
-  let sqrtRatioX96Upper = encodeSqrtRatioX96(priceUpper);
+  const { lower, upper } = sqrtRatioBoundsAfterSlippage(sqrtPriceX96, slippage);
 
-  if (new Unit(sqrtRatioX96Lower).lessThanOrEqualTo(MIN_SQRT_RATIO)) {
-    sqrtRatioX96Lower = MIN_SQRT_RATIO.add(1).toDecimalMinUnit();
-  }
-
-  if (new Unit(sqrtRatioX96Upper).greaterThanOrEqualTo(MAX_SQRT_RATIO)) {
-    sqrtRatioX96Upper = MAX_SQRT_RATIO.sub(1).toDecimalMinUnit();
-  }
-
-  // console.log('sqrtRatioX96Lower', sqrtRatioX96Lower);
-  // console.log('sqrtRatioX96Upper', sqrtRatioX96Upper);
+  // 价格上滑时 token0 的需求变少，下滑时 token1 的需求变少
+  const { amount0: amount0Min } = calcAmountsForLiquidity({ sqrtPriceX96: upper.toString(), tickLower, tickUpper, liquidity });
+  const { amount1: amount1Min } = calcAmountsForLiquidity({ sqrtPriceX96: lower.toString(), tickLower, tickUpper, liquidity });
 
   return {
-    sqrtRatioX96Lower: JSBI.BigInt(sqrtRatioX96Lower),
-    sqrtRatioX96Upper: JSBI.BigInt(sqrtRatioX96Upper),
+    amount0Min: clampToDesired(amount0Min, amount0).toString(),
+    amount1Min: clampToDesired(amount1Min, amount1).toString(),
   };
-};
-
-/**
- * Returns the minimum amounts that must be sent in order to mint the amount of liquidity held by the position at
- * the current price for the pool
- */
-const getMintAmounts = (
-  tickCurrent: number,
-  tickLower: number,
-  tickUpper: number,
-  liquidity: JSBI | number | string,
-  sqrtRatioX96: JSBI
-): Readonly<{ amount0: JSBI; amount1: JSBI }> => {
-  if (new Unit(tickCurrent).lessThan(tickLower)) {
-    return {
-      amount0: SqrtPriceMath.getAmount0Delta(TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), true),
-      amount1: JSBI.BigInt(0),
-    };
-  } else if (new Unit(tickCurrent).lessThan(tickUpper)) {
-    return {
-      amount0: SqrtPriceMath.getAmount0Delta(sqrtRatioX96, TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), true),
-      amount1: SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tickLower), sqrtRatioX96, JSBI.BigInt(liquidity), true),
-    };
-  } else {
-    return {
-      amount0: JSBI.BigInt(0),
-      amount1: SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), true),
-    };
-  }
-};
-
-const calcLiquidity = (sqrtRatioCurrentX96: JSBI, tickLower: number, tickUpper: number, amount0: JSBI | string, amount1: JSBI | string, useFullPrecision: boolean): JSBI => {
-  const sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower);
-  const sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
-  // console.log('sqrtRatioAX96', String(sqrtRatioAX96));
-  // console.log('sqrtRatioBX96', String(sqrtRatioBX96));
-  return maxLiquidityForAmounts(sqrtRatioCurrentX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1, useFullPrecision);
-};
-
-/**
- * Returns the minimum amounts that must be sent in order to safely mint the amount of liquidity held by the position
- * with the given slippage tolerance
- * @returns The amounts, with slippage
- */
-
-export const calcAmountMinWithSlippage = (
-  sqrtPriceX96: string,
-  slippage: number,
-  currentToken0Price: string | Unit,
-  tickLower: number,
-  tickUpper: number,
-  amount0: string,
-  amount1: string
-): Readonly<{ amount0Min: string; amount1Min: string }> => {
-  const { sqrtRatioX96Upper, sqrtRatioX96Lower } = ratiosAfterSlippage(slippage, currentToken0Price);
-
-  const liquidity = calcLiquidity(JSBI.BigInt(sqrtPriceX96), tickLower, tickUpper, amount0, amount1, false);
-  // console.log('liquidity', liquidity.toString());
-
-  const { amount0: amount0Min } = getMintAmounts(TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper), tickLower, tickUpper, liquidity, sqrtRatioX96Upper);
-  const { amount1: amount1Min } = getMintAmounts(TickMath.getTickAtSqrtRatio(sqrtRatioX96Lower), tickLower, tickUpper, liquidity, sqrtRatioX96Lower);
-
-  // console.log('amount0Min', amount0Min.toString());
-  // console.log('amount1Min', amount1Min.toString());
-
-  return { amount0Min: amount0Min.toString(), amount1Min: amount1Min.toString() };
 };

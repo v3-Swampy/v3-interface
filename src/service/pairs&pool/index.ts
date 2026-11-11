@@ -7,6 +7,7 @@ export { default as computePoolAddress } from './computePoolAddress';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Decimal from 'decimal.js';
+import { clampTick } from '@utils/v3Math';
 
 const Q192Unit = new Unit(new Decimal(2).toPower(192).toString());
 
@@ -42,17 +43,24 @@ export class Pool implements PoolProps {
     this.token1 = token1;
     this.fee = fee;
     this.address = address;
-    this.sqrtPriceX96 = sqrtPriceX96;
+    // 工厂里存在但还没 initialize 的池子，slot0.sqrtPriceX96 是 0。
+    // 把它当成「没有价格」，否则下面算 token0Price 会除出 Infinity/NaN。
+    this.sqrtPriceX96 = sqrtPriceX96 && sqrtPriceX96 !== '0' ? sqrtPriceX96 : null;
     this.liquidity = liquidity;
     this.tickCurrent = tickCurrent;
-    this.token0Price = !sqrtPriceX96
+    this.token0Price = !this.sqrtPriceX96
       ? null
-      : new Unit(sqrtPriceX96)
-          .mul(new Unit(sqrtPriceX96))
+      : new Unit(this.sqrtPriceX96)
+          .mul(new Unit(this.sqrtPriceX96))
           .mul(new Unit(`1e${token0.decimals}`))
           .div(new Unit(`1e${token1.decimals}`))
           .div(Q192Unit);
-    this.token1Price = !sqrtPriceX96 ? null : new Unit(1).div(this.token0Price!);
+    this.token1Price = !this.token0Price ? null : new Unit(1).div(this.token0Price);
+  }
+
+  /** 池子是否已经 initialize（sqrtPriceX96 为 0 表示只 createPool 过，还没有价格） */
+  public get isInitialized() {
+    return !!this.sqrtPriceX96;
   }
 
   public priceOf = (token: Token) => {
@@ -146,68 +154,6 @@ export const calcAmountFromPrice = ({
 };
 
 
-/**
- * 根据 amount0 和 amount1 计算流动性
- * @param amount0 token0 的数量
- * @param amount1 token1 的数量
- * @param current 当前价格
- * @param lower 价格区间下限
- * @param upper 价格区间上限
- * @returns 计算得到的流动性值
- */
-export const calcLiquidityFromAmounts = ({
-  amount0,
-  amount1,
-  current,
-  lower,
-  upper,
-}: {
-  amount0: Unit | number | string;
-  amount1: Unit | number | string;
-  current: Unit | number | string;
-  lower: Unit | number | string;
-  upper: Unit | number | string;
-}) => {
-  const usedAmount0 = new Unit(amount0);
-  const usedAmount1 = new Unit(amount1);
-  const usedCurrent = new Unit(current);
-  const usedLower = new Unit(lower);
-  const usedUpper = new Unit(upper);
-
-  let liquidity: Unit;
-
-  if (usedCurrent.lessThanOrEqualTo(usedLower)) {
-    // 价格 <= 下限: 只使用 amount0
-    // liquidity = amount0 * sqrt(upper) * sqrt(lower) / (sqrt(upper) - sqrt(lower))
-    const sqrtUpper = usedUpper.sqrt();
-    const sqrtLower = usedLower.sqrt();
-    liquidity = usedAmount0.mul(sqrtUpper).mul(sqrtLower).div(sqrtUpper.sub(sqrtLower));
-  } else if (usedCurrent.greaterThanOrEqualTo(usedUpper)) {
-    // 价格 >= 上限: 只使用 amount1
-    // liquidity = amount1 / (sqrt(upper) - sqrt(lower))
-    const sqrtUpper = usedUpper.sqrt();
-    const sqrtLower = usedLower.sqrt();
-    liquidity = usedAmount1.div(sqrtUpper.sub(sqrtLower));
-  } else {
-    // 价格在区间内: 使用两个 amount 计算出的较小流动性
-    const sqrtCurrent = usedCurrent.sqrt();
-    const sqrtUpper = usedUpper.sqrt();
-    const sqrtLower = usedLower.sqrt();
-
-    // 从 amount0 计算的流动性
-    // liquidity0 = amount0 * sqrt(upper) * sqrt(current) / (sqrt(upper) - sqrt(current))
-    const liquidity0 = usedAmount0.mul(sqrtUpper).mul(sqrtCurrent).div(sqrtUpper.sub(sqrtCurrent));
-
-    // 从 amount1 计算的流动性
-    // liquidity1 = amount1 / (sqrt(current) - sqrt(lower))
-    const liquidity1 = usedAmount1.div(sqrtCurrent.sub(sqrtLower));
-
-    // 取较小值（因为实际添加流动性时会受到较小值的限制）
-    liquidity = liquidity0.lessThan(liquidity1) ? liquidity0 : liquidity1;
-  }
-
-  return liquidity;
-};
 
 export const calcRatio = (sqrtPriceX96: string, lower: number, upper: number) => {
   const sqrtPriceX96Decimal = new Decimal(sqrtPriceX96);
@@ -302,3 +248,30 @@ export const getMinTick = (fee: FeeAmount) => {
   }
 };
 export const getMaxTick = (fee: FeeAmount) => -getMinTick(fee);
+
+/**
+ * 价格区间 → 对齐到 fee 对应 tickSpacing 的 tick 区间。
+ * 0 / Infinity 分别代表全范围的两端，最终结果会被夹在 TickMath 允许的 tick 区间内，
+ * 避免极端价格让 `TickMath.getSqrtRatioAtTick` 抛错。
+ */
+export const resolveTickRange = ({
+  priceLower,
+  priceUpper,
+  token0,
+  token1,
+  fee,
+}: {
+  priceLower: Unit;
+  priceUpper: Unit;
+  token0: Token;
+  token1: Token;
+  fee: FeeAmount;
+}) => {
+  const toTick = (price: Unit) =>
+    clampTick(+findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price, tokenA: token0, tokenB: token1 }) }).toDecimalMinUnit());
+
+  return {
+    tickLower: priceLower.equals(new Unit(0)) ? clampTick(getMinTick(fee)) : toTick(priceLower),
+    tickUpper: priceUpper.isFinite() ? toTick(priceUpper) : clampTick(getMaxTick(fee)),
+  };
+};

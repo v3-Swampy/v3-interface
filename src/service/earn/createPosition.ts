@@ -5,17 +5,16 @@ import Decimal from 'decimal.js';
 import { AutoPositionManager } from '@contracts/index';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { FeeAmount, getPool } from '@service/pairs&pool';
+import { FeeAmount, updatePool, resolveTickRange } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage, getExpertModeState } from '@service/settings';
-import { getMinTick, getMaxTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import { addRecordToHistory } from '@service/history';
 import showLiquidityPreviewModal from '@pages/Earn/LiquidityPreviewModal';
 import { hidePopup } from '@components/showPopup';
 import showGasLimitModal from '@modules/ConfirmTransactionModal/showGasLimitModal';
+import { calcAmountsForLiquidity, calcLiquidityForAmounts, priceToSqrtPriceX96 } from '@utils/v3Math';
 import { createPreviewPositionForUI } from './positions';
 
-const Q192 = new Decimal(2).toPower(192);
 const Zero = new Unit(0);
 
 export const handleClickSubmitCreatePosition = async ({
@@ -43,14 +42,31 @@ export const handleClickSubmitCreatePosition = async ({
     const account = getAccount();
     if (!account) return;
     const fee = Number(_fee) as FeeAmount;
-    const slippageTolerance = getSlippageTolerance() || 0;
-    const pool = await getPool({ tokenA: _tokenA, tokenB: _tokenB, fee });
+    const slippageTolerance = getSlippageTolerance();
     const tokenA = getWrapperTokenByAddress(_tokenA.address)!;
     const tokenB = getWrapperTokenByAddress(_tokenB.address)!;
 
     const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
     const [token0, token1] = notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
+
+    /**
+     * 池子是否已经 initialize 必须以链上实时状态为准，不能用 recoil 里可能过期的池子状态：
+     * `mint` 内部的 createAndInitializePoolIfNecessary 只在 sqrtPriceX96 == 0 时才会 initialize，
+     * 池子已存在时会静默沿用链上价格。若前端仍按 priceInit 组交易，用户就会用一个自己没见过的价格建仓。
+     */
+    const pool = await updatePool({ tokenA: _tokenA, tokenB: _tokenB, fee });
+
     const priceInit = !_priceInit ? undefined : notNeedSwap ? new Decimal(_priceInit) : new Unit(1).div(_priceInit).toDecimal();
+    const initialPrice = priceInit?.greaterThan(0) && priceInit.isFinite() ? priceInit : undefined;
+
+    if (!pool?.isInitialized && !initialPrice) {
+      console.warn('Create position failed: pool is not initialized and there is no valid initial price');
+      return;
+    }
+
+    const sqrtPriceX96 = pool?.isInitialized
+      ? pool.sqrtPriceX96!
+      : priceToSqrtPriceX96({ price: initialPrice!, token0Decimals: token0.decimals, token1Decimals: token1.decimals });
 
     const amountTokenA = !!_amountTokenA ? _amountTokenA : '0';
     const amountTokenB = !!_amountTokenB ? _amountTokenB : '0';
@@ -64,36 +80,34 @@ export const handleClickSubmitCreatePosition = async ({
       ? [new Unit(_priceLower), new Unit(_priceUpper)]
       : [isPriceUpperInfinity ? new Unit('0') : new Unit(1).div(_priceUpper), isPriceLowerZero ? new Unit('Infinity') : new Unit(1).div(_priceLower)];
 
-    const sqrtPriceX96 = priceInit
-      ? Decimal.sqrt(
-          new Decimal(priceInit)
-            .mul(new Decimal(`1e${token1.decimals}`))
-            .div(new Decimal(`1e${token0.decimals}`))
-            .mul(Q192)
-        ).toFixed(0)
-      : pool?.sqrtPriceX96 ?? Decimal.sqrt(new Decimal(token1Amount).div(new Decimal(token0Amount)).mul(Q192)).toFixed(0);
-
-    let currentPrice = priceInit ? priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
-    currentPrice = new Unit(currentPrice).mul(`1e${token1.decimals-token0.decimals}`).toDecimalMinUnit();
-
-    const _tickLower = priceLower.equals(Zero) ? getMinTick(fee) : calcTickFromPrice({ price: new Unit(priceLower), tokenA: token0, tokenB: token1 });
-    const _tickUpper = !priceUpper.isFinite() ? getMaxTick(fee) : calcTickFromPrice({ price: new Unit(priceUpper), tokenA: token0, tokenB: token1 });
-    const tickLower = typeof _tickLower === 'number' ? _tickLower : +findClosestValidTick({ fee, searchTick: _tickLower }).toDecimalMinUnit();
-    const tickUpper = typeof _tickUpper === 'number' ? _tickUpper : +findClosestValidTick({ fee, searchTick: _tickUpper }).toDecimalMinUnit();
+    const { tickLower, tickUpper } = resolveTickRange({ priceLower, priceUpper, token0, token1, fee });
+    if (tickLower >= tickUpper) {
+      console.warn('Create position failed: invalid tick range', { tickLower, tickUpper });
+      return;
+    }
 
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
+    const amount0Desired = BigInt(token0AmountUnit.toHexMinUnit()).toString();
+    const amount1Desired = BigInt(token1AmountUnit.toHexMinUnit()).toString();
 
-    const { amount0Min, amount1Min } = calcAmountMinWithSlippage(
+    const liquidity = calcLiquidityForAmounts({ sqrtPriceX96, tickLower, tickUpper, amount0: amount0Desired, amount1: amount1Desired });
+    // 实际会被池子收走的金额（desired 只是上限，区间内按比例只用其中一部分）
+    const { amount0, amount1 } = calcAmountsForLiquidity({ sqrtPriceX96, tickLower, tickUpper, liquidity });
+    /**
+     * 首次建池同样要带上 min：desired 的比例和 priceInit 隐含的比例不一致时，一侧只会被吃掉一部分，
+     * min 置 0 就等于完全放弃「实际存入量」的下界。
+     */
+    const { amount0Min, amount1Min } = calcAmountMinWithSlippage({
       sqrtPriceX96,
-      slippageTolerance,
-      currentPrice,
+      slippage: slippageTolerance,
       tickLower,
       tickUpper,
-      token0AmountUnit.toDecimalMinUnit(),
-      token1AmountUnit.toDecimalMinUnit()
-    );
+      amount0: amount0Desired,
+      amount1: amount1Desired,
+    });
     const previewUniqueId = uniqueId();
+    const deadline = getDeadline();
 
     const data = AutoPositionManager.func.interface.encodeFunctionData('mint', [
       {
@@ -104,44 +118,34 @@ export const handleClickSubmitCreatePosition = async ({
         tickUpper,
         amount0Desired: token0AmountUnit.toHexMinUnit(),
         amount1Desired: token1AmountUnit.toHexMinUnit(),
-        amount0Min: new Unit(!_priceInit ? amount0Min : 0).toHexMinUnit(),
-        amount1Min: new Unit(!_priceInit ? amount1Min : 0).toHexMinUnit(),
+        amount0Min: new Unit(amount0Min).toHexMinUnit(),
+        amount1Min: new Unit(amount1Min).toHexMinUnit(),
         recipient: account,
-        deadline: getDeadline(),
+        deadline,
       },
       sqrtPriceX96,
     ]);
 
     const hasWCFX = token0.symbol === 'WCFX' || token1.symbol === 'WCFX';
 
+    // 原生币按用户输入全额发送，合约会把没用到的部分退回来（_refundUnusedTokens）
     const transactionParams = {
       value: hasWCFX ? Unit.fromStandardUnit(token0.symbol === 'WCFX' ? token0Amount : token1Amount, 18).toHexMinUnit() : '0x0',
       data,
       to: AutoPositionManager.address,
     };
 
-    console.log('Create Position Data:', transactionParams);
-    console.log('Create Position Params:', {
-      token0: token0.address,
-      token1: token1.address,
-      fee,
-      tickLower,
-      tickUpper,
-      amount0Desired: token0AmountUnit.toHexMinUnit(),
-      amount1Desired: token1AmountUnit.toHexMinUnit(),
-      amount0Min: new Unit(!_priceInit ? amount0Min : 0).toHexMinUnit(),
-      amount1Min: new Unit(!_priceInit ? amount1Min : 0).toHexMinUnit(),
-      recipient: account,
-      deadline: getDeadline(),
-      sqrtPriceX96,
-    });
+    const [amountA, amountB] = notNeedSwap ? [amount0, amount1] : [amount1, amount0];
+    const depositedAmountA = new Unit(amountA.toString()).toDecimalStandardUnit(undefined, tokenA.decimals);
+    const depositedAmountB = new Unit(amountB.toString()).toDecimalStandardUnit(undefined, tokenB.decimals);
 
+    // 历史记录记实际存入量，而不是用户输入的上限
     const recordParams = {
       type: 'Position_AddLiquidity',
       tokenA_Address: tokenA.address,
-      tokenA_Value: amountTokenA,
+      tokenA_Value: depositedAmountA,
       tokenB_Address: tokenB.address,
-      tokenB_Value: amountTokenB,
+      tokenB_Value: depositedAmountB,
     } as const;
 
     const isInExpertMode = getExpertModeState();
@@ -150,9 +154,9 @@ export const handleClickSubmitCreatePosition = async ({
       showLiquidityPreviewModal({
         leftToken: _tokenA,
         rightToken: _tokenB,
-        leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
-        rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
-        priceInit: _priceInit,
+        leftAmount: new Unit(depositedAmountA),
+        rightAmount: new Unit(depositedAmountB),
+        priceInit: pool?.isInitialized ? undefined : _priceInit,
         previewPosition: createPreviewPositionForUI({ tokenId: Number(previewUniqueId), token0, token1, fee, tickLower, tickUpper, priceLower, priceUpper }, pool),
         transactionParams,
         recordParams,

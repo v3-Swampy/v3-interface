@@ -294,7 +294,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
   const fee = useCurrentFee();
   const { pool } = usePool({ tokenA, tokenB, fee });
   const priceTokenA = useMemo(
-    () => (pool === null ? (priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null) : pool?.priceOf(tokenA!)),
+    () => (pool?.isInitialized ? pool.priceOf(tokenA!) : priceInit && !Number.isNaN(Number(priceInit)) ? new Unit(priceInit) : null),
     [tokenA?.address, pool, priceInit]
   );
 
@@ -368,14 +368,14 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
     <div className={cx('p-16px rounded-16px bg-orange-light-hover', !isBothTokenSelected && 'opacity-50 pointer-events-none')}>
       <p className="mb-16px leading-18px text-14px text-black-normal font-normal">{i18n.set_price_range}</p>
 
-      {pool !== null && (
+      {pool?.isInitialized && (
         <p className={cx('text-center text-12px text-black-normal font-light transition-opacity', (!tokenA || !tokenB) && 'opacity-0')}>
           {i18n.current_price}:&nbsp;&nbsp;<span className="font-normal">{priceTokenA?.toDecimalMinUnit(5) ?? '-'}</span>&nbsp;
           {`${tokenB?.symbol} ${i18n.per} ${tokenA?.symbol}`}
         </p>
       )}
 
-      {pool === null && (
+      {pool !== undefined && !pool?.isInitialized && (
         <>
           <div className="mb-12px p-10px rounded-12px bg-orange-light text-12px text-orange-normal">{i18n.create_pool_tip}</div>
           <div className="flex items-center h-36px px-16px rounded-tl-16px rounded-tr-16px border-2px border-solid border-orange-light">
