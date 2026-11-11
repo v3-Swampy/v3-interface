@@ -94,8 +94,9 @@ const ExpectedReward: React.FC<Props> = ({
         : [isPriceUpperInfinity ? new Unit('0') : new Unit(1).div(_priceUpper), isPriceLowerZero ? new Unit('Infinity') : new Unit(1).div(_priceLower)]
       : [Zero, new Unit('Infinity')];
 
+  const priceScale = `1e${token1.decimals - token0.decimals}`;
   let currentPrice = priceInit ? priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
-  currentPrice = new Unit(currentPrice).mul(`1e${token1.decimals - token0.decimals}`).toDecimalMinUnit();
+  currentPrice = new Unit(currentPrice).mul(priceScale).toDecimalMinUnit();
 
   const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
   const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
@@ -103,8 +104,8 @@ const ExpectedReward: React.FC<Props> = ({
     amount0: token0AmountUnit,
     amount1: token1AmountUnit,
     current: currentPrice,
-    lower: priceLower,
-    upper: priceUpper,
+    lower: priceLower.mul(priceScale),
+    upper: priceUpper.mul(priceScale),
   }).toDecimalMinUnit(0);
 
   const liquidityHex = useMemo(() => new Unit(liquidity).toHexMinUnit(), [liquidity]);
