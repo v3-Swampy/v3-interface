@@ -33,7 +33,7 @@ const ratiosAfterSlippage = (slippage: number, currentToken0Price: string | Unit
   }
 
   if (new Unit(sqrtRatioX96Upper).greaterThanOrEqualTo(MAX_SQRT_RATIO)) {
-    sqrtRatioX96Lower = MAX_SQRT_RATIO.sub(1).toDecimalMinUnit();
+    sqrtRatioX96Upper = MAX_SQRT_RATIO.sub(1).toDecimalMinUnit();
   }
 
   // console.log('sqrtRatioX96Lower', sqrtRatioX96Lower);
