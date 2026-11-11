@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
-import { type PositionForUI } from '@service/position';
+import { type PositionForUI } from '@service/earn';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { type Token, isTokenEqual } from '@service/tokens';
 

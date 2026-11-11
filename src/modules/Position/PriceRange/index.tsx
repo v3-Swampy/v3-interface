@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { type PositionForUI } from '@service/position';
+import { type PositionForUI } from '@service/earn';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
 

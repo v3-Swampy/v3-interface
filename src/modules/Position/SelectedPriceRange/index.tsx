@@ -6,7 +6,7 @@ import React, { useMemo } from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
 import useI18n, { compiled } from '@hooks/useI18n';
-import { type PositionForUI } from '@service/position';
+import { type PositionForUI } from '@service/earn';
 import { invertPrice, usePool } from '@service/pairs&pool';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { trimDecimalZeros } from '@utils/numberUtils';
