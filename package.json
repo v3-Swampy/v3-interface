@@ -8,6 +8,8 @@
     "dev:prod": "vite --mode production",
     "build:dev": "vite build --mode development",
     "build:prod": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "graphql:compile": "graphql-codegen",
     "graphql:watch": "graphql-codegen -w"
   },
@@ -101,6 +103,7 @@
     "unocss": "^0.51.13",
     "vite": "^4.3.8",
     "vite-plugin-compression": "^0.5.1",
-    "vite-plugin-svgr": "^3.2.0"
+    "vite-plugin-svgr": "^3.2.0",
+    "vitest": "^1.6.0"
   }
 }

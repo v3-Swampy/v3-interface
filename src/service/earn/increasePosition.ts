@@ -2,10 +2,11 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import { AutoPositionManager } from '@contracts/index';
 import { getWrapperTokenByAddress } from '@service/tokens';
 import { getAccount, sendTransaction } from '@service/account';
-import { getPool } from '@service/pairs&pool';
+import { updatePool } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { type PositionForUI } from '.';
 import { getDeadline, getSlippageTolerance, calcAmountMinWithSlippage } from '@service/settings';
+import { calcAmountsForLiquidity, calcLiquidityForAmounts } from '@utils/v3Math';
 import showLiquidityPreviewModal from '@pages/Earn/LiquidityPreviewModal';
 import { createPreviewPositionForUI } from './positions';
 
@@ -27,8 +28,9 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
   try {
     const account = getAccount();
     if (!account) return;
-    const slippageTolerance = getSlippageTolerance() || 0;
-    const pool = await getPool({ tokenA: _tokenA, tokenB: _tokenB, fee: position.fee });
+    const slippageTolerance = getSlippageTolerance();
+    // 用链上实时价格算 liquidity/min，避免缓存价格过期导致 min 定得比实际存入量还高
+    const pool = await updatePool({ tokenA: _tokenA, tokenB: _tokenB, fee: position.fee });
     const tokenA = getWrapperTokenByAddress(_tokenA.address)!;
     const tokenB = getWrapperTokenByAddress(_tokenB.address)!;
 
@@ -42,35 +44,34 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
 
     const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
     const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
+    const amount0Desired = BigInt(token0AmountUnit.toHexMinUnit()).toString();
+    const amount1Desired = BigInt(token1AmountUnit.toHexMinUnit()).toString();
 
     const sqrtPriceX96 = pool?.sqrtPriceX96;
-    let currentPrice = pool?.token0Price?.toDecimalMinUnit();
-    currentPrice = new Unit(currentPrice!).mul(`1e${token1.decimals-token0.decimals}`).toDecimalMinUnit();
+    if (!sqrtPriceX96) return;
 
-    const tickLower = position.tickLower;
-    const tickUpper = position.tickUpper;
+    const { tickLower, tickUpper } = position;
 
-    if (!sqrtPriceX96 || !currentPrice) {
-      return;
-    }
-    const { amount0Min, amount1Min } = calcAmountMinWithSlippage(
+    const liquidity = calcLiquidityForAmounts({ sqrtPriceX96, tickLower, tickUpper, amount0: amount0Desired, amount1: amount1Desired });
+    const { amount0, amount1 } = calcAmountsForLiquidity({ sqrtPriceX96, tickLower, tickUpper, liquidity });
+    const { amount0Min, amount1Min } = calcAmountMinWithSlippage({
       sqrtPriceX96,
-      slippageTolerance,
-      currentPrice,
+      slippage: slippageTolerance,
       tickLower,
       tickUpper,
-      token0AmountUnit.toDecimalMinUnit(),
-      token1AmountUnit.toDecimalMinUnit()
-    );
+      amount0: amount0Desired,
+      amount1: amount1Desired,
+    });
 
+    const deadline = getDeadline();
     const data = AutoPositionManager.func.interface.encodeFunctionData('increaseLiquidity', [
       {
         tokenId,
-        amount0Desired: Unit.fromStandardUnit(token0Amount, token0.decimals).toHexMinUnit(),
-        amount1Desired: Unit.fromStandardUnit(token1Amount, token1.decimals).toHexMinUnit(),
+        amount0Desired: token0AmountUnit.toHexMinUnit(),
+        amount1Desired: token1AmountUnit.toHexMinUnit(),
         amount0Min: new Unit(amount0Min).toHexMinUnit(),
         amount1Min: new Unit(amount1Min).toHexMinUnit(),
-        deadline: getDeadline(),
+        deadline,
       },
     ]);
 
@@ -82,17 +83,22 @@ export const handleClickSubmitIncreasePositionLiquidity = async ({
       to: AutoPositionManager.address,
     };
 
+    const [amountA, amountB] = notNeedSwap ? [amount0, amount1] : [amount1, amount0];
+    const depositedAmountA = new Unit(amountA.toString()).toDecimalStandardUnit(undefined, tokenA.decimals);
+    const depositedAmountB = new Unit(amountB.toString()).toDecimalStandardUnit(undefined, tokenB.decimals);
+
+    // 历史记录记实际存入量，而不是用户输入的上限
     const recordParams = {
       type: 'Position_IncreaseLiquidity',
       tokenA_Address: _tokenA.address,
-      tokenA_Value: amountTokenA,
+      tokenA_Value: depositedAmountA,
       tokenB_Address: _tokenB.address,
-      tokenB_Value: amountTokenB,
+      tokenB_Value: depositedAmountB,
     } as const;
 
     showLiquidityPreviewModal({
-      leftAmount: Unit.fromStandardUnit(amountTokenA, tokenA.decimals),
-      rightAmount: Unit.fromStandardUnit(amountTokenB, tokenB.decimals),
+      leftAmount: new Unit(depositedAmountA),
+      rightAmount: new Unit(depositedAmountB),
       previewPosition: createPreviewPositionForUI(
         { tokenId, token0, token1, fee: position.fee, tickLower: position.tickLower, tickUpper: position.tickUpper, priceLower: position.priceLower, priceUpper: position.priceUpper },
         pool

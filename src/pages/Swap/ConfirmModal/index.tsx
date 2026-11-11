@@ -4,9 +4,10 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import useI18n, { toI18n } from '@hooks/useI18n';
 import Button from '@components/Button';
 import showConfirmTransactionModal, { type ConfirmModalInnerProps } from '@modules/ConfirmTransactionModal';
+import { showToast } from '@components/showPopup';
 import { type Token } from '@service/tokens';
 import { fetchBestTrade, setBestTradeState, TradeType, type useBestTrade } from '@service/pairs&pool';
-import { handleSwap as _handleSwap } from '@service/swap';
+import { handleSwap as _handleSwap, QuoteMismatchError } from '@service/swap';
 import useInTransaction from '@hooks/useInTransaction';
 import SwapDetail from '@pages/Swap/SwapDetail';
 import { trimDecimalZeros } from '@utils/numberUtils';
@@ -91,13 +92,21 @@ const SwapConfirmModal: React.FC<ConfirmModalInnerProps & Props> = ({
 
   const handleClickConfirm = useCallback(async () => {
     setNextInfo({
-      sendTransaction: () =>
-        handleSwap({
-          sourceTokenAmount,
-          destinationTokenAmount,
-          bestTrade: currentBestTrade,
-          onSuccess,
-        }),
+      sendTransaction: async () => {
+        try {
+          return await handleSwap({
+            sourceTokenAmount,
+            destinationTokenAmount,
+            bestTrade: currentBestTrade,
+            onSuccess,
+          });
+        } catch (err) {
+          // 弹窗只会把失败展示成 Step.Failed，报价口径不一致时补一条可读原因，
+          // 否则用户只会看到「失败」而不知道需要重新报价。
+          if (err instanceof QuoteMismatchError) showToast(err.message, { type: 'error' });
+          throw err;
+        }
+      },
     });
   }, [sourceTokenAmount, destinationTokenAmount, currentBestTrade]);
 

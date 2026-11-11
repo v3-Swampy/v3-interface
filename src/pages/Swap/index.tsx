@@ -15,6 +15,7 @@ import {
   confirmPriceImpactWithoutFee,
   warningSeverity,
   handleSwap,
+  QuoteMismatchError,
 } from '@service/swap';
 import { useBestTrade, TradeState, useTokenPrice } from '@service/pairs&pool';
 import { TradeType } from '@service/swap/bestTrade';
@@ -26,6 +27,7 @@ import SubmitButton from './SubmitButton';
 import SwapDetail from './SwapDetail';
 import PriceImpactWarning from './PriceImpactWarning';
 import showSwapConfirmModal from '@pages/Swap/ConfirmModal';
+import { showToast } from '@components/showPopup';
 
 const transitions = {
   en: {
@@ -128,7 +130,7 @@ const SwapPage: React.FC = () => {
         });
       } else {
         try {
-          handleSwap({
+          await handleSwap({
             sourceTokenAmount: data['sourceToken-amount'] as string,
             destinationTokenAmount: data['destinationToken-amount'] as string,
             bestTrade,
@@ -136,6 +138,8 @@ const SwapPage: React.FC = () => {
           });
         } catch (err) {
           console.error('Swap err: ', err);
+          // 专家模式没有确认弹窗兜底，异常必须显式提示，否则用户点了没反应。
+          if (err instanceof QuoteMismatchError) showToast(err.message, { type: 'error' });
         }
       }
     }),

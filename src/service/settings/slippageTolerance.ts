@@ -51,19 +51,18 @@ export const setSlippageTolerance = (value: number | null) => {
   setRecoil(slippageToleranceMethod, value === null ? 'auto' : 'manual');
 };
 
+const getDefaultSlippageTolerance = () =>
+  location.pathname?.startsWith(getSwapPagePath()) ? SwapDefaultSlippageTolerance : AddLiquidityDefaultSlippageTolerance;
+
 /**
  * Unlike useSlippageTolerance which needs to be synchronized into ui where the input box is automatically converted into percentage units.
  * getSlippageTolerance is used directly in the calculation of data without converting units.
+ *
+ * 永远返回一个可用值：手动模式下输入框被清空时回退到当前页面默认值。
+ * 之前这里会返回 null，调用方再 `|| 0`，等于把「没填」当成「零容忍」，
+ * 会让 min/amountOutMinimum 直接等于理论值而在链上多 revert 一个 wei。
  */
-export const getSlippageTolerance = () => {
-  const method = getRecoil(slippageToleranceMethod);
-  if (method === 'auto') {
-    if (location.pathname?.startsWith(getSwapPagePath())) {
-      return SwapDefaultSlippageTolerance;
-    } else {
-      return AddLiquidityDefaultSlippageTolerance;
-    }
-  } else {
-    return getRecoil(slippageToleranceState);
-  }
+export const getSlippageTolerance = (): number => {
+  if (getRecoil(slippageToleranceMethod) === 'auto') return getDefaultSlippageTolerance();
+  return getRecoil(slippageToleranceState) ?? getDefaultSlippageTolerance();
 };
