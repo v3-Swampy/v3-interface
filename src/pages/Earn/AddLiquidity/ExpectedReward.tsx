@@ -8,7 +8,8 @@ import { fetchChain } from '@utils/fetch';
 import { usePool } from '@service/pairs&pool';
 import { usePools } from '@service/earn';
 import { getUnwrapperTokenByAddress, getWrapperTokenByAddress } from '@service/tokens';
-import { getTokensPrice, FeeAmount, calcLiquidityFromAmounts } from '@service/pairs&pool';
+import { getTokensPrice, FeeAmount, resolveTickRange } from '@service/pairs&pool';
+import { calcLiquidityForAmounts, priceToSqrtPriceX96 } from '@utils/v3Math';
 import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
@@ -94,18 +95,27 @@ const ExpectedReward: React.FC<Props> = ({
         : [isPriceUpperInfinity ? new Unit('0') : new Unit(1).div(_priceUpper), isPriceLowerZero ? new Unit('Infinity') : new Unit(1).div(_priceLower)]
       : [Zero, new Unit('Infinity')];
 
-  let currentPrice = priceInit ? priceInit : pool?.token0Price ? pool.token0Price.toDecimalMinUnit() : new Decimal(token1Amount).div(new Decimal(token0Amount)).toString();
-  currentPrice = new Unit(currentPrice).mul(`1e${token1.decimals - token0.decimals}`).toDecimalMinUnit();
-
   const token0AmountUnit = Unit.fromStandardUnit(token0Amount, token0.decimals);
   const token1AmountUnit = Unit.fromStandardUnit(token1Amount, token1.decimals);
-  const liquidity = calcLiquidityFromAmounts({
-    amount0: token0AmountUnit,
-    amount1: token1AmountUnit,
-    current: currentPrice,
-    lower: priceLower,
-    upper: priceUpper,
-  }).toDecimalMinUnit(0);
+
+  // 与下单逻辑使用同一套数学：先由价格区间得到 tick，再由 desired amounts 反算 liquidity
+  const liquidity = useMemo(() => {
+    const sqrtPriceX96 = priceInit
+      ? priceToSqrtPriceX96({ price: priceInit, token0Decimals: token0.decimals, token1Decimals: token1.decimals })
+      : pool?.sqrtPriceX96;
+    if (!sqrtPriceX96) return '0';
+
+    const { tickLower, tickUpper } = resolveTickRange({ priceLower, priceUpper, token0, token1, fee });
+    if (tickLower >= tickUpper) return '0';
+
+    return calcLiquidityForAmounts({
+      sqrtPriceX96,
+      tickLower,
+      tickUpper,
+      amount0: BigInt(token0AmountUnit.toHexMinUnit()).toString(),
+      amount1: BigInt(token1AmountUnit.toHexMinUnit()).toString(),
+    }).toString();
+  }, [_priceLower, _priceUpper, priceInit?.toString(), pool?.sqrtPriceX96, token0Amount, token1Amount, token0.address, token1.address, fee]);
 
   const liquidityHex = useMemo(() => new Unit(liquidity).toHexMinUnit(), [liquidity]);
 
