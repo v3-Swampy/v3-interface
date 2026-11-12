@@ -1,8 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import cx from 'clsx';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
+import { invertPrice } from '@service/pairs&pool';
+import { trimDecimalZeros } from '@utils/numberUtils';
 import PageWrapper from '@components/Layout/PageWrapper';
 import BorderBox from '@components/Box/BorderBox';
 import Button from '@components/Button';
@@ -34,7 +36,25 @@ const transitions = {
 const AddLiquidity: React.FC = () => {
   const i18n = useI18n(transitions);
   const navigate = useNavigate();
-  const { register, handleSubmit: withForm, setValue, getValues, watch } = useForm();
+  const { register, handleSubmit: withForm, setValue: setFormValue, getValues, watch } = useForm();
+  const [prices, setPrices] = useState({ 'price-lower': '', 'price-upper': '', 'price-init': '' });
+  const pricesRef = useRef(prices);
+  const onPriceInputChange = useCallback((name: keyof typeof prices, value: string) => {
+    pricesRef.current = { ...pricesRef.current, [name]: value };
+    setPrices(pricesRef.current);
+  }, []);
+  const setValue: typeof setFormValue = useCallback(
+    (name, value, options) => {
+      if (name === 'price-lower' || name === 'price-upper' || name === 'price-init') {
+        const priceField = name as keyof typeof prices;
+        onPriceInputChange(priceField, value);
+        setFormValue(priceField, value ? trimDecimalZeros(new Unit(value).toDecimalMinUnit(5)) : '', options);
+      } else {
+        setFormValue(name, value, options);
+      }
+    },
+    [setFormValue, onPriceInputChange]
+  );
 
   const currentFee = useCurrentFee();
   const tokenA = useTokenA();
@@ -42,8 +62,8 @@ const AddLiquidity: React.FC = () => {
   const token0 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenA : tokenB) : null;
   const token1 = tokenA && tokenB ? (tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? tokenB : tokenA) : null;
 
-  const priceLower = watch('price-lower', '') as string;
-  const priceUpper = watch('price-upper', '') as string;
+  const priceLower = prices['price-lower'];
+  const priceUpper = prices['price-upper'];
 
   /** null means range not input */
   const isRangeValid = useMemo(() => {
@@ -70,24 +90,25 @@ const AddLiquidity: React.FC = () => {
 
   const amountTokenA = watch('amount-tokenA', '') as string;
   const amountTokenB = watch('amount-tokenB', '') as string;
-  const priceInit = watch('price-init', '') as string;
+  const priceInit = prices['price-init'];
+  const priceInitDisplay = watch('price-init', '') as string;
 
   const handleSwapToken = useCallback(() => {
     if (!swapTokenAB()) return;
-    const values = getValues();
+    const values = pricesRef.current;
     const priceLower = values['price-lower'];
     const priceUpper = values['price-upper'];
     const priceInit = values['price-init'];
 
     setTimeout(() => {
       if (priceInit) {
-        setValue('price-init', (1 / +priceInit).toFixed(5));
+        setValue('price-init', invertPrice(priceInit).toDecimalMinUnit());
       }
 
       if (priceLower) {
         const isPriceLowerZero = new Unit(priceLower).equals(new Unit(0));
         if (!isPriceLowerZero) {
-          setValue('price-upper', (1 / priceLower).toFixed(5));
+          setValue('price-upper', invertPrice(priceLower).toDecimalMinUnit());
         } else {
           setValue('price-upper', 'Infinity');
         }
@@ -98,7 +119,7 @@ const AddLiquidity: React.FC = () => {
       if (priceUpper) {
         const isPriceUpperInfinity = priceUpper === 'Infinity';
         if (!isPriceUpperInfinity) {
-          setValue('price-lower', (1 / priceUpper).toFixed(5));
+          setValue('price-lower', invertPrice(priceUpper).toDecimalMinUnit());
         } else {
           setValue('price-lower', '0');
         }
@@ -121,6 +142,7 @@ const AddLiquidity: React.FC = () => {
 
       handleClickSubmitCreatePosition({
         ...(data as unknown as { 'amount-tokenA': string; 'amount-tokenB': string; 'price-init': string; 'price-lower': string; 'price-upper': string }),
+        ...pricesRef.current,
         fee: currentFee,
         tokenA,
         tokenB,
@@ -192,9 +214,11 @@ const AddLiquidity: React.FC = () => {
               <SetPriceRange
                 register={register}
                 setValue={setValue}
+                onPriceInputChange={onPriceInputChange}
                 getValues={getValues}
                 isRangeValid={isRangeValid}
                 priceInit={priceInit}
+                priceInitDisplay={priceInitDisplay}
                 priceLower={priceLower}
                 priceUpper={priceUpper}
               />

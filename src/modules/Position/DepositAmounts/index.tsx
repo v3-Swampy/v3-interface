@@ -266,8 +266,8 @@ const DepositAmount: React.FC<
     };
   }, [fee, priceTokenA, sqrtPriceX96, priceLower, priceUpper, isPairTokenOutOfRange, token?.address, token?.decimals, pairToken?.address, pairToken?.decimals]);
 
-  const priceLowerAFixed8 = useMemo(() => (priceLower ? priceLower.toDecimalMinUnit(8) : null), [priceLower]);
-  const priceUpperAFixed8 = useMemo(() => (priceUpper ? priceUpper.toDecimalMinUnit(8) : null), [priceUpper]);
+  const priceLowerString = priceLower?.toDecimalMinUnit();
+  const priceUpperString = priceUpper?.toDecimalMinUnit();
   useLayoutEffect(() => {
     if (type === 'tokenB') return;
     const value = getValues();
@@ -277,7 +277,7 @@ const DepositAmount: React.FC<
       return;
     }
     changePairAmount.current(amountTokenA);
-  }, [sqrtPriceX96, priceLowerAFixed8, priceUpperAFixed8]);
+  }, [sqrtPriceX96, priceLowerString, priceUpperString]);
 
   useLayoutEffect(() => {
     const value = getValues();
