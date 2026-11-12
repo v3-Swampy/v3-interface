@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import Balance from '@modules/Balance';
 import { getWrapperTokenByAddress, isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
-import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick, calcTickFromPrice } from '@service/pairs&pool';
+import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
@@ -233,8 +233,8 @@ const DepositAmount: React.FC<
 
       // 获取 sqrt price 值并转换为 bigint
       const sqrtP = BigInt(sqrtPriceX96);
-      const sqrtA = BigInt(TickMath.getSqrtRatioAtTick(typeof tickLower === 'number' ? tickLower : parseInt(tickLower.toDecimalMinUnit())).toString());
-      const sqrtB = BigInt(TickMath.getSqrtRatioAtTick(typeof tickUpper === 'number' ? tickUpper : parseInt(tickUpper.toDecimalMinUnit())).toString());
+      const sqrtA = BigInt(TickMath.getSqrtRatioAtTick(+findClosestValidTick({ fee, searchTick: tickLower }).toDecimalMinUnit()).toString());
+      const sqrtB = BigInt(TickMath.getSqrtRatioAtTick(+findClosestValidTick({ fee, searchTick: tickUpper }).toDecimalMinUnit()).toString());
 
       const currentInputAmount = new Unit(newAmount);
 
