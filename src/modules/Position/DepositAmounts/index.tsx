@@ -6,7 +6,7 @@ import cx from 'clsx';
 import Input, { defaultDynamicFontSize } from '@components/Input';
 import Button from '@components/Button';
 import Balance from '@modules/Balance';
-import { isTokenEqual, type Token } from '@service/tokens';
+import { getWrapperTokenByAddress, isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
 import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick, calcTickFromPrice } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
@@ -414,14 +414,20 @@ const DepositAmounts: React.FC<Props> = ({
   };
   const priceTokenA = isTokenAEqualsToken0 ? _priceTokenA : _priceTokenA ? invertPrice(_priceTokenA) : null;
   const sqrtPriceX96 = useMemo(() => {
-    if (pool?.sqrtPriceX96) return pool.sqrtPriceX96;
+    if (pool?.sqrtPriceX96) {
+      const wrappedToken0 = getWrapperTokenByAddress(token0?.address);
+      if (wrappedToken0?.address.toLowerCase() === pool.token1.address.toLowerCase()) {
+        return (Q192 / BigInt(pool.sqrtPriceX96)).toString();
+      }
+      return pool.sqrtPriceX96;
+    }
     if (pool !== null || !priceTokenA || !priceTokenA.isFinite() || priceTokenA.lessThanOrEqualTo(0) || !token0 || !token1) return undefined;
     return new PriceDecimal(priceTokenA.toDecimalMinUnit())
       .mul(`1e${token1.decimals - token0.decimals}`)
       .mul(Q192.toString())
       .sqrt()
       .toFixed(0, Decimal.ROUND_DOWN);
-  }, [pool, priceTokenA, token0?.decimals, token1?.decimals]);
+  }, [pool, priceTokenA, token0?.address, token0?.decimals, token1?.decimals]);
 
   const priceLower = useMemo(() => {
     try {

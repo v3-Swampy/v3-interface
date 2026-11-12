@@ -5,7 +5,7 @@ import { getAccount, sendTransaction } from '@service/account';
 import showRemoveLiquidityModal from '@pages/Earn/RemoveLiquidity/RemoveLiquidityModal';
 import { getPosition } from './positionDetail';
 import { getWrapperTokenByAddress } from '@service/tokens';
-import { getPool } from '@service/pairs&pool';
+import { fetchPool } from '@service/pairs&pool';
 
 export const handleSubmitRemoveLiquidity = async ({
   tokenId,
@@ -34,7 +34,7 @@ export const handleSubmitRemoveLiquidity = async ({
 
   const liquidity = new Unit(positionLiquidity).mul(removePercent).div(100).toDecimalMinUnit(0);
 
-  const pool = await getPool({ tokenA: position.token0, tokenB: position.token1, fee: position.fee });
+  const pool = await fetchPool({ tokenA: position.token0, tokenB: position.token1, fee: position.fee });
   if (!pool?.sqrtPriceX96) return '';
   const { amount0Min, amount1Min } = calcBurnAmountMinWithSlippage(
     pool.sqrtPriceX96,
