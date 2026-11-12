@@ -271,14 +271,15 @@ export const findNextPreValidPrice = ({
   const currentTick = findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB }) });
   let searchTick = direction === 'next' ? currentTick.add(atom) : currentTick.sub(atom);
   searchTick = searchTick.lessThan(minTick) ? minTick : searchTick.greaterThan(maxTick) ? maxTick : searchTick;
+  if (searchTick.equals(minTick)) return new Unit(0);
+  if (searchTick.equals(maxTick)) return new Unit('Infinity');
+
   const searchPriceFixed5 = usedSearchPrice.toDecimalMinUnit(5);
-  let nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
+  const nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
   if (nextOrPreTickPrice.toDecimalMinUnit(5) !== searchPriceFixed5) return nextOrPreTickPrice;
 
   let sameTick = searchTick;
   let differentTick = direction === 'next' ? maxTick : minTick;
-  nextOrPreTickPrice = calcPriceFromTick({ tick: differentTick, tokenA, tokenB });
-  if (nextOrPreTickPrice.toDecimalMinUnit(5) === searchPriceFixed5) return nextOrPreTickPrice;
 
   while (sameTick.sub(differentTick).toDecimal().abs().greaterThan(atom)) {
     const middleTick = new Unit(Decimal.floor(sameTick.add(differentTick).div(atom).div(2).toDecimal())).mul(atom);
@@ -287,10 +288,9 @@ export const findNextPreValidPrice = ({
       sameTick = middleTick;
     } else {
       differentTick = middleTick;
-      nextOrPreTickPrice = middlePrice;
     }
   }
-  return nextOrPreTickPrice;
+  return calcPriceFromTick({ tick: differentTick, tokenA, tokenB, fee });
 };
 
 export const invertPrice = (price: Unit | string | number | undefined) => {
