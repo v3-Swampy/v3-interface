@@ -217,7 +217,7 @@ const DepositAmount: React.FC<
 
   useLayoutEffect(() => {
     changePairAmount.current = (newAmount: string) => {
-      if (!priceTokenA || !sqrtPriceX96 || !priceLower || !priceUpper || !token || !pairToken || !fee) return;
+      if (isRangeValid !== true || !priceTokenA || !sqrtPriceX96 || !priceLower || !priceUpper || !token || !pairToken || !fee) return;
       if (!newAmount || isPairTokenOutOfRange || !pairToken || !token || !pairToken) {
         setValue(pairKey, '');
         return;
@@ -264,7 +264,7 @@ const DepositAmount: React.FC<
 
       setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     };
-  }, [fee, priceTokenA, sqrtPriceX96, priceLower, priceUpper, isPairTokenOutOfRange, token?.address, token?.decimals, pairToken?.address, pairToken?.decimals]);
+  }, [fee, priceTokenA, sqrtPriceX96, priceLower, priceUpper, isRangeValid, isPairTokenOutOfRange, token?.address, token?.decimals, pairToken?.address, pairToken?.decimals]);
 
   const priceLowerString = priceLower?.toDecimalMinUnit();
   const priceUpperString = priceUpper?.toDecimalMinUnit();
@@ -277,7 +277,7 @@ const DepositAmount: React.FC<
       return;
     }
     changePairAmount.current(amountTokenA);
-  }, [sqrtPriceX96, priceLowerString, priceUpperString]);
+  }, [sqrtPriceX96, priceLowerString, priceUpperString, isRangeValid]);
 
   useLayoutEffect(() => {
     const value = getValues();
