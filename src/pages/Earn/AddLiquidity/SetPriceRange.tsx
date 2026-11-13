@@ -198,8 +198,7 @@ const RangeInput: React.FC<
     const priceStr = type === 'lower' ? priceLower : priceUpper;
     if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
     const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
-    const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit());
-    setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
+    setValue(`price-${type}`, trimDecimalZeros(prePrice?.toDecimalMinUnit()));
     resetSelectedRange();
   }, [fee, tokenA?.address, tokenB?.address, resetSelectedRange, type, priceLower, priceUpper]);
 
