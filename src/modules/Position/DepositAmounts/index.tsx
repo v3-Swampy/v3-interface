@@ -6,13 +6,14 @@ import cx from 'clsx';
 import Input, { defaultDynamicFontSize } from '@components/Input';
 import Button from '@components/Button';
 import Balance from '@modules/Balance';
-import { isTokenEqual, type Token } from '@service/tokens';
+import { getWrapperTokenByAddress, isTokenEqual, type Token } from '@service/tokens';
 import { useAccount } from '@service/account';
-import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick, calcTickFromPrice } from '@service/pairs&pool';
+import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
 import { TickMath } from '@uniswap/v3-sdk';
+import Decimal from 'decimal.js';
 
 const transitions = {
   en: {
@@ -34,6 +35,7 @@ const transitions = {
 // Exact Uniswap V3 math using native BigInt
 const Q96 = 1n << 96n;
 const Q192 = 1n << 192n;
+const PriceDecimal = Decimal.clone({ precision: 100 });
 
 /** integer mulDiv floor(a * b / d) using BigInt */
 function mulDiv(a: bigint, b: bigint, d: bigint): bigint {
@@ -185,13 +187,14 @@ const DepositAmount: React.FC<
     pairToken: Token | null | undefined;
     type: 'tokenA' | 'tokenB';
     priceTokenA: Unit | null | undefined;
+    sqrtPriceX96: string | null | undefined;
     priceLower: Unit | undefined;
     priceUpper: Unit | undefined;
     isValidToInput: boolean;
     isOutOfRange: boolean;
     isPairTokenOutOfRange: boolean;
   }
-> = ({ type, token, pairToken, priceTokenA, isRangeValid = true, isOutOfRange, isPairTokenOutOfRange, priceLower, priceUpper, fee, getValues, register, setValue }) => {
+> = ({ type, token, pairToken, priceTokenA, sqrtPriceX96, isRangeValid = true, isOutOfRange, isPairTokenOutOfRange, priceLower, priceUpper, fee, getValues, register, setValue }) => {
   const i18n = useI18n(transitions);
   const account = useAccount();
   const pairKey = `amount-${type === 'tokenA' ? 'tokenB' : 'tokenA'}`;
@@ -214,7 +217,7 @@ const DepositAmount: React.FC<
 
   useLayoutEffect(() => {
     changePairAmount.current = (newAmount: string) => {
-      if (!priceTokenA || !priceLower || !priceUpper || !token || !pairToken || !fee) return;
+      if (isRangeValid !== true || !priceTokenA || !sqrtPriceX96 || !priceLower || !priceUpper || !token || !pairToken || !fee) return;
       if (!newAmount || isPairTokenOutOfRange || !pairToken || !token || !pairToken) {
         setValue(pairKey, '');
         return;
@@ -227,12 +230,11 @@ const DepositAmount: React.FC<
       // 计算 tick 值
       const tickLower = calcTickFromPrice({ price: usedPriceLower, tokenA: token, tokenB: pairToken });
       const tickUpper = calcTickFromPrice({ price: usedPriceUpper, tokenA: token, tokenB: pairToken });
-      const currentTick = calcTickFromPrice({ price: priceTokenA, tokenA: token, tokenB: pairToken });
 
       // 获取 sqrt price 值并转换为 bigint
-      const sqrtP = BigInt(TickMath.getSqrtRatioAtTick(typeof currentTick === 'number' ? currentTick : parseInt(currentTick.toDecimalMinUnit())).toString());
-      const sqrtA = BigInt(TickMath.getSqrtRatioAtTick(typeof tickLower === 'number' ? tickLower : parseInt(tickLower.toDecimalMinUnit())).toString());
-      const sqrtB = BigInt(TickMath.getSqrtRatioAtTick(typeof tickUpper === 'number' ? tickUpper : parseInt(tickUpper.toDecimalMinUnit())).toString());
+      const sqrtP = BigInt(sqrtPriceX96);
+      const sqrtA = BigInt(TickMath.getSqrtRatioAtTick(+findClosestValidTick({ fee, searchTick: tickLower }).toDecimalMinUnit()).toString());
+      const sqrtB = BigInt(TickMath.getSqrtRatioAtTick(+findClosestValidTick({ fee, searchTick: tickUpper }).toDecimalMinUnit()).toString());
 
       const currentInputAmount = new Unit(newAmount);
 
@@ -262,11 +264,10 @@ const DepositAmount: React.FC<
 
       setValue(pairKey, trimDecimalZeros(pairTokenExpectedAmount.toDecimalMinUnit(pairToken?.decimals)));
     };
-  }, [fee, priceTokenA, priceLower, priceUpper, isPairTokenOutOfRange, token?.address, pairToken?.address]);
+  }, [fee, priceTokenA, sqrtPriceX96, priceLower, priceUpper, isRangeValid, isPairTokenOutOfRange, token?.address, token?.decimals, pairToken?.address, pairToken?.decimals]);
 
-  const priceTokenAFixed8 = useMemo(() => (priceTokenA ? priceTokenA.toDecimalMinUnit(8) : null), [priceTokenA]);
-  const priceLowerAFixed8 = useMemo(() => (priceLower ? priceLower.toDecimalMinUnit(8) : null), [priceLower]);
-  const priceUpperAFixed8 = useMemo(() => (priceUpper ? priceUpper.toDecimalMinUnit(8) : null), [priceUpper]);
+  const priceLowerString = priceLower?.toDecimalMinUnit();
+  const priceUpperString = priceUpper?.toDecimalMinUnit();
   useLayoutEffect(() => {
     if (type === 'tokenB') return;
     const value = getValues();
@@ -276,7 +277,7 @@ const DepositAmount: React.FC<
       return;
     }
     changePairAmount.current(amountTokenA);
-  }, [priceTokenAFixed8, priceLowerAFixed8, priceUpperAFixed8]);
+  }, [sqrtPriceX96, priceLowerString, priceUpperString, isRangeValid]);
 
   useLayoutEffect(() => {
     const value = getValues();
@@ -412,6 +413,21 @@ const DepositAmounts: React.FC<Props> = ({
     type: (isTokenAEqualsToken0 ? 'tokenB' : 'tokenA') as 'tokenA' | 'tokenB',
   };
   const priceTokenA = isTokenAEqualsToken0 ? _priceTokenA : _priceTokenA ? invertPrice(_priceTokenA) : null;
+  const sqrtPriceX96 = useMemo(() => {
+    if (pool?.sqrtPriceX96) {
+      const wrappedToken0 = getWrapperTokenByAddress(token0?.address);
+      if (wrappedToken0?.address.toLowerCase() === pool.token1.address.toLowerCase()) {
+        return (Q192 / BigInt(pool.sqrtPriceX96)).toString();
+      }
+      return pool.sqrtPriceX96;
+    }
+    if (pool !== null || !priceTokenA || !priceTokenA.isFinite() || priceTokenA.lessThanOrEqualTo(0) || !token0 || !token1) return undefined;
+    return new PriceDecimal(priceTokenA.toDecimalMinUnit())
+      .mul(`1e${token1.decimals - token0.decimals}`)
+      .mul(Q192.toString())
+      .sqrt()
+      .toFixed(0, Decimal.ROUND_DOWN);
+  }, [pool, priceTokenA, token0?.address, token0?.decimals, token1?.decimals]);
 
   const priceLower = useMemo(() => {
     try {
@@ -444,6 +460,7 @@ const DepositAmounts: React.FC<Props> = ({
       <DepositAmount
         {...firstToken}
         priceTokenA={priceTokenA}
+        sqrtPriceX96={sqrtPriceX96}
         priceLower={priceLower}
         priceUpper={priceUpper}
         isValidToInput={isValidToInput}
@@ -458,6 +475,7 @@ const DepositAmounts: React.FC<Props> = ({
       <DepositAmount
         {...secondToken}
         priceTokenA={priceTokenA}
+        sqrtPriceX96={sqrtPriceX96}
         priceLower={priceLower}
         priceUpper={priceUpper}
         isValidToInput={isValidToInput}

@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useMemo, useEffect, useLayoutEffect } from 'react';
+import React, { memo, useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
 import { type UseFormRegister, type UseFormSetValue, type FieldValues, type UseFormGetValues } from 'react-hook-form';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import cx from 'clsx';
@@ -82,9 +82,11 @@ const getDefaultRange = (tokenA: Token | null | undefined, tokenB: Token | null 
 interface Props {
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
+  onPriceInputChange: (name: 'price-lower' | 'price-upper' | 'price-init', value: string) => void;
   getValues: UseFormGetValues<FieldValues>;
   isRangeValid: boolean | string | null;
   priceInit: string;
+  priceInitDisplay: string;
   priceLower: string;
   priceUpper: string;
 }
@@ -116,16 +118,16 @@ const getPriceByRange = ({
           ? priceTokenA
               .mul(100 - range)
               .div(100)
-              .toDecimalMinUnit(5)
+              .toDecimalMinUnit()
           : priceTokenA
               .mul(100 + range)
               .div(100)
-              .toDecimalMinUnit(5),
-    })?.toDecimalMinUnit(5)
+              .toDecimalMinUnit(),
+    })?.toDecimalMinUnit()
   );
 
   const priceTokenAFixed5 = priceTokenA?.toDecimalMinUnit(5);
-  if (type === 'lower' && priceTokenA && Number(priceTokenAFixed5) > 0.00001 && recommendVal === '0') {
+  if (type === 'lower' && priceTokenA && Number(priceTokenAFixed5) > 0.00001 && trimDecimalZeros(new Unit(recommendVal).toDecimalMinUnit(5)) === '0') {
     const half = new Unit(priceTokenAFixed5!).div(2).toDecimalMinUnit(5);
     if (new Unit(half).equals(0)) {
       return '0.00001';
@@ -135,7 +137,7 @@ const getPriceByRange = ({
 };
 
 const RangeInput: React.FC<
-  Pick<Props, 'register' | 'setValue' | 'getValues' | 'priceLower' | 'priceUpper'> & {
+  Pick<Props, 'register' | 'setValue' | 'onPriceInputChange' | 'getValues' | 'priceLower' | 'priceUpper'> & {
     type: 'lower' | 'upper';
     tokenA: Token | null;
     tokenB: Token | null;
@@ -144,24 +146,32 @@ const RangeInput: React.FC<
     selectedRange: number | null;
     resetSelectedRange: () => void;
   }
-> = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, getValues, selectedRange, resetSelectedRange }) => {
+> = ({ type, tokenA, tokenB, priceTokenA, fee, priceLower, priceUpper, register, setValue, onPriceInputChange, getValues, selectedRange, resetSelectedRange }) => {
   const i18n = useI18n(transitions);
+  const priceEdited = useRef(false);
 
-  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((evt) => {
-    if (evt.target.value === '') {
-      setValue('amount-tokenB', '');
-    }
-  }, []);
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
+    (evt) => {
+      priceEdited.current = true;
+      onPriceInputChange(`price-${type}`, evt.target.value);
+      if (evt.target.value === '') {
+        setValue('amount-tokenB', '');
+      }
+    },
+    [type, onPriceInputChange, setValue]
+  );
 
   const handlePriceChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (evt) => {
+      if (!priceEdited.current) return;
+      priceEdited.current = false;
       if (!tokenA || !tokenB || !evt.target.value) return;
       try {
         if (evt.target.value === 'Infinity' || evt.target.value === 'NaN' || new Unit(evt.target.value).lessThanOrEqualTo(new Unit(0))) {
           setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
           return;
         }
-        setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
+        setValue(`price-${type}`, findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit());
       } catch {
         setValue(`price-${type}`, type === 'lower' ? '0' : 'Infinity');
       } finally {
@@ -185,28 +195,25 @@ const RangeInput: React.FC<
 
   const handleClickSub = useCallback(() => {
     if (!tokenA || !tokenB) return;
-    const value = getValues();
-    const priceStr = value[`price-${type}`];
+    const priceStr = type === 'lower' ? priceLower : priceUpper;
     if (!priceStr || priceStr === '0' || priceStr === 'Infinity') return;
     const prePrice = findNextPreValidPrice({ direction: 'pre', fee, tokenA, tokenB, searchPrice: priceStr });
-    const prePriceString = trimDecimalZeros(prePrice?.toDecimalMinUnit(5));
-    setValue(`price-${type}`, type === 'lower' ? prePriceString : prePriceString === '0' ? 'Infinity' : prePriceString);
+    setValue(`price-${type}`, trimDecimalZeros(prePrice?.toDecimalMinUnit()));
     resetSelectedRange();
-  }, [fee, tokenA?.address, tokenB?.address, resetSelectedRange]);
+  }, [fee, tokenA?.address, tokenB?.address, resetSelectedRange, type, priceLower, priceUpper]);
 
   const handleClickAdd = useCallback(() => {
     if (!tokenA || !tokenB) return;
-    const value = getValues();
-    const priceStr = value[`price-${type}`];
+    const priceStr = type === 'lower' ? priceLower : priceUpper;
     if (!priceStr) {
       setValue(`price-${type}`, placeholder);
       return;
     }
     if (priceStr === '0' || priceStr === 'Infinity') return;
     const nextPrice = findNextPreValidPrice({ direction: 'next', fee, tokenA, tokenB, searchPrice: priceStr });
-    setValue(`price-${type}`, trimDecimalZeros(nextPrice?.toDecimalMinUnit(5)));
+    setValue(`price-${type}`, trimDecimalZeros(nextPrice?.toDecimalMinUnit()));
     resetSelectedRange();
-  }, [placeholder, fee, tokenA?.address, tokenB?.address, resetSelectedRange]);
+  }, [placeholder, fee, tokenA?.address, tokenB?.address, resetSelectedRange, type, priceLower, priceUpper]);
 
   const shouldHideSubIcon = useMemo(() => {
     if (type === 'lower') {
@@ -253,7 +260,7 @@ const RangeInput: React.FC<
           className="mx-8px h-40px text-14px text-black-normal"
           clearIcon
           id={`input--price-${type}`}
-          placeholder={placeholder}
+          placeholder={placeholder ? trimDecimalZeros(new Unit(placeholder).toDecimalMinUnit(5)) : ''}
           {...register(`price-${type}`, {
             required: true,
             min: 0,
@@ -284,12 +291,13 @@ const RangeInput: React.FC<
   );
 };
 
-const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValues, isRangeValid, priceUpper, priceLower }) => {
+const SetPriceRange: React.FC<Props> = ({ priceInit, priceInitDisplay, register, setValue, onPriceInputChange, getValues, isRangeValid, priceUpper, priceLower }) => {
   const i18n = useI18n(transitions);
 
   const tokenA = useTokenA();
   const tokenB = useTokenB();
   const isBothTokenSelected = !!tokenA && !!tokenB;
+  const priceInitEdited = useRef(false);
 
   const fee = useCurrentFee();
   const { pool } = usePool({ tokenA, tokenB, fee });
@@ -308,8 +316,10 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
 
   const handlePriceInitChange = useCallback<React.FocusEventHandler<HTMLInputElement>>(
     (evt) => {
+      if (!priceInitEdited.current) return;
+      priceInitEdited.current = false;
       if (!tokenA || !tokenB || !evt.target.value) return;
-      setValue('price-init', findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit(5));
+      setValue('price-init', findClosestValidPrice({ fee, tokenA, tokenB, searchPrice: evt.target.value }).toDecimalMinUnit());
     },
     [fee, tokenA, tokenB]
   );
@@ -385,6 +395,10 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
               {...register('price-init', {
                 required: true,
                 min: 0,
+                onChange: (evt) => {
+                  priceInitEdited.current = true;
+                  onPriceInputChange('price-init', evt.target.value);
+                },
               })}
               placeholder={i18n.set_starting_price}
               type="number"
@@ -394,7 +408,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
             />
           </div>
           <div className="flex items-center h-36px px-16px rounded-bl-16px rounded-br-16px bg-orange-light text-14px text-black-normal font-normal">
-            {compiled(i18n.current_tokenA_price, { tokenASymbol: tokenA?.symbol ?? '' })}: {priceInit}
+            {compiled(i18n.current_tokenA_price, { tokenASymbol: tokenA?.symbol ?? '' })}: {priceInitDisplay}
           </div>
         </>
       )}
@@ -404,6 +418,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
           type="lower"
           register={register}
           setValue={setValue}
+          onPriceInputChange={onPriceInputChange}
           getValues={getValues}
           tokenA={tokenA}
           tokenB={tokenB}
@@ -418,6 +433,7 @@ const SetPriceRange: React.FC<Props> = ({ priceInit, register, setValue, getValu
           type="upper"
           register={register}
           setValue={setValue}
+          onPriceInputChange={onPriceInputChange}
           getValues={getValues}
           tokenA={tokenA}
           tokenB={tokenB}
