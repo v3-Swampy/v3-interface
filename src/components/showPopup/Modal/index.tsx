@@ -5,7 +5,7 @@ import { PopupClass } from '@components/Popup';
 import BorderBox from '@components/Box/BorderBox';
 import renderReactNode from '@utils/renderReactNode';
 import usePressEsc from '@hooks/usePressEsc';
-import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
+import CloseBoldIcon from '@assets/icons/close_bold.svg?react';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
 import { recordCurrentPopup, hidePopup, recordHideCurrentPopup } from '../';
 import './index.css';

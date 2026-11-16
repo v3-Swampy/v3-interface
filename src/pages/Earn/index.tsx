@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import Spin from '@components/Spin';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import Button from '@components/Button';
-import { ReactComponent as AddIcon } from '@assets/icons/add.svg';
+import AddIcon from '@assets/icons/add.svg?react';
 import BorderBox from '@components/Box/BorderBox';
 import Switch from '@components/Switch';
 import FarmIcon from '@assets/imgs/farm.png';

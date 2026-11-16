@@ -9,8 +9,8 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
 import { useTokenA, useTokenB } from './SelectPair';
 import { useCurrentFee } from './SelectFeeTier';
-import { ReactComponent as RoundMinusIcon } from '@assets/icons/round_minus.svg';
-import { ReactComponent as RoundAddIcon } from '@assets/icons/round_add.svg';
+import RoundMinusIcon from '@assets/icons/round_minus.svg?react';
+import RoundAddIcon from '@assets/icons/round_add.svg?react';
 
 const transitions = {
   en: {

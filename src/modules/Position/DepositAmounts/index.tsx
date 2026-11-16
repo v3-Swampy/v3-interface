@@ -11,7 +11,7 @@ import { useAccount } from '@service/account';
 import { usePool, FeeAmount, invertPrice, getMaxTick, getMinTick, calcPriceFromTick, calcTickFromPrice, findClosestValidTick } from '@service/pairs&pool';
 import useI18n from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as LockIcon } from '@assets/icons/lock.svg';
+import LockIcon from '@assets/icons/lock.svg?react';
 import { TickMath } from '@uniswap/v3-sdk';
 import Decimal from 'decimal.js';
 

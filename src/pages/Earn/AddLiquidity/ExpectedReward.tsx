@@ -13,7 +13,7 @@ import { TokenItem } from '@modules/Position/TokenPairAmount';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
 import { useAccount } from '@service/account';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import InfoIcon from '@assets/icons/info.svg?react';
 
 function useDebounce<T>(value: T, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);

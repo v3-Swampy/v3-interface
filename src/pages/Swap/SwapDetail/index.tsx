@@ -11,9 +11,9 @@ import { useSlippageTolerance } from '@service/settings';
 import { formatDisplayAmount, trimDecimalZeros } from '@utils/numberUtils';
 import AutoRouter from './AutoRouter';
 import { getAmountOutMinimumDecimal, getAmountInMaximumDecimal } from '@utils/slippage';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
-import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
-import { ReactComponent as StationIcon } from '@assets/icons/station.svg';
+import InfoIcon from '@assets/icons/info.svg?react';
+import ArrowDownIcon from '@assets/icons/arrow_down.svg?react';
+import StationIcon from '@assets/icons/station.svg?react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 
 const transitions = {

@@ -10,7 +10,7 @@ import showTokenSelectModal from '@modules/TokenSelectModal';
 import useI18n from '@hooks/useI18n';
 import { useAccount } from '@service/account';
 import { useSourceToken, useDestinationToken, setToken } from '@service/swap';
-import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
+import ArrowDownIcon from '@assets/icons/arrow_down.svg?react';
 
 const transitions = {
   en: {

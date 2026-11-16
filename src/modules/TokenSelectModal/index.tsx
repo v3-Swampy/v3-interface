@@ -14,8 +14,8 @@ import { useAccount } from '@service/account';
 import { validateHexAddress } from '@utils/addressUtils';
 import { useTokens, useCommonTokens, setCommonToken, fetchTokenInfoByAddress, addTokenToList, deleteTokenFromList, isTokenEqual, type Token } from '@service/tokens';
 import { isMobile } from '@utils/is';
-import { ReactComponent as SearchIcon } from '@assets/icons/search.svg';
-import { ReactComponent as DeleteIcon } from '@assets/icons/delete.svg';
+import SearchIcon from '@assets/icons/search.svg?react';
+import DeleteIcon from '@assets/icons/delete.svg?react';
 import SelectTokenWarning from './SelectTokenWarning';
 import './index.css';
 

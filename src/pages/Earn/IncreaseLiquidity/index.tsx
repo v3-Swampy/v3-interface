@@ -9,7 +9,7 @@ import Settings from '@modules/Settings';
 import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import DepositAmounts from '@modules/Position/DepositAmounts';
 import { usePosition, handleClickSubmitIncreasePositionLiquidity as _handleClickSubmitIncreasePositionLiquidity } from '@service/earn';
-import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
+import ArrowLeftIcon from '@assets/icons/arrow_left.svg?react';
 import PairInfo from './PairInfo';
 import SubmitButton from './SubmitButton';
 import { invertPrice } from '@service/pairs&pool';

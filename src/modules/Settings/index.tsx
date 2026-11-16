@@ -8,8 +8,8 @@ import Switch from '@components/Switch';
 import { isMobile } from '@utils/is';
 import useI18n from '@hooks/useI18n';
 import { useTransactionDeadline, useSlippageTolerance, useExpertMode, useRoutingApi, setSlippageTolerance, toggleSlippageToleranceMethod } from '@service/settings';
-import { ReactComponent as SettingsIcon } from '@assets/icons/settings.svg';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import SettingsIcon from '@assets/icons/settings.svg?react';
+import InfoIcon from '@assets/icons/info.svg?react';
 import showExpertModeModal from './ExpertModeModal';
 import Decimal from 'decimal.js';
 

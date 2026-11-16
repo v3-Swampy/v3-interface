@@ -6,7 +6,7 @@ import { type UseFormRegister, type FieldValues } from 'react-hook-form';
 import Dropdown from '@components/Dropdown';
 import useI18n from '@hooks/useI18n';
 import { FeeAmount } from '@service/pairs&pool';
-import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
+import ArrowDownIcon from '@assets/icons/arrow_down.svg?react';
 import { useIsBothTokenSelected } from './SelectPair';
 import { setRecoil } from 'recoil-nexus';
 

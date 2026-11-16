@@ -4,10 +4,10 @@ import { useSpring, a } from '@react-spring/web';
 import { PopupClass, PopupProps } from '@components/Popup';
 import { isMobile } from '@utils/is';
 import renderReactNode from '@utils/renderReactNode';
-import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
-import { ReactComponent as ErrorIcon } from '@assets/icons/error_small.svg';
-import { ReactComponent as WarningIcon } from '@assets/icons/warning_small.svg';
-import { ReactComponent as SuccessIcon } from '@assets/icons/success_small.svg';
+import CloseBoldIcon from '@assets/icons/close_bold.svg?react';
+import ErrorIcon from '@assets/icons/error_small.svg?react';
+import WarningIcon from '@assets/icons/warning_small.svg?react';
+import SuccessIcon from '@assets/icons/success_small.svg?react';
 import './index.css';
 
 export const Toast = new PopupClass(true);

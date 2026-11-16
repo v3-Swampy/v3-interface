@@ -5,7 +5,7 @@ import useI18n, { compiled } from '@hooks/useI18n';
 import { useSourceToken, useDestinationToken } from '@service/swap';
 import { type useBestTrade, TradeType, Trade, Route, Protocol } from '@service/pairs&pool';
 import { Token, getUnwrapperTokenByAddress } from '@service/tokens';
-import { ReactComponent as ArrowDownIcon } from '@assets/icons/arrow_down.svg';
+import ArrowDownIcon from '@assets/icons/arrow_down.svg?react';
 import RoutingDiagram from './RoutingDiagram';
 
 const transitions = {
