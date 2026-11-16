@@ -106,7 +106,6 @@ export default defineConfig({
         target: 'https://app.wallfreex.com',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/points\/api/, '/points/api'),
         headers: {
           Referer: 'https://app.wallfreex.com',
         },
