@@ -8,8 +8,8 @@ import { watchAsset } from '@service/account';
 import { type Token } from '@service/tokens';
 import { addRecordToHistory, type HistoryRecord } from '@service/history';
 import { RecordAction } from '@modules/Navbar/AccountDetailDropdown/History';
-import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
-import { ReactComponent as FailedIcon } from '@assets/icons/failed.svg';
+import SuccessIcon from '@assets/icons/success.svg?react';
+import FailedIcon from '@assets/icons/failed.svg?react';
 import showGasLimitModal from './showGasLimitModal';
 
 export enum Step {

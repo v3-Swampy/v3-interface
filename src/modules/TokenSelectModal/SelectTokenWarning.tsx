@@ -2,10 +2,10 @@ import React from 'react';
 import useClipboard from 'react-use-clipboard';
 import useI18n, { compiled } from '@hooks/useI18n';
 import BorderBox from '@components/Box/BorderBox';
-import { ReactComponent as WarningColorIcon } from '@assets/icons/warning_color.svg';
-import { ReactComponent as WarningAddTokenIcon } from '@assets/icons/warning_add_token.svg';
-import { ReactComponent as CopyIcon } from '@assets/icons/copy_bold.svg';
-import { ReactComponent as ShareIcon } from '@assets/icons/share_bold.svg';
+import WarningColorIcon from '@assets/icons/warning_color.svg?react';
+import WarningAddTokenIcon from '@assets/icons/warning_add_token.svg?react';
+import CopyIcon from '@assets/icons/copy_bold.svg?react';
+import ShareIcon from '@assets/icons/share_bold.svg?react';
 import Button from '@components/Button';
 import Tooltip from '@components/Tooltip';
 

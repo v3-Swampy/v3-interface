@@ -3,7 +3,7 @@ import cx from 'clsx';
 import BorderBox from '@components/Box/BorderBox';
 import Avatar from '@components/Avatar';
 import Address from '@modules/Address';
-import { ReactComponent as RankIcon } from '@assets/icons/rank.svg';
+import RankIcon from '@assets/icons/rank.svg?react';
 import type { UserData } from '@service/points';
 import { useAccount } from '@service/account';
 

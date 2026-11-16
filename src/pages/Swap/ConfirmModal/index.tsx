@@ -10,9 +10,9 @@ import { handleSwap as _handleSwap } from '@service/swap';
 import useInTransaction from '@hooks/useInTransaction';
 import SwapDetail from '@pages/Swap/SwapDetail';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange_gray.svg';
+import ExchangeIcon from '@assets/icons/exchange_gray.svg?react';
 import { waitSeconds } from '@utils/waitAsyncResult';
-import { ReactComponent as WarningIcon } from '@assets/icons/warning_small.svg';
+import WarningIcon from '@assets/icons/warning_small.svg?react';
 import { isMobile } from '@utils/is';
 
 const transitions = {

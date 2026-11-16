@@ -9,8 +9,8 @@ import { useHistory, HistoryStatus, clearHistory, type HistoryRecord } from '@se
 import { getUnwrapperTokenByAddress } from '@service/tokens';
 import useI18n, { compiled } from '@hooks/useI18n';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as SuccessIcon } from '@assets/icons/success.svg';
-import { ReactComponent as FailedIcon } from '@assets/icons/failed_red.svg';
+import SuccessIcon from '@assets/icons/success.svg?react';
+import FailedIcon from '@assets/icons/failed_red.svg?react';
 import { useRefreshPositionsForUI as useRefreshPositions, useRefreshPoolsQuery } from '@service/earn';
 import { useRefreshUserInfo, useRefreshBalanceOfveVST, useRefreshTotalStakedVST, useRefreshBoostFactor, useRefreshVeTotalSuppply } from '@service/staking';
 import { waitSeconds } from '@utils/waitAsyncResult';

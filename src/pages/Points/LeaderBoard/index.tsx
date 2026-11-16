@@ -3,7 +3,7 @@ import cx from 'clsx';
 import dayjs from 'dayjs';
 import { NavLink, Outlet } from 'react-router-dom';
 import Tooltip from '@components/Tooltip';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import InfoIcon from '@assets/icons/info.svg?react';
 import { usePointRank } from '@service/points';
 import Spin from '@components/Spin';
 import Delay from '@components/Delay';

@@ -3,7 +3,7 @@ import cx from 'clsx';
 import useI18n from '@hooks/useI18n';
 import Decimal from 'decimal.js';
 import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import InfoIcon from '@assets/icons/info.svg?react';
 import { usePools } from '@service/earn';
 import TokenPair from '@modules/Position/TokenPair';
 import Spin from '@components/Spin';

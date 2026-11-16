@@ -10,7 +10,7 @@ import { type PositionForUI } from '@service/position';
 import { invertPrice, usePool } from '@service/pairs&pool';
 import { type Token, isTokenEqual } from '@service/tokens';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as ExchangeIcon } from '@assets/icons/detail_exchange.svg';
+import ExchangeIcon from '@assets/icons/detail_exchange.svg?react';
 import { useInvertedState } from '../invertedState';
 
 const transitions = {

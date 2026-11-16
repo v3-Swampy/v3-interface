@@ -20,7 +20,7 @@ import { useBestTrade, TradeState, useTokenPrice } from '@service/pairs&pool';
 import { TradeType } from '@service/swap/bestTrade';
 import { useExpertMode } from '@service/settings';
 import { computeFiatValuePriceImpact } from '@service/swap';
-import { ReactComponent as ExchangeIcon } from '@assets/icons/exchange.svg';
+import ExchangeIcon from '@assets/icons/exchange.svg?react';
 import SelectedToken from './SelectedToken';
 import SubmitButton from './SubmitButton';
 import SwapDetail from './SwapDetail';

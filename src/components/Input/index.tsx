@@ -1,6 +1,6 @@
 import { useRef, forwardRef, useCallback, useLayoutEffect, useState, type ComponentProps } from 'react';
 import composeRef from '@utils/composeRef';
-import { ReactComponent as ClosedFilledIcon } from '@assets/icons/close_filled.svg';
+import ClosedFilledIcon from '@assets/icons/close_filled.svg?react';
 import cx from 'clsx';
 import './index.css';
 

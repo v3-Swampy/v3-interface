@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { type PositionForUI } from '@service/position';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as DoubleArrowIcon } from '@assets/icons/double_arrow.svg';
+import DoubleArrowIcon from '@assets/icons/double_arrow.svg?react';
 
 const PriceRange: React.FC<{ position: PositionForUI; type?: 'verticle' | 'horizontal' }> = ({ position, type = 'verticle' }) => {
   const { leftToken, rightToken, priceLowerForUI, priceUpperForUI } = position;
