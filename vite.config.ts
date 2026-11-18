@@ -13,6 +13,20 @@ export default defineConfig({
     Unocss({
       transformers: [transformerDirective()],
       presets: [presetWind()],
+      // Preserve existing utilities and visual behavior after the UnoCSS upgrade.
+      rules: [
+        ['display-none', { display: 'none' }],
+        ['bg-gradient-to-l', {
+          '--un-gradient-shape': 'to left',
+          '--un-gradient': 'var(--un-gradient-shape), var(--un-gradient-stops)',
+          'background-image': 'linear-gradient(var(--un-gradient))',
+        }],
+        ['transition-colors', {
+          'transition-property': 'color,background-color,border-color,outline-color,text-decoration-color,fill,stroke',
+          'transition-timing-function': 'cubic-bezier(0.4,0,0.2,1)',
+          'transition-duration': '150ms',
+        }],
+      ],
       theme: {
         breakpoints: {
           tiny: '350px',
@@ -106,7 +120,6 @@ export default defineConfig({
         target: 'https://app.wallfreex.com',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/points\/api/, '/points/api'),
         headers: {
           Referer: 'https://app.wallfreex.com',
         },

@@ -13,7 +13,7 @@ import TokenPair from '@modules/Position/TokenPair';
 import Status from '@modules/Position/PositionStatus';
 import Button from '@components/Button';
 import { trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
+import ArrowLeftIcon from '@assets/icons/arrow_left.svg?react';
 import AmountSlider from './AmountSlider';
 import AmountDetail from './AmountDetail';
 

@@ -3,7 +3,7 @@ import cx from 'clsx';
 import { useAccount } from '@service/account';
 import { DrawerClass } from '@components/Drawer';
 import renderReactNode from '@utils/renderReactNode';
-import { ReactComponent as CloseBoldIcon } from '@assets/icons/close_bold.svg';
+import CloseBoldIcon from '@assets/icons/close_bold.svg?react';
 import useCloseOnRouterBack from '../useCloseOnRouterBack';
 import { recordCurrentPopup, hidePopup, recordHideCurrentPopup, currentPopup } from '../';
 

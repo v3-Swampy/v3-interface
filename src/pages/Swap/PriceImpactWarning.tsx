@@ -2,7 +2,7 @@ import React from 'react';
 import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import Tooltip from '@components/Tooltip';
 import useI18n from '@hooks/useI18n';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import InfoIcon from '@assets/icons/info.svg?react';
 
 
 const transitions = {

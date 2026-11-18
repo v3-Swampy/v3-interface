@@ -9,7 +9,7 @@ import { handleRecoilInit } from '@utils/recoilUtils';
 import { createERC20Contract, fetchMulticall } from '@contracts/index';
 import TokenDefaultIcon from '@assets/icons/token_default.png';
 import Cache from '@utils/LRUCache';
-import { isMobile } from '@utils/is';
+import { isMobile, isProduction } from '@utils/is';
 
 export interface Token {
   name: string;
@@ -35,6 +35,8 @@ if (cachedTokens?.length) {
 
 export let TokenVST: Token = null!;
 export let TokenUSDT: Token = null!;
+export let TokenUSDT0: Token = null!;
+export let TokenForUSDPrice: Token = null!;
 export let TokenETH: Token = null!;
 export let TokenCFX: Token = {
   chainId: +targetChainId,
@@ -45,11 +47,19 @@ export let TokenCFX: Token = {
   logoURI: TokenDefaultIcon,
 };
 
+const usdtTokenAddress = isProduction ? '0xfe97e85d13abd9c1c33384e796f10b73905637ce' : '0x7d682e65efc5c13bf4e394b8f376c48e6bae0355';
+const usdt0TokenAddress = isProduction ? '0xaf37e8b6c9ed7f6318979f56fc287d76c30847ff' : 'null';
+const axcnhTokenAddress = isProduction ? '0x70bfd7f7eadf9b9827541272589a6b2bb760ae2e' : 'null';
+const usdcTokenAddress = isProduction ? '0x6963efed0ab40f6c3d7bda44a05dcf1437c44372' : '0x349298b0e20df67defd6efb8f3170cf4a32722ef';
+const wcfxTokenAddress = isProduction ? '0x14b2d3bc65e74dae1030eafd8ac30c533c976a9b' : '0x2ed3dddae5b2f321af0806181fbfa6d049be47d8';
 const setRegularToken = (tokens: Array<Token>) => {
   TokenVST = tokens?.find((token) => token.symbol === 'VST')!;
-  TokenCFX = tokens?.find((token) => token.symbol === 'CFX')!;
-  TokenUSDT = tokens?.find((token) => token.symbol === 'USDT')!;
+  TokenCFX = tokens?.find((token) => token.address === 'CFX')!;
+  TokenUSDT = tokens?.find((token) => token.address.toLowerCase() === usdtTokenAddress.toLowerCase())!;
+  TokenUSDT0 = tokens?.find((token) => token.address.toLowerCase() === usdt0TokenAddress.toLowerCase())!;
   TokenETH = tokens?.find((token) => token.symbol === 'ETH')!;
+  // use usdt0 in production, use usdt in test
+  TokenForUSDPrice = isProduction ? TokenUSDT0 : TokenUSDT;
 };
 setRegularToken(cachedTokens);
 
@@ -84,33 +94,33 @@ export const deleteFromCommonTokens = (token: Token, setRecoilState?: SetRecoilS
   (setRecoilState ?? setRecoil)(commonTokensState, [...(TokenCFX ? [TokenCFX] : []), ...commonTokensCache.toArr()]);
 };
 
-const stableSymbols = ['USDT', 'AxCNH', 'USDC'];
-const nativeSymbols = ['WCFX'];
+const stableAddress = [usdt0TokenAddress, usdtTokenAddress, axcnhTokenAddress, usdcTokenAddress];
+const nativeAddress = [wcfxTokenAddress];
 
-export const stableTokens = stableSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
-export const nativeTokens = nativeSymbols.map((symbol) => cachedTokens.find((token) => token.symbol === symbol));
+export const stableTokens = stableAddress.map((address) => cachedTokens.find((token) => token.address.toLowerCase() === address.toLowerCase()));
+export const nativeTokens = nativeAddress.map((address) => cachedTokens.find((token) => token.address.toLowerCase() === address.toLowerCase()));
 export const VST = cachedTokens.find((token) => token.symbol === 'VST');
 
 const wrapperTokenMap = new Map<string, Token>();
 const unwrapperTokenMap = new Map<string, Token>();
 const tokensMap = new Map<string, Token>();
-export const getTokenByAddress = (address?: string | null) => (address ? tokensMap.get(address.toLowerCase()) ?? null : null);
-export const getWrapperTokenByAddress = (address?: string | null) => (address ? wrapperTokenMap.get(address.toLowerCase()) ?? null : null);
-export const getUnwrapperTokenByAddress = (address?: string | null) => (address ? unwrapperTokenMap.get(address.toLowerCase()) ?? null : null);
+export const getTokenByAddress = (address?: string | null) => (address ? (tokensMap.get(address.toLowerCase()) ?? null) : null);
+export const getWrapperTokenByAddress = (address?: string | null) => (address ? (wrapperTokenMap.get(address.toLowerCase()) ?? null) : null);
+export const getUnwrapperTokenByAddress = (address?: string | null) => (address ? (unwrapperTokenMap.get(address.toLowerCase()) ?? null) : null);
 const tokensChangeCallbacks: Array<(tokens: Array<Token>) => void> = [];
 const resetTokensMap = (tokens: Array<Token>, setRecoilState?: SetRecoilState) => {
   tokensChangeCallbacks?.forEach((callback) => callback?.(tokens));
   tokensMap.clear();
 
-  const WCFX = tokens.find((token) => token.symbol === 'WCFX');
-  const CFX = tokens.find((token) => token.symbol === 'CFX');
+  const WCFX = tokens.find((token) => token.address.toLowerCase() === wcfxTokenAddress.toLowerCase());
+  const CFX = tokens.find((token) => token.address === 'CFX');
 
   tokens?.forEach((token) => {
     tokensMap.set(token.address.toLowerCase(), token);
-    if (token.symbol !== 'CFX') {
+    if (token.address !== 'CFX') {
       wrapperTokenMap.set(token.address.toLowerCase(), token);
     }
-    if (token.symbol !== 'WCFX') {
+    if (token.address.toLowerCase() !== wcfxTokenAddress.toLowerCase()) {
       unwrapperTokenMap.set(token.address.toLowerCase(), token);
     }
   });
@@ -147,7 +157,7 @@ export const handleTokensChange = (callback: (tokens: Array<Token>) => void) => 
 
 export const useTokens = () => {
   const tokens = useRecoilValue(tokensState);
-  const tokensWithoutWCFX = useMemo(() => tokens?.filter((token) => token.symbol !== 'WCFX'), [tokens]);
+  const tokensWithoutWCFX = useMemo(() => tokens?.filter((token) => token.address.toLowerCase() !== wcfxTokenAddress.toLowerCase()), [tokens]);
   return tokensWithoutWCFX;
 };
 
@@ -182,13 +192,13 @@ export const useTokens = () => {
 
 const fetchTokenInfos = ['name', 'symbol', 'decimals'] as const;
 export const fetchTokenInfoByAddress = async (address: string) => {
+  if (address.toLowerCase() === wcfxTokenAddress.toLowerCase()) return null;
   try {
     const tokenContract = createERC20Contract(address);
     const encodedRes = await fetchMulticall(fetchTokenInfos.map((info) => [tokenContract.address, tokenContract.func.interface.encodeFunctionData(info)]));
 
     if (Array.isArray(encodedRes)) {
       const decodeRes = encodedRes?.map((encodedInfo, index) => tokenContract.func.interface.decodeFunctionResult(fetchTokenInfos[index], encodedInfo)?.[0]);
-      if (decodeRes[1] === 'WCFX') return null;
       return {
         name: decodeRes[0],
         symbol: decodeRes[1],
@@ -228,13 +238,11 @@ export const isTokenEqual = (tokenA: Token | null | undefined, tokenB: Token | n
   return getUnwrapperTokenByAddress(tokenA?.address)?.address?.toLocaleLowerCase() === getUnwrapperTokenByAddress(tokenB?.address)?.address?.toLocaleLowerCase();
 };
 
-
 export const getToken0And1 = (tokenA: Token | null | undefined, tokenB: Token | null | undefined) => {
   if (!tokenA || !tokenB) return [tokenA, tokenB];
   const notNeedSwap = tokenA.address.toLocaleLowerCase() < tokenB.address.toLocaleLowerCase();
   return notNeedSwap ? [tokenA, tokenB] : [tokenB, tokenA];
-}
-
+};
 
 export const getTokenByAddressWithAutoFetch = async (address: string) => {
   const token = getTokenByAddress(address);

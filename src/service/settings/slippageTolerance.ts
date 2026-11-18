@@ -56,14 +56,15 @@ export const setSlippageTolerance = (value: number | null) => {
  * getSlippageTolerance is used directly in the calculation of data without converting units.
  */
 export const getSlippageTolerance = () => {
+  const value = getRecoil(slippageToleranceState);
   const method = getRecoil(slippageToleranceMethod);
-  if (method === 'auto') {
+  if (method === 'auto' || value === null) {
     if (location.pathname?.startsWith(getSwapPagePath())) {
       return SwapDefaultSlippageTolerance;
     } else {
       return AddLiquidityDefaultSlippageTolerance;
     }
   } else {
-    return getRecoil(slippageToleranceState);
+    return value;
   }
 };

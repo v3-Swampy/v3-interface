@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { intervalFetchChain } from '@utils/fetch';
-import { ReactComponent as EmailIcon } from '@assets/icons/email.svg';
-import { ReactComponent as DiscordIcon } from '@assets/icons/discord.svg';
-import { ReactComponent as XIcon } from '@assets/icons/x.svg';
+import EmailIcon from '@assets/icons/email.svg?react';
+import DiscordIcon from '@assets/icons/discord.svg?react';
+import XIcon from '@assets/icons/x.svg?react';
 
 const BlockNumber = () => {
   const [blockNumber, setBlockNumber] = useState(0);

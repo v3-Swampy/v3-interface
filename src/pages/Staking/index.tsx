@@ -14,7 +14,7 @@ import { TokenVST } from '@service/tokens';
 // import { useVSTPrice } from '@hooks/usePairPrice';
 import { useTokenPrice } from '@service/pairs&pool';
 import { numberWithCommas, trimDecimalZeros } from '@utils/numberUtils';
-import { ReactComponent as StakeCalculate } from '@assets/icons/stake_calculate.svg';
+import StakeCalculate from '@assets/icons/stake_calculate.svg?react';
 import { addRecordToHistory } from '@service/history';
 
 const transitions = {

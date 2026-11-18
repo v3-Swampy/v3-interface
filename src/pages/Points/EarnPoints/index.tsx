@@ -5,7 +5,7 @@ import TokenPair from '@modules/Position/TokenPair';
 import { setTokens as setLiquidityTokens } from '@pages/Earn/AddLiquidity/SelectPair';
 import { setCurrentFee } from '@pages/Earn/AddLiquidity/SelectFeeTier';
 import { setToken as setSwapToken } from '@service/swap';
-import { ReactComponent as LinkIcon } from '@assets/icons/link3.svg';
+import LinkIcon from '@assets/icons/link3.svg?react';
 import { getTokenByAddress, TokenCFX } from '@service/tokens';
 import { PoolData, useAutoRefreshPointPools, usePointPools } from '@service/points';
 import Spin from '@components/Spin';

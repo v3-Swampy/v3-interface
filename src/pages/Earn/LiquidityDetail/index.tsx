@@ -6,7 +6,7 @@ import SelectedPriceRange from '@modules/Position/SelectedPriceRange';
 import { usePosition } from '@service/earn';
 import { useAccount } from '@service/account';
 import useI18n from '@hooks/useI18n';
-import { ReactComponent as ArrowLeftIcon } from '@assets/icons/arrow_left.svg';
+import ArrowLeftIcon from '@assets/icons/arrow_left.svg?react';
 import DetailHeader from './DetailHeader';
 import Liquidity from './Liquidity';
 import UnclaimedFees from './UnclaimedFees';

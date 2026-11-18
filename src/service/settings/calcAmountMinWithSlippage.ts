@@ -3,7 +3,8 @@ import { Unit } from '@cfxjs/use-wallet-react/ethereum';
 import JSBI from 'jsbi';
 import Decimal from 'decimal.js';
 
-const Q192 = new Decimal(2).toPower(192);
+const PriceDecimal = Decimal.clone({ precision: 100 });
+const Q192 = new PriceDecimal(2).toPower(192);
 
 //  The minimum tick that can be used on any pool.
 const MIN_SQRT_RATIO = /*#__PURE__*/ new Unit('4295128739');
@@ -12,7 +13,7 @@ const MAX_SQRT_RATIO = /*#__PURE__*/ new Unit('146144670348521010328727305220398
 
 // get Q64.96 for sqr price
 const encodeSqrtRatioX96 = (priceInit: string) => {
-  return Decimal.sqrt(new Decimal(priceInit).mul(Q192)).toFixed(0);
+  return new PriceDecimal(priceInit).mul(Q192).sqrt().toFixed(0, Decimal.ROUND_DOWN);
 };
 
 /**
@@ -33,7 +34,7 @@ const ratiosAfterSlippage = (slippage: number, currentToken0Price: string | Unit
   }
 
   if (new Unit(sqrtRatioX96Upper).greaterThanOrEqualTo(MAX_SQRT_RATIO)) {
-    sqrtRatioX96Lower = MAX_SQRT_RATIO.sub(1).toDecimalMinUnit();
+    sqrtRatioX96Upper = MAX_SQRT_RATIO.sub(1).toDecimalMinUnit();
   }
 
   // console.log('sqrtRatioX96Lower', sqrtRatioX96Lower);
@@ -54,22 +55,23 @@ const getMintAmounts = (
   tickLower: number,
   tickUpper: number,
   liquidity: JSBI | number | string,
-  sqrtRatioX96: JSBI
+  sqrtRatioX96: JSBI,
+  roundUp = true
 ): Readonly<{ amount0: JSBI; amount1: JSBI }> => {
   if (new Unit(tickCurrent).lessThan(tickLower)) {
     return {
-      amount0: SqrtPriceMath.getAmount0Delta(TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), true),
+      amount0: SqrtPriceMath.getAmount0Delta(TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), roundUp),
       amount1: JSBI.BigInt(0),
     };
   } else if (new Unit(tickCurrent).lessThan(tickUpper)) {
     return {
-      amount0: SqrtPriceMath.getAmount0Delta(sqrtRatioX96, TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), true),
-      amount1: SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tickLower), sqrtRatioX96, JSBI.BigInt(liquidity), true),
+      amount0: SqrtPriceMath.getAmount0Delta(sqrtRatioX96, TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), roundUp),
+      amount1: SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tickLower), sqrtRatioX96, JSBI.BigInt(liquidity), roundUp),
     };
   } else {
     return {
       amount0: JSBI.BigInt(0),
-      amount1: SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), true),
+      amount1: SqrtPriceMath.getAmount1Delta(TickMath.getSqrtRatioAtTick(tickLower), TickMath.getSqrtRatioAtTick(tickUpper), JSBI.BigInt(liquidity), roundUp),
     };
   }
 };
@@ -97,9 +99,12 @@ export const calcAmountMinWithSlippage = (
   amount0: string,
   amount1: string
 ): Readonly<{ amount0Min: string; amount1Min: string }> => {
-  const { sqrtRatioX96Upper, sqrtRatioX96Lower } = ratiosAfterSlippage(slippage, currentToken0Price);
+  const sqrtRatio = JSBI.BigInt(sqrtPriceX96);
+  const { sqrtRatioX96Upper, sqrtRatioX96Lower } = slippage === 0
+    ? { sqrtRatioX96Upper: sqrtRatio, sqrtRatioX96Lower: sqrtRatio }
+    : ratiosAfterSlippage(slippage, currentToken0Price);
 
-  const liquidity = calcLiquidity(JSBI.BigInt(sqrtPriceX96), tickLower, tickUpper, amount0, amount1, false);
+  const liquidity = calcLiquidity(sqrtRatio, tickLower, tickUpper, amount0, amount1, false);
   // console.log('liquidity', liquidity.toString());
 
   const { amount0: amount0Min } = getMintAmounts(TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper), tickLower, tickUpper, liquidity, sqrtRatioX96Upper);
@@ -109,4 +114,26 @@ export const calcAmountMinWithSlippage = (
   // console.log('amount1Min', amount1Min.toString());
 
   return { amount0Min: amount0Min.toString(), amount1Min: amount1Min.toString() };
+};
+
+export const calcBurnAmountMinWithSlippage = (
+  sqrtPriceX96: string,
+  slippage: number,
+  tickLower: number,
+  tickUpper: number,
+  liquidity: string
+): Readonly<{ amount0Min: string; amount1Min: string }> => {
+  if (!Number.isFinite(slippage) || slippage < 0 || slippage >= 1) {
+    throw new Error('Invalid liquidity slippage tolerance');
+  }
+
+  const sqrtRatio = JSBI.BigInt(sqrtPriceX96);
+  const currentToken0Price = new PriceDecimal(sqrtPriceX96).pow(2).div(Q192).toFixed();
+  const { sqrtRatioX96Lower, sqrtRatioX96Upper } = slippage === 0
+    ? { sqrtRatioX96Lower: sqrtRatio, sqrtRatioX96Upper: sqrtRatio }
+    : ratiosAfterSlippage(slippage, currentToken0Price);
+
+  const { amount0 } = getMintAmounts(TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper), tickLower, tickUpper, liquidity, sqrtRatioX96Upper, false);
+  const { amount1 } = getMintAmounts(TickMath.getTickAtSqrtRatio(sqrtRatioX96Lower), tickLower, tickUpper, liquidity, sqrtRatioX96Lower, false);
+  return { amount0Min: amount0.toString(), amount1Min: amount1.toString() };
 };

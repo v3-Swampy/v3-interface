@@ -10,7 +10,7 @@ import { getUnwrapperTokenByAddress } from '@service/tokens';
 import { getTokensPrice } from '@service/pairs&pool';
 import { type Token } from '@service/tokens';
 import { formatDisplayAmount } from '@utils/numberUtils';
-import { ReactComponent as InfoIcon } from '@assets/icons/info.svg';
+import InfoIcon from '@assets/icons/info.svg?react';
 
 const transitions = {
   en: {

@@ -264,23 +264,33 @@ export const findNextPreValidPrice = ({
   tokenA: Token;
   tokenB: Token;
 }) => {
-  let usedSearchPrice = typeof searchPrice !== 'object' ? new Unit(searchPrice) : searchPrice;
-
-  // hack code
-  const searchPriceFixed5 = usedSearchPrice.toDecimalMinUnit(5);
-  if (+searchPriceFixed5 <= 0.00233) {
-    return direction === 'pre' ? new Unit(searchPriceFixed5).sub(0.00001) : new Unit(searchPriceFixed5).add(0.00001);
-  }
-
+  const usedSearchPrice = typeof searchPrice !== 'object' ? new Unit(searchPrice) : searchPrice;
   const atom = fee / 50;
+  const minTick = new Unit(getMinTick(fee));
+  const maxTick = new Unit(getMaxTick(fee));
   const currentTick = findClosestValidTick({ fee, searchTick: calcTickFromPrice({ price: usedSearchPrice, tokenA, tokenB }) });
   let searchTick = direction === 'next' ? currentTick.add(atom) : currentTick.sub(atom);
-  let nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
-  while (nextOrPreTickPrice.toDecimalMinUnit(5) === searchPriceFixed5) {
-    searchTick = direction === 'next' ? searchTick.add(atom) : searchTick.sub(atom);
-    nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
+  searchTick = searchTick.lessThan(minTick) ? minTick : searchTick.greaterThan(maxTick) ? maxTick : searchTick;
+  if (searchTick.equals(minTick)) return new Unit(0);
+  if (searchTick.equals(maxTick)) return new Unit('Infinity');
+
+  const searchPriceFixed5 = usedSearchPrice.toDecimalMinUnit(5);
+  const nextOrPreTickPrice = calcPriceFromTick({ tick: searchTick, tokenA, tokenB });
+  if (nextOrPreTickPrice.toDecimalMinUnit(5) !== searchPriceFixed5) return nextOrPreTickPrice;
+
+  let sameTick = searchTick;
+  let differentTick = direction === 'next' ? maxTick : minTick;
+
+  while (sameTick.sub(differentTick).toDecimal().abs().greaterThan(atom)) {
+    const middleTick = new Unit(Decimal.floor(sameTick.add(differentTick).div(atom).div(2).toDecimal())).mul(atom);
+    const middlePrice = calcPriceFromTick({ tick: middleTick, tokenA, tokenB });
+    if (middlePrice.toDecimalMinUnit(5) === searchPriceFixed5) {
+      sameTick = middleTick;
+    } else {
+      differentTick = middleTick;
+    }
   }
-  return nextOrPreTickPrice;
+  return calcPriceFromTick({ tick: differentTick, tokenA, tokenB, fee });
 };
 
 export const invertPrice = (price: Unit | string | number | undefined) => {

@@ -10,8 +10,8 @@ import Spin from '@components/Spin';
 import Address from '@modules/Address';
 import { disconnect } from '@service/account';
 import { useHistory } from '@service/history';
-import { ReactComponent as CopyIcon } from '@assets/icons/copy.svg';
-import { ReactComponent as ShareIcon } from '@assets/icons/share.svg';
+import CopyIcon from '@assets/icons/copy.svg?react';
+import ShareIcon from '@assets/icons/share.svg?react';
 import History from './History';
 
 const DetailContent: React.FC<{ account: string }> = ({ account }) => {
