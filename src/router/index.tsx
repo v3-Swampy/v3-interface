@@ -100,8 +100,8 @@ const AppRouter: React.FC = () => {
             <Route path="/points/*" element={<Navigate to="/points/leader-board/w-rank" replace />} />
             <Route path="/points/" element={<Navigate to="/points/leader-board/w-rank" replace />} />
           </Route>
-          <Route path="*" element={<Navigate to="swap" />} />
-          <Route path="/" element={<Navigate to="swap" />} />
+          <Route path="*" element={<Navigate to="/swap" />} />
+          <Route path="/" element={<Navigate to="/swap" />} />
         </Route>
       </Routes>
     </TopLevelErrorBoundary>
