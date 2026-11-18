@@ -1,3 +1,5 @@
+packages:
+  - '.'
 # pnpm 11 reads overrides here. Keep these aligned with package.json for older pnpm versions.
 # This exact router version is already in the existing committed manifest and local lockfile.
 minimumReleaseAgeExclude:
