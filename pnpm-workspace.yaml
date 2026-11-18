@@ -16,6 +16,7 @@ overrides:
   'ethers@5.7.2>@ethersproject/signing-key': 5.8.0
   '@ethersproject/providers@5.8.0>ws': 8.21.3
   'ethers@6.4.0>ws': 8.21.3
+  'ethers@6.4.0>@adraffy/ens-normalize': https://codeload.github.com/ricmoo/ens-normalize.js/tar.gz/2d040533e57e4f25f9a7cc4715e219658ad454b5
   'ethers@6.14.3>ws': 8.21.3
   'viem@2.30.6>ws': 8.21.3
   '@uniswap/swap-router-contracts@1.3.0>@openzeppelin/contracts': '-'
